@@ -1,0 +1,18 @@
+<h2>{{ judul }}</h2>
+
+{% for hari_key, hari in data.items() %}
+<hr>
+<h3>Hari / Tanggal: {{ hari.tanggal }}</h3>
+
+{% for misa_key, misa in hari.misa.items() %}
+<h4>Misa {{ loop.index }} – Jam {{ misa.jam }}</h4>
+<ul>
+{% for k, v in misa.items() %}
+  {% if k != 'jam' %}
+  <li>{{ k }} : {{ v }}</li>
+  {% endif %}
+{% endfor %}
+</ul>
+{% endfor %}
+{% endfor %}
+

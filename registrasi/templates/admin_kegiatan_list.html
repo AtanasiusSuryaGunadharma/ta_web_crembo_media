@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Manajemen Kegiatan</h2>
+
+<div style="margin:12px 0;">
+  <a href="{{ url_for('admin_kegiatan_form') }}" style="margin-right:10px;">+ Tambah Kegiatan</a>
+</div>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse;">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Judul</th>
+      <th>Misa ke-</th>
+      <th>Tanggal</th>
+      <th>Status</th>
+      <th>Updated</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  {% if rows and rows|length > 0 %}
+    {% for row in rows %}
+      <tr>
+        <td>{{ row['id'] if row is mapping else row.id }}</td>
+        <td>{{ row['judul'] if row is mapping else row.judul }}</td>
+
+        <td>
+          {% set mk = (row['misa_ke'] if row is mapping else (row.misa_ke if row.misa_ke is defined else None)) %}
+          {% if mk %}
+            Misa ke-{{ mk }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <td>{{ row['tanggal'] if row is mapping else row.tanggal }}</td>
+        <td>{{ row['status'] if row is mapping else row.status }}</td>
+        <td>{{ row['updated_at'] if row is mapping else (row.updated_at if row.updated_at is defined else row.updated) }}</td>
+
+        <td>
+          <!-- EDIT -->
+          <a href="{{ url_for('admin_kegiatan_form', kegiatan_id=(row['id'] if row is mapping else row.id)) }}">
+            Lihat/Edit
+          </a>
+
+          <!-- DELETE (SOFT DELETE) -->
+          <form action="{{ url_for('admin_kegiatan_delete', kegiatan_id=(row['id'] if row is mapping else row.id)) }}"
+                method="post"
+                style="display:inline;"
+                onsubmit="return confirm('Hapus kegiatan ini dari daftar admin?');">
+            <button type="submit" style="margin-left:6px;">Hapus</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  {% else %}
+      <tr><td colspan="7">Belum ada data kegiatan.</td></tr>
+  {% endif %}
+
+  </tbody>
+</table>
+
+{% endblock %}
+

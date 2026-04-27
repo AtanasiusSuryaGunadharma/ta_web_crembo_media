@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daftar Admin</title>
+    <style>
+	  body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 48%;
+        }
+
+        th, td {
+            border: 1px solid #999; /* Garis tabel tipis */
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #ddd; /* Warna grey untuk header */
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9; /* Warna selang-seling untuk baris */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+	.logo {
+        width: 150px;
+        height: auto;
+        margin: 0 auto 20px;
+    }
+    .logo img {
+        width: 100%;
+        max-width: 150px;
+        height: auto;
+    }
+
+    </style>
+</head>
+<body>
+	 <div class="logo">
+        <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Logo">
+    </div>
+
+    <h2>Daftar Admin</h2>
+     <div class="nav-links">
+        <a href="{{ url_for('admin_dashboard') }}">Kembali ke Dashboard</a>
+        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    </div>
+    <table>
+        <tr>
+            <th><b>No</b></th>
+            <th><b>Username</b></th>
+            <th><b>Password</b></th>
+        </tr>
+	{% for admin in admins %}
+        <tr>
+	    <td>{{ loop.index }}</td>
+            <td>{{ admin.username }}</td>
+            <td>{{ admin.password }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pengumuman Jadwal Petugas</title>
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      background: #f5f5f5;
+      color: #111;
+    }
+    .card{
+      background: #fff;
+      padding: 22px;
+      max-width: 980px;
+      margin: auto;
+      border-radius: 10px;
+      border: 1px solid #e5e5e5;
+    }
+    h2{
+      text-align:center;
+      margin: 0 0 8px 0;
+      font-size: 22px;
+    }
+    .meta{
+      text-align:center;
+      color:#444;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+    .meta .line{
+      margin: 4px 0;
+    }
+
+    .misa-container{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 800px){
+      .misa-container{ grid-template-columns: 1fr; }
+    }
+
+    .misa{
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff;
+    }
+    .misa h3{
+      text-align:center;
+      margin: 0 0 6px 0;
+      font-size: 18px;
+    }
+    .pukul{
+      text-align:center;
+      font-weight: bold;
+      margin: 0 0 14px 0;
+      color:#222;
+    }
+
+    .row{
+      display:flex;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px dashed #eee;
+      align-items: baseline;
+    }
+    .row:last-child{
+      border-bottom: none;
+    }
+    .label{
+      width: 130px;
+      font-weight: bold;
+      color:#222;
+      flex: 0 0 auto;
+    }
+    .val{
+      flex: 1 1 auto;
+      text-align: left;
+      color:#111;
+      word-break: break-word;
+    }
+    .empty{
+      color:#999;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h2>Misa / Kegiatan : {{ kegiatan }}</h2>
+
+    <div class="meta">
+      <div class="line"><strong>Tanggal :</strong> {{ tanggal }}</div>
+    </div>
+
+    <div class="misa-container">
+      {% for jam, petugas in tasks.items() %}
+      <div class="misa">
+        <h3>Misa {{ loop.index }}</h3>
+        <div class="pukul">Pukul : {{ jam }}</div>
+
+        <div class="row">
+          <div class="label">Petugas</div>
+          <div class="val"></div>
+        </div>
+
+        <div class="row">
+          <div class="label">PD</div>
+          <div class="val">{{ petugas.get('PD') if petugas.get('PD') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+        <div class="row">
+          <div class="label">OP</div>
+          <div class="val">{{ petugas.get('Operator') if petugas.get('Operator') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Vmix</div>
+          <div class="val">{{ petugas.get('Vmix') if petugas.get('Vmix') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Kamera 1</div>
+          <div class="val">{{ petugas.get('Kamera1') if petugas.get('Kamera1') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Kamera 2</div>
+          <div class="val">{{ petugas.get('Kamera2') if petugas.get('Kamera2') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Supervisor</div>
+          <div class="val">{{ petugas.get('Supervisor') if petugas.get('Supervisor') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Fotografer</div>
+          <div class="val">{{ petugas.get('Fotografer') if petugas.get('Fotografer') else '<span class="empty">-</span>' | safe }}</div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>
+

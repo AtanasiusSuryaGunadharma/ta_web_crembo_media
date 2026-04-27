@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Crembomedia</title>
+	<link rel="icon" type="image/png" href="{{ url_for('static', filename='Logo.png') }}">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding-top: 100px;
+        }
+        h1 {
+            color: #333;
+        }
+        a.button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a.button:hover {
+            background-color: #2980b9;
+        }
+	
+  .logo {
+        width: 150px;
+        height: auto;
+        margin: 0 auto 20px;
+    }
+    .logo img {
+        width: 100%;
+        max-width: 150px;
+        height: auto;
+    }	
+
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Logo">
+    </div>
+    <h1>Selamat Datang di Portal Tugas Streaming CREMBO</h1>
+<center><div id="pengumuman-link-slot"></div></center>
+
+     <a href="{{ url_for('login') }}" class="button">Login Anggota</a> 
+     <a href="{{ url_for('admin_login') }}" class="button">Login Admin</a>
+
+<!-- TAMBAHAN JAVASCRIPT UNTUK DISPLAY -->
+<script>
+(async function(){
+  const slot = document.getElementById('pengumuman-link-slot');
+  if (!slot) return;
+
+  try {
+    const res = await fetch('/api/pengumuman/status', { cache: 'no-store' });
+    const data = await res.json();
+
+    // bersihkan slot dulu
+    slot.innerHTML = '';
+
+    if (!data.active) {
+      // kalau tidak ada yang aktif, slot kosong = link hilang total
+      return;
+    }
+
+    // kalau ada yang aktif, tampilkan 1 link saja
+    const a = document.createElement('a');
+    a.href = data.url || '/pengumuman';
+    a.textContent = 'Pengumuman Jadwal Petugas';
+    a.style.display = 'inline-block';
+    a.style.padding = '10px 14px';
+    a.style.border = '1px solid #ddd';
+    a.style.borderRadius = '12px';
+    a.style.textDecoration = 'none';
+    a.style.fontWeight = '700';
+
+    slot.appendChild(a);
+
+  } catch(e) {
+    // kalau API gagal, jangan bikin landing error. diam saja.
+    console.log('Pengumuman check failed:', e);
+  }
+})();
+</script>
+
+</body>
+</html>

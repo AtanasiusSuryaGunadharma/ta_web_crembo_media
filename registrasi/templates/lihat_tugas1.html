@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Lihat Tugas{% endblock %}
+
+{% block content %}
+<h2>Lihat Daftar Tugas Streaming</h2>
+
+<form method="POST" action="{{ url_for('lihat_tugas') }}">
+    <label for="bulan">Bulan:</label>
+    <select name="bulan" id="bulan" required>
+        {% for i in range(1, 13) %}
+        <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="tahun">Tahun:</label>
+    <input type="text" name="tahun" id="tahun" value="{{ current_year | default('2025') }}" required>
+
+    <input type="submit" value="Lihat Data">
+</form>
+
+{% if data %}
+    <h3>Hasil:</h3>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <tr>
+            <th>Nama</th>
+            <th>Tanggal</th>
+            <th>Jam</th>
+            <th>Posisi</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% endblock %}

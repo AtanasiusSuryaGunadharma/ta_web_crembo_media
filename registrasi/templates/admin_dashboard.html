@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin - CREMBO</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='Logo.png') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding-top: 100px;
+        }
+        h2 {
+            color: #333;
+        }
+        a.button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a.button:hover {
+            background-color: #2980b9;
+        }
+        a.logout {
+            background-color: #e74c3c;
+        }
+        a.logout:hover {
+            background-color: #c0392b;
+        }
+	 }
+
+         .logo {
+        width: 150px;
+        height: auto;
+        margin: 0 auto 20px;
+    }
+    .logo img {
+        width: 100%;
+        max-width: 150px;
+        height: auto;
+    }
+
+    </style>
+</head>
+<body>
+	 <div class="logo">
+        <img src="{{ url_for('static', filename='Logo.png') }}" alt="Logo">
+    </div>
+
+    <h2>Dashboard Admin</h2>
+
+    <a href="{{ url_for('register_admin') }}" class="button">Daftar Admin Baru</a>
+    <a href="{{ url_for('register_anggota_admin') }}" class="button">Daftar Anggota Baru</a>
+     <a href="{{ url_for('daftar_admin') }}" class="button">Lihat Data Admin</a>
+    <a href="{{ url_for('daftar_anggota') }}" class="button">Lihat Data Anggota</>
+    <a href="{{ url_for('admin_form_list') }}" class="btn btn-primary">
+    Kelola Form Tugas
+  </a>
+    <a href="{{ url_for('logout') }}" class="button logout">Logout</a>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

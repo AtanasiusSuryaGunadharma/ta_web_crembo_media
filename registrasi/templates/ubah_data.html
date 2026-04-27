@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ubah Data Anggota</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding-top: 50px;
+        }
+        form {
+            display: inline-block;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        input {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            width: 250px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h2>Ubah Data Anggota</h2>
+    <form method="POST" action="{{ url_for('ubah_data') }}">
+        <input type="text" name="nama" placeholder="Nama Lengkap" value="{{ nama }}" required>
+        <input type="text" name="telp" placeholder="No. Telepon" value="{{ telp }}" required>
+        <input type="password" name="password" placeholder="Password" value="{{ password }}" required>
+        <button type="submit">Simpan Perubahan</button>
+    </form>
+
+    <p><a href="{{ url_for('dashboard') }}">Kembali ke Dashboard</a></p>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

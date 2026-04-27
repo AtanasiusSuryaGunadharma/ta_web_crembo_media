@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar Tugas{% endblock %}
+
+{% block content %}
+<h2>Form Pendaftaran Tugas Streaming</h2>
+
+<form method="POST" action="{{ url_for('register_tugas') }}">
+    <label for="date">Tanggal:</label>
+    <input type="date" name="date" id="date" required style="max-width: 20ch;">
+
+    <label for="time">Jam Tugas:</label>
+    <select name="time" id="time" required style="max-width: 20ch;">
+        <option value="">Pilih jam</option>
+    </select>
+
+    <label for="position">Posisi:</label>
+    <select name="position" id="position" required style="max-width: 20ch;">
+        <option value="Operator">Operator</option>
+        <option value="Kameramen">Kameramen</option>
+        <option value="Supervisor">Supervisor</option>
+    </select>
+
+    <input type="submit" value="Simpan Tugas">
+</form>
+
+<script>
+document.getElementById("date").addEventListener("change", function () {
+    const tanggal = new Date(this.value);
+    const hari = tanggal.getDay(); // 0 = Minggu, 1 = Senin, dst.
+    const timeSelect = document.getElementById("time");
+
+    // Bersihkan dulu opsi lama
+    timeSelect.innerHTML = "";
+
+    if (hari === 0) {
+        // Minggu
+        ["08:00", "10:00", "17:00", "19:00"].forEach(jam => {
+            const opt = document.createElement("option");
+            opt.value = jam;
+            opt.textContent = jam;
+            timeSelect.appendChild(opt);
+        });
+    } else if (hari >= 1 && hari <= 6) {
+        // Senin–Sabtu
+        const opt = document.createElement("option");
+        opt.value = "18:00";
+        opt.textContent = "18:00";
+        timeSelect.appendChild(opt);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,297 @@
+# evaluasi.py
+# Modul evaluasi tugas streaming
+# - Membuat tabel 'evaluasi' (SQLite)
+# - Blueprint Flask: /evaluasi/<token>  (GET form, POST simpan)
+# - Utilitas: generate token evaluasi per tugas, arsip .txt opsional, kirim WA (provider-agnostic)
+#
+# ENV yang dipakai (opsional):
+#   DB_PATH=portal_berita.db
+#   BASE_URL=https://www.crembomedia.com
+#   WABLAS_URL=https://sby.wablas.com/api/send-message   (atau endpoint WA lain)
+#   WABLAS_TOKEN=xxxxx
+#   WABLAS_DEVICE_ID=xxxxx   (kalau API butuh)
+#
+# Cara pakai:
+#   1) Di app.py: from evaluasi import evaluasi_bp, init_db
+#                  init_db()  # sekali saat startup
+#                  app.register_blueprint(evaluasi_bp)
+#
+#   2) Generate token dari kode lain (mis. scheduler):
+#         from evaluasi import ensure_evaluasi_row
+#         token = ensure_evaluasi_row(tanggal="2025-09-01", misa_id="MISA-PAGI", operator_name="Budi")
+#         link = f"{BASE_URL}/evaluasi/{token}"
+#
+#   3) CLI opsional:
+#         python3 evaluasi.py --init-db
+#         python3 evaluasi.py --new-link --tanggal 2025-09-01 --misa-id MISA-PAGI --operator "Budi"
+#         python3 evaluasi.py --send-wa --phone 62812xxxx --message "teks"
+#
+#   4) Opsional arsip .txt: set ENABLE_ARCHIVE_TXT=True di bawah.
+
+import os
+import sqlite3
+import secrets
+import datetime
+from typing import Optional, Dict
+
+try:
+    import requests  # hanya diperlukan bila pakai fungsi send_wa
+except Exception:
+    requests = None
+
+from flask import Blueprint, request, render_template_string, abort
+
+# ===================== Konfigurasi =====================
+DB_PATH = os.environ.get("DB_PATH", "crembo.db")
+BASE_URL = os.environ.get("BASE_URL", "https://crembomedia.com")
+
+WABLAS_URL = os.environ.get("WABLAS_URL", "https://sby.wablas.com/api/send-message")
+WABLAS_TOKEN = os.environ.get("WABLAS_TOKEN", "")
+WABLAS_DEVICE_ID = os.environ.get("WABLAS_DEVICE_ID", "")
+
+ENABLE_ARCHIVE_TXT = False               # ubah ke True kalau ingin arsip .txt
+ARCHIVE_DIR = "/var/log/evaluasi"        # folder arsip .txt
+
+evaluasi_bp = Blueprint("evaluasi", __name__)
+
+# ===================== HTML Form =====================
+
+FORM_HTML = """
+<!doctype html><meta charset="utf-8">
+<title>Evaluasi Tugas</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; max-width: 820px; }
+  h2 { margin-bottom: 4px; }
+  .muted { color: #666; font-size: .92rem; margin-bottom: 14px; }
+  label { font-weight: 600; display:block; margin-top: 12px; }
+  textarea, input[type=text] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  button { margin-top: 18px; padding: 12px 16px; border:0; border-radius:10px; background:#111; color:#fff; cursor:pointer; }
+  button:hover { opacity: .9; }
+  .card { padding: 16px; border: 1px solid #eee; border-radius: 12px; }
+</style>
+
+<div class="card">
+<h2>Form Evaluasi Tugas</h2>
+<p class="muted">
+  Tanggal: <b>{{ tanggal or '-' }}</b> &nbsp;|&nbsp;
+  Misa ID: <b>{{ misa_id or '-' }}</b> &nbsp;|&nbsp;
+  Operator (jadwal): <b>{{ operator or '-' }}</b>
+</p>
+
+<form method="post">
+  <div class="row">
+    <div><label>Operator :</label><input name="operator" type="text" value="{{ operator or '' }}"></div>
+    <div><label>Kamera :</label><input name="kamera" type="text" value="{{ kamera or '' }}"></div>
+  </div>
+
+  <label>Supervisor :</label><input name="supervisor" type="text" value="{{ supervisor or '' }}">
+  <label>Kendala :</label><textarea name="kendala" rows="3"></textarea>
+  <label>Penyelesaian :</label><textarea name="penyelesaian" rows="3"></textarea>
+  <label>Evaluasi Secara Umum :</label><textarea name="evaluasi_umum" rows="3"></textarea>
+
+  <h3>OPREC (Kalau ada)</h3>
+  <div class="row">
+    <div><label>Operator :</label><input name="oprec_operator" type="text"></div>
+    <div><label>Kameramen :</label><input name="oprec_kameramen" type="text"></div>
+  </div>
+  <label>Cara berpakaian :</label><textarea name="cara_berpakaian" rows="2"></textarea>
+  <label>Keterlibatan :</label><textarea name="keterlibatan" rows="2"></textarea>
+  <label>Inisiatif :</label><textarea name="inisiatif" rows="2"></textarea>
+  <label>Evaluasi Secara Umum (OPREC) :</label><textarea name="oprec_evaluasi_umum" rows="3"></textarea>
+
+  <label>Pengisi Evaluasi :</label><input name="pengisi" type="text" required>
+
+  <button type="submit">Kirim Evaluasi</button>
+</form>
+</div>
+"""
+
+SUCCESS_HTML = """
+<!doctype html><meta charset="utf-8">
+<title>Evaluasi Terkirim</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+  a { color: inherit; }
+</style>
+<h3>Terima kasih 🙏</h3>
+<p>Evaluasi sudah tersimpan.</p>
+"""
+
+# ===================== DB Helpers =====================
+
+def db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    """Buat tabel evaluasi jika belum ada."""
+    with db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS evaluasi (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              tanggal TEXT NOT NULL,             -- 'YYYY-MM-DD'
+              misa_id TEXT,
+              start_time TEXT,                   -- 'HH:MM' (opsional)
+              operator TEXT,
+              kamera TEXT,
+              supervisor TEXT,
+              kendala TEXT,
+              penyelesaian TEXT,
+              evaluasi_umum TEXT,
+
+              -- OPREC (opsional)
+              oprec_operator TEXT,
+              oprec_kameramen TEXT,
+              cara_berpakaian TEXT,
+              keterlibatan TEXT,
+              inisiatif TEXT,
+              oprec_evaluasi_umum TEXT,
+
+              pengisi TEXT,
+              token TEXT UNIQUE,                 -- link aman per tugas
+              submitted_at TEXT DEFAULT NULL     -- diisi saat submit
+            );
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_eval_tanggal ON evaluasi(tanggal);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_eval_token   ON evaluasi(token);")
+
+def get_eval_by_token(token: str) -> Optional[sqlite3.Row]:
+    with db() as conn:
+        return conn.execute("SELECT * FROM evaluasi WHERE token=?", (token,)).fetchone()
+
+def ensure_evaluasi_row(tanggal: str, misa_id: str, operator_name: str) -> str:
+    """Pastikan ada row evaluasi utk kombinasi (tanggal, misa_id). Return token."""
+    with db() as conn:
+        row = conn.execute(
+            "SELECT token FROM evaluasi WHERE tanggal=? AND misa_id=?",
+            (tanggal, misa_id)
+        ).fetchone()
+        if row and row["token"]:
+            return row["token"]
+        token = secrets.token_urlsafe(24)
+        conn.execute("""
+            INSERT INTO evaluasi (tanggal, misa_id, operator, token)
+            VALUES (?, ?, ?, ?)
+        """, (tanggal, misa_id, operator_name, token))
+        return token
+
+def save_submission(token: str, form: Dict[str, str]) -> None:
+    fields = [
+        "operator","kamera","supervisor","kendala","penyelesaian","evaluasi_umum",
+        "oprec_operator","oprec_kameramen","cara_berpakaian","keterlibatan","inisiatif","oprec_evaluasi_umum",
+        "pengisi"
+    ]
+    data = {k: (form.get(k, "") or "").strip() for k in fields}
+    with db() as conn:
+        conn.execute(f"""
+            UPDATE evaluasi SET
+              operator=?, kamera=?, supervisor=?,
+              kendala=?, penyelesaian=?, evaluasi_umum=?,
+              oprec_operator=?, oprec_kameramen=?, cara_berpakaian=?, keterlibatan=?, inisiatif=?, oprec_evaluasi_umum=?,
+              pengisi=?, submitted_at=CURRENT_TIMESTAMP
+            WHERE token=?
+        """, (
+            data["operator"], data["kamera"], data["supervisor"],
+            data["kendala"], data["penyelesaian"], data["evaluasi_umum"],
+            data["oprec_operator"], data["oprec_kameramen"], data["cara_berpakaian"], data["keterlibatan"], data["inisiatif"], data["oprec_evaluasi_umum"],
+            data["pengisi"], token
+        ))
+    if ENABLE_ARCHIVE_TXT:
+        archive_to_txt(token)
+
+def archive_to_txt(token: str):
+    """Simpan arsip ke file txt per tanggal."""
+    with db() as conn:
+        row = conn.execute("SELECT * FROM evaluasi WHERE token=?", (token,)).fetchone()
+    if not row:
+        return
+    tanggal = row["tanggal"] or "unknown"
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+    path = os.path.join(ARCHIVE_DIR, f"{tanggal}.txt")
+    # 1 baris ringkas; kalau mau multiline tinggal diperluas
+    line = (
+        f"{row['submitted_at'] or ''} | {row['tanggal']} | {row['misa_id'] or ''} | "
+        f"OP:{row['operator'] or ''} | CAM:{row['kamera'] or ''} | SUP:{row['supervisor'] or ''} | "
+        f"Kendala:{(row['kendala'] or '').replace('|','/')} | Penyelesaian:{(row['penyelesaian'] or '').replace('|','/')} | "
+        f"Eval:{(row['evaluasi_umum'] or '').replace('|','/')} | "
+        f"OPREC(OP:{row['oprec_operator'] or ''}, CAM:{row['oprec_kameramen'] or ''}) | "
+        f"Pakaian:{row['cara_berpakaian'] or ''} | Keterlibatan:{row['keterlibatan'] or ''} | Inisiatif:{row['inisiatif'] or ''} | "
+        f"EvalOPREC:{(row['oprec_evaluasi_umum'] or '').replace('|','/')} | Pengisi:{row['pengisi'] or ''}\n"
+    )
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(line)
+
+# ===================== WhatsApp Helper (opsional) =====================
+
+def send_wa(phone: str, message: str) -> Optional[dict]:
+    """Kirim WA via endpoint yang diset di ENV. Sesuaikan sesuai provider."""
+    if not requests:
+        raise RuntimeError("Modul 'requests' tidak tersedia. Install dulu: pip install requests")
+    if not WABLAS_TOKEN:
+        raise RuntimeError("WABLAS_TOKEN kosong. Set ENV lebih dulu.")
+
+    headers = {"Authorization": WABLAS_TOKEN}
+    data = {"phone": phone, "message": message}
+    # Jika provider butuh device_id:
+    if WABLAS_DEVICE_ID:
+        data["device_id"] = WABLAS_DEVICE_ID
+
+    r = requests.post(WABLAS_URL, headers=headers, data=data, timeout=20)
+    r.raise_for_status()
+    try:
+        return r.json()
+    except Exception:
+        return {"status": "sent", "raw": r.text}
+
+# ===================== Blueprint Routes =====================
+
+@evaluasi_bp.route("/evaluasi/<token>", methods=["GET", "POST"])
+def evaluasi_form(token):
+    row = get_eval_by_token(token)
+    if not row:
+        abort(404, "Token tidak ditemukan. Minta link baru ke admin.")
+
+    if request.method == "POST":
+        save_submission(token, request.form)
+        return SUCCESS_HTML
+
+    # Prefill nilai yang ada
+    ctx = dict(row)
+    return render_template_string(FORM_HTML, **ctx)
+
+# ===================== CLI Opsional =====================
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Evaluasi tugas - utilitas CLI")
+    parser.add_argument("--init-db", action="store_true", help="Buat tabel 'evaluasi' bila belum ada")
+    parser.add_argument("--new-link", action="store_true", help="Generate token & link evaluasi")
+    parser.add_argument("--tanggal", type=str, help="YYYY-MM-DD")
+    parser.add_argument("--misa-id", type=str, help="ID/slug misa")
+    parser.add_argument("--operator", type=str, help="Nama operator jadwal")
+    parser.add_argument("--send-wa", action="store_true", help="Kirim WA")
+    parser.add_argument("--phone", type=str, help="Nomor WA (62xxxx)")
+    parser.add_argument("--message", type=str, help="Isi pesan WA")
+
+    args = parser.parse_args()
+
+    if args.init_db:
+        init_db()
+        print("[OK] Tabel evaluasi siap di", DB_PATH)
+
+    if args.new_link:
+        if not (args.tanggal and args.misa_id and args.operator):
+            parser.error("--new-link butuh --tanggal --misa-id --operator")
+        token = ensure_evaluasi_row(args.tanggal, args.misa_id, args.operator)
+        link = f"{BASE_URL}/evaluasi/{token}"
+        print("Token :", token)
+        print("Link  :", link)
+
+    if args.send_wa:
+        if not (args.phone and args.message):
+            parser.error("--send-wa butuh --phone dan --message")
+        resp = send_wa(args.phone, args.message)
+        print("WA Resp:", resp)

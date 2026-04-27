@@ -1,0 +1,110 @@
+\<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Pendaftaran Tugas Streaming{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <div class="header-container">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='Logow.png') }}" alt="Logo" class="logo">
+        </div>
+         <div class="header-right">
+            <h1 class="judul-besar">CREW Multimedia Baciro</h1>
+            <p class="alamat">Jalan Melati Wetan 47 Baciro Gondokusuman  Yogyakarta</p>
+        </div>
+    </div>
+    <hr>
+<nav class="nav-bar">
+    <div class="nav-container">
+	<div class="nav-left">
+		  {% if session.get('username') %}
+                <!--  <div class="user-info"><b> Hi, {{ nama }}</b></div> -->
+        <div class="user-info"><b> Hi, <a href="{{ url_for('profil') }}">{{ nama }}</a></b></div>  
+                 {% endif %}
+	</div>
+        <div class="nav-center">
+        <ul class="menu">
+            {% if session.get('username') %}
+                {% if session.get('role') == 'admin' %}
+		     <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+<!--                     <li><a href="{{ url_for('lihat_tugas') }}">Petugas Streaming</a></li> -->
+                     <li><a href="#">Tentang CREMBO</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+		    <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+                   <!-- <li><a href="{{ url_for('lihat_tugas') }}">Petugas Streaming</a></li> -->
+                    <li><a href="#">Tentang CREMBO</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% endif %}
+            {% else %}
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('lihat_tugas') }}">Petugas Streaming</a></li>
+                <li><a href="#">Tentang CREMBO</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+            {% endif %}
+        </ul>
+        </div>
+        <div class="nav-right">
+	<!--	{% if session.get('username') %} -->
+		<div class="user-info">{{ hari_ini }}</div>
+	<!--	 {% endif %}  -->
+
+	</div>
+    </div>
+
+</nav>
+<hr>
+</header>
+<main>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div class="{% if session.get('username') %}dashboard-container{% else %}non-dashboard{% endif %}">
+        {% if session.get('username') %}
+        <div class="sidebar">
+            <div class="sidedashboard">
+                <h3>
+                    {% if session['role'] == 'admin' %}
+                        Dashboard Admin
+                    {% else %}
+                        Dashboard User
+                    {% endif %}
+                </h3>
+            </div>
+            <ul>
+                {% if session['role'] == 'admin' %}
+                    <li><a href="{{ url_for('ubah_role') }}">Daftar Anggota</a></li><hr>
+                    <li><a href="{{ url_for('lihat_tugas') }}">Jadwal Tugas Streaming</a></li><hr>
+                    <li><a href="{{ url_for('register_tugas') }}">Registrasi Tugas</a></li><hr>
+                    <li><a href="#">Template</a></li><hr>
+                    <li><a href="#">Berita</a></li><hr>
+                {% else %}
+                    <li><a href="{{ url_for('lihat_tugas') }}">Jadwal Tugas Streaming</a></li><hr>
+                    <li><a href="{{ url_for('register_tugas') }}">Registrasi Tugas</a></li><hr>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="dashboard-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</main>
+
+    <footer>
+        <hr>
+        <p style="text-align: center;">&copy; 2025 CREW Multimedia Baciro</p>
+    </footer>
+</body>
+</html>

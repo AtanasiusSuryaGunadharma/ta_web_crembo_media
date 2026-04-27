@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Form Registrasi Tugas Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h2, h3 {
+            text-align: center;
+        }
+        form {
+            margin-bottom: 30px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .wide {
+            width: 20%;
+        }
+        .flash-message {
+            text-align: center;
+            color: green;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        function updateTimeOptions() {
+            var dateInput = document.getElementById("date").value;
+            var timeSelect = document.getElementById("time");
+
+            timeSelect.innerHTML = '<option value="">Pilih Jam</option>'; // Reset default
+
+            if (dateInput) {
+                var date = new Date(dateInput);
+                var day = date.getDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+
+                if (day === 0) { // Hari Minggu
+                    var sundayTimes = ["08:00", "10:00", "17:00", "19:00"];
+                    sundayTimes.forEach(function(time) {
+                        var option = document.createElement("option");
+                        option.value = time;
+                        option.text = time;
+                        timeSelect.add(option);
+                    });
+                } else { // Hari Senin sampai Sabtu
+                    var option = document.createElement("option");
+                    option.value = "18:00";
+                    option.text = "18:00";
+                    timeSelect.add(option);
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Form Registrasi Tugas Streaming</h2>
+
+    <p><center>
+        <a href="{{ url_for('dashboard') }}">Kembali ke Dashboard</a> | 
+        <a href="{{ url_for('logout') }}">Log Out</a>
+    </center></p>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-message">
+                {% for message in messages %}
+                    {{ message }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/register">
+        <label>Tanggal:</label>
+        <input type="date" name="date" id="date" onchange="updateTimeOptions()" required>
+
+        <label>Jam:</label>
+        <select name="time" id="time" required>
+            <option value="">Pilih Jam</option>
+        </select>
+
+        <label>Posisi:</label>
+        <select name="position" required>
+            <option value="Operator">Operator</option>
+            <option value="Kameramen">Kameramen</option>
+            <option value="Supervisor">Supervisor</option>
+        </select>
+
+        <button type="submit">Daftar</button>
+    </form>
+
+    <h3>Data Tugas Streaming</h3>
+    <table>
+        <tr>
+            <th>No</th>
+            <th>Tanggal</th>
+            <th>Jam</th>
+            <th class="wide">Operator</th>
+            <th class="wide">Kameramen</th>
+            <th class="wide">Supervisor</th>
+        </tr>
+        {% for idx, item in data %}
+            {% for time, positions in item['tasks'].items() %}
+            <tr>
+                {% if loop.first %}
+                <td rowspan="{{ item['tasks']|length }}">{{ idx }}</td>
+                <td rowspan="{{ item['tasks']|length }}">{{ item['date'] }}</td>
+                {% endif %}
+                <td>{{ time }}</td>
+                <td class="wide">{{ positions['Operator'] }}</td>
+                <td class="wide">{{ positions['Kameramen'] }}</td>
+                <td class="wide">{{ positions['Supervisor'] }}</td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+</body>
+</html>
