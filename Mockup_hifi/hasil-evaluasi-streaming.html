@@ -1,0 +1,2400 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hasil Evaluasi Streaming - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 700;
+      color: #1c1f27;
+      letter-spacing: 0.01em;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #6b7280;
+      background: #ffffff;
+      color: #374151;
+      text-decoration: none;
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.85rem;
+      color: #4b4b4b;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .summary-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 8px;
+    }
+
+    .summary-item {
+      border: 1px solid #bdbdbd;
+      background: #fafafa;
+      padding: 10px;
+    }
+
+    .summary-item p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #575757;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.15rem;
+    }
+
+    .ai-panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .ai-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ai-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .ai-head-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-toggle-btn {
+      border: 1px solid #b9bcc3;
+      background: #ffffff;
+      color: #1f2937;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ai-toggle-btn:hover {
+      background: #f3f4f6;
+    }
+
+    .ai-chip {
+      border: 1px solid #b7b7b7;
+      background: #eef2ff;
+      color: #4338ca;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .ai-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .ai-body[hidden] {
+      display: none;
+    }
+
+    .ai-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .ai-kpi {
+      border: 1px solid #c8c8c8;
+      background: #fafafa;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .ai-kpi p {
+      margin: 0;
+      font-size: 0.78rem;
+      color: #5b5b5b;
+    }
+
+    .ai-kpi strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .ai-text-block {
+      border: 1px solid #d2d2d2;
+      background: #fcfcfc;
+      border-radius: 10px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .ai-text-block h3 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .ai-text-block p {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #4b5563;
+      line-height: 1.4;
+    }
+
+    .ai-insight-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .ai-insight-box {
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #d4d4d4;
+      background: #fafafa;
+    }
+
+    .ai-insight-box h4 {
+      margin: 0 0 6px;
+      font-size: 0.88rem;
+    }
+
+    .ai-insight-box ul {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 0.82rem;
+      color: #374151;
+      display: grid;
+      gap: 4px;
+    }
+
+    .ai-insight-box.good {
+      background: #f1fbf4;
+      border-color: #bde3c7;
+    }
+
+    .ai-insight-box.warn {
+      background: #fff4f4;
+      border-color: #f1cccc;
+    }
+
+    .ai-chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .ai-chart {
+      border: 1px solid #d2d2d2;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .ai-chart h4 {
+      margin: 0 0 8px;
+      font-size: 0.86rem;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 220px 1fr 54px;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.76rem;
+      color: #4b5563;
+    }
+
+    .bar-track {
+      height: 9px;
+      background: #ececec;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+      border-radius: 999px;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .table-scroll {
+      border: 1px solid #c5c5c5;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .table-scroll table {
+      min-width: 980px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #efefef;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .empty-note {
+      margin: 10px 0 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    .pending-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .pending-item {
+      border: 1px solid #c2c2c2;
+      background: #fafafa;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .pending-item h4 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .pending-item p {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #575757;
+    }
+
+    .tag-overdue {
+      display: inline-block;
+      width: fit-content;
+      border: 1px solid #bb9a62;
+      background: #fff8ea;
+      padding: 3px 8px;
+      font-size: 0.77rem;
+      border-radius: 999px;
+    }
+
+    .detail-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.42);
+    }
+
+    .detail-modal[hidden] {
+      display: none;
+    }
+
+    .detail-dialog {
+      width: min(980px, 95vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #d0d0d0;
+      background: #f6f6f6;
+    }
+
+    .detail-head h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .detail-close {
+      border: 1px solid #b7b7b7;
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .detail-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .detail-card {
+      border: 1px solid #d0d0d0;
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 10px;
+    }
+
+    .detail-card h4 {
+      margin: 0 0 6px;
+      font-size: 0.86rem;
+    }
+
+    .detail-card p {
+      margin: 0;
+      font-size: 0.83rem;
+      color: #4b5563;
+      line-height: 1.4;
+    }
+
+    .staff-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .staff-table th,
+    .staff-table td {
+      border: 1px solid #d2d2d2;
+      padding: 7px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .staff-table th {
+      background: #f1f1f1;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+    }
+
+    .check-pill {
+      display: inline-block;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 0.76rem;
+      border: 1px solid #c4c4c4;
+      background: #f6f6f6;
+      color: #3f3f3f;
+    }
+
+    .check-pill.ok {
+      border-color: #91c89c;
+      background: #ecf8ef;
+      color: #235c2d;
+    }
+
+    .table-action-wrap {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .dynamic-answer-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      font-size: 0.83rem;
+      color: #374151;
+    }
+
+    .btn-ghost {
+      border: 1px solid #9ca3af;
+      border-radius: 9px;
+      background: #fff;
+      color: #1f2937;
+      font-weight: 700;
+      padding: 7px 10px;
+      font-size: 0.79rem;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1080px) {
+      .toolbar-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+      }
+
+      .ai-kpi-grid,
+      .ai-insight-grid,
+      .ai-chart-grid,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 170px 1fr 54px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .toolbar-grid,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+
+      .table-action-wrap {
+        flex-direction: column;
+      }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Laporan evaluasi streaming (admin)</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Tugas Streaming <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
+          <a class="menu-link" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
+          <a class="menu-link" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
+          <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
+          <a class="menu-link" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
+          <a class="menu-link active" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header hasil evaluasi streaming">
+        <h1>Hasil Evaluasi Streaming</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="meta-header" style="border: 1px solid #cfcfcf; background: #f3f3f3; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+        <div>
+          <p style="margin: 0; color: #4b5563; font-size: 0.86rem;">Hanya untuk admin panel: filter jenis misa, periode, export, dan monitoring misa terlewat yang belum diisi.</p>
+        </div>
+        <span class="chip" id="activeFilterChip">Filter: Semua</span>
+      </section>
+
+      <section class="toolbar" aria-label="Filter hasil evaluasi">
+        <div class="toolbar-grid">
+          <div class="field">
+            <label for="resultTypeFilter">Filter Jenis Misa</label>
+            <select id="resultTypeFilter">
+              <option value="all">Semua Jenis</option>
+              <option value="Biasa">Misa Biasa</option>
+              <option value="Hari Raya">Misa Hari Raya</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="periodScaleFilter">Skala Periode</label>
+            <select id="periodScaleFilter">
+              <option value="week">Per Minggu</option>
+              <option value="month">Per Bulan</option>
+              <option value="year">Per Tahun</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="periodWeekInput">Pilih Periode</label>
+            <input id="periodWeekInput" type="week">
+            <input id="periodMonthInput" type="month" hidden>
+            <input id="periodYearInput" type="number" min="2000" max="2100" step="1" hidden>
+          </div>
+
+          <div class="field">
+            <label for="evaluationSort">Urutan Evaluasi Masuk</label>
+            <select id="evaluationSort">
+              <option value="oldest">Terlama ke Terbaru</option>
+              <option value="newest">Terbaru ke Terlama</option>
+            </select>
+          </div>
+
+          <div class="result-actions">
+            <button id="downloadEvalExcelBtn" class="btn" type="button">Download Excel</button>
+            <button id="downloadEvalPdfBtn" class="btn" type="button">Download PDF</button>
+          </div>
+        </div>
+
+        <div class="summary-grid" id="evaluationSummary"></div>
+      </section>
+
+      <section class="ai-panel" aria-label="Ringkasan otomatis AI hasil evaluasi">
+        <header class="ai-head">
+          <h2>Ringkasan Otomatis Hasil Evaluasi</h2>
+          <div class="ai-head-actions">
+            <span class="ai-chip">Auto Insight</span>
+            <button class="ai-toggle-btn" id="toggleAiSummaryBtn" type="button" aria-expanded="false">Tampilkan Ringkasan</button>
+          </div>
+        </header>
+        <div class="ai-body" id="aiSummaryBody" hidden>
+          <div class="ai-kpi-grid" id="aiKpiGrid"></div>
+          <article class="ai-text-block">
+            <h3>Insight Utama</h3>
+            <p id="aiInsightText">Analisis otomatis akan muncul setelah data evaluasi ditemukan.</p>
+          </article>
+          <article class="ai-text-block">
+            <h3>Rekomendasi Tindak Lanjut</h3>
+            <p id="aiRecommendationText">Belum ada rekomendasi karena data evaluasi belum tersedia.</p>
+          </article>
+          <div class="ai-insight-grid">
+            <article class="ai-insight-box good">
+              <h4>Aspek Terkuat</h4>
+              <ul id="aiStrengthList"></ul>
+            </article>
+            <article class="ai-insight-box warn">
+              <h4>Aspek Prioritas Perbaikan</h4>
+              <ul id="aiPriorityList"></ul>
+            </article>
+          </div>
+          <div class="ai-chart-grid">
+            <article class="ai-chart">
+              <h4>Distribusi Penilaian Per Petugas</h4>
+              <div class="bar-list" id="aiLikertBars"></div>
+            </article>
+            <article class="ai-chart">
+              <h4>Ringkasan Atribut Form Evaluasi</h4>
+              <div class="bar-list" id="aiQuestionBars"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Tabel evaluasi masuk">
+        <header class="panel-head">
+          <h2>Evaluasi Sudah Masuk</h2>
+        </header>
+        <div class="panel-body">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Jam</th>
+                  <th>Jenis Misa</th>
+                  <th>Penilaian General</th>
+                  <th>Judul Misa</th>
+                  <th>Petugas Bertugas</th>
+                  <th>Pengisi Evaluasi</th>
+                  <th>Waktu Submit</th>
+                  <th>Catatan Penutup</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="completedEvalRows"></tbody>
+            </table>
+          </div>
+          <p id="completedEvalEmpty" class="empty-note" hidden>Belum ada evaluasi yang sesuai filter.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Daftar misa terlewat belum diisi">
+        <header class="panel-head">
+          <h2>Misa Terlewat Yang Belum Diisi</h2>
+        </header>
+        <div class="panel-body">
+          <div id="pendingEvalList" class="pending-grid"></div>
+          <p id="pendingEvalEmpty" class="empty-note" hidden>Tidak ada misa terlewat yang belum diisi untuk filter ini.</p>
+        </div>
+      </section>
+
+      <section id="evaluationDetailModal" class="detail-modal" hidden aria-label="Detail evaluasi streaming" aria-modal="true" role="dialog">
+        <article class="detail-dialog">
+          <header class="detail-head">
+            <h3>Detail Evaluasi Streaming</h3>
+            <button id="closeEvaluationDetailBtn" class="detail-close" type="button">Tutup</button>
+          </header>
+          <div id="evaluationDetailBody" class="detail-body"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "crembo-evaluasi-streaming";
+    const STORAGE_SEED_KEY = "crembo-evaluasi-streaming-seed-version";
+    const QUESTION_CONFIG_KEY = "crembo-evaluasi-question-config";
+    const DUMMY_SEED_VERSION = "v5";
+    const RATING_SCORE_MAP = {
+      "Sangat Baik": 4,
+      "Baik": 3,
+      "Cukup": 2,
+      "Perlu Pendampingan": 1
+    };
+    const DEFAULT_QUESTION_CONFIG = [
+      {
+        id: "kesan-pelayanan",
+        label: "Apa kesan umum pelayanan streaming pada misa ini?",
+        type: "single_choice",
+        required: true,
+        helpText: "Pilih satu penilaian umum.",
+        options: ["Sangat Baik", "Baik", "Cukup", "Perlu Pendampingan"]
+      },
+      {
+        id: "hal-terbaik",
+        label: "Bagian mana yang sudah paling baik?",
+        type: "long_text",
+        required: false,
+        helpText: "Contoh: alur kamera, audio, koordinasi.",
+        options: []
+      }
+    ];
+
+    const DUMMY_EVALUATIONS = {
+      "normal-2026-04-08-1800": {
+        date: "2026-04-08",
+        time: "18:00",
+        misaType: "Biasa",
+        operator: "Nadia",
+        camera: "Riko",
+        supervisor: "Tama",
+        evaluatorName: "Stefani",
+        evaluatorRole: "Admin Streaming",
+        submittedAt: "2026-04-08T20:14:00",
+        technicalIssue: "Audio ambience sedikit terlalu tinggi saat pembuka.",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Koordinasi operator dan camera person rapi dari awal sampai akhir."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Nadia", rating: "Baik", note: "Switching antar scene stabil." },
+          { name: "Riko", rating: "Baik", note: "Komposisi frame altar konsisten." },
+          { name: "Tama", rating: "Sangat Baik", note: "Briefing awal jelas dan efektif." }
+        ],
+        finalNote: "Secara umum siaran berjalan lancar, cukup tingkatkan balancing ambience di awal misa.",
+        questionScores: [4, 4, 4, 4]
+      },
+      "normal-2026-04-09-1800": {
+        date: "2026-04-09",
+        time: "18:00",
+        misaType: "Biasa",
+        generalAssessment: "Kendala Ringan",
+        operator: "Lisa",
+        camera: "Evan",
+        supervisor: "Jose",
+        evaluatorName: "Krisna",
+        evaluatorRole: "Koordinator Multimedia",
+        submittedAt: "2026-04-09T19:51:00",
+        technicalIssue: "",
+        liturgyIssue: "Perubahan urutan petugas bacaan di menit akhir.",
+        checklist: { stream: true, coordination: false, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Cukup"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Respon tim pada perubahan rundown cukup cepat."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Lisa", rating: "Baik", note: "Alur transisi cukup aman." },
+          { name: "Evan", rating: "Cukup", note: "Perlu antisipasi shot saat perubahan mendadak." },
+          { name: "Jose", rating: "Baik", note: "Koordinasi cukup baik, perlu percepatan info liturgi." }
+        ],
+        finalNote: "Kualitas siaran baik, tetapi sinkronisasi dengan perubahan liturgi masih perlu ditingkatkan.",
+        questionScores: [3, 3, 4, 3]
+      },
+      "raya-2026-04-05-0800": {
+        date: "2026-04-05",
+        time: "08:00",
+        misaType: "Hari Raya",
+        operator: "Rossa",
+        camera: "Aurel",
+        supervisor: "Asha",
+        evaluatorName: "Maria",
+        evaluatorRole: "Panitia Misa Besar",
+        submittedAt: "2026-04-05T11:03:00",
+        technicalIssue: "",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Sangat Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Komunikasi antar tim dan backup audio sangat siap saat misa ramai."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Rossa", rating: "Sangat Baik", note: "Kontrol live stabil sepanjang misa." },
+          { name: "Aurel", rating: "Baik", note: "Framing liturgi utama akurat." },
+          { name: "Asha", rating: "Sangat Baik", note: "Koordinasi lintas petugas sangat rapi." }
+        ],
+        finalNote: "Misa padat tetap tertangani dengan baik, kualitas live stabil sampai penutup.",
+        questionScores: [5, 5, 4, 5]
+      },
+      "normal-2026-03-27-1800": {
+        date: "2026-03-27",
+        time: "18:00",
+        misaType: "Biasa",
+        operator: "Rikha",
+        camera: "Jeni",
+        supervisor: "Tyas",
+        evaluatorName: "Andreas",
+        evaluatorRole: "Koordinator Liturgi",
+        submittedAt: "2026-03-27T20:02:00",
+        technicalIssue: "",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Koordinasi operator dan supervisor sangat stabil."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Rikha", rating: "Baik", note: "Konsisten menjaga alur live." },
+          { name: "Jeni", rating: "Sangat Baik", note: "Framing stabil saat homili." },
+          { name: "Tyas", rating: "Baik", note: "Koordinasi tim berjalan rapi." }
+        ],
+        finalNote: "Alur siaran stabil, transisi kamera aman, audio homili sudah jelas.",
+        questionScores: [4, 4, 4, 4]
+      },
+      "normal-2026-03-28-1800": {
+        date: "2026-03-28",
+        time: "18:00",
+        misaType: "Biasa",
+        operator: "Lisa",
+        camera: "Evan",
+        supervisor: "Jose",
+        evaluatorName: "Marta",
+        evaluatorRole: "Admin Streaming",
+        submittedAt: "2026-03-28T19:45:00",
+        technicalIssue: "Audio sempat peak saat lagu pembuka.",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: false, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Cukup"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Visual kamera utama cukup konsisten."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Lisa", rating: "Baik", note: "Switching cukup aman." },
+          { name: "Evan", rating: "Cukup", note: "Perlu antisipasi zoom mendadak." },
+          { name: "Jose", rating: "Baik", note: "Briefing sudah jelas." }
+        ],
+        finalNote: "Visual baik, namun komunikasi antar petugas masih perlu dipercepat saat perpindahan sesi.",
+        questionScores: [4, 3, 3, 4]
+      },
+      "normal-2026-03-26-1800": {
+        date: "2026-03-26",
+        time: "18:00",
+        misaType: "Biasa",
+        generalAssessment: "Kendala Serius (Urgent)",
+        operator: "Reno",
+        camera: "Mika",
+        supervisor: "Tara",
+        evaluatorName: "Yosef",
+        evaluatorRole: "Seksi Liturgi",
+        submittedAt: "2026-03-26T20:01:00",
+        technicalIssue: "Koneksi encoder drop singkat 1 kali.",
+        liturgyIssue: "Perubahan urutan petugas bacaan di menit akhir.",
+        checklist: { stream: true, coordination: false, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Cukup"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Respon tim saat gangguan cukup cepat."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Reno", rating: "Cukup", note: "Respon gangguan cukup cepat." },
+          { name: "Mika", rating: "Cukup", note: "Butuh variasi shot lebih rapi." },
+          { name: "Tara", rating: "Baik", note: "Koordinasi setelah gangguan cukup baik." }
+        ],
+        finalNote: "Sinkronisasi antar kamera cukup rapi, tetapi tempo perpindahan scene pembuka masih terlambat.",
+        questionScores: [3, 3, 3, 4]
+      },
+      "normal-2026-03-25-1800": {
+        date: "2026-03-25",
+        time: "18:00",
+        misaType: "Biasa",
+        operator: "Rina",
+        camera: "Dimas",
+        supervisor: "Ari",
+        evaluatorName: "Felix",
+        evaluatorRole: "Admin Multimedia",
+        submittedAt: "2026-03-25T19:38:00",
+        technicalIssue: "Clipping audio ketika lagu penutup.",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: false },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Rundown tetap terjaga sampai penutup."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Rina", rating: "Baik", note: "Rundown terjaga." },
+          { name: "Dimas", rating: "Cukup", note: "Arah kamera perlu lebih tenang." },
+          { name: "Ari", rating: "Baik", note: "Koordinasi antar petugas cukup stabil." }
+        ],
+        finalNote: "Kualitas visual stabil, audio sempat clipping singkat ketika lagu penutup.",
+        questionScores: [4, 3, 4, 3]
+      },
+      "raya-2026-03-22-0800": {
+        date: "2026-03-22",
+        time: "08:00",
+        misaType: "Hari Raya",
+        operator: "Sella",
+        camera: "Niko",
+        supervisor: "Rafi",
+        evaluatorName: "Dian",
+        evaluatorRole: "Panitia Misa Besar",
+        submittedAt: "2026-03-22T11:12:00",
+        technicalIssue: "",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Sangat Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Koordinasi lintas petugas sangat rapi saat misa padat."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Sella", rating: "Sangat Baik", note: "Kontrol live sangat baik." },
+          { name: "Niko", rating: "Sangat Baik", note: "Shot variety bagus." },
+          { name: "Rafi", rating: "Baik", note: "Koordinasi antar area lancar." }
+        ],
+        finalNote: "Misa padat namun coverage sangat baik, koordinasi floor director dan operator solid.",
+        questionScores: [5, 5, 4, 5]
+      },
+      "raya-2026-03-29-0800": {
+        date: "2026-03-29",
+        time: "08:00",
+        misaType: "Hari Raya",
+        operator: "Rossa",
+        camera: "Aurel",
+        supervisor: "Asha",
+        evaluatorName: "Doni",
+        evaluatorRole: "Tim Dokumentasi",
+        submittedAt: "2026-03-29T10:55:00",
+        technicalIssue: "",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Sangat Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Eksekusi kamera dan backup audio sangat siap."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Rossa", rating: "Sangat Baik", note: "Eksekusi rundown misa raya sangat bagus." },
+          { name: "Aurel", rating: "Baik", note: "Pengambilan gambar liturgi utama tepat." },
+          { name: "Asha", rating: "Sangat Baik", note: "Alur instruksi jelas ke semua petugas." }
+        ],
+        finalNote: "Pelaksanaan sangat baik saat misa ramai, framing dan backup audio berjalan lancar.",
+        questionScores: [5, 4, 4, 5]
+      },
+      "raya-2026-03-29-1700": {
+        date: "2026-03-29",
+        time: "17:00",
+        misaType: "Hari Raya",
+        operator: "Rikha",
+        camera: "Jeni",
+        supervisor: "Tyas",
+        evaluatorName: "Nia",
+        evaluatorRole: "Sekretariat Paroki",
+        submittedAt: "2026-03-29T19:58:00",
+        technicalIssue: "Noise kecil di awal lagu pembuka.",
+        liturgyIssue: "",
+        checklist: { stream: true, coordination: true, archive: true },
+        dynamicAnswers: [
+          {
+            id: "kesan-pelayanan",
+            label: "Apa kesan umum pelayanan streaming pada misa ini?",
+            type: "single_choice",
+            answer: "Baik"
+          },
+          {
+            id: "hal-terbaik",
+            label: "Bagian mana yang sudah paling baik?",
+            type: "long_text",
+            answer: "Framing stabil, hanya perlu antisipasi noise pembuka."
+          }
+        ],
+        staffEvaluations: [
+          { name: "Rikha", rating: "Baik", note: "Transisi rundown aman." },
+          { name: "Jeni", rating: "Baik", note: "Framing tetap stabil." },
+          { name: "Tyas", rating: "Baik", note: "Koordinasi baik, perlu antisipasi awal lagu." }
+        ],
+        finalNote: "Kualitas audio cukup, perlu peningkatan monitoring noise pada bagian awal lagu pembuka.",
+        questionScores: [4, 3, 4, 4]
+      }
+    };
+
+    let currentEvaluations = JSON.parse(JSON.stringify(DUMMY_EVALUATIONS));
+
+    const schedules = [
+      {
+        id: "normal-2026-04-08-1800",
+        date: "2026-04-08",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Rabu Pekan Biasa",
+        team: { operator: "Nadia", camera: "Riko", supervisor: "Tama" }
+      },
+      {
+        id: "normal-2026-04-09-1800",
+        date: "2026-04-09",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Kamis Pekan Biasa",
+        team: { operator: "Lisa", camera: "Evan", supervisor: "Jose" }
+      },
+      {
+        id: "raya-2026-04-05-0800",
+        date: "2026-04-05",
+        time: "08:00",
+        type: "Hari Raya",
+        title: "Minggu Palma - Sesi Pagi Lanjutan",
+        team: { operator: "Rossa", camera: "Aurel", supervisor: "Asha" }
+      },
+      {
+        id: "normal-2026-03-27-1800",
+        date: "2026-03-27",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Jumat Biasa",
+        team: { operator: "Rikha", camera: "Jeni", supervisor: "Tyas" }
+      },
+      {
+        id: "normal-2026-03-28-1800",
+        date: "2026-03-28",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Sabtu Sore",
+        team: { operator: "Lisa", camera: "Evan", supervisor: "Jose" }
+      },
+      {
+        id: "normal-2026-03-26-1800",
+        date: "2026-03-26",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Kamis Biasa",
+        team: { operator: "Reno", camera: "Mika", supervisor: "Tara" }
+      },
+      {
+        id: "normal-2026-03-25-1800",
+        date: "2026-03-25",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Rabu Biasa",
+        team: { operator: "Rina", camera: "Dimas", supervisor: "Ari" }
+      },
+      {
+        id: "raya-2026-03-22-0800",
+        date: "2026-03-22",
+        time: "08:00",
+        type: "Hari Raya",
+        title: "Misa Hari Raya Keluarga - Sesi Pagi",
+        team: { operator: "Sella", camera: "Niko", supervisor: "Rafi" }
+      },
+      {
+        id: "raya-2026-03-29-0800",
+        date: "2026-03-29",
+        time: "08:00",
+        type: "Hari Raya",
+        title: "Minggu Palma - Sesi Pagi",
+        team: { operator: "Rossa", camera: "Aurel", supervisor: "Asha" }
+      },
+      {
+        id: "raya-2026-03-29-1700",
+        date: "2026-03-29",
+        time: "17:00",
+        type: "Hari Raya",
+        title: "Minggu Palma - Sesi Sore",
+        team: { operator: "Rikha", camera: "Jeni", supervisor: "Tyas" }
+      },
+      {
+        id: "normal-2026-03-30-1800",
+        date: "2026-03-30",
+        time: "18:00",
+        type: "Biasa",
+        title: "Misa Senin Biasa",
+        team: { operator: "Lisa", camera: "Evan", supervisor: "Jose" }
+      }
+    ];
+
+    const resultTypeFilter = document.getElementById("resultTypeFilter");
+    const periodScaleFilter = document.getElementById("periodScaleFilter");
+    const periodWeekInput = document.getElementById("periodWeekInput");
+    const periodMonthInput = document.getElementById("periodMonthInput");
+    const periodYearInput = document.getElementById("periodYearInput");
+    const completedEvalRows = document.getElementById("completedEvalRows");
+    const completedEvalEmpty = document.getElementById("completedEvalEmpty");
+    const pendingEvalList = document.getElementById("pendingEvalList");
+    const pendingEvalEmpty = document.getElementById("pendingEvalEmpty");
+    const evaluationSummary = document.getElementById("evaluationSummary");
+    const downloadEvalExcelBtn = document.getElementById("downloadEvalExcelBtn");
+    const downloadEvalPdfBtn = document.getElementById("downloadEvalPdfBtn");
+    const evaluationSort = document.getElementById("evaluationSort");
+    const activeFilterChip = document.getElementById("activeFilterChip");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const aiKpiGrid = document.getElementById("aiKpiGrid");
+    const aiInsightText = document.getElementById("aiInsightText");
+    const aiRecommendationText = document.getElementById("aiRecommendationText");
+    const aiStrengthList = document.getElementById("aiStrengthList");
+    const aiPriorityList = document.getElementById("aiPriorityList");
+    const aiLikertBars = document.getElementById("aiLikertBars");
+    const aiQuestionBars = document.getElementById("aiQuestionBars");
+    const aiSummaryBody = document.getElementById("aiSummaryBody");
+    const toggleAiSummaryBtn = document.getElementById("toggleAiSummaryBtn");
+    const evaluationDetailModal = document.getElementById("evaluationDetailModal");
+    const evaluationDetailBody = document.getElementById("evaluationDetailBody");
+    const closeEvaluationDetailBtn = document.getElementById("closeEvaluationDetailBtn");
+
+    function normalizeQuestionType(type) {
+      const allowed = ["short_text", "long_text", "single_choice", "multi_choice"];
+      return allowed.indexOf(type) !== -1 ? type : "short_text";
+    }
+
+    function normalizeQuestionOptions(options) {
+      if (!Array.isArray(options)) {
+        return [];
+      }
+      const uniq = [];
+      options.forEach(function (item) {
+        const clean = String(item || "").trim();
+        if (!clean) {
+          return;
+        }
+        if (uniq.indexOf(clean) === -1) {
+          uniq.push(clean);
+        }
+      });
+      return uniq;
+    }
+
+    function sanitizeQuestionConfig(items) {
+      if (!Array.isArray(items)) {
+        return [];
+      }
+      return items.map(function (item, index) {
+        const label = String(item && item.label ? item.label : "").trim();
+        const id = String(item && item.id ? item.id : "q-" + (index + 1)).trim();
+        const type = normalizeQuestionType(item && item.type);
+        const options = (type === "single_choice" || type === "multi_choice")
+          ? normalizeQuestionOptions(item && item.options)
+          : [];
+        return {
+          id: id || ("q-" + (index + 1)),
+          label: label || ("Pertanyaan " + (index + 1)),
+          type: type,
+          required: !!(item && item.required),
+          options: options
+        };
+      }).filter(function (item) {
+        return !!item.label;
+      });
+    }
+
+    function readQuestionConfig() {
+      return sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG);
+    }
+
+    function hasMeaningfulAnswer(answer) {
+      if (Array.isArray(answer)) {
+        return answer.length > 0;
+      }
+      return !!String(answer || "").trim();
+    }
+
+    function normalizeDynamicAnswers(rawAnswers, questionConfig) {
+      const config = Array.isArray(questionConfig) ? questionConfig : [];
+      const normalized = [];
+      const rawArray = Array.isArray(rawAnswers)
+        ? rawAnswers
+        : (rawAnswers && typeof rawAnswers === "object"
+          ? Object.keys(rawAnswers).map(function (id) {
+              return { id: id, answer: rawAnswers[id] };
+            })
+          : []);
+
+      const byId = {};
+      const byLabel = {};
+      rawArray.forEach(function (item) {
+        const id = String(item && item.id ? item.id : "").trim();
+        const label = String(item && item.label ? item.label : "").trim();
+        if (id) {
+          byId[id] = item;
+        }
+        if (label) {
+          byLabel[label.toLowerCase()] = item;
+        }
+      });
+
+      config.forEach(function (question) {
+        const fromRaw = byId[question.id] || byLabel[question.label.toLowerCase()] || {};
+        normalized.push({
+          id: question.id,
+          label: question.label,
+          type: question.type,
+          required: !!question.required,
+          options: question.options.slice(),
+          answer: Array.isArray(fromRaw.answer)
+            ? fromRaw.answer.filter(function (item) { return String(item || "").trim(); })
+            : String(fromRaw.answer || "").trim()
+        });
+      });
+
+      rawArray.forEach(function (item) {
+        const id = String(item && item.id ? item.id : "").trim();
+        const label = String(item && item.label ? item.label : "").trim();
+        const exists = normalized.some(function (entry) {
+          if (id && entry.id === id) {
+            return true;
+          }
+          return label && entry.label.toLowerCase() === label.toLowerCase();
+        });
+        if (!exists && (id || label)) {
+          normalized.push({
+            id: id || ("legacy-" + normalized.length),
+            label: label || id,
+            type: normalizeQuestionType(item && item.type),
+            required: !!(item && item.required),
+            options: normalizeQuestionOptions(item && item.options),
+            answer: Array.isArray(item && item.answer)
+              ? item.answer.filter(function (value) { return String(value || "").trim(); })
+              : String(item && item.answer ? item.answer : "").trim()
+          });
+        }
+      });
+
+      return normalized;
+    }
+
+    function readStoredEvaluations() {
+      return currentEvaluations;
+    }
+
+    function renderAiToggleButton() {
+      if (!toggleAiSummaryBtn || !aiSummaryBody) {
+        return;
+      }
+      const expanded = !aiSummaryBody.hidden;
+      toggleAiSummaryBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+      toggleAiSummaryBtn.textContent = expanded ? "Sembunyikan Ringkasan" : "Tampilkan Ringkasan";
+    }
+
+    function toggleAiSummary() {
+      if (!aiSummaryBody) {
+        return;
+      }
+      aiSummaryBody.hidden = !aiSummaryBody.hidden;
+      renderAiToggleButton();
+    }
+
+    function getScheduleById(id) {
+      return schedules.find(function (item) { return item.id === id; });
+    }
+
+    function normalizeName(value) {
+      return String(value || "").trim();
+    }
+
+    function deriveGeneralAssessment(item) {
+      const direct = normalizeName(item && item.generalAssessment);
+      if (direct) {
+        return direct;
+      }
+
+      const technical = normalizeName(item && item.technicalIssue).toLowerCase();
+      const liturgy = normalizeName(item && item.liturgyIssue).toLowerCase();
+      const combined = (technical + " " + liturgy).trim();
+
+      if (!combined) {
+        return "Aman";
+      }
+
+      if (/(urgent|serius|putus|mati|down|drop|gagal)/.test(combined)) {
+        return "Kendala Serius (Urgent)";
+      }
+
+      return "Kendala Ringan";
+    }
+
+    function normalizeStaffList(items) {
+      const unique = [];
+      items.forEach(function (name) {
+        const clean = normalizeName(name);
+        if (!clean) {
+          return;
+        }
+        const exists = unique.some(function (item) {
+          return item.toLowerCase() === clean.toLowerCase();
+        });
+        if (!exists) {
+          unique.push(clean);
+        }
+      });
+      return unique;
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + "T00:00:00");
+      return date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+    }
+
+    function formatDateTime(isoString) {
+      if (!isoString) {
+        return "-";
+      }
+      const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
+    }
+
+    function updateLiveDateTime() {
+      if (!liveDateTime) {
+        return;
+      }
+
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    function getISOWeekValue(dateObj) {
+      const date = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+      const dayNumber = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - dayNumber);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+      return date.getUTCFullYear() + "-W" + String(weekNo).padStart(2, "0");
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function getScheduleDateTime(schedule) {
+      return new Date(schedule.date + "T" + schedule.time + ":00");
+    }
+
+    function getSelectedPeriodValue() {
+      const scale = periodScaleFilter.value;
+      if (scale === "month") {
+        return periodMonthInput.value;
+      }
+      if (scale === "year") {
+        return periodYearInput.value;
+      }
+      return periodWeekInput.value;
+    }
+
+    function matchesTypeFilter(typeValue) {
+      if (resultTypeFilter.value === "all") {
+        return true;
+      }
+      return typeValue === resultTypeFilter.value;
+    }
+
+    function matchesPeriodFilter(dateValue) {
+      const selected = getSelectedPeriodValue();
+      if (!selected) {
+        return true;
+      }
+
+      const date = new Date(dateValue + "T00:00:00");
+      if (Number.isNaN(date.getTime())) {
+        return false;
+      }
+
+      const scale = periodScaleFilter.value;
+      if (scale === "week") {
+        return getISOWeekValue(date) === selected;
+      }
+      if (scale === "month") {
+        return dateValue.slice(0, 7) === selected;
+      }
+      return String(date.getFullYear()) === selected;
+    }
+
+    function getCompletedEvaluations() {
+      const saved = readStoredEvaluations();
+      const questionConfig = readQuestionConfig();
+      const entries = Object.keys(saved).map(function (scheduleId) {
+        const item = saved[scheduleId] || {};
+        const schedule = getScheduleById(scheduleId);
+        const date = item.date || (schedule ? schedule.date : "");
+        const time = item.time || (schedule ? schedule.time : "");
+        const misaType = item.misaType || (schedule ? schedule.type : "-");
+        const title = schedule ? schedule.title : "Jadwal tidak ditemukan";
+        const staff = normalizeStaffList([
+          item.operator,
+          item.camera,
+          item.supervisor
+        ].concat(Array.isArray(item.extraStaff) ? item.extraStaff : []));
+
+        return {
+          scheduleId: scheduleId,
+          date: date,
+          time: time,
+          misaType: misaType,
+          generalAssessment: deriveGeneralAssessment(item),
+          title: title,
+          staff: staff,
+          evaluator: normalizeName(item.evaluatorName),
+          evaluatorRole: normalizeName(item.evaluatorRole),
+          submittedAt: item.submittedAt || "",
+          finalNote: normalizeName(item.finalNote),
+          technicalIssue: normalizeName(item.technicalIssue),
+          liturgyIssue: normalizeName(item.liturgyIssue),
+          checklist: {
+            stream: !!(item.checklist && item.checklist.stream),
+            coordination: !!(item.checklist && item.checklist.coordination),
+            archive: !!(item.checklist && item.checklist.archive)
+          },
+          staffEvaluations: Array.isArray(item.staffEvaluations)
+            ? item.staffEvaluations.map(function (staffEval) {
+                const safeName = normalizeName(staffEval && staffEval.name);
+                return {
+                  name: safeName,
+                  rating: normalizeName(staffEval && staffEval.rating),
+                  note: normalizeName(staffEval && staffEval.note)
+                };
+              }).filter(function (staffEval) {
+                return !!staffEval.name;
+              })
+            : [],
+          dynamicAnswers: normalizeDynamicAnswers(item.dynamicAnswers, questionConfig)
+        };
+      });
+
+      const sortMode = evaluationSort.value;
+      entries.sort(function (a, b) {
+        const aDate = new Date((a.submittedAt || "1970-01-01T00:00:00") + "");
+        const bDate = new Date((b.submittedAt || "1970-01-01T00:00:00") + "");
+        if (sortMode === "oldest") {
+          return aDate.getTime() - bDate.getTime();
+        }
+        return bDate.getTime() - aDate.getTime();
+      });
+
+      return entries.filter(function (item) {
+        return matchesTypeFilter(item.misaType) && matchesPeriodFilter(item.date);
+      });
+    }
+
+    function formatScore(value) {
+      return (Math.round(value * 100) / 100).toFixed(2);
+    }
+
+    function renderAiSummary(completed, pending) {
+      const ratingOrder = ["Sangat Baik", "Baik", "Cukup", "Perlu Pendampingan"];
+      const ratingCounts = {
+        "Sangat Baik": 0,
+        "Baik": 0,
+        "Cukup": 0,
+        "Perlu Pendampingan": 0
+      };
+      const generalCounts = {
+        "Aman": 0,
+        "Kendala Ringan": 0,
+        "Kendala Serius (Urgent)": 0
+      };
+
+      let totalStaffEval = 0;
+      let totalStaffScore = 0;
+      let checklistStream = 0;
+      let checklistCoordination = 0;
+      let checklistArchive = 0;
+      let technicalIssueCount = 0;
+      let liturgyIssueCount = 0;
+      let configuredDynamicCount = 0;
+      let dynamicAnsweredCount = 0;
+
+      const questionConfig = readQuestionConfig();
+      configuredDynamicCount = questionConfig.length;
+
+      completed.forEach(function (item) {
+        const generalLabel = String(item.generalAssessment || "Aman");
+        if (generalCounts[generalLabel] != null) {
+          generalCounts[generalLabel] += 1;
+        } else {
+          generalCounts["Kendala Ringan"] += 1;
+        }
+
+        if (item.checklist.stream) {
+          checklistStream += 1;
+        }
+        if (item.checklist.coordination) {
+          checklistCoordination += 1;
+        }
+        if (item.checklist.archive) {
+          checklistArchive += 1;
+        }
+
+        if (item.technicalIssue) {
+          technicalIssueCount += 1;
+        }
+        if (item.liturgyIssue) {
+          liturgyIssueCount += 1;
+        }
+
+        item.staffEvaluations.forEach(function (staffEval) {
+          const rating = staffEval.rating;
+          const score = RATING_SCORE_MAP[rating];
+          if (!score) {
+            return;
+          }
+          totalStaffEval += 1;
+          totalStaffScore += score;
+          ratingCounts[rating] += 1;
+        });
+
+        if (configuredDynamicCount > 0 && Array.isArray(item.dynamicAnswers)) {
+          item.dynamicAnswers.forEach(function (answerItem) {
+            if (hasMeaningfulAnswer(answerItem.answer)) {
+              dynamicAnsweredCount += 1;
+            }
+          });
+        }
+      });
+
+      const formCount = completed.length;
+      const averageStaffScore = totalStaffEval ? (totalStaffScore / totalStaffEval) : 0;
+      const streamRate = formCount ? Math.round((checklistStream / formCount) * 100) : 0;
+      const coordinationRate = formCount ? Math.round((checklistCoordination / formCount) * 100) : 0;
+      const archiveRate = formCount ? Math.round((checklistArchive / formCount) * 100) : 0;
+      const technicalIssueRate = formCount ? Math.round((technicalIssueCount / formCount) * 100) : 0;
+      const liturgyIssueRate = formCount ? Math.round((liturgyIssueCount / formCount) * 100) : 0;
+      const checklistRate = Math.round((streamRate + coordinationRate + archiveRate) / 3);
+      const generalSafeRate = formCount
+        ? Math.round((generalCounts["Aman"] / formCount) * 100)
+        : 0;
+      const generalUrgentRate = formCount
+        ? Math.round((generalCounts["Kendala Serius (Urgent)"] / formCount) * 100)
+        : 0;
+      const dynamicExpectedCount = formCount * configuredDynamicCount;
+      const dynamicCompletionRate = dynamicExpectedCount
+        ? Math.round((dynamicAnsweredCount / dynamicExpectedCount) * 100)
+        : 0;
+
+      const attributeScores = [
+        { label: "Siaran berjalan sampai akhir", value: streamRate },
+        { label: "Status general streaming aman", value: generalSafeRate },
+        { label: "Koordinasi tim berjalan baik", value: coordinationRate },
+        { label: "Rekaman tersimpan dengan benar", value: archiveRate },
+        { label: "Penilaian petugas", value: Math.round((averageStaffScore / 4) * 100) },
+        { label: "Kendala teknis minim", value: 100 - technicalIssueRate },
+        { label: "Kendala non-teknis minim", value: 100 - liturgyIssueRate }
+      ];
+
+      if (configuredDynamicCount > 0) {
+        attributeScores.push({
+          label: "Kelengkapan jawaban pertanyaan tambahan",
+          value: dynamicCompletionRate
+        });
+      }
+
+      aiKpiGrid.innerHTML =
+        '<article class="ai-kpi"><p>Rata-rata Penilaian Petugas</p><strong>' + formatScore(averageStaffScore) + '/4</strong></article>' +
+        '<article class="ai-kpi"><p>General Streaming Aman</p><strong>' + generalCounts["Aman"] + '/' + formCount + '</strong></article>' +
+        '<article class="ai-kpi"><p>General Urgent</p><strong>' + generalCounts["Kendala Serius (Urgent)"] + ' (' + generalUrgentRate + '%)</strong></article>' +
+        '<article class="ai-kpi"><p>Kepatuhan Checklist Layanan</p><strong>' + checklistRate + '%</strong></article>' +
+        '<article class="ai-kpi"><p>Jawaban Pertanyaan Tambahan</p><strong>' +
+        (configuredDynamicCount > 0 ? (dynamicAnsweredCount + '/' + dynamicExpectedCount) : '-') +
+        '</strong></article>';
+
+      if (!completed.length) {
+        aiInsightText.textContent = "Belum ada evaluasi masuk di periode ini. Setelah evaluasi masuk, sistem akan merangkum kekuatan tim dan prioritas perbaikan secara otomatis.";
+        aiRecommendationText.textContent = "Pastikan evaluasi diisi maksimal 1x24 jam setelah misa agar insight periode ini lebih representatif.";
+        aiStrengthList.innerHTML = "<li>Belum ada data</li>";
+        aiPriorityList.innerHTML = "<li>Belum ada data</li>";
+        aiLikertBars.innerHTML = "";
+        aiQuestionBars.innerHTML = "";
+        return;
+      }
+
+      const rankedByHigh = attributeScores.slice().sort(function (a, b) {
+        return b.value - a.value;
+      });
+      const rankedByLow = attributeScores.slice().sort(function (a, b) {
+        return a.value - b.value;
+      });
+      const strongest = rankedByHigh.slice(0, 2);
+      const priorities = rankedByLow.slice(0, 2);
+
+      const lateRate = (pending.length + completed.length)
+        ? Math.round((pending.length / (pending.length + completed.length)) * 100)
+        : 0;
+
+      aiInsightText.textContent =
+        "Dalam periode terpilih, evaluasi streaming menunjukkan performa " +
+        (averageStaffScore >= 3.5 ? "sangat baik" : averageStaffScore >= 3 ? "baik" : "cukup") +
+        " dengan rata-rata penilaian petugas " + formatScore(averageStaffScore) + "/4. " +
+        "Penilaian general menunjukkan " + generalCounts["Aman"] + " sesi aman, " + generalCounts["Kendala Ringan"] + " sesi kendala ringan, dan " + generalCounts["Kendala Serius (Urgent)"] + " sesi urgent. " +
+        "Aspek paling konsisten ada pada " + strongest[0].label.toLowerCase() +
+        ", sementara " + priorities[0].label.toLowerCase() +
+        " masih terlihat paling bervariasi antar jadwal.";
+
+      aiRecommendationText.textContent =
+        "Fokuskan perbaikan pada " + priorities[0].label.toLowerCase() +
+        " dan " + priorities[1].label.toLowerCase() +
+        ". Targetkan brief 10 menit sebelum misa, validasi checklist layanan per sesi, " +
+        "dan tindak lanjut untuk misa terlewat yang belum dievaluasi (" + lateRate + "% dari total jadwal di filter ini)." +
+        (generalUrgentRate > 0
+          ? (" Prioritaskan SOP eskalasi untuk sesi urgent (" + generalCounts["Kendala Serius (Urgent)"] + " sesi).")
+          : " Pertahankan tren tanpa sesi urgent dengan audit rutin sebelum live.") +
+        (configuredDynamicCount > 0
+          ? (" Pastikan pengisian pertanyaan tambahan konsisten (saat ini " + dynamicCompletionRate + "% terisi).")
+          : "");
+
+      aiStrengthList.innerHTML = strongest.map(function (item) {
+        return "<li>" + escapeHtml(item.label) + " (" + item.value + "%)</li>";
+      }).join("");
+
+      aiPriorityList.innerHTML = priorities.map(function (item) {
+        return "<li>" + escapeHtml(item.label) + " (" + item.value + "%)</li>";
+      }).join("");
+
+      const maxLikert = Math.max.apply(null, ratingOrder.map(function (label) {
+        return ratingCounts[label];
+      }).concat([1]));
+      aiLikertBars.innerHTML = ratingOrder.map(function (label) {
+        const count = ratingCounts[label];
+        const width = Math.round((count / maxLikert) * 100);
+        return '<div class="bar-row">' +
+          '<span>' + escapeHtml(label) + '</span>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div>' +
+          '<strong>' + count + '</strong>' +
+        '</div>';
+      }).join("") +
+      '<div class="bar-row"><span>General - Aman</span><div class="bar-track"><div class="bar-fill" style="width:' + (formCount ? Math.round((generalCounts["Aman"] / formCount) * 100) : 0) + '%"></div></div><strong>' + generalCounts["Aman"] + '</strong></div>' +
+      '<div class="bar-row"><span>General - Kendala Ringan</span><div class="bar-track"><div class="bar-fill" style="width:' + (formCount ? Math.round((generalCounts["Kendala Ringan"] / formCount) * 100) : 0) + '%"></div></div><strong>' + generalCounts["Kendala Ringan"] + '</strong></div>' +
+      '<div class="bar-row"><span>General - Urgent</span><div class="bar-track"><div class="bar-fill" style="width:' + (formCount ? Math.round((generalCounts["Kendala Serius (Urgent)"] / formCount) * 100) : 0) + '%"></div></div><strong>' + generalCounts["Kendala Serius (Urgent)"] + '</strong></div>';
+
+      aiQuestionBars.innerHTML = attributeScores.map(function (item) {
+        const width = item.value;
+        return '<div class="bar-row">' +
+          '<span>' + escapeHtml(item.label) + '</span>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div>' +
+          '<strong>' + item.value + '%</strong>' +
+        '</div>';
+      }).join("");
+    }
+
+    function getPendingOverdueEvaluations() {
+      const saved = readStoredEvaluations();
+      const now = new Date();
+
+      return schedules.filter(function (schedule) {
+        const isPast = getScheduleDateTime(schedule).getTime() < now.getTime();
+        const hasEvaluated = !!saved[schedule.id];
+        return isPast && !hasEvaluated;
+      }).filter(function (schedule) {
+        return matchesTypeFilter(schedule.type) && matchesPeriodFilter(schedule.date);
+      });
+    }
+
+    function renderResultPeriodInput() {
+      const scale = periodScaleFilter.value;
+      const today = new Date();
+      if (scale === "week" && !periodWeekInput.value) {
+        periodWeekInput.value = getISOWeekValue(today);
+      }
+      if (scale === "month" && !periodMonthInput.value) {
+        periodMonthInput.value = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, "0");
+      }
+      if (scale === "year" && !periodYearInput.value) {
+        periodYearInput.value = String(today.getFullYear());
+      }
+      periodWeekInput.hidden = scale !== "week";
+      periodMonthInput.hidden = scale !== "month";
+      periodYearInput.hidden = scale !== "year";
+    }
+
+    function renderEvaluationSummary(completed, pending) {
+      const totalOverdue = completed.length + pending.length;
+      const urgentCount = completed.filter(function (item) {
+        return String(item.generalAssessment || "") === "Kendala Serius (Urgent)";
+      }).length;
+      evaluationSummary.innerHTML =
+        '<article class="summary-item"><p>Evaluasi Masuk</p><strong>' + completed.length + '</strong></article>' +
+        '<article class="summary-item"><p>Misa Terlewat Belum Diisi</p><strong>' + pending.length + '</strong></article>' +
+        '<article class="summary-item"><p>Total Misa (Sesuai Filter)</p><strong>' + totalOverdue + '</strong></article>' +
+        '<article class="summary-item"><p>General Urgent</p><strong>' + urgentCount + '</strong></article>';
+
+      const typeLabel = resultTypeFilter.value === "all" ? "Semua" : resultTypeFilter.value;
+      activeFilterChip.textContent = "Filter: " + typeLabel;
+    }
+
+    function renderCompletedTable(rows) {
+      if (!rows.length) {
+        completedEvalRows.innerHTML = "";
+        completedEvalEmpty.hidden = false;
+        return;
+      }
+
+      completedEvalEmpty.hidden = true;
+      completedEvalRows.innerHTML = rows.map(function (item) {
+        const evaluator = item.evaluator
+          ? escapeHtml(item.evaluator + (item.evaluatorRole ? " (" + item.evaluatorRole + ")" : ""))
+          : "-";
+        const note = item.finalNote ? escapeHtml(item.finalNote) : "-";
+
+        return '<tr>' +
+          '<td>' + escapeHtml(formatDate(item.date)) + '</td>' +
+          '<td>' + escapeHtml(item.time || "-") + '</td>' +
+          '<td>' + escapeHtml(item.misaType || "-") + '</td>' +
+          '<td>' + escapeHtml(item.generalAssessment || "Aman") + '</td>' +
+          '<td>' + escapeHtml(item.title) + '</td>' +
+          '<td>' + escapeHtml(item.staff.join(", ") || "-") + '</td>' +
+          '<td>' + evaluator + '</td>' +
+          '<td>' + escapeHtml(formatDateTime(item.submittedAt)) + '</td>' +
+          '<td>' + note + '</td>' +
+          '<td><div class="table-action-wrap">' +
+            '<button class="btn-ghost" type="button" data-open-evaluation-detail="' + escapeHtml(item.scheduleId) + '">Detail</button>' +
+            '<button class="btn" type="button" data-delete-evaluation="' + escapeHtml(item.scheduleId) + '">Hapus</button>' +
+          '</div></td>' +
+        '</tr>';
+      }).join("");
+    }
+
+    function renderChecklistPills(item) {
+      const checklistItems = [
+        { label: "Siaran sampai akhir", ok: !!item.checklist.stream },
+        { label: "Koordinasi tim baik", ok: !!item.checklist.coordination },
+        { label: "Rekaman tersimpan", ok: !!item.checklist.archive }
+      ];
+
+      return checklistItems.map(function (entry) {
+        return '<span class="check-pill' + (entry.ok ? ' ok' : '') + '">' +
+          escapeHtml(entry.label + ': ' + (entry.ok ? 'Ya' : 'Tidak')) +
+        '</span>';
+      }).join('');
+    }
+
+    function openEvaluationDetail(scheduleId) {
+      const data = getCompletedEvaluations().find(function (item) {
+        return item.scheduleId === scheduleId;
+      });
+
+      if (!data) {
+        return;
+      }
+
+      const staffRows = data.staffEvaluations.length
+        ? data.staffEvaluations.map(function (staffEval) {
+            return '<tr>' +
+              '<td>' + escapeHtml(staffEval.name || '-') + '</td>' +
+              '<td>' + escapeHtml(staffEval.rating || '-') + '</td>' +
+              '<td>' + escapeHtml(staffEval.note || '-') + '</td>' +
+            '</tr>';
+          }).join('')
+        : '<tr><td colspan="3">Belum ada detail evaluasi per petugas.</td></tr>';
+
+      const evaluator = data.evaluator
+        ? escapeHtml(data.evaluator + (data.evaluatorRole ? ' (' + data.evaluatorRole + ')' : ''))
+        : '-';
+
+      const dynamicAnswersMarkup = data.dynamicAnswers && data.dynamicAnswers.length
+        ? '<ul class="dynamic-answer-list">' + data.dynamicAnswers.map(function (entry) {
+            const answerText = Array.isArray(entry.answer)
+              ? (entry.answer.length ? entry.answer.join(', ') : '-')
+              : (entry.answer || '-');
+            return '<li><strong>' + escapeHtml(entry.label) + ':</strong> ' + escapeHtml(answerText) + '</li>';
+          }).join('') + '</ul>'
+        : '<p>-</p>';
+
+      evaluationDetailBody.innerHTML =
+        '<div class="detail-grid">' +
+          '<article class="detail-card"><h4>Informasi Jadwal</h4><p><strong>Tanggal:</strong> ' + escapeHtml(formatDate(data.date)) + '<br><strong>Jam:</strong> ' + escapeHtml(data.time || '-') + ' WIB<br><strong>Jenis:</strong> ' + escapeHtml(data.misaType || '-') + '<br><strong>General:</strong> ' + escapeHtml(data.generalAssessment || 'Aman') + '<br><strong>Judul:</strong> ' + escapeHtml(data.title || '-') + '</p></article>' +
+          '<article class="detail-card"><h4>Pengisi & Petugas</h4><p><strong>Pengisi:</strong> ' + evaluator + '<br><strong>Petugas bertugas:</strong> ' + escapeHtml(data.staff.join(', ') || '-') + '<br><strong>Waktu submit:</strong> ' + escapeHtml(formatDateTime(data.submittedAt)) + '</p></article>' +
+        '</div>' +
+        '<article class="detail-card"><h4>Checklist Kondisi Pelayanan</h4><p>' + renderChecklistPills(data) + '</p></article>' +
+        '<div class="detail-grid">' +
+          '<article class="detail-card"><h4>Kendala Teknis Selama Streaming</h4><p>' + escapeHtml(data.technicalIssue || '-') + '</p></article>' +
+          '<article class="detail-card"><h4>Kendala Misa Non-Teknis</h4><p>' + escapeHtml(data.liturgyIssue || '-') + '</p></article>' +
+        '</div>' +
+        '<article class="detail-card"><h4>Jawaban Pertanyaan Tambahan</h4>' + dynamicAnswersMarkup + '</article>' +
+        '<article class="detail-card"><h4>Evaluasi Per Petugas</h4><table class="staff-table"><thead><tr><th>Nama Petugas</th><th>Penilaian Singkat</th><th>Catatan Per Petugas</th></tr></thead><tbody>' + staffRows + '</tbody></table></article>' +
+        '<article class="detail-card"><h4>Catatan Penutup / Rekomendasi</h4><p>' + escapeHtml(data.finalNote || '-') + '</p></article>';
+
+      evaluationDetailModal.hidden = false;
+    }
+
+    function closeEvaluationDetail() {
+      if (!evaluationDetailModal) {
+        return;
+      }
+      evaluationDetailModal.hidden = true;
+      evaluationDetailBody.innerHTML = '';
+    }
+
+    function deleteEvaluationByScheduleId(scheduleId) {
+      if (!currentEvaluations[scheduleId]) {
+        return;
+      }
+
+      const ok = window.confirm("Hapus hasil evaluasi ini? Data yang dihapus tidak bisa dikembalikan.");
+      if (!ok) {
+        return;
+      }
+
+      delete currentEvaluations[scheduleId];
+      renderEvaluationResults();
+    }
+
+    function renderPendingList(rows) {
+      if (!rows.length) {
+        pendingEvalList.innerHTML = "";
+        pendingEvalEmpty.hidden = false;
+        return;
+      }
+
+      pendingEvalEmpty.hidden = true;
+      pendingEvalList.innerHTML = rows.map(function (item) {
+        const staffNames = normalizeStaffList([
+          item.team.operator,
+          item.team.camera,
+          item.team.supervisor
+        ]);
+
+        return '<article class="pending-item">' +
+          '<span class="tag-overdue">Belum Diisi</span>' +
+          '<h4>' + escapeHtml(item.title) + '</h4>' +
+          '<p><strong>Tanggal:</strong> ' + escapeHtml(formatDate(item.date)) + ' - ' + escapeHtml(item.time) + ' WIB</p>' +
+          '<p><strong>Jenis:</strong> ' + escapeHtml(item.type) + '</p>' +
+          '<p><strong>Petugas Bertugas:</strong> ' + escapeHtml(staffNames.join(", ") || "-") + '</p>' +
+        '</article>';
+      }).join("");
+    }
+
+    function renderEvaluationResults() {
+      const completed = getCompletedEvaluations();
+      const pending = getPendingOverdueEvaluations();
+      renderEvaluationSummary(completed, pending);
+      renderAiSummary(completed, pending);
+      renderCompletedTable(completed);
+      renderPendingList(pending);
+    }
+
+    function getScaleLabel() {
+      if (periodScaleFilter.value === "month") {
+        return "bulan";
+      }
+      if (periodScaleFilter.value === "year") {
+        return "tahun";
+      }
+      return "minggu";
+    }
+
+    function exportEvaluationExcel() {
+      const completed = getCompletedEvaluations();
+      const pending = getPendingOverdueEvaluations();
+      const scaleLabel = getScaleLabel();
+      const periodValue = getSelectedPeriodValue() || "Semua";
+
+      let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body>';
+      html += '<h3>Rekap Hasil Evaluasi Streaming</h3>';
+      html += '<p>Jenis Misa: ' + escapeHtml(resultTypeFilter.value === "all" ? "Semua" : resultTypeFilter.value) + '</p>';
+      html += '<p>Skala: Per ' + escapeHtml(scaleLabel) + '</p>';
+      html += '<p>Periode: ' + escapeHtml(periodValue) + '</p>';
+      html += '<h4>Evaluasi Sudah Masuk</h4>';
+      html += '<table border="1" cellspacing="0" cellpadding="6">';
+      html += '<tr><th>Tanggal</th><th>Jam</th><th>Jenis</th><th>General</th><th>Judul</th><th>Petugas</th><th>Pengisi</th><th>Submit</th><th>Catatan</th></tr>';
+
+      if (completed.length) {
+        completed.forEach(function (item) {
+          html += '<tr>' +
+            '<td>' + escapeHtml(formatDate(item.date)) + '</td>' +
+            '<td>' + escapeHtml(item.time || "-") + '</td>' +
+            '<td>' + escapeHtml(item.misaType || "-") + '</td>' +
+            '<td>' + escapeHtml(item.generalAssessment || "Aman") + '</td>' +
+            '<td>' + escapeHtml(item.title) + '</td>' +
+            '<td>' + escapeHtml(item.staff.join(", ") || "-") + '</td>' +
+            '<td>' + escapeHtml(item.evaluator + (item.evaluatorRole ? " (" + item.evaluatorRole + ")" : "")) + '</td>' +
+            '<td>' + escapeHtml(formatDateTime(item.submittedAt)) + '</td>' +
+            '<td>' + escapeHtml(item.finalNote || "-") + '</td>' +
+          '</tr>';
+        });
+      } else {
+        html += '<tr><td colspan="9">Tidak ada data evaluasi.</td></tr>';
+      }
+
+      html += '</table>';
+      html += '<h4>Misa Terlewat Belum Diisi</h4>';
+      html += '<table border="1" cellspacing="0" cellpadding="6">';
+      html += '<tr><th>Tanggal</th><th>Jam</th><th>Jenis</th><th>Judul</th><th>Petugas Bertugas</th></tr>';
+
+      if (pending.length) {
+        pending.forEach(function (item) {
+          const staffNames = normalizeStaffList([
+            item.team.operator,
+            item.team.camera,
+            item.team.supervisor
+          ]);
+          html += '<tr>' +
+            '<td>' + escapeHtml(formatDate(item.date)) + '</td>' +
+            '<td>' + escapeHtml(item.time) + '</td>' +
+            '<td>' + escapeHtml(item.type) + '</td>' +
+            '<td>' + escapeHtml(item.title) + '</td>' +
+            '<td>' + escapeHtml(staffNames.join(", ") || "-") + '</td>' +
+          '</tr>';
+        });
+      } else {
+        html += '<tr><td colspan="5">Tidak ada data misa terlewat yang belum diisi.</td></tr>';
+      }
+
+      html += '</table></body></html>';
+
+      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rekap-evaluasi-streaming-" + periodScaleFilter.value + ".xls";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportEvaluationPdf() {
+      const completed = getCompletedEvaluations();
+      const pending = getPendingOverdueEvaluations();
+      const scaleLabel = getScaleLabel();
+      const periodValue = getSelectedPeriodValue() || "Semua";
+
+      const popup = window.open("", "_blank", "width=1024,height=768");
+      if (!popup) {
+        return;
+      }
+
+      const completedRows = completed.length
+        ? completed.map(function (item) {
+            return '<tr>' +
+              '<td>' + escapeHtml(formatDate(item.date)) + '</td>' +
+              '<td>' + escapeHtml(item.time || "-") + '</td>' +
+              '<td>' + escapeHtml(item.misaType || "-") + '</td>' +
+              '<td>' + escapeHtml(item.generalAssessment || "Aman") + '</td>' +
+              '<td>' + escapeHtml(item.title) + '</td>' +
+              '<td>' + escapeHtml(item.staff.join(", ") || "-") + '</td>' +
+              '<td>' + escapeHtml(item.evaluator + (item.evaluatorRole ? " (" + item.evaluatorRole + ")" : "")) + '</td>' +
+              '<td>' + escapeHtml(formatDateTime(item.submittedAt)) + '</td>' +
+            '</tr>';
+          }).join("")
+        : '<tr><td colspan="8">Tidak ada data evaluasi.</td></tr>';
+
+      const pendingRows = pending.length
+        ? pending.map(function (item) {
+            const staffNames = normalizeStaffList([
+              item.team.operator,
+              item.team.camera,
+              item.team.supervisor
+            ]);
+
+            return '<tr>' +
+              '<td>' + escapeHtml(formatDate(item.date)) + '</td>' +
+              '<td>' + escapeHtml(item.time) + '</td>' +
+              '<td>' + escapeHtml(item.type) + '</td>' +
+              '<td>' + escapeHtml(item.title) + '</td>' +
+              '<td>' + escapeHtml(staffNames.join(", ") || "-") + '</td>' +
+            '</tr>';
+          }).join("")
+        : '<tr><td colspan="5">Tidak ada data misa terlewat yang belum diisi.</td></tr>';
+
+      popup.document.write(
+        '<!doctype html><html><head><meta charset="utf-8"><title>Rekap Evaluasi Streaming</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h2,h3{margin-bottom:8px}p{margin:4px 0 10px}table{width:100%;border-collapse:collapse;margin-top:8px;margin-bottom:18px}th,td{border:1px solid #888;padding:6px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f2f2}@media print{body{padding:0}}</style>' +
+        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body>' +
+        '<h2>Rekap Hasil Evaluasi Streaming</h2>' +
+        '<p>Jenis Misa: ' + escapeHtml(resultTypeFilter.value === "all" ? "Semua" : resultTypeFilter.value) + '</p>' +
+        '<p>Skala: Per ' + escapeHtml(scaleLabel) + ' | Periode: ' + escapeHtml(periodValue) + '</p>' +
+        '<h3>Evaluasi Sudah Masuk</h3>' +
+        '<table><thead><tr><th>Tanggal</th><th>Jam</th><th>Jenis</th><th>General</th><th>Judul</th><th>Petugas</th><th>Pengisi</th><th>Submit</th></tr></thead><tbody>' + completedRows + '</tbody></table>' +
+        '<h3>Misa Terlewat Belum Diisi</h3>' +
+        '<table><thead><tr><th>Tanggal</th><th>Jam</th><th>Jenis</th><th>Judul</th><th>Petugas Bertugas</th></tr></thead><tbody>' + pendingRows + '</tbody></table>' +
+        '</body></html>'
+      );
+      popup.document.close();
+      popup.focus();
+      popup.print();
+    }
+
+    const today = new Date();
+    periodWeekInput.value = getISOWeekValue(today);
+    periodMonthInput.value = String(today.getFullYear()) + "-" + String(today.getMonth() + 1).padStart(2, "0");
+    periodYearInput.value = String(today.getFullYear());
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    renderResultPeriodInput();
+    renderEvaluationResults();
+    renderAiToggleButton();
+
+    resultTypeFilter.addEventListener("change", renderEvaluationResults);
+
+    periodScaleFilter.addEventListener("change", function () {
+      renderResultPeriodInput();
+      renderEvaluationResults();
+    });
+
+    periodWeekInput.addEventListener("change", renderEvaluationResults);
+    periodMonthInput.addEventListener("change", renderEvaluationResults);
+    periodYearInput.addEventListener("input", renderEvaluationResults);
+    evaluationSort.addEventListener("change", renderEvaluationResults);
+
+    downloadEvalExcelBtn.addEventListener("click", exportEvaluationExcel);
+    downloadEvalPdfBtn.addEventListener("click", exportEvaluationPdf);
+    if (toggleAiSummaryBtn) {
+      toggleAiSummaryBtn.addEventListener("click", toggleAiSummary);
+    }
+
+    completedEvalRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const detailId = target.getAttribute("data-open-evaluation-detail") || "";
+      if (detailId) {
+        openEvaluationDetail(detailId);
+        return;
+      }
+
+      const scheduleId = target.getAttribute("data-delete-evaluation") || "";
+      if (!scheduleId) {
+        return;
+      }
+
+      deleteEvaluationByScheduleId(scheduleId);
+    });
+
+    if (closeEvaluationDetailBtn) {
+      closeEvaluationDetailBtn.addEventListener("click", closeEvaluationDetail);
+    }
+
+    if (evaluationDetailModal) {
+      evaluationDetailModal.addEventListener("click", function (event) {
+        if (event.target === evaluationDetailModal) {
+          closeEvaluationDetail();
+        }
+      });
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeEvaluationDetail();
+      }
+    });
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

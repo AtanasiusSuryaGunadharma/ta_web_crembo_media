@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Profil - Crembo Media</title>
+	<meta name="description" content="Profil Crew Multimedia Baciro - Sejarah, visi misi, struktur organisasi, dan tentang Crembo Media.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #800000;
+			--primary-dark: #5c0000;
+			--primary-deeper: #3a0000;
+			--primary-light: #a52a2a;
+			--primary-soft: #c0392b;
+			--accent: #e74c3c;
+			--accent-gold: #d4a017;
+			--accent-gold-light: #f0c040;
+			--bg: #faf8f6;
+			--bg-warm: #f5f0eb;
+			--surface: #ffffff;
+			--surface-warm: #fefcfa;
+			--ink: #1a1a1a;
+			--ink-secondary: #4a4a4a;
+			--muted: #7a7a7a;
+			--line: rgba(128, 0, 0, 0.15);
+			--line-soft: rgba(128, 0, 0, 0.08);
+			--hover: rgba(128, 0, 0, 0.04);
+			--shadow-sm: 0 1px 3px rgba(128, 0, 0, 0.06), 0 1px 2px rgba(0,0,0,0.04);
+			--shadow-md: 0 4px 14px rgba(128, 0, 0, 0.08), 0 2px 6px rgba(0,0,0,0.04);
+			--shadow-lg: 0 10px 30px rgba(128, 0, 0, 0.12), 0 4px 12px rgba(0,0,0,0.06);
+			--radius-sm: 8px;
+			--radius-md: 12px;
+			--radius-lg: 16px;
+			--radius-xl: 24px;
+			--transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			--header-h: 104px;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			background: var(--bg);
+			color: var(--ink);
+			line-height: 1.6;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		a { color: inherit; text-decoration: none; transition: var(--transition); }
+
+		.container { width: min(1200px, 92vw); margin: 0 auto; }
+
+		/* ── TOP HEADER ── */
+		.top-header {
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 40%, var(--primary-light) 100%);
+			position: sticky;
+			top: 0;
+			z-index: 1200;
+			box-shadow: 0 4px 20px rgba(128, 0, 0, 0.3);
+		}
+
+		.top-header .container {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 20px;
+			align-items: center;
+			padding: 16px 0;
+		}
+
+		.logo-box {
+			width: 72px; height: 72px;
+			display: grid; place-items: center;
+			padding: 4px;
+			background: rgba(255,255,255,0.1);
+			border-radius: var(--radius-md);
+			backdrop-filter: blur(10px);
+			border: 1px solid rgba(255,255,255,0.15);
+			transition: var(--transition);
+		}
+
+		.logo-box:hover { background: rgba(255,255,255,0.18); }
+		.logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+		.brand h1 {
+			margin: 0;
+			font-size: clamp(1.4rem, 2.8vw, 2rem);
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			color: #fff;
+			font-weight: 800;
+			text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+		}
+
+		.brand p { margin: 4px 0 0; color: rgba(255,255,255,0.75); font-size: 0.88rem; }
+
+		/* ── NAV ── */
+		.nav-wrap {
+			background: var(--surface);
+			border-bottom: 1px solid var(--line);
+			position: sticky;
+			top: var(--header-h);
+			z-index: 1150;
+			box-shadow: var(--shadow-sm);
+		}
+
+		.nav-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			padding: 10px 0;
+			flex-wrap: wrap;
+		}
+
+		.menu-toggle {
+			display: none;
+			border: 1px solid var(--line);
+			background: var(--surface);
+			padding: 10px 16px;
+			font-size: 0.9rem;
+			cursor: pointer;
+			border-radius: var(--radius-sm);
+			font-family: inherit;
+			font-weight: 500;
+			color: var(--primary);
+			transition: var(--transition);
+		}
+
+		.menu-toggle:hover { background: var(--hover); }
+
+		nav ul { margin: 0; padding: 0; list-style: none; display: flex; gap: 4px; flex-wrap: wrap; }
+
+		nav a {
+			display: inline-block;
+			padding: 8px 14px;
+			font-size: 0.9rem;
+			font-weight: 500;
+			border-radius: var(--radius-sm);
+			color: var(--ink-secondary);
+			transition: var(--transition);
+			position: relative;
+		}
+
+		nav a:hover { color: var(--primary); background: var(--hover); }
+
+		nav a.active {
+			color: var(--primary);
+			font-weight: 700;
+		}
+
+		nav a.active:not(.profile-parent-link)::after {
+			content: "";
+			position: absolute;
+			bottom: 2px;
+			left: 14px; right: 14px;
+			height: 2px;
+			background: var(--primary);
+			border-radius: 999px;
+		}
+
+		.nav-dropdown { position: relative; }
+		.nav-dropdown > a.profile-parent-link { padding-right: 30px; }
+		.nav-dropdown > a.profile-parent-link::after {
+			content: "▾";
+			position: absolute;
+			right: 12px;
+			top: 50%;
+			transform: translateY(-50%);
+			height: auto;
+			width: auto;
+			background: transparent;
+			font-size: 0.72rem;
+		}
+		.nav-dropdown.open > a.profile-parent-link::after { content: "▴"; }
+		.nav-dropdown > a.profile-parent-link.active::before {
+			content: "";
+			position: absolute;
+			bottom: 2px;
+			left: 14px;
+			right: 14px;
+			height: 2px;
+			background: var(--primary);
+			border-radius: 999px;
+		}
+		.nav-dropdown-menu {
+			position: absolute;
+			top: calc(100% + 4px);
+			left: 0;
+			min-width: 200px;
+			background: var(--surface);
+			border: 1px solid var(--line);
+			border-radius: var(--radius-md);
+			box-shadow: var(--shadow-lg);
+			padding: 6px;
+			display: none;
+			z-index: 1300;
+		}
+		.nav-dropdown:hover .nav-dropdown-menu,
+		.nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+		.nav-dropdown-menu a {
+			display: block;
+			padding: 8px 12px;
+			font-size: 0.87rem;
+			border-radius: var(--radius-sm);
+			margin-bottom: 2px;
+			color: var(--ink-secondary);
+		}
+		.nav-dropdown-menu a:hover { background: var(--hover); color: var(--primary); }
+
+		.right-tools { display: flex; align-items: center; gap: 10px; }
+
+		.search {
+			display: flex;
+			border: 1px solid var(--line);
+			border-radius: 999px;
+			background: var(--bg);
+			overflow: hidden;
+			transition: var(--transition);
+		}
+		.search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(128,0,0,0.1); }
+		.search input { border: 0; outline: none; padding: 8px 16px; width: clamp(130px,16vw,180px); font-size: 0.88rem; background: transparent; font-family: inherit; }
+		.search button { border: 0; background: var(--primary); color: #fff; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: var(--transition); }
+		.search button:hover { background: var(--primary-dark); }
+
+		.btn-login {
+			border: 1.5px solid var(--primary);
+			background: transparent;
+			color: var(--primary);
+			padding: 8px 18px;
+			font-size: 0.88rem;
+			font-weight: 600;
+			border-radius: 999px;
+			cursor: pointer;
+			font-family: inherit;
+			transition: var(--transition);
+		}
+		.btn-login:hover { background: var(--primary); color: #fff; }
+
+		/* ── HERO BANNER ── */
+		.hero {
+			min-height: 260px;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			padding: 60px 20px;
+			position: relative;
+			overflow: hidden;
+			isolation: isolate;
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%);
+		}
+
+		.hero::before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background-image: url("IMG_1970.JPG");
+			background-size: cover;
+			background-position: center;
+			opacity: 0.15;
+			z-index: -1;
+		}
+
+		.hero::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, rgba(58,0,0,0.3) 0%, rgba(128,0,0,0.5) 100%);
+			z-index: -1;
+		}
+
+		.hero h2 {
+			margin: 0;
+			font-size: clamp(2rem, 5vw, 3.2rem);
+			font-weight: 800;
+			color: #fff;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			text-shadow: 0 4px 16px rgba(0,0,0,0.4);
+		}
+
+		.hero p { margin: 10px 0 0; color: rgba(255,255,255,0.8); font-size: 1rem; }
+
+		/* ── BREADCRUMB ── */
+		.breadcrumb-wrap {
+			background: var(--surface);
+			border-bottom: 1px solid var(--line-soft);
+		}
+		.breadcrumb {
+			margin: 0; padding: 12px 0;
+			list-style: none;
+			display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+			font-size: 0.85rem; color: var(--muted);
+		}
+		.breadcrumb li + li::before { content: "/"; margin-right: 8px; color: var(--line); }
+		.breadcrumb a:hover { color: var(--primary); }
+		.breadcrumb [aria-current] { color: var(--primary); font-weight: 600; }
+
+		/* ── PAGE CONTENT ── */
+		.page-content { padding: 32px 0 48px; }
+
+		.profile-layout {
+			display: grid;
+			grid-template-columns: 260px 1fr;
+			gap: 28px;
+			align-items: start;
+		}
+
+		/* Sidebar */
+		.profile-sidebar {
+			background: var(--surface);
+			border-radius: var(--radius-lg);
+			box-shadow: var(--shadow-md);
+			padding: 24px;
+			position: sticky;
+			top: calc(var(--header-h) + 60px);
+			overflow: hidden;
+		}
+
+		.profile-sidebar::before {
+			content: "";
+			position: absolute;
+			top: 0; left: 0; right: 0;
+			height: 4px;
+			background: linear-gradient(90deg, var(--primary), var(--accent-gold), var(--primary-light));
+		}
+
+		.profile-sidebar h4 {
+			margin: 0 0 16px;
+			font-size: 0.8rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: var(--muted);
+		}
+
+		.profile-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+
+		.profile-list a {
+			display: block;
+			padding: 10px 14px;
+			font-size: 0.9rem;
+			font-weight: 500;
+			border-radius: var(--radius-sm);
+			color: var(--ink-secondary);
+			border: 1px solid transparent;
+			transition: var(--transition);
+		}
+		.profile-list a:hover { background: var(--hover); color: var(--primary); border-color: var(--line); }
+		.profile-list a.active {
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+			color: #fff;
+			font-weight: 600;
+			box-shadow: 0 2px 8px rgba(128,0,0,0.25);
+			border-color: transparent;
+		}
+
+		/* Content card */
+		.content-card {
+			background: var(--surface);
+			border-radius: var(--radius-lg);
+			box-shadow: var(--shadow-md);
+			padding: 32px;
+			position: relative;
+			overflow: hidden;
+			animation: fadeInUp 0.5s ease both;
+		}
+
+		.content-card::before {
+			content: "";
+			position: absolute;
+			top: 0; left: 0; right: 0;
+			height: 4px;
+			background: linear-gradient(90deg, var(--primary), var(--accent-gold), var(--primary-light));
+		}
+
+		.content-card h3 {
+			margin: 0 0 20px;
+			font-size: clamp(1.4rem, 3vw, 2rem);
+			font-weight: 800;
+			text-transform: uppercase;
+			letter-spacing: 0.4px;
+			color: var(--primary);
+			padding-bottom: 16px;
+			border-bottom: 1px solid var(--line-soft);
+		}
+
+		.content-card p {
+			margin: 0 0 14px;
+			color: var(--ink-secondary);
+			font-size: 0.96rem;
+			line-height: 1.8;
+			text-align: justify;
+		}
+
+		.content-actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+		.btn-ghost {
+			border: 1.5px solid var(--line);
+			background: transparent;
+			color: var(--ink-secondary);
+			padding: 9px 20px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			border-radius: var(--radius-sm);
+			cursor: pointer;
+			font-family: inherit;
+			transition: var(--transition);
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+		.btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: var(--hover); }
+
+		.btn-primary {
+			border: none;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+			color: #fff;
+			padding: 9px 20px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			border-radius: var(--radius-sm);
+			cursor: pointer;
+			font-family: inherit;
+			transition: var(--transition);
+			box-shadow: 0 2px 8px rgba(128,0,0,0.2);
+		}
+		.btn-primary:hover { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(128,0,0,0.3); }
+
+		/* ── FOOTER ── */
+		.footer {
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 60%, var(--primary-dark) 100%);
+			margin-top: 48px;
+			color: rgba(255,255,255,0.85);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.footer::before {
+			content: "";
+			position: absolute;
+			top: -80px; right: -80px;
+			width: 300px; height: 300px;
+			border-radius: 50%;
+			background: rgba(255,255,255,0.03);
+			pointer-events: none;
+		}
+
+		.footer-main { padding: 40px 0 28px; position: relative; z-index: 1; }
+
+		.footer-grid {
+			display: grid;
+			grid-template-columns: 1.3fr 1fr 1fr;
+			gap: 30px;
+		}
+
+		.footer-col {
+			border: 1px solid rgba(255,255,255,0.1);
+			background: rgba(255,255,255,0.06);
+			backdrop-filter: blur(10px);
+			padding: 24px;
+			border-radius: var(--radius-md);
+			transition: var(--transition);
+		}
+		.footer-col:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+		.footer-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+		.footer-logo { width: 56px; height: 56px; object-fit: contain; border: 1px solid rgba(255,255,255,0.2); padding: 6px; background: rgba(255,255,255,0.08); border-radius: var(--radius-sm); }
+		.footer-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: #fff; }
+		.footer-sub { margin: 3px 0 0; font-size: 0.85rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+
+		.contact-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
+		.contact-list li { color: rgba(255,255,255,0.8); display: flex; gap: 8px; }
+		.contact-list strong { display: inline-block; min-width: 70px; color: var(--accent-gold-light); font-weight: 600; }
+
+		.social-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
+		.social-item { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.8); transition: var(--transition); padding: 4px 0; }
+		.social-item:hover { color: #fff; }
+		.social-dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; border: 1px solid rgba(212,160,23,0.4); background: rgba(212,160,23,0.15); color: var(--accent-gold-light); transition: var(--transition); }
+		.social-item:hover .social-dot { background: rgba(212,160,23,0.3); transform: scale(1.1); }
+
+		.footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 16px 0 20px; text-align: center; font-size: 0.84rem; color: rgba(255,255,255,0.5); position: relative; z-index: 1; }
+
+		/* ── ANIMATIONS ── */
+		@keyframes fadeInUp {
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		/* ── RESPONSIVE ── */
+		@media (max-width: 980px) {
+			.profile-layout { grid-template-columns: 1fr; }
+			.profile-sidebar { position: static; }
+			.footer-grid { grid-template-columns: 1fr; }
+		}
+		@media (max-width: 760px) {
+			.top-header .container { grid-template-columns: auto 1fr; align-items: center; gap: 10px; padding: 10px 0; text-align: left; }
+			.menu-toggle { display: inline-block; }
+			nav { width: 100%; display: none; }
+			nav.open { display: block; animation: fadeSlideDown 0.3s ease; }
+			@keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+			nav ul { flex-direction: column; align-items: stretch; }
+			nav a { display: block; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: var(--radius-sm); text-align: center; }
+			.nav-dropdown { position: static; }
+			.nav-dropdown > a.profile-parent-link { padding-right: 36px; }
+			.nav-dropdown > a.profile-parent-link::after { font-size: 0.84rem; right: 14px; }
+			.nav-dropdown:hover .nav-dropdown-menu,
+			.nav-dropdown:focus-within .nav-dropdown-menu { display: none; }
+			.nav-dropdown-menu {
+				position: static;
+				top: auto;
+				left: auto;
+				min-width: 0;
+				margin-top: 6px;
+				box-shadow: none;
+				border-radius: var(--radius-sm);
+				background: var(--bg);
+				display: none;
+			}
+			.nav-dropdown.open .nav-dropdown-menu { display: block; }
+			.nav-dropdown-menu a { border: 1px solid var(--line); margin-bottom: 4px; text-align: center; background: var(--surface); }
+			.nav-dropdown-menu a:last-child { margin-bottom: 0; }
+			.logo-box { width: 52px; height: 52px; padding: 3px; margin: 0; }
+			.brand h1 { font-size: clamp(1.02rem, 5vw, 1.35rem); line-height: 1.2; letter-spacing: 0.4px; }
+			.brand p { margin-top: 3px; font-size: 0.76rem; line-height: 1.35; }
+			.nav-row { align-items: stretch; }
+			.right-tools { width: 100%; justify-content: stretch; flex-wrap: wrap; }
+			.search { flex: 1 1 230px; }
+			.search input { width: 100%; }
+			.btn-login { flex: 1 1 auto; justify-content: center; }
+		}
+		@media (max-width: 520px) {
+			.top-header .container { padding: 8px 0; }
+			.logo-box { width: 46px; height: 46px; }
+			.brand h1 { font-size: 0.96rem; }
+			.brand p { font-size: 0.72rem; }
+		}
+	</style>
+</head>
+<body>
+	<header class="top-header" id="topHeader">
+		<div class="container">
+			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			</a>
+			<div class="brand">
+				<h1>Crew Multimedia Baciro</h1>
+				<p>Jalan Melati Wetan 47 Baciro Gondokusuman Yogyakarta</p>
+			</div>
+		</div>
+	</header>
+
+	<div class="nav-wrap">
+		<div class="container nav-row">
+			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
+			<nav id="mainNav" aria-label="Navigasi utama">
+				<ul>
+					<li><a href="home.html">Home</a></li>
+					<li class="nav-dropdown">
+						<a class="active profile-parent-link" href="profil.html" aria-expanded="false">Profil</a>
+						<div id="profileDropdownList" class="nav-dropdown-menu" aria-label="Submenu profil"></div>
+					</li>
+					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="agenda.html">Agenda</a></li>
+					<li><a href="pengumuman.html">Pengumuman</a></li>
+					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+				</ul>
+			</nav>
+			<div class="right-tools">
+				<form class="search" id="searchForm">
+					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
+					<button type="submit">Cari</button>
+				</form>
+				<a class="btn-login" href="login.html">Login</a>
+			</div>
+		</div>
+	</div>
+
+	<section class="hero" aria-label="Header profil">
+		<div>
+			<h2>Profil</h2>
+			<p>Kenali lebih dekat Crew Multimedia Baciro dan perjalanannya</p>
+		</div>
+	</section>
+
+	<div class="breadcrumb-wrap">
+		<div class="container">
+			<ol class="breadcrumb" aria-label="Breadcrumb">
+				<li><a href="home.html">Beranda</a></li>
+				<li><a href="profil.html">Profil</a></li>
+				<li id="breadcrumbCurrent" aria-current="page">Profil</li>
+			</ol>
+		</div>
+	</div>
+
+	<main class="container page-content">
+		<div class="profile-layout">
+			<aside class="profile-sidebar" aria-label="Kategori profil">
+				<h4>Kategori Profil</h4>
+				<ul id="profileCategoryList" class="profile-list"></ul>
+			</aside>
+
+			<section class="content-card" aria-label="Isi konten profil">
+				<h3 id="profileTitle">Profil Singkat Crew Multimedia Baciro</h3>
+				<div id="profileContent"></div>
+				<div class="content-actions">
+					<a class="btn-ghost" href="home.html">← Kembali ke Beranda</a>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<footer class="footer">
+		<div class="footer-main">
+			<div class="container footer-grid">
+				<section class="footer-col" aria-label="Identitas Crembo">
+					<div class="footer-brand">
+						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<div>
+							<h4 class="footer-title">Crew Multimedia Baciro</h4>
+							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
+						</div>
+					</div>
+					<p class="footer-sub">Platform informasi, jadwal streaming, agenda, dan pengumuman internal komunitas.</p>
+				</section>
+				<section class="footer-col" aria-label="Kontak">
+					<h4 class="footer-title">Kontak</h4>
+					<ul class="contact-list" style="margin-top:14px;">
+						<li><strong>Email</strong> : crembomedia@example.com</li>
+						<li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
+						<li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+					</ul>
+				</section>
+				<section class="footer-col" aria-label="Media sosial">
+					<h4 class="footer-title">Media Sosial</h4>
+					<ul class="social-list" style="margin-top:14px;">
+						<li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
+						<li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
+						<li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
+					</ul>
+				</section>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div>
+		</div>
+	</footer>
+
+	<script>
+		const topHeader = document.getElementById("topHeader");
+		const menuToggle = document.getElementById("menuToggle");
+		const mainNav = document.getElementById("mainNav");
+		const searchForm = document.getElementById("searchForm");
+		const searchInput = document.getElementById("searchInput");
+		const profileDropdownList = document.getElementById("profileDropdownList");
+		const profileCategoryList = document.getElementById("profileCategoryList");
+		const profileTitle = document.getElementById("profileTitle");
+		const profileContent = document.getElementById("profileContent");
+		const breadcrumbCurrent = document.getElementById("breadcrumbCurrent");
+		const profileNavItem = mainNav ? mainNav.querySelector(".nav-dropdown") : null;
+		const profileNavLink = profileNavItem ? profileNavItem.querySelector(".profile-parent-link") : null;
+
+		const PROFILE_STORAGE_KEY = "crembo-profile-menu";
+
+		const defaultProfileItems = [
+			{ id: "sejarah", label: "Sejarah", title: "Sejarah Singkat Crembo", paragraphs: ["Crew Multimedia Baciro dibentuk untuk mendukung pelayanan liturgi dengan fokus pada siaran, dokumentasi, dan distribusi informasi digital.", "Dalam perjalanannya, tim ini berkembang dari layanan dokumentasi sederhana menjadi unit multimedia terstruktur yang melayani agenda mingguan dan perayaan besar."] },
+			{ id: "tentang-crembo", label: "Tentang Crembo", title: "Profil Singkat Crew Multimedia Baciro", paragraphs: ["Crew Multimedia Baciro adalah tim pelayanan multimedia yang mendukung pelaksanaan kegiatan liturgi dan agenda komunitas melalui pengelolaan siaran, dokumentasi visual, dan manajemen konten informasi.", "Konten deskripsi pada area ini dapat dikelola dari panel admin agar pengurus bisa memperbarui informasi profil secara mandiri."] },
+			{ id: "struktur", label: "Struktur", title: "Struktur Organisasi Pelayanan", paragraphs: ["Struktur pelayanan terdiri dari koordinator, tim operator, kameramen, editor konten, serta tim dukungan teknis sesuai kebutuhan pelayanan.", "Susunan ini dapat berubah mengikuti periode pelayanan dan kebijakan pengurus."] },
+			{ id: "visi-misi", label: "Visi & Misi", title: "Visi dan Misi Crembo", paragraphs: ["Visi Crembo adalah menghadirkan pelayanan multimedia yang andal, rapi, dan berdampak bagi umat.", "Misinya meliputi peningkatan kompetensi tim, standarisasi alur produksi, dan penguatan dokumentasi digital untuk kebutuhan komunitas."] }
+		];
+
+		function slugify(value) {
+			return String(value || "").trim().toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
+		}
+
+		function normalizeProfileItem(item) {
+			if (typeof item === "string") {
+				const id = slugify(item);
+				return { id: id || "profil", label: item, title: item, paragraphs: ["Konten untuk kategori ini dapat diatur dari panel admin."] };
+			}
+			const label = item && item.label ? String(item.label) : "Profil";
+			const id = item && item.id ? slugify(item.id) : slugify(label);
+			const paragraphs = Array.isArray(item && item.paragraphs) ? item.paragraphs.map(function(text) { return String(text); }).filter(Boolean) : ["Konten untuk kategori ini dapat diatur dari panel admin."];
+			return { id: id || "profil", label: label, title: item && item.title ? String(item.title) : label, paragraphs: paragraphs };
+		}
+
+		function readProfileItems() {
+			try {
+				const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+				if (!raw) return defaultProfileItems;
+				const parsed = JSON.parse(raw);
+				if (!Array.isArray(parsed) || parsed.length === 0) return defaultProfileItems;
+				return parsed.map(normalizeProfileItem);
+			} catch (err) { return defaultProfileItems; }
+		}
+
+		const profileItems = readProfileItems();
+
+		function getSelectedProfileId() {
+			const params = new URLSearchParams(window.location.search);
+			const requested = slugify(params.get("profil") || "");
+			const exists = profileItems.some(function(item) { return item.id === requested; });
+			return exists ? requested : profileItems[0].id;
+		}
+
+		function renderProfileMenu(activeId) {
+			profileDropdownList.innerHTML = profileItems.map(function(item) {
+				const activeClass = item.id === activeId ? "active" : "";
+				return '<a class="' + activeClass + '" href="profil.html?profil=' + encodeURIComponent(item.id) + '">' + item.label + '</a>';
+			}).join("");
+
+			profileCategoryList.innerHTML = profileItems.map(function(item) {
+				const activeClass = item.id === activeId ? "active" : "";
+				return '<li><a class="' + activeClass + '" href="profil.html?profil=' + encodeURIComponent(item.id) + '">' + item.label + '</a></li>';
+			}).join("");
+		}
+
+		function renderProfileContent(activeId) {
+			const current = profileItems.find(function(item) { return item.id === activeId; }) || profileItems[0];
+			profileTitle.textContent = current.title;
+			breadcrumbCurrent.textContent = current.label;
+			profileContent.innerHTML = current.paragraphs.map(function(text) { return '<p>' + text + '</p>'; }).join("");
+		}
+
+		function syncStickyOffset() {
+			const headerHeight = topHeader ? topHeader.offsetHeight : 104;
+			document.documentElement.style.setProperty("--header-h", headerHeight + "px");
+		}
+
+		syncStickyOffset();
+		window.addEventListener("resize", syncStickyOffset);
+
+		menuToggle.addEventListener("click", function () {
+			const isOpen = mainNav.classList.toggle("open");
+			menuToggle.setAttribute("aria-expanded", String(isOpen));
+			if (!isOpen && profileNavItem && profileNavLink) {
+				profileNavItem.classList.remove("open");
+				profileNavLink.setAttribute("aria-expanded", "false");
+			}
+		});
+
+		if (profileNavLink && profileNavItem) {
+			profileNavLink.addEventListener("click", function (event) {
+				if (window.matchMedia("(max-width: 760px)").matches) {
+					event.preventDefault();
+					const isOpen = profileNavItem.classList.toggle("open");
+					profileNavLink.setAttribute("aria-expanded", String(isOpen));
+				}
+			});
+		}
+
+		mainNav.querySelectorAll("a").forEach(function (link) {
+			link.addEventListener("click", function () {
+				if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+					return;
+				}
+				if (mainNav.classList.contains("open")) {
+					mainNav.classList.remove("open");
+					menuToggle.setAttribute("aria-expanded", "false");
+					if (profileNavItem && profileNavLink) {
+						profileNavItem.classList.remove("open");
+						profileNavLink.setAttribute("aria-expanded", "false");
+					}
+				}
+			});
+		});
+
+		window.addEventListener("resize", function () {
+			if (!window.matchMedia("(max-width: 760px)").matches && profileNavItem && profileNavLink) {
+				profileNavItem.classList.remove("open");
+				profileNavLink.setAttribute("aria-expanded", "false");
+			}
+		});
+
+		const activeProfileId = getSelectedProfileId();
+		renderProfileMenu(activeProfileId);
+		renderProfileContent(activeProfileId);
+
+		searchForm.addEventListener("submit", function(event) {
+			event.preventDefault();
+			const keyword = searchInput.value.trim();
+			window.location.href = "search.html?q=" + encodeURIComponent(keyword);
+		});
+
+		(function() {
+			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";
+			const DEFAULT_PROFILE_MENU = [
+				{ id: "sejarah", label: "Sejarah" },
+				{ id: "tentang-crembo", label: "Tentang Crembo" },
+				{ id: "struktur", label: "Struktur" },
+				{ id: "visi-misi", label: "Visi & Misi" }
+			];
+
+			function readProfileMenuItems() {
+				try {
+					const raw = localStorage.getItem(PROFILE_MENU_STORAGE_KEY);
+					if (!raw) return DEFAULT_PROFILE_MENU;
+					const parsed = JSON.parse(raw);
+					if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PROFILE_MENU;
+					return parsed.map(function(item) {
+						if (typeof item === "string") return { id: item.toLowerCase().replace(/\s+/g, "-"), label: item };
+						return { id: item && item.id ? String(item.id) : String((item && item.label) || "profil").toLowerCase().replace(/\s+/g, "-"), label: item && item.label ? String(item.label) : "Profil" };
+					});
+				} catch (err) { return DEFAULT_PROFILE_MENU; }
+			}
+
+			function enhanceProfileHoverMenu() {
+				const navList = document.querySelector(".nav-row nav ul") || document.querySelector("nav ul");
+				if (!navList) return;
+				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				if (!profileAnchor) return;
+				const profileItem = profileAnchor.closest("li");
+				if (!profileItem || profileItem.querySelector(".profile-hover-menu, .nav-dropdown-menu")) return;
+
+				const menuItems = readProfileMenuItems();
+				profileItem.style.position = "relative";
+				profileItem.classList.add("nav-dropdown-enhanced");
+
+				if (!profileAnchor.hasAttribute("data-profile-menu-label")) {
+					profileAnchor.setAttribute("data-profile-menu-label", "true");
+				}
+
+				const dropdown = document.createElement("div");
+				dropdown.className = "profile-hover-menu";
+				Object.assign(dropdown.style, { position: "absolute", top: "calc(100% + 4px)", left: "0", minWidth: "200px", border: "1px solid rgba(128,0,0,0.15)", background: "#fff", boxShadow: "0 10px 30px rgba(128,0,0,0.12)", padding: "6px", display: "none", zIndex: "1300", borderRadius: "12px" });
+
+				dropdown.innerHTML = menuItems.map(function(item) {
+					return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;margin-bottom:2px;border-radius:8px;color:#4a4a4a;transition:all 0.2s;">' + item.label + '</a>';
+				}).join("");
+
+				dropdown.addEventListener("mouseover", function(event) {
+					const link = event.target.closest("a");
+					if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; }
+				});
+				dropdown.addEventListener("mouseout", function(event) {
+					const link = event.target.closest("a");
+					if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; }
+				});
+
+				profileItem.appendChild(dropdown);
+
+				dropdown.querySelectorAll("a").forEach(function (link) {
+					link.addEventListener("click", function () {
+						dropdown.style.display = "none";
+					});
+				});
+
+				profileItem.addEventListener("mouseenter", function() { dropdown.style.display = "block"; });
+				profileItem.addEventListener("mouseleave", function() { dropdown.style.display = "none"; });
+			}
+
+			enhanceProfileHoverMenu();
+		})();
+	</script>
+</body>
+</html>

@@ -1,0 +1,2265 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registrasi Tugas Misa Besar - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --panel-2: #f5f5f5;
+      --line: #1f1f1f;
+      --muted: #5b5b5b;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: #cdcdcd;
+      font-size: 0.82rem;
+    }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+      background: transparent;
+    }
+
+    .menu-link:hover { border-color: #8a8a8a; background: rgba(255, 255, 255, 0.08); }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.7rem);
+      font-weight: 700;
+      color: #1c1f27;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.84rem, 1.6vw, 0.95rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #6b7280;
+      background: #ffffff;
+      color: #374151;
+      text-decoration: none;
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .panel.combo-host {
+      overflow: visible;
+      position: relative;
+      z-index: 4;
+    }
+
+    .panel.combo-host .panel-body {
+      overflow: visible;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: var(--panel-2);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+
+    .panel-body { padding: 12px; }
+
+    .helper {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1.3fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .name-manager {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+      align-items: end;
+      margin-top: 8px;
+    }
+
+    .name-manager .btn {
+      white-space: nowrap;
+    }
+
+    .misa-combo {
+      min-width: 220px;
+    }
+
+    .misa-combo.open-up .member-panel {
+      top: auto;
+      bottom: calc(100% + 4px);
+    }
+
+    .misa-combo .member-options {
+      max-height: 110px;
+    }
+
+    .field { display: grid; gap: 5px; }
+
+    .check-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      border: 1px dashed #b9b9b9;
+      border-radius: 8px;
+      background: #fafafa;
+      font-size: 0.84rem;
+      color: #2f2f2f;
+      font-weight: 600;
+    }
+
+    .check-field input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: #3d3d3d;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+      border: 1px solid #cbcbcb;
+      border-radius: 6px;
+      padding: 8px 9px;
+      background: #fff;
+    }
+
+    .role-adder {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+      margin-top: 10px;
+    }
+
+    .role-toggle-wrap {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #4b5563;
+    }
+
+    .role-toggle-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #4b5563;
+      font-weight: 600;
+    }
+
+    .role-count-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .role-count-wrap input {
+      width: 88px;
+    }
+
+    .role-member-slots {
+      display: grid;
+      gap: 10px;
+    }
+
+    .role-member-slot {
+      border: 1px dashed #d1d1d1;
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .role-member-slot label {
+      font-size: 0.74rem;
+    }
+
+    .role-name-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .member-combo {
+      position: relative;
+      min-width: 190px;
+    }
+
+    .member-trigger {
+      width: 100%;
+      text-align: left;
+      border: 1px solid #cbcbcb;
+      border-radius: 6px;
+      padding: 8px 9px;
+      background: #fff;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .member-trigger::after {
+      content: "▾";
+      float: right;
+      color: #5b5b5b;
+      font-size: 0.76rem;
+      margin-top: 2px;
+    }
+
+    .member-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      border: 1px solid #ababab;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      z-index: 120;
+      display: none;
+    }
+
+    .member-panel.show {
+      display: block;
+    }
+
+    .member-search-wrap {
+      border-bottom: 1px solid #dddddd;
+      padding: 7px;
+      background: #f7f7f7;
+    }
+
+    .member-search {
+      width: 100%;
+      border: 1px solid #b8b8b8;
+      border-radius: 4px;
+      padding: 6px 7px;
+      font-size: 0.82rem;
+    }
+
+    .member-options {
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .member-option {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid #f0f0f0;
+      border-radius: 0;
+      background: #fff;
+      text-align: left;
+      padding: 7px 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .member-option:hover,
+    .member-option.active {
+      background: #ebebeb;
+    }
+
+    .member-empty {
+      margin: 0;
+      padding: 8px;
+      font-size: 0.78rem;
+      color: #686868;
+      font-style: italic;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn.secondary {
+      background: #f7f7f7;
+      color: #222;
+    }
+
+    .btn.danger {
+      background: #222;
+      color: #fff;
+    }
+
+    .table-wrap {
+      margin-top: 12px;
+      overflow-x: auto;
+      border: 1px solid #cbcbcb;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 0.84rem;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #efefef;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .draft-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .draft-card {
+      border: 1px solid #cbcbcb;
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .draft-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .draft-card h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .draft-meta {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .draft-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .draft-detail-summary {
+      margin: 0;
+      color: #374151;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .draft-detail-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 5px;
+      color: #2f2f2f;
+      font-size: 0.84rem;
+    }
+
+    .draft-detail-note {
+      margin: 0;
+      border: 1px dashed #b9b9b9;
+      border-radius: 8px;
+      background: #f8f8f8;
+      padding: 9px 10px;
+      color: #4b5563;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .draft-detail-empty {
+      margin: 0;
+      color: #6b7280;
+      font-size: 0.84rem;
+      font-style: italic;
+    }
+
+    .draft-badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid #c6b07b;
+      background: #fff8ea;
+      color: #7a5a1f;
+      font-size: 0.76rem;
+    }
+
+    .draft-empty {
+      margin: 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    .schedule-filters {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .schedule-table-wrap {
+      margin-top: 10px;
+      overflow-x: auto;
+      border: 1px solid #cbcbcb;
+      border-radius: 8px;
+    }
+
+    .schedule-table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      background: #fff;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .schedule-table th {
+      background: #efefef;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .schedule-action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .schedule-action-row .btn {
+      padding: 6px 9px;
+      font-size: 0.75rem;
+    }
+
+    .schedule-chip {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid #bdbdbd;
+      background: #f8f8f8;
+      font-size: 0.76rem;
+    }
+
+    .schedule-chip.raya {
+      border-color: #c6b07b;
+      background: #fff8ea;
+      color: #7a5a1f;
+    }
+
+    .schedule-chip.biasa {
+      border-color: #91c89c;
+      background: #ecf8ef;
+      color: #235c2d;
+    }
+
+    .schedule-note {
+      margin: 6px 0 0;
+      color: #4b5563;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .schedule-note-inline {
+      margin-top: 6px;
+      display: block;
+      color: #4b5563;
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+
+    .schedule-role-list {
+      margin: 6px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+      font-size: 0.82rem;
+      color: #2f2f2f;
+    }
+
+    .schedule-empty {
+      margin: 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .role-adder { grid-template-columns: 1fr; }
+      .schedule-filters { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar registrasi misa besar">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Modul registrasi tugas misa besar</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Tugas Streaming <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
+          <a class="menu-link active" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
+          <a class="menu-link" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
+          <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
+          <a class="menu-link" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
+          <a class="menu-link" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html?role=admin">Kembali ke Dashboard</a>
+        <a href="home.html?session=active">Kembali ke Home</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header modul registrasi">
+        <h1>Registrasi Tugas Misa Besar</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="panel combo-host">
+        <div class="panel-head">
+          <h2>Data Misa</h2>
+        </div>
+        <div class="panel-body">
+          <p class="helper">Urutan kerja: isi data misa, tambahkan role yang dibutuhkan, lalu pilih anggota untuk setiap role.</p>
+          <div class="grid-3">
+            <div class="field">
+              <label for="misaName">Nama Misa</label>
+              <div id="misaNameCombo" class="member-combo misa-combo open-up">
+                <button id="misaNameTrigger" class="member-trigger" type="button" data-value="" aria-expanded="false">-- pilih nama misa --</button>
+                <div id="misaNamePanel" class="member-panel">
+                  <div class="member-search-wrap"><input id="misaNameSearch" class="member-search" type="search" placeholder="Cari nama misa..."></div>
+                  <div id="misaNameOptions" class="member-options"></div>
+                </div>
+                <input id="misaName" type="hidden" value="">
+              </div>
+              <div class="name-manager">
+                <input id="customMisaNameInput" type="text" placeholder="Tambah nama misa baru">
+                <button id="addMisaNameBtn" class="btn secondary" type="button">Tambah</button>
+                <button id="editMisaNameBtn" class="btn secondary" type="button">Edit</button>
+                <button id="deleteMisaNameBtn" class="btn danger" type="button">Hapus</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="misaDate">Tanggal</label>
+              <input id="misaDate" type="date">
+            </div>
+            <div class="field">
+              <label for="misaTime">Jam</label>
+              <input id="misaTime" type="time">
+            </div>
+            <div class="field">
+              <label for="misaNote">Keterangan Misa</label>
+              <input id="misaNote" type="text" placeholder="Catatan untuk 1 misa, bukan per anggota">
+            </div>
+          </div>
+          <label class="check-field" for="allowMemberRequest">
+            <input id="allowMemberRequest" type="checkbox">
+            Boleh diisi lewat request tugas anggota
+          </label>
+          <p class="schedule-note">Jika dicentang, role yang belum punya petugas boleh kosong dulu dan akan menunggu request anggota.</p>
+        </div>
+      </section>
+
+      <section class="panel combo-host">
+        <div class="panel-head">
+          <h2>Registrasi Role dan Anggota</h2>
+        </div>
+        <div class="panel-body">
+          <div class="role-adder">
+            <div class="field">
+              <label for="roleSelect">Tambah Role</label>
+              <select id="roleSelect">
+                <option value="">-- pilih role --</option>
+                <option value="PD">PD</option>
+                <option value="OP">OP</option>
+                <option value="vMix">vMix</option>
+                <option value="Kamera">Kamera</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Fotografer">Fotografer</option>
+                <option value="Audio">Audio</option>
+                <option value="Lighting">Lighting</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="customRoleInput">Role Manual (Custom)</label>
+              <input id="customRoleInput" type="text" placeholder="Contoh: Drone Pilot">
+            </div>
+            <button id="addRoleBtn" class="btn" type="button">+ Tambah Role</button>
+            <button id="addCustomRoleBtn" class="btn secondary" type="button">+ Tambah Role Custom</button>
+            <button id="addDefaultRolesBtn" class="btn secondary" type="button">+ Paket Standar</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Petugas Role</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="rolesBody"></tbody>
+            </table>
+          </div>
+
+          <div class="actions">
+            <button id="saveDraftBtn" class="btn secondary" type="button">Simpan Draft</button>
+            <button id="cancelEditBtn" class="btn secondary" type="button" hidden>Batal Edit</button>
+            <button id="publishRegistrationBtn" class="btn" type="button">Publish Registrasi</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Daftar draft registrasi">
+        <div class="panel-head">
+          <h2>Draft Registrasi Tersimpan</h2>
+        </div>
+        <div class="panel-body">
+          <p class="helper">Daftar draft yang pernah disimpan. Anda bisa buka lagi untuk edit atau hapus jika tidak dipakai.</p>
+          <div id="draftList" class="draft-list"></div>
+          <p id="draftEmpty" class="draft-empty" hidden>Belum ada draft tersimpan.</p>
+        </div>
+      </section>
+
+      <section id="draftDetailPanel" class="panel" aria-label="Detail registrasi misa" hidden>
+        <div class="panel-head" style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <h2>Detail Registrasi Misa</h2>
+          <button id="closeDetailBtn" class="btn secondary" type="button">Tutup</button>
+        </div>
+        <div class="panel-body" id="draftDetailBody"></div>
+      </section>
+
+      <section class="panel" aria-label="Jadwal misa besar">
+        <div class="panel-head">
+          <h2>Jadwal Misa Besar</h2>
+        </div>
+        <div class="panel-body">
+          <p class="helper">Lihat daftar jadwal misa besar yang sudah ada, lalu filter berdasarkan bulan, tahun, atau kata kunci supaya tidak salah tanggal.</p>
+          <div class="schedule-filters">
+            <div class="field">
+              <label for="scheduleSearchInput">Cari Jadwal</label>
+              <input id="scheduleSearchInput" type="search" placeholder="Cari nama misa, tanggal, atau keterangan...">
+            </div>
+            <div class="field">
+              <label for="scheduleMisaFilter">Nama Misa</label>
+              <select id="scheduleMisaFilter">
+                <option value="all">Semua Nama Misa</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="scheduleMonthFilter">Bulan</label>
+              <select id="scheduleMonthFilter">
+                <option value="all">Semua Bulan</option>
+                <option value="0">Januari</option>
+                <option value="1">Februari</option>
+                <option value="2">Maret</option>
+                <option value="3">April</option>
+                <option value="4">Mei</option>
+                <option value="5">Juni</option>
+                <option value="6">Juli</option>
+                <option value="7">Agustus</option>
+                <option value="8">September</option>
+                <option value="9">Oktober</option>
+                <option value="10">November</option>
+                <option value="11">Desember</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="scheduleYearFilter">Tahun</label>
+              <select id="scheduleYearFilter">
+                <option value="all">Semua Tahun</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="schedule-table-wrap">
+            <table class="schedule-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Jam</th>
+                  <th>Nama Misa</th>
+                  <th>Jenis</th>
+                  <th>Lokasi</th>
+                  <th>Keterangan</th>
+                  <th>Request Anggota</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="scheduleRows"></tbody>
+            </table>
+          </div>
+          <p id="scheduleEmpty" class="schedule-empty" hidden>Tidak ada jadwal misa besar yang cocok dengan filter.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const memberOptions = [
+      "Rikha", "Jeni", "Tyas", "Lisa", "Evan", "Jose", "Rossa", "Aurel", "Asha", "Bima", "Niko", "Sinta"
+    ];
+
+    const DEFAULT_MISA_NAMES = [
+      "Misa Kamis Putih",
+      "Misa Jumat Agung",
+      "Misa Vigili Paskah",
+      "Misa Pentahbisan",
+      "Misa Syukur Ulang Tahun Paroki",
+      "Misa Minggu Palma",
+      "Misa Mingguan"
+    ];
+
+    const BIG_MASS_SCHEDULES = [
+      { name: "Misa Kamis Putih", date: "2026-04-02", time: "18:00", type: "Misa Besar", location: "Gereja Utama", note: "Registrasi petugas lengkap" },
+      { name: "Misa Jumat Agung", date: "2026-04-03", time: "17:30", type: "Misa Besar", location: "Gereja Utama", note: "Koordinasi liturgi dan dokumentasi" },
+      { name: "Misa Vigili Paskah", date: "2026-04-04", time: "19:00", type: "Misa Besar", location: "Gereja Utama", note: "Pastikan semua role terisi" },
+      { name: "Misa Pentahbisan", date: "2026-05-10", time: "09:00", type: "Misa Besar", location: "Aula Paroki", note: "Jadwal cadangan besar" },
+      { name: "Misa Syukur Ulang Tahun Paroki", date: "2026-07-20", time: "10:00", type: "Misa Besar", location: "Gereja Utama", note: "Agenda paroki tahunan" }
+    ];
+
+    const rolesBody = document.getElementById("rolesBody");
+    const roleSelect = document.getElementById("roleSelect");
+    const customRoleInput = document.getElementById("customRoleInput");
+    const addRoleBtn = document.getElementById("addRoleBtn");
+    const addCustomRoleBtn = document.getElementById("addCustomRoleBtn");
+    const addDefaultRolesBtn = document.getElementById("addDefaultRolesBtn");
+    const saveDraftBtn = document.getElementById("saveDraftBtn");
+    const publishRegistrationBtn = document.getElementById("publishRegistrationBtn");
+    const draftList = document.getElementById("draftList");
+    const draftEmpty = document.getElementById("draftEmpty");
+    const draftDetailPanel = document.getElementById("draftDetailPanel");
+    const draftDetailBody = document.getElementById("draftDetailBody");
+    const closeDetailBtn = document.getElementById("closeDetailBtn");
+    const scheduleRows = document.getElementById("scheduleRows");
+    const scheduleEmpty = document.getElementById("scheduleEmpty");
+    const scheduleSearchInput = document.getElementById("scheduleSearchInput");
+    const scheduleMisaFilter = document.getElementById("scheduleMisaFilter");
+    const scheduleMonthFilter = document.getElementById("scheduleMonthFilter");
+    const scheduleYearFilter = document.getElementById("scheduleYearFilter");
+    const misaNameCombo = document.getElementById("misaNameCombo");
+    const misaNameTrigger = document.getElementById("misaNameTrigger");
+    const misaNamePanel = document.getElementById("misaNamePanel");
+    const misaNameSearch = document.getElementById("misaNameSearch");
+    const misaNameOptions = document.getElementById("misaNameOptions");
+    const misaNameInput = document.getElementById("misaName");
+    const customMisaNameInput = document.getElementById("customMisaNameInput");
+    const addMisaNameBtn = document.getElementById("addMisaNameBtn");
+    const editMisaNameBtn = document.getElementById("editMisaNameBtn");
+    const deleteMisaNameBtn = document.getElementById("deleteMisaNameBtn");
+    const misaDateInput = document.getElementById("misaDate");
+    const misaTimeInput = document.getElementById("misaTime");
+    const misaNoteInput = document.getElementById("misaNote");
+    const allowMemberRequestToggle = document.getElementById("allowMemberRequest");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    const DRAFT_STORAGE_KEY = "crembo-registrasi-misa-besar-drafts";
+    const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
+    const MISA_NAME_STORAGE_KEY = "crembo-registrasi-misa-names";
+    const HIDDEN_DEFAULT_SCHEDULE_KEY = "crembo-registrasi-misa-besar-hidden-default";
+    const DUMMY_DRAFTS = [
+      {
+        id: "draft-registrasi-001",
+        misaName: "Misa Kamis Putih",
+        misaDate: "2026-04-02",
+        misaTime: "18:00",
+        misaNote: "Registrasi petugas lengkap",
+        allowMemberRequest: true,
+        roles: [
+          { role: "PD", member: "Rikha", count: 1 },
+          { role: "OP", member: "Evan", count: 1 },
+          { role: "Kamera", members: ["Jeni", "Tyas"], multi: true, count: 2 },
+          { role: "Supervisor", member: "Asha", count: 1 }
+        ]
+      }
+    ];
+    const DUMMY_PUBLISHED_MASS = [
+      {
+        id: "publish-registrasi-001",
+        name: "Misa Jumat Agung",
+        date: "2026-04-03",
+        time: "17:30",
+        roles: [
+          { role: "PD", member: "Lisa", count: 1 },
+          { role: "OP", member: "Evan", count: 1 },
+          { role: "vMix", member: "Jose", count: 1 },
+          { role: "Kamera", members: ["Rossa", "Aurel"], multi: true, count: 2 },
+          { role: "Supervisor", member: "Asha", count: 1 }
+        ],
+        allowMemberRequest: false
+      },
+      {
+        id: "publish-registrasi-002",
+        name: "Misa Vigili Paskah",
+        date: "2026-04-04",
+        time: "19:00",
+        roles: [
+          { role: "PD", member: "Rikha", count: 1 },
+          { role: "OP", member: "Jeni", count: 1 },
+          { role: "vMix", member: "Asha", count: 1 },
+          { role: "Kamera", members: ["Dewi", "Bagas"], multi: true, count: 2 },
+          { role: "Fotografer", member: "Citra", count: 1 }
+        ],
+        allowMemberRequest: true
+      }
+    ];
+    let currentEditingDraftId = "";
+    let currentDetailDraftId = "";
+
+    function formatDisplayDate(dateStr) {
+      const date = new Date(dateStr + "T00:00:00");
+      if (Number.isNaN(date.getTime())) {
+        return dateStr;
+      }
+
+      return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function getDefaultScheduleId(item) {
+      const parts = [item.name || "", item.date || "", item.time || ""];
+      return "default-" + parts.join("-").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    }
+
+    function readHiddenDefaultScheduleIds() {
+      return [];
+    }
+
+    function saveHiddenDefaultScheduleIds(items) {
+      void items;
+    }
+
+    function getCombinedScheduleRows() {
+      const rowsById = {};
+      const priority = {
+        default: 1,
+        published: 2,
+        draft: 3
+      };
+      const savedRows = readPublishedMassSchedules().map(function (item) {
+        return Object.assign({
+          source: "registrasi",
+          status: "published"
+        }, item);
+      });
+      const savedIds = savedRows.map(function (item) {
+        return item.id;
+      });
+      const hiddenDefaultIds = readHiddenDefaultScheduleIds();
+      const defaultRows = BIG_MASS_SCHEDULES.map(function (item) {
+        const defaultId = getDefaultScheduleId(item);
+        return Object.assign({}, item, {
+          id: defaultId,
+          source: "default",
+          status: "published",
+          allowMemberRequest: false
+        });
+      }).filter(function (item) {
+        return hiddenDefaultIds.indexOf(item.id) === -1 && savedIds.indexOf(item.id) === -1;
+      });
+      const draftRows = readDrafts().map(function (item) {
+        return {
+          id: item.id,
+          name: item.misaName || "",
+          date: item.misaDate || "",
+          time: item.misaTime || "",
+          type: "Misa Besar",
+          location: "Draft Registrasi",
+          note: item.misaNote || "-",
+          misaNote: item.misaNote || "",
+          roles: Array.isArray(item.roles) ? item.roles : [],
+          source: "draft",
+          status: "draft",
+          allowMemberRequest: !!item.allowMemberRequest
+        };
+      });
+
+      defaultRows.concat(savedRows).concat(draftRows).forEach(function (item) {
+        const rank = priority[item.status] || 0;
+        const current = rowsById[item.id];
+        if (!current || rank >= (priority[current.status] || 0)) {
+          rowsById[item.id] = item;
+        }
+      });
+
+      return Object.values(rowsById);
+    }
+
+    function syncMisaScheduleFilterOptions(rows) {
+      const allRows = Array.isArray(rows) ? rows : getCombinedScheduleRows();
+      const selectedValue = scheduleMisaFilter.value || "all";
+      const names = Array.from(new Set(allRows.map(function (item) {
+        return String(item.name || "").trim();
+      }).filter(function (item) {
+        return !!item;
+      })));
+      names.sort(function (a, b) {
+        return a.localeCompare(b, "id");
+      });
+
+      scheduleMisaFilter.innerHTML = '<option value="all">Semua Nama Misa</option>' + names.map(function (name) {
+        return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>';
+      }).join("");
+
+      const stillExists = names.some(function (name) {
+        return name.toLowerCase() === selectedValue.toLowerCase();
+      });
+      scheduleMisaFilter.value = selectedValue === "all" || !stillExists ? "all" : selectedValue;
+    }
+
+    function renderBigMassSchedules() {
+      const keyword = scheduleSearchInput.value.trim().toLowerCase();
+      const misaFilter = scheduleMisaFilter.value;
+      const monthFilter = scheduleMonthFilter.value;
+      const yearFilter = scheduleYearFilter.value;
+      const allRows = getCombinedScheduleRows();
+
+      syncMisaScheduleFilterOptions(allRows);
+
+      const rows = allRows.filter(function (item) {
+        const date = new Date(item.date + "T00:00:00");
+        if (Number.isNaN(date.getTime())) {
+          return false;
+        }
+
+        const matchesKeyword = !keyword || [item.name, item.date, item.time, item.type, item.location, item.note, item.misaNote].join(" ").toLowerCase().indexOf(keyword) !== -1;
+        const matchesMisa = misaFilter === "all" || (item.name || "").toLowerCase() === misaFilter.toLowerCase();
+        const matchesMonth = monthFilter === "all" || String(date.getMonth()) === monthFilter;
+        const matchesYear = yearFilter === "all" || String(date.getFullYear()) === yearFilter;
+        return matchesKeyword && matchesMisa && matchesMonth && matchesYear;
+      }).sort(function (a, b) {
+        return new Date(a.date + "T" + a.time + ":00").getTime() - new Date(b.date + "T" + b.time + ":00").getTime();
+      });
+
+      if (!rows.length) {
+        scheduleRows.innerHTML = "";
+        scheduleEmpty.hidden = false;
+        return;
+      }
+
+      scheduleEmpty.hidden = true;
+      scheduleRows.innerHTML = rows.map(function (item) {
+        const typeClass = item.type === "Misa Besar" ? "raya" : "biasa";
+        const scheduleNote = item.note || item.misaNote || "-";
+        const requestChip = item.allowMemberRequest
+          ? '<span class="schedule-chip biasa">Dibuka</span>'
+          : '<span class="schedule-chip">Ditutup</span>';
+        const isDraft = item.status === "draft";
+        const statusChip = isDraft
+          ? '<span class="schedule-chip">Draft</span>'
+          : '<span class="schedule-chip raya">Published</span>';
+        const actions = isDraft
+          ? '<div class="schedule-action-row">' +
+              '<button class="btn secondary" type="button" data-schedule-action="edit" data-schedule-id="' + escapeHtml(item.id) + '">Edit</button>' +
+              '<button class="btn secondary" type="button" data-schedule-action="publish" data-schedule-id="' + escapeHtml(item.id) + '">Publish</button>' +
+              '<button class="btn danger" type="button" data-schedule-action="delete" data-schedule-id="' + escapeHtml(item.id) + '">Hapus</button>' +
+            '</div>'
+          : '<div class="schedule-action-row">' +
+              '<button class="btn secondary" type="button" data-schedule-action="restore" data-schedule-id="' + escapeHtml(item.id) + '">Ke Draft</button>' +
+              '<button class="btn secondary" type="button" data-schedule-action="edit" data-schedule-id="' + escapeHtml(item.id) + '">Edit</button>' +
+              '<button class="btn danger" type="button" data-schedule-action="delete" data-schedule-id="' + escapeHtml(item.id) + '">Hapus</button>' +
+            '</div>';
+        return '<tr>' +
+          '<td>' + escapeHtml(formatDisplayDate(item.date)) + '</td>' +
+          '<td>' + escapeHtml(item.time) + '</td>' +
+          '<td><strong>' + escapeHtml(item.name) + '</strong></td>' +
+          '<td><span class="schedule-chip ' + typeClass + '">' + escapeHtml(item.type) + '</span></td>' +
+          '<td>' + escapeHtml(item.location) + '</td>' +
+          '<td><span>' + escapeHtml(scheduleNote) + '</span>' + (item.misaNote ? '<span class="schedule-note-inline">Keterangan misa ini ikut tampil di jadwal lain.</span>' : '') + '</td>' +
+          '<td>' + requestChip + '</td>' +
+          '<td>' + statusChip + '</td>' +
+          '<td>' + actions + '</td>' +
+        '</tr>';
+      }).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function normalizeRoleName(value) {
+      return String(value || "").trim();
+    }
+
+    function readMisaNameOptions() {
+      try {
+        const raw = localStorage.getItem(MISA_NAME_STORAGE_KEY);
+        if (raw === null) {
+          return DEFAULT_MISA_NAMES.slice();
+        }
+
+        const parsed = JSON.parse(raw);
+        const source = Array.isArray(parsed) ? parsed : DEFAULT_MISA_NAMES;
+        return Array.from(new Set(source.map(function (item) {
+          return String(item || "").trim();
+        }).filter(function (item) {
+          return !!item;
+        })));
+      } catch (error) {
+        return DEFAULT_MISA_NAMES.slice();
+      }
+    }
+
+    function saveMisaNameOptions(items) {
+      const clean = Array.from(new Set((Array.isArray(items) ? items : []).map(function (item) {
+        return String(item || "").trim();
+      }).filter(function (item) {
+        return !!item;
+      })));
+      clean.sort(function (a, b) { return a.localeCompare(b, "id"); });
+      localStorage.setItem(MISA_NAME_STORAGE_KEY, JSON.stringify(clean));
+      return clean;
+    }
+
+    function getMisaNameValue() {
+      return (misaNameInput.value || "").trim();
+    }
+
+    function closeMisaNamePanel() {
+      misaNamePanel.classList.remove("show");
+      misaNameTrigger.setAttribute("aria-expanded", "false");
+    }
+
+    function setMisaPanelDirection() {
+      misaNameCombo.classList.add("open-up");
+    }
+
+    function setMisaNameValue(value) {
+      const clean = String(value || "").trim();
+      misaNameInput.value = clean;
+      misaNameTrigger.textContent = clean || "-- pilih nama misa --";
+      misaNameTrigger.setAttribute("data-value", clean);
+      renderMisaNameOptions(clean);
+    }
+
+    function renderMisaNameOptions(selectedName, query) {
+      const names = readMisaNameOptions();
+      const selected = String(selectedName || getMisaNameValue()).trim().toLowerCase();
+      const cleanQuery = String(query || "").trim().toLowerCase();
+      const filtered = names.filter(function (name) {
+        return !cleanQuery || name.toLowerCase().indexOf(cleanQuery) !== -1;
+      });
+
+      if (!filtered.length) {
+        misaNameOptions.innerHTML = '<p class="member-empty">Nama misa tidak ditemukan.</p>';
+        return;
+      }
+
+      misaNameOptions.innerHTML = filtered.map(function (name) {
+        const activeClass = name.toLowerCase() === selected ? " active" : "";
+        return '<button class="member-option' + activeClass + '" type="button" data-value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</button>';
+      }).join("");
+    }
+
+    function ensureMisaNameOption(name) {
+      const cleanName = String(name || "").trim();
+      if (!cleanName) {
+        return;
+      }
+
+      const names = readMisaNameOptions();
+      if (names.map(function (item) { return item.toLowerCase(); }).indexOf(cleanName.toLowerCase()) === -1) {
+        names.push(cleanName);
+        saveMisaNameOptions(names);
+      }
+
+      setMisaNameValue(cleanName);
+    }
+
+    function updateSelectedMisaName() {
+      const selectedName = getMisaNameValue();
+      const newName = customMisaNameInput.value.trim();
+
+      if (!selectedName) {
+        window.alert("Pilih nama misa yang mau diubah terlebih dahulu.");
+        return;
+      }
+      if (!newName) {
+        window.alert("Masukkan nama misa pengganti di input nama misa baru.");
+        return;
+      }
+
+      const names = readMisaNameOptions();
+      const selectedIndex = names.findIndex(function (item) {
+        return item.toLowerCase() === selectedName.toLowerCase();
+      });
+
+      if (selectedIndex === -1) {
+        window.alert("Nama misa tidak ditemukan di daftar.");
+        return;
+      }
+
+      const duplicate = names.some(function (item, index) {
+        return index !== selectedIndex && item.toLowerCase() === newName.toLowerCase();
+      });
+      if (duplicate) {
+        window.alert("Nama misa tersebut sudah ada di daftar.");
+        return;
+      }
+
+      names[selectedIndex] = newName;
+      const saved = saveMisaNameOptions(names);
+
+      const drafts = readDrafts().map(function (draft) {
+        if ((draft.misaName || "").toLowerCase() === selectedName.toLowerCase()) {
+          draft.misaName = newName;
+        }
+        return draft;
+      });
+      saveDrafts(drafts);
+
+      const schedules = readPublishedMassSchedules().map(function (item) {
+        if ((item.name || "").toLowerCase() === selectedName.toLowerCase()) {
+          item.name = newName;
+        }
+        return item;
+      });
+      savePublishedMassSchedules(schedules);
+
+      customMisaNameInput.value = "";
+      setMisaNameValue(newName);
+      renderMisaNameOptions(newName, misaNameSearch.value);
+      renderDraftList();
+      renderBigMassSchedules();
+      window.alert("Nama misa berhasil diperbarui.");
+    }
+
+    function deleteSelectedMisaName() {
+      const selectedName = getMisaNameValue();
+      if (!selectedName) {
+        window.alert("Pilih nama misa yang mau dihapus terlebih dahulu.");
+        return;
+      }
+
+      if (!window.confirm("Hapus nama misa \"" + selectedName + "\" dari daftar?")) {
+        return;
+      }
+
+      const names = readMisaNameOptions().filter(function (item) {
+        return item.toLowerCase() !== selectedName.toLowerCase();
+      });
+      const saved = saveMisaNameOptions(names);
+
+      const fallback = saved.length ? saved[0] : "";
+      setMisaNameValue(fallback);
+      renderMisaNameOptions(fallback, misaNameSearch.value);
+    }
+
+    function readDrafts() {
+      return DUMMY_DRAFTS.slice();
+    }
+
+    function saveDrafts(items) {
+      void items;
+    }
+
+    function readPublishedMassSchedules() {
+      return DUMMY_PUBLISHED_MASS.slice();
+    }
+
+    function savePublishedMassSchedules(items) {
+      void items;
+    }
+
+    function upsertPublishedMassSchedule(entry) {
+      const schedules = readPublishedMassSchedules();
+      const payload = {
+        id: entry.id,
+        name: entry.misaName,
+        date: entry.misaDate,
+        time: entry.misaTime,
+        type: "Misa Besar",
+        location: "Registrasi Misa Besar",
+        note: entry.misaNote || "-",
+        misaNote: entry.misaNote || "",
+        roles: Array.isArray(entry.roles) ? entry.roles : [],
+        source: "registrasi",
+        allowMemberRequest: !!entry.allowMemberRequest
+      };
+
+      const existingIndex = schedules.findIndex(function (item) {
+        return item.id === payload.id;
+      });
+
+      if (existingIndex === -1) {
+        schedules.push(payload);
+      } else {
+        schedules[existingIndex] = payload;
+      }
+
+      savePublishedMassSchedules(schedules);
+    }
+
+    function removePublishedMassSchedule(draftId) {
+      savePublishedMassSchedules(readPublishedMassSchedules().filter(function (item) {
+        return item.id !== draftId;
+      }));
+    }
+
+    function getCurrentRoleRows() {
+      return Array.from(rolesBody.querySelectorAll("tr")).map(function (row) {
+        const roleName = row.getAttribute("data-role-name") || "";
+        const isMulti = row.querySelector(".role-multi-checkbox") ? row.querySelector(".role-multi-checkbox").checked : false;
+        const countInput = row.querySelector(".role-count-input");
+        const count = countInput ? Math.max(1, Number(countInput.value) || 1) : 1;
+        const members = Array.from(row.querySelectorAll(".member-combo .member-hidden")).map(function (input) {
+          return input.value.trim();
+        }).filter(function (item) {
+          return !!item;
+        });
+
+        return {
+          role: roleName,
+          multi: isMulti,
+          count: isMulti ? count : 1,
+          members: members,
+          member: members[0] || ""
+        };
+      }).filter(function (item) {
+        return !!item.role;
+      });
+    }
+
+    function getSelectedMembers(exceptComboEl) {
+      const selected = [];
+      rolesBody.querySelectorAll(".member-combo").forEach(function (comboEl) {
+        if (exceptComboEl && comboEl === exceptComboEl) {
+          return;
+        }
+
+        const value = comboEl.querySelector(".member-hidden").value.trim().toLowerCase();
+        if (value && selected.indexOf(value) === -1) {
+          selected.push(value);
+        }
+      });
+      return selected;
+    }
+
+    function createMemberSelect(slotLabel) {
+      return '<div class="role-member-slot">' +
+        '<label>' + escapeHtml(slotLabel) + '</label>' +
+        '<div class="member-combo">' +
+        '<button class="member-trigger" type="button" data-value="" aria-expanded="false">-- pilih anggota --</button>' +
+        '<div class="member-panel">' +
+          '<div class="member-search-wrap"><input class="member-search" type="search" placeholder="Cari anggota..."></div>' +
+          '<div class="member-options"></div>' +
+        '</div>' +
+        '<input class="member-hidden" type="hidden" value="">' +
+        '</div>' +
+      '</div>';
+    }
+
+    function setMemberComboValue(comboEl, value) {
+      const clean = String(value || "").trim();
+      const trigger = comboEl.querySelector(".member-trigger");
+      const hidden = comboEl.querySelector(".member-hidden");
+
+      hidden.value = clean;
+      trigger.textContent = clean || "-- pilih anggota --";
+      trigger.setAttribute("data-value", clean);
+    }
+
+    function renderMemberComboOptions(comboEl, query) {
+      const optionsWrap = comboEl.querySelector(".member-options");
+      const selected = comboEl.querySelector(".member-hidden").value.trim().toLowerCase();
+      const cleanQuery = String(query || "").trim().toLowerCase();
+      const blockedMembers = getSelectedMembers(comboEl);
+
+      const filtered = memberOptions.filter(function (name) {
+        const lower = name.toLowerCase();
+        const isAllowed = lower === selected || blockedMembers.indexOf(lower) === -1;
+        return isAllowed && (!cleanQuery || lower.indexOf(cleanQuery) !== -1);
+      });
+
+      let html = '<button class="member-option' + (selected ? '' : ' active') + '" type="button" data-value="">-- kosong --</button>';
+
+      filtered.forEach(function (name) {
+        const activeClass = name.toLowerCase() === selected ? " active" : "";
+        html += '<button class="member-option' + activeClass + '" type="button" data-value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</button>';
+      });
+
+      if (!filtered.length) {
+        html += '<p class="member-empty">Nama anggota tidak ditemukan.</p>';
+      }
+
+      optionsWrap.innerHTML = html;
+    }
+
+    function renderAllMemberCombos() {
+      rolesBody.querySelectorAll(".member-combo").forEach(function (comboEl) {
+        const searchInput = comboEl.querySelector(".member-search");
+        renderMemberComboOptions(comboEl, searchInput ? searchInput.value : "");
+      });
+    }
+
+    function closeAllMemberPanels(exceptCombo) {
+      rolesBody.querySelectorAll(".member-combo").forEach(function (comboEl) {
+        if (exceptCombo && comboEl === exceptCombo) {
+          return;
+        }
+
+        const panel = comboEl.querySelector(".member-panel");
+        const trigger = comboEl.querySelector(".member-trigger");
+        panel.classList.remove("show");
+        trigger.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    function initRoleRowCombos() {
+      renderAllMemberCombos();
+    }
+
+    function renderRoleMemberSlots(row, savedMembers) {
+      const roleName = row.getAttribute("data-role-name") || "";
+      const slotWrap = row.querySelector(".role-member-slots");
+      const isMulti = row.querySelector(".role-multi-checkbox").checked;
+      const countInput = row.querySelector(".role-count-input");
+      const desiredCount = isMulti ? Math.max(2, Number(countInput.value) || 2) : 1;
+      const previousMembers = Array.isArray(savedMembers) ? savedMembers : Array.from(row.querySelectorAll(".member-hidden")).map(function (input) {
+        return input.value.trim();
+      });
+
+      countInput.value = String(desiredCount);
+      row.querySelector(".role-count-wrap").hidden = !isMulti;
+      row.setAttribute("data-role-multi", String(isMulti));
+      row.setAttribute("data-role-count", String(desiredCount));
+
+      slotWrap.innerHTML = Array.from({ length: desiredCount }).map(function (_, index) {
+        const slotLabel = desiredCount === 1 ? roleName : roleName + " " + (index + 1);
+        const savedValue = previousMembers[index] || "";
+        return createMemberSelect(slotLabel).replace('data-value="" aria-expanded="false">-- pilih anggota --</button>', 'data-value="" aria-expanded="false">-- pilih anggota --</button>');
+      }).join("");
+
+      const combos = slotWrap.querySelectorAll(".member-combo");
+      combos.forEach(function (comboEl, index) {
+        setMemberComboValue(comboEl, previousMembers[index] || "");
+      });
+
+      renderAllMemberCombos();
+    }
+
+    function appendRoleRow(roleName, memberValue, options) {
+      const isMulti = options && options.multi;
+      const count = options && options.count ? Math.max(2, Number(options.count) || 2) : 1;
+      const savedMembers = options && Array.isArray(options.members)
+        ? options.members.slice()
+        : (memberValue ? [memberValue] : []);
+      const row = document.createElement("tr");
+      row.setAttribute("data-role-name", roleName);
+      row.setAttribute("data-role-multi", String(!!isMulti));
+      row.setAttribute("data-role-count", String(count));
+      row.innerHTML = "<td>" +
+        '<div class="role-name-tag"><strong>' + escapeHtml(roleName) + '</strong></div>' +
+        '<div class="role-toggle-wrap">' +
+          '<label class="role-toggle-inline"><input type="checkbox" class="role-multi-checkbox"' + (isMulti ? ' checked' : '') + '> lebih dari 1 petugas</label>' +
+          '<div class="role-count-wrap"' + (isMulti ? '' : ' hidden') + '>' +
+            '<label for="">Jumlah petugas</label>' +
+            '<input class="role-count-input" type="number" min="2" max="12" value="' + escapeHtml(String(count || 1)) + '">' +
+          '</div>' +
+        '</div>' +
+        "</td>" +
+        "<td><div class=\"role-member-slots\"></div></td>" +
+        "<td><button type=\"button\" class=\"btn danger remove-role\">Hapus</button></td>";
+      rolesBody.appendChild(row);
+
+      renderRoleMemberSlots(row, savedMembers);
+    }
+
+    function addRole(roleName) {
+      const cleanRoleName = normalizeRoleName(roleName);
+      if (!cleanRoleName) {
+        return;
+      }
+
+      const existingRoles = Array.from(rolesBody.querySelectorAll("tr")).map(function (row) {
+        return (row.getAttribute("data-role-name") || "").trim().toLowerCase();
+      });
+
+      if (existingRoles.indexOf(cleanRoleName.toLowerCase()) !== -1) {
+        return;
+      }
+
+      appendRoleRow(cleanRoleName, "");
+      renderAllMemberCombos();
+    }
+
+    function clearRegistrationForm() {
+      currentEditingDraftId = "";
+      currentDetailDraftId = "";
+      setMisaNameValue("");
+      customMisaNameInput.value = "";
+      misaDateInput.value = "";
+      misaTimeInput.value = "";
+      misaNoteInput.value = "";
+      allowMemberRequestToggle.checked = false;
+      rolesBody.innerHTML = "";
+      roleSelect.value = "";
+      customRoleInput.value = "";
+      draftDetailPanel.hidden = true;
+      draftDetailBody.innerHTML = "";
+      setEditMode(false);
+      renderAllMemberCombos();
+    }
+
+    function setEditMode(isEditing) {
+      cancelEditBtn.hidden = !isEditing;
+      saveDraftBtn.textContent = isEditing ? "Perbarui Draft" : "Simpan Draft";
+    }
+
+    function renderDraftList() {
+      const drafts = readDrafts().sort(function (a, b) {
+        return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
+      });
+
+      if (!drafts.length) {
+        draftList.innerHTML = "";
+        draftEmpty.hidden = false;
+        return;
+      }
+
+      draftEmpty.hidden = true;
+      draftList.innerHTML = drafts.map(function (draft) {
+        const title = draft.misaName || "Draft tanpa judul";
+        const scheduleLabel = [draft.misaDate || "-", draft.misaTime || "-"].join(" ");
+        const roleCount = Array.isArray(draft.roles) ? draft.roles.length : 0;
+        const updatedAtLabel = draft.updatedAt ? new Date(draft.updatedAt).toLocaleString("id-ID") : "-";
+        const requestLabel = draft.allowMemberRequest ? "Dibuka" : "Ditutup";
+
+        return '<article class="draft-card">' +
+          '<div class="draft-card-head">' +
+            '<div>' +
+              '<h3>' + escapeHtml(title) + '</h3>' +
+              '<p class="draft-meta">' +
+                'Jadwal: ' + escapeHtml(scheduleLabel) + '<br>' +
+                'Keterangan: ' + escapeHtml(draft.misaNote || "-") + '<br>' +
+                'Request anggota: ' + escapeHtml(requestLabel) + '<br>' +
+                'Role terisi: ' + roleCount + '<br>' +
+                'Update: ' + escapeHtml(updatedAtLabel) +
+              '</p>' +
+            '</div>' +
+            '<span class="draft-badge">Draft</span>' +
+          '</div>' +
+          '<div class="draft-actions">' +
+            '<button class="btn secondary" type="button" data-draft-action="detail" data-draft-id="' + escapeHtml(draft.id) + '">Detail</button>' +
+            '<button class="btn secondary" type="button" data-draft-action="edit" data-draft-id="' + escapeHtml(draft.id) + '">Edit</button>' +
+            '<button class="btn" type="button" data-draft-action="publish" data-draft-id="' + escapeHtml(draft.id) + '">Publish</button>' +
+            '<button class="btn danger" type="button" data-draft-action="delete" data-draft-id="' + escapeHtml(draft.id) + '">Hapus</button>' +
+          '</div>' +
+        '</article>';
+      }).join("");
+    }
+
+    function editScheduleItem(scheduleId) {
+      const schedule = getCombinedScheduleRows().find(function (item) {
+        return item.id === scheduleId;
+      });
+
+      if (!schedule) {
+        return;
+      }
+
+      currentEditingDraftId = schedule.id;
+      setEditMode(true);
+      ensureMisaNameOption(schedule.name || schedule.misaName || "");
+      setMisaNameValue(schedule.name || schedule.misaName || "");
+      misaDateInput.value = schedule.date || "";
+      misaTimeInput.value = schedule.time || "";
+      misaNoteInput.value = schedule.misaNote || schedule.note || "";
+      allowMemberRequestToggle.checked = !!schedule.allowMemberRequest;
+      rolesBody.innerHTML = "";
+
+      (Array.isArray(schedule.roles) ? schedule.roles : []).forEach(function (roleItem) {
+        appendRoleRow(roleItem.role, roleItem.member, {
+          multi: !!roleItem.multi,
+          count: roleItem.count,
+          members: Array.isArray(roleItem.members) ? roleItem.members : [roleItem.member].filter(Boolean)
+        });
+      });
+
+      renderAllMemberCombos();
+    }
+
+    function renderDraftDetail(draftId) {
+      const draft = readDrafts().find(function (item) {
+        return item.id === draftId;
+      });
+
+      if (!draft) {
+        draftDetailPanel.hidden = true;
+        draftDetailBody.innerHTML = "";
+        currentDetailDraftId = "";
+        return;
+      }
+
+      currentDetailDraftId = draft.id;
+      const roles = Array.isArray(draft.roles) ? draft.roles : [];
+      const roleItems = roles.length
+        ? '<ul class="draft-detail-list">' + roles.map(function (roleItem) {
+            const members = Array.isArray(roleItem.members) && roleItem.members.length ? roleItem.members : [roleItem.member || "-"];
+            return '<li><strong>' + escapeHtml(roleItem.role || "-") + ':</strong> ' + escapeHtml(members.join(", ")) + '</li>';
+          }).join("") + '</ul>'
+        : '<p class="draft-detail-empty">Belum ada role yang diisi.</p>';
+
+      draftDetailBody.innerHTML = '' +
+        '<p class="draft-detail-summary"><strong>' + escapeHtml(draft.misaName || "Draft tanpa judul") + '</strong><br>' +
+        'Jadwal: ' + escapeHtml([draft.misaDate || "-", draft.misaTime || "-"].join(" ")) + '<br>' +
+        'Request anggota: ' + escapeHtml(draft.allowMemberRequest ? "Dibuka" : "Ditutup") + '</p>' +
+        '<p class="draft-detail-note"><strong>Keterangan Misa:</strong> ' + escapeHtml(draft.misaNote || "-") + '</p>' +
+        roleItems;
+      draftDetailPanel.hidden = false;
+    }
+
+    function loadDraftIntoForm(draftId) {
+      const draft = readDrafts().find(function (item) {
+        return item.id === draftId;
+      });
+
+      if (!draft) {
+        return;
+      }
+
+      currentEditingDraftId = draft.id;
+      setEditMode(true);
+      ensureMisaNameOption(draft.misaName || "");
+      setMisaNameValue(draft.misaName || "");
+      misaDateInput.value = draft.misaDate || "";
+      misaTimeInput.value = draft.misaTime || "";
+      misaNoteInput.value = draft.misaNote || "";
+      allowMemberRequestToggle.checked = !!draft.allowMemberRequest;
+      rolesBody.innerHTML = "";
+
+      (Array.isArray(draft.roles) ? draft.roles : []).forEach(function (roleItem) {
+        appendRoleRow(roleItem.role, roleItem.member, {
+          multi: !!roleItem.multi,
+          count: roleItem.count,
+          members: Array.isArray(roleItem.members) ? roleItem.members : [roleItem.member].filter(Boolean)
+        });
+      });
+
+      renderAllMemberCombos();
+    }
+
+    function restoreScheduleToDraft(scheduleId) {
+      const schedule = getCombinedScheduleRows().find(function (item) {
+        return item.id === scheduleId;
+      });
+
+      if (!schedule) {
+        return;
+      }
+
+      const existingDraft = readDrafts().find(function (item) {
+        return item.id === scheduleId;
+      });
+
+      const payload = {
+        id: schedule.id,
+        misaName: schedule.name || schedule.misaName || "",
+        misaDate: schedule.date || "",
+        misaTime: schedule.time || "",
+        misaNote: schedule.misaNote || schedule.note || "",
+        allowMemberRequest: !!schedule.allowMemberRequest,
+        roles: Array.isArray(schedule.roles) ? schedule.roles : [],
+        updatedAt: new Date().toISOString()
+      };
+
+      if (!existingDraft) {
+        const drafts = readDrafts();
+        drafts.push(payload);
+        saveDrafts(drafts);
+      } else {
+        existingDraft.misaName = payload.misaName;
+        existingDraft.misaDate = payload.misaDate;
+        existingDraft.misaTime = payload.misaTime;
+        existingDraft.misaNote = payload.misaNote;
+        existingDraft.allowMemberRequest = payload.allowMemberRequest;
+        existingDraft.roles = payload.roles;
+        existingDraft.updatedAt = new Date().toISOString();
+        saveDrafts(readDrafts().map(function (item) {
+          return item.id === existingDraft.id ? existingDraft : item;
+        }));
+      }
+
+      ensureMisaNameOption(payload.misaName || "");
+      loadDraftIntoForm(payload.id);
+      window.alert("Jadwal berhasil dimasukkan kembali ke draft.");
+    }
+
+    function deleteDraft(draftId) {
+      const drafts = readDrafts();
+      const draft = drafts.find(function (item) {
+        return item.id === draftId;
+      });
+
+      if (!draft) {
+        return;
+      }
+
+      const ok = window.confirm("Hapus draft registrasi " + (draft.misaName || "ini") + "?");
+      if (!ok) {
+        return;
+      }
+
+      saveDrafts(drafts.filter(function (item) {
+        return item.id !== draftId;
+      }));
+
+      if (currentEditingDraftId === draftId) {
+        clearRegistrationForm();
+      }
+
+      if (currentDetailDraftId === draftId) {
+        clearRegistrationForm();
+      }
+
+      renderDraftList();
+      renderBigMassSchedules();
+    }
+
+    function validateAndBuildFormPayload(fallbackId) {
+      const misaName = getMisaNameValue();
+      const misaDate = misaDateInput.value;
+      const misaTime = misaTimeInput.value;
+      const misaNote = misaNoteInput.value.trim();
+      const roles = getCurrentRoleRows();
+      ensureMisaNameOption(misaName || "");
+
+      if (!misaName || !misaDate || !misaTime) {
+        window.alert("Nama misa, tanggal, dan jam harus diisi dulu.");
+        return;
+      }
+
+      if (!roles.length) {
+        window.alert("Minimal tambahkan satu role sebelum menyimpan draft.");
+        return;
+      }
+
+      const selectedMembers = roles
+        .flatMap(function (item) {
+          const members = Array.isArray(item.members) ? item.members : [item.member];
+          return members.map(function (member) {
+            return member ? member.toLowerCase() : "";
+          });
+        })
+        .filter(function (item) { return !!item; });
+
+      const duplicateMember = selectedMembers.find(function (item, index) {
+        return selectedMembers.indexOf(item) !== index;
+      });
+
+      if (duplicateMember) {
+        window.alert("Satu anggota hanya boleh dipakai di satu role untuk misa yang sama.");
+        return null;
+      }
+
+      return {
+        id: currentEditingDraftId || fallbackId,
+        misaName: misaName,
+        misaDate: misaDate,
+        misaTime: misaTime,
+        misaNote: misaNote,
+        allowMemberRequest: !!allowMemberRequestToggle.checked,
+        roles: roles,
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    function publishDraftById(draftId) {
+      const draft = readDrafts().find(function (item) {
+        return item.id === draftId;
+      });
+
+      if (!draft) {
+        return;
+      }
+
+      upsertPublishedMassSchedule(draft);
+      saveDrafts(readDrafts().filter(function (item) {
+        return item.id !== draftId;
+      }));
+
+      if (currentEditingDraftId === draftId) {
+        currentEditingDraftId = "";
+        setEditMode(false);
+      }
+
+      renderDraftList();
+      renderBigMassSchedules();
+      window.alert("Draft berhasil dipublish ke jadwal.");
+    }
+
+    function saveCurrentDraft() {
+      const payload = validateAndBuildFormPayload("draft-" + Date.now());
+      if (!payload) {
+        return;
+      }
+
+      const drafts = readDrafts();
+
+      const existingIndex = drafts.findIndex(function (item) {
+        return item.id === payload.id;
+      });
+
+      if (existingIndex === -1) {
+        drafts.push(payload);
+      } else {
+        drafts[existingIndex] = payload;
+      }
+
+      saveDrafts(drafts);
+      currentEditingDraftId = payload.id;
+      setEditMode(true);
+      renderDraftList();
+      renderBigMassSchedules();
+      window.alert("Draft berhasil disimpan.");
+    }
+
+    function publishCurrentRegistration() {
+      const payload = validateAndBuildFormPayload("pub-" + Date.now());
+      if (!payload) {
+        return;
+      }
+
+      upsertPublishedMassSchedule(payload);
+      saveDrafts(readDrafts().filter(function (item) {
+        return item.id !== payload.id;
+      }));
+
+      currentEditingDraftId = payload.id;
+      setEditMode(false);
+      renderDraftList();
+      renderBigMassSchedules();
+      window.alert("Registrasi berhasil dipublish.");
+    }
+
+    function deleteScheduleItem(scheduleId) {
+      const schedule = getCombinedScheduleRows().find(function (item) {
+        return item.id === scheduleId;
+      });
+
+      const draft = readDrafts().find(function (item) {
+        return item.id === scheduleId;
+      });
+
+      const label = (schedule && schedule.name) || (draft && draft.misaName) || "jadwal ini";
+      if (!window.confirm("Hapus " + label + " dari daftar jadwal dan draft?")) {
+        return;
+      }
+
+      if (schedule && schedule.status === "draft") {
+        saveDrafts(readDrafts().filter(function (item) {
+          return item.id !== scheduleId;
+        }));
+      } else {
+        saveDrafts(readDrafts().filter(function (item) {
+          return item.id !== scheduleId;
+        }));
+        removePublishedMassSchedule(scheduleId);
+      }
+
+      if (schedule && schedule.source === "default") {
+        const hiddenDefaultIds = readHiddenDefaultScheduleIds();
+        if (hiddenDefaultIds.indexOf(scheduleId) === -1) {
+          hiddenDefaultIds.push(scheduleId);
+          saveHiddenDefaultScheduleIds(hiddenDefaultIds);
+        }
+      }
+
+      if (currentEditingDraftId === scheduleId) {
+        clearRegistrationForm();
+      }
+
+      renderDraftList();
+      renderBigMassSchedules();
+    }
+
+    addRoleBtn.addEventListener("click", function () {
+      addRole(roleSelect.value);
+      roleSelect.value = "";
+    });
+
+    addCustomRoleBtn.addEventListener("click", function () {
+      addRole(customRoleInput.value);
+      customRoleInput.value = "";
+    });
+
+    customRoleInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addRole(customRoleInput.value);
+        customRoleInput.value = "";
+      }
+    });
+
+    addDefaultRolesBtn.addEventListener("click", function () {
+      ["PD", "OP", "Kamera", "Supervisor", "Fotografer"].forEach(addRole);
+    });
+
+    addMisaNameBtn.addEventListener("click", function () {
+      const customName = customMisaNameInput.value.trim();
+      if (!customName) {
+        window.alert("Masukkan nama misa baru terlebih dahulu.");
+        return;
+      }
+
+      ensureMisaNameOption(customName);
+      setMisaNameValue(customName);
+      customMisaNameInput.value = "";
+      closeMisaNamePanel();
+    });
+
+    editMisaNameBtn.addEventListener("click", updateSelectedMisaName);
+    deleteMisaNameBtn.addEventListener("click", deleteSelectedMisaName);
+
+    customMisaNameInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addMisaNameBtn.click();
+      }
+    });
+
+    misaNameTrigger.addEventListener("click", function () {
+      const willOpen = !misaNamePanel.classList.contains("show");
+      closeMisaNamePanel();
+
+      if (willOpen) {
+        setMisaPanelDirection();
+        misaNamePanel.classList.add("show");
+        misaNameTrigger.setAttribute("aria-expanded", "true");
+        renderMisaNameOptions(getMisaNameValue(), misaNameSearch.value);
+        misaNameSearch.focus();
+      }
+    });
+
+    misaNameOptions.addEventListener("click", function (event) {
+      const option = event.target.closest(".member-option");
+      if (!option) {
+        return;
+      }
+
+      setMisaNameValue(option.getAttribute("data-value") || "");
+      closeMisaNamePanel();
+    });
+
+    misaNameSearch.addEventListener("input", function () {
+      renderMisaNameOptions(getMisaNameValue(), misaNameSearch.value);
+    });
+
+    rolesBody.addEventListener("click", function (event) {
+      const trigger = event.target.closest(".member-trigger");
+      if (trigger) {
+        const comboEl = trigger.closest(".member-combo");
+        const panel = comboEl.querySelector(".member-panel");
+        const searchInput = comboEl.querySelector(".member-search");
+        const willOpen = !panel.classList.contains("show");
+
+        closeAllMemberPanels(comboEl);
+        panel.classList.toggle("show", willOpen);
+        trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        if (willOpen) {
+          renderMemberComboOptions(comboEl, searchInput.value);
+          searchInput.focus();
+        }
+        return;
+      }
+
+      const option = event.target.closest(".member-option");
+      if (option) {
+        const comboEl = option.closest(".member-combo");
+        setMemberComboValue(comboEl, option.getAttribute("data-value") || "");
+        closeAllMemberPanels();
+        renderAllMemberCombos();
+        return;
+      }
+
+      const button = event.target.closest(".remove-role");
+      if (!button) {
+        return;
+      }
+      const row = button.closest("tr");
+      if (row) {
+        row.remove();
+        renderAllMemberCombos();
+      }
+    });
+
+    rolesBody.addEventListener("change", function (event) {
+      const checkbox = event.target.closest(".role-multi-checkbox");
+      if (checkbox) {
+        const row = checkbox.closest("tr");
+        if (row) {
+          renderRoleMemberSlots(row);
+        }
+        return;
+      }
+
+      const countInput = event.target.closest(".role-count-input");
+      if (countInput) {
+        const row = countInput.closest("tr");
+        if (row) {
+          renderRoleMemberSlots(row);
+        }
+      }
+    });
+
+    rolesBody.addEventListener("input", function (event) {
+      const searchInput = event.target.closest(".member-search");
+      if (!searchInput) {
+        return;
+      }
+
+      const comboEl = searchInput.closest(".member-combo");
+      renderMemberComboOptions(comboEl, searchInput.value);
+    });
+
+    saveDraftBtn.addEventListener("click", saveCurrentDraft);
+
+    publishRegistrationBtn.addEventListener("click", publishCurrentRegistration);
+
+    draftList.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const draftId = target.getAttribute("data-draft-id") || "";
+      const action = target.getAttribute("data-draft-action") || "";
+      if (!draftId) {
+        return;
+      }
+
+      if (action === "edit") {
+        loadDraftIntoForm(draftId);
+        return;
+      }
+
+      if (action === "detail") {
+        renderDraftDetail(draftId);
+        return;
+      }
+
+      if (action === "publish") {
+        publishDraftById(draftId);
+        return;
+      }
+
+      if (action === "delete") {
+        deleteDraft(draftId);
+      }
+    });
+
+    scheduleRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const scheduleId = target.getAttribute("data-schedule-id") || "";
+      const action = target.getAttribute("data-schedule-action") || "";
+      if (!scheduleId) {
+        return;
+      }
+
+      if (action === "edit") {
+        editScheduleItem(scheduleId);
+        return;
+      }
+
+      if (action === "restore") {
+        restoreScheduleToDraft(scheduleId);
+        return;
+      }
+
+      if (action === "publish") {
+        publishDraftById(scheduleId);
+        return;
+      }
+
+      if (action === "delete") {
+        deleteScheduleItem(scheduleId);
+      }
+    });
+
+    cancelEditBtn.addEventListener("click", function () {
+      clearRegistrationForm();
+    });
+
+    closeDetailBtn.addEventListener("click", function () {
+      draftDetailPanel.hidden = true;
+      draftDetailBody.innerHTML = "";
+      currentDetailDraftId = "";
+    });
+
+    setMisaNameValue("");
+    renderMisaNameOptions();
+
+    document.addEventListener("click", function (event) {
+      const inCombo = event.target.closest(".member-combo");
+      if (!inCombo) {
+        closeAllMemberPanels();
+        closeMisaNamePanel();
+      }
+    });
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    scheduleSearchInput.addEventListener("input", renderBigMassSchedules);
+    scheduleMisaFilter.addEventListener("change", renderBigMassSchedules);
+    scheduleMonthFilter.addEventListener("change", renderBigMassSchedules);
+    scheduleYearFilter.addEventListener("change", renderBigMassSchedules);
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+    renderDraftList();
+    renderBigMassSchedules();
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

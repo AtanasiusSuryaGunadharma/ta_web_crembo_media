@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Login - Crembo Media</title>
+	<meta name="description" content="Login ke platform Crembo Media.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary:#800000;--primary-dark:#5c0000;--primary-deeper:#3a0000;--primary-light:#a52a2a;
+			--accent-gold:#d4a017;--accent-gold-light:#f0c040;
+			--bg:#faf8f6;--surface:#ffffff;--ink:#1a1a1a;--ink-secondary:#4a4a4a;--muted:#7a7a7a;
+			--line:rgba(128,0,0,0.15);--line-soft:rgba(128,0,0,0.08);--hover:rgba(128,0,0,0.04);
+			--shadow-sm:0 1px 3px rgba(128,0,0,0.06);--shadow-md:0 4px 14px rgba(128,0,0,0.08);--shadow-lg:0 10px 30px rgba(128,0,0,0.12);
+			--radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+			--transition:0.3s cubic-bezier(0.4,0,0.2,1);--header-h:104px;
+		}
+		*{box-sizing:border-box;}
+		body{margin:0;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;}
+		a{color:inherit;text-decoration:none;transition:var(--transition);}
+		.container{width:min(1200px,92vw);margin:0 auto;}
+
+		/* HEADER */
+		.top-header{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 40%,var(--primary-light));position:sticky;top:0;z-index:1200;box-shadow:0 4px 20px rgba(128,0,0,0.3);}
+		.top-header .container{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;padding:16px 0;}
+		.logo-box{width:72px;height:72px;display:grid;place-items:center;padding:4px;background:rgba(255,255,255,0.1);border-radius:var(--radius-md);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);transition:var(--transition);}
+		.logo-box:hover{background:rgba(255,255,255,0.18);}
+		.logo-box img{max-width:100%;max-height:100%;object-fit:contain;}
+		.brand h1{margin:0;font-size:clamp(1.2rem,2.5vw,1.8rem);text-transform:uppercase;letter-spacing:0.5px;color:#fff;font-weight:800;}
+		.brand p{margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:0.85rem;}
+		.header-back{color:rgba(255,255,255,0.85);font-size:0.88rem;font-weight:600;border:1.5px solid rgba(255,255,255,0.3);padding:8px 16px;border-radius:999px;transition:var(--transition);}
+		.header-back:hover{background:rgba(255,255,255,0.12);color:#fff;}
+
+		/* VIDEO BANNER */
+		.login-banner{position:relative;min-height:calc(100vh - var(--header-h));overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;}
+		.login-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+		.login-video-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(60,0,0,0.75) 0%,rgba(128,0,0,0.65) 100%);z-index:1;}
+		.login-content{position:relative;z-index:2;width:100%;max-width:480px;padding:0;}
+
+		/* BRAND BOX (inside video) */
+		.login-brand-box{text-align:center;margin-bottom:24px;animation:slideDown 0.7s cubic-bezier(0.22,1,0.36,1) both;}
+		.login-brand-logo{width:80px;height:80px;background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);border:2px solid rgba(255,255,255,0.3);border-radius:var(--radius-md);display:grid;place-items:center;padding:8px;margin:0 auto 12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+		.login-brand-logo img{max-width:100%;max-height:100%;object-fit:contain;}
+		.login-brand-box h2{margin:0;color:#fff;font-size:1.8rem;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;text-shadow:0 2px 12px rgba(0,0,0,0.4);}
+		.login-brand-box p{margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:0.9rem;}
+
+		/* FORM CARD */
+		.login-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-radius:var(--radius-lg);box-shadow:0 24px 60px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.3);padding:32px;animation:slideUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s both;}
+		.login-card h3{margin:0 0 4px;font-size:1.4rem;font-weight:800;color:var(--ink);}
+		.login-card p{margin:0 0 24px;font-size:0.88rem;color:var(--muted);}
+
+		.field{display:grid;gap:6px;margin-bottom:16px;}
+		.field label{font-size:0.8rem;font-weight:700;color:var(--ink-secondary);text-transform:uppercase;letter-spacing:0.4px;}
+		.field input{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:12px 16px;font-size:0.9rem;font-family:inherit;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
+		.field input:focus{border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 3px rgba(128,0,0,0.1);}
+		.field-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+		.forgot-link{font-size:0.82rem;color:var(--primary);font-weight:600;transition:var(--transition);}
+		.forgot-link:hover{text-decoration:underline;}
+		.field-wrap{position:relative;}
+		.toggle-pw{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:0.78rem;font-weight:700;color:var(--muted);font-family:inherit;transition:var(--transition);padding:4px;}
+		.toggle-pw:hover{color:var(--primary);}
+
+		.remember-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:0.88rem;color:var(--ink-secondary);}
+		.remember-row input[type=checkbox]{accent-color:var(--primary);width:15px;height:15px;cursor:pointer;}
+
+		.btn-login-submit{display:block;width:100%;border:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:14px;font-size:0.96rem;font-weight:700;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);box-shadow:0 4px 12px rgba(128,0,0,0.25);letter-spacing:0.3px;}
+		.btn-login-submit:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(128,0,0,0.35);}
+		.btn-login-submit:active{transform:none;}
+
+		.login-note{margin-top:16px;text-align:center;font-size:0.8rem;color:var(--muted);}
+
+		/* ALERT */
+		.alert{padding:12px 14px;border-radius:var(--radius-sm);font-size:0.85rem;margin-bottom:16px;display:none;}
+		.alert.error{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);color:#991b1b;}
+		.alert.success{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);color:#166534;}
+		.alert.show{display:block;}
+
+		/* ROLE MODAL */
+		.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:2000;display:none;place-items:center;}
+		.modal-overlay.show{display:grid;animation:fadeIn 0.3s ease;}
+		.modal-box{background:#fff;border-radius:var(--radius-lg);padding:32px;width:min(440px,92vw);box-shadow:0 24px 60px rgba(0,0,0,0.3);animation:slideUp 0.4s cubic-bezier(0.22,1,0.36,1) both;}
+		.modal-box h3{margin:0 0 6px;font-size:1.25rem;font-weight:800;color:var(--ink);}
+		.modal-box p{margin:0 0 22px;font-size:0.88rem;color:var(--muted);}
+		.role-option{display:block;width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:14px 18px;font-size:0.95rem;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);text-align:left;margin-bottom:10px;}
+		.role-option:hover{border-color:var(--primary);background:rgba(128,0,0,0.04);color:var(--primary);}
+		.role-option small{display:block;font-weight:400;font-size:0.8rem;color:var(--muted);margin-top:3px;}
+		.role-option:hover small{color:var(--primary-light);}
+		.btn-cancel{display:block;width:100%;border:1.5px solid var(--line);background:transparent;color:var(--ink-secondary);padding:11px;font-size:0.88rem;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);}
+		.btn-cancel:hover{border-color:var(--primary);color:var(--primary);}
+
+		/* FOOTER */
+		.footer{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 60%,var(--primary-dark));color:rgba(255,255,255,.85);position:relative;overflow:hidden;}
+		.footer::before{content:"";position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none;}
+		.footer-main{padding:40px 0 28px;position:relative;z-index:1;}
+		.footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:30px;}
+		.footer-col{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);backdrop-filter:blur(10px);padding:24px;border-radius:var(--radius-md);transition:var(--transition);}
+		.footer-col:hover{background:rgba(255,255,255,.1);transform:translateY(-2px);}
+		.footer-brand{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+		.footer-logo{width:56px;height:56px;object-fit:contain;border:1px solid rgba(255,255,255,.2);padding:6px;background:rgba(255,255,255,.08);border-radius:var(--radius-sm);}
+		.footer-title{margin:0;font-size:1.05rem;font-weight:700;color:#fff;}
+		.footer-sub{margin:3px 0 0;font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.6;}
+		.contact-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:.9rem;}
+		.contact-list li{color:rgba(255,255,255,.8);display:flex;gap:8px;}
+		.contact-list strong{display:inline-block;min-width:70px;color:var(--accent-gold-light);font-weight:600;}
+		.social-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:.9rem;}
+		.social-item{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);transition:var(--transition);padding:4px 0;}
+		.social-item:hover{color:#fff;}
+		.social-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;border:1px solid rgba(212,160,23,.4);background:rgba(212,160,23,.15);color:var(--accent-gold-light);transition:var(--transition);}
+		.social-item:hover .social-dot{background:rgba(212,160,23,.3);transform:scale(1.1);}
+		.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding:16px 0 20px;text-align:center;font-size:.84rem;color:rgba(255,255,255,.5);position:relative;z-index:1;}
+
+		@keyframes slideUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+		@keyframes slideDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+		@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+		@media(max-width:980px){.footer-grid{grid-template-columns:1fr;}}
+		@media(max-width:760px){.top-header .container{grid-template-columns:auto 1fr auto;}.login-content{padding:16px;}}
+	</style>
+</head>
+<body>
+	<!-- HEADER -->
+	<header class="top-header" id="topHeader">
+		<div class="container">
+			<a href="home.html" class="logo-box" aria-label="Halaman utama">
+				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			</a>
+			<div class="brand">
+				<h1>Crew Multimedia Baciro</h1>
+				<p>Sistem Informasi Internal Komunitas</p>
+			</div>
+			<a class="header-back" href="home.html">← Kembali ke Beranda</a>
+		</div>
+	</header>
+
+	<!-- VIDEO BANNER + LOGIN FORM -->
+	<section class="login-banner" aria-label="Halaman login">
+		<video class="login-video" autoplay muted loop playsinline aria-hidden="true">
+			<source src="bg_video_login.mp4" type="video/mp4">
+		</video>
+		<div class="login-video-overlay"></div>
+
+		<div class="login-content">
+			<div class="login-brand-box">
+				<div class="login-brand-logo">
+					<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo">
+				</div>
+				<h2>CREMBO</h2>
+				<p>Sistem Informasi Crew Multimedia Baciro</p>
+			</div>
+
+			<div class="login-card">
+				<h3>Masuk Sistem</h3>
+				<p>Silakan masuk dengan akun Anda</p>
+
+				<div id="loginAlert" class="alert error"></div>
+
+				<form id="loginForm" novalidate>
+					<div class="field">
+						<label for="loginIdentifier">Username / No HP / Email</label>
+						<input id="loginIdentifier" type="text" placeholder="Masukkan username, no HP, atau email" autocomplete="username" required>
+					</div>
+					<div class="field">
+						<div class="field-row">
+							<label for="loginPassword">Kata Sandi</label>
+							<a class="forgot-link" href="forgot-password.html">Lupa kata sandi?</a>
+						</div>
+						<div class="field-wrap">
+							<input id="loginPassword" type="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
+							<button class="toggle-pw" type="button" id="togglePw">Tampil</button>
+						</div>
+					</div>
+
+					<div class="remember-row">
+						<input type="checkbox" id="rememberMe">
+						<label for="rememberMe">Ingat saya</label>
+					</div>
+
+					<button class="btn-login-submit" type="submit" id="loginBtn">Masuk</button>
+				</form>
+
+				<p class="login-note">Dashboard admin, anggota, dan super admin tersedia setelah memilih role.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- ROLE SELECTION MODAL -->
+	<div class="modal-overlay" id="roleModal" aria-modal="true" aria-label="Pilih jenis login" role="dialog">
+		<div class="modal-box">
+			<h3>Pilih Jenis Login</h3>
+			<p>Prototipe: pilih role akun untuk melanjutkan ke dashboard.</p>
+
+			<button class="role-option" type="button" onclick="goToDashboard('super_admin')">
+				Login sebagai Super Admin
+				<small>Akses penuh sistem</small>
+			</button>
+			<button class="role-option" type="button" onclick="goToDashboard('admin')">
+				Login sebagai Admin
+				<small>Akses pengelolaan modul utama</small>
+			</button>
+			<button class="role-option" type="button" onclick="goToDashboard('anggota')">
+				Login sebagai Anggota
+				<small>Akses pengguna anggota tim</small>
+			</button>
+
+			<button class="btn-cancel" type="button" onclick="closeModal()">Batal</button>
+		</div>
+	</div>
+
+	<!-- FOOTER -->
+	<footer class="footer">
+		<div class="footer-main">
+			<div class="container footer-grid">
+				<section class="footer-col" aria-label="Identitas Crembo">
+					<div class="footer-brand">
+						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo">
+						<div><h4 class="footer-title">Crew Multimedia Baciro</h4><p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p></div>
+					</div>
+					<p class="footer-sub">Platform informasi, jadwal streaming, agenda, dan pengumuman komunitas.</p>
+				</section>
+				<section class="footer-col" aria-label="Kontak">
+					<h4 class="footer-title">Kontak</h4>
+					<ul class="contact-list" style="margin-top:14px;">
+						<li><strong>Email</strong> : crembomedia@example.com</li>
+						<li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
+						<li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+					</ul>
+				</section>
+				<section class="footer-col" aria-label="Media Sosial">
+					<h4 class="footer-title">Media Sosial</h4>
+					<ul class="social-list" style="margin-top:14px;">
+						<li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
+						<li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
+						<li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
+					</ul>
+				</section>
+			</div>
+		</div>
+		<div class="footer-bottom"><div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div></div>
+	</footer>
+
+	<script>
+	const topHeader = document.getElementById("topHeader");
+	const loginForm = document.getElementById("loginForm");
+	const loginAlert = document.getElementById("loginAlert");
+	const togglePw  = document.getElementById("togglePw");
+	const roleModal  = document.getElementById("roleModal");
+	const SESSION_KEY = "crembo-login-session";
+
+	function syncH() {
+		const h = topHeader ? topHeader.offsetHeight : 104;
+		document.documentElement.style.setProperty("--header-h", h + "px");
+	}
+	syncH(); window.addEventListener("resize", syncH);
+
+	togglePw.addEventListener("click", function() {
+		const inp = document.getElementById("loginPassword");
+		const isText = inp.type === "text";
+		inp.type = isText ? "password" : "text";
+		togglePw.textContent = isText ? "Tampil" : "Sembunyikan";
+	});
+
+	function showAlert(msg,type){ loginAlert.textContent=msg; loginAlert.className="alert "+(type||"error")+" show"; }
+
+	loginForm.addEventListener("submit", function(e) {
+		e.preventDefault();
+		const id = document.getElementById("loginIdentifier").value.trim();
+		const pw = document.getElementById("loginPassword").value;
+		if (!id || !pw) { showAlert("Mohon isi semua kolom."); return; }
+		// For mockup: any input works — just show role modal
+		showAlert("Verifikasi berhasil! Pilih jenis login.","success");
+		setTimeout(function() { roleModal.classList.add("show"); }, 600);
+	});
+
+	function goToDashboard(role) {
+		const id = document.getElementById("loginIdentifier").value.trim();
+		const session = { identifier: id, role: role, loginAt: new Date().toISOString() };
+		localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+		if (role === "super_admin" || role === "admin") {
+			window.location.href = "dashboard.html?role=" + role;
+		} else {
+			window.location.href = "dashboard-anggota.html";
+		}
+	}
+
+	function closeModal() { roleModal.classList.remove("show"); }
+
+	roleModal.addEventListener("click", function(e) {
+		if (e.target === roleModal) closeModal();
+	});
+	</script>
+</body>
+</html>

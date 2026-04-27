@@ -1,0 +1,1190 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kelola Carousel Home - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --ok: #116d3f;
+      --warn: #9b5b00;
+      --danger: #b42323;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    main .dashboard-headline-bar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    main .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+
+    main .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: clamp(0.82rem, 1.6vw, 0.98rem);
+      font-weight: 700;
+    }
+
+    main .head-meta #liveDateTime {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    main .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    main .world-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    main .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    main .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    main .topbar::before,
+    main .headline::before {
+      display: none !important;
+      content: none !important;
+    }
+
+    main .headline {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    main .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    main .role-chip {
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .form-panel,
+    .list-panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .field label {
+      font-size: 0.84rem;
+      color: #515151;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    textarea { min-height: 88px; resize: vertical; }
+
+    .check-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.85rem;
+      width: fit-content;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      accent-color: #295fc2;
+    }
+
+    .image-upload-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .image-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: #5e5e5e;
+    }
+
+    .image-preview {
+      width: min(260px, 100%);
+      aspect-ratio: 16 / 9;
+      border: 1px dashed #999;
+      background-size: cover;
+      background-position: center;
+      background-color: #f4f4f4;
+      display: grid;
+      place-items: center;
+      font-size: 0.74rem;
+      color: #666;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .form-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%);
+      border-color: #295fc2;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .btn.warn {
+      background: #fff;
+      color: var(--danger);
+      border-color: #ef4444;
+      font-weight: 700;
+    }
+
+    .status {
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border: 1px solid #b7b7b7;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      display: none;
+    }
+
+    .status.show { display: block; }
+
+    .status.ok {
+      border-color: #a9d6b9;
+      background: #eef8ef;
+      color: var(--ok);
+    }
+
+    .status.warn {
+      border-color: #e3c188;
+      background: #fff8ea;
+      color: var(--warn);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid #cdcdcd;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #d1d1d1;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f1f1;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .preview-box {
+      width: 120px;
+      height: 64px;
+      border: 1px dashed #999;
+      background-size: cover;
+      background-position: center;
+      background-color: #f4f4f4;
+      display: grid;
+      place-items: center;
+      font-size: 0.68rem;
+      color: #666;
+      text-align: center;
+      padding: 4px;
+    }
+
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #b8b8b8;
+      border-radius: 6px;
+      background: #f8f8f8;
+      cursor: grab;
+      user-select: none;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    tr.dragging {
+      opacity: 0.5;
+    }
+
+    tr.drop-target td {
+      background: #edf3ff;
+    }
+
+    .slug-pill,
+    .state-pill {
+      display: inline-block;
+      border: 1px solid #b5b5b5;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.74rem;
+      background: #f7f7f7;
+      white-space: nowrap;
+    }
+
+    .state-pill.active {
+      border-color: #99c8ab;
+      background: #eef8ef;
+      color: var(--ok);
+      font-weight: 700;
+    }
+
+    .empty-note {
+      margin: 8px 0 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    .action-stack {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .main { padding: 10px; }
+
+      .header,
+      .panel-head,
+      .panel-body {
+        padding: 10px;
+      }
+
+      .header h1 {
+        font-size: 1.55rem;
+      }
+
+      .image-meta {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .form-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions .btn {
+        width: 100%;
+      }
+
+      .table-wrap {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+      }
+
+      table {
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: grid;
+        gap: 10px;
+      }
+
+      tr {
+        display: block;
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      td {
+        display: grid;
+        grid-template-columns: 94px 1fr;
+        gap: 8px;
+        border: 0;
+        border-bottom: 1px dashed #d6d6d6;
+        padding: 8px 10px;
+        text-align: left;
+      }
+
+      td:last-child {
+        border-bottom: 0;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #4f4f4f;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+
+      .preview-box {
+        width: 100%;
+        max-width: 180px;
+      }
+
+      .action-stack {
+        width: 100%;
+      }
+
+      .action-stack .btn {
+        flex: 1 1 120px;
+      }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar kelola carousel">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Modul kelola carousel home</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Konten Utama Website <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link active" href="kelola-carousel-home.html">Kelola Carousel Home</a>
+          <a class="menu-link" href="kelola-tentang-crembo.html">Kelola Konten Tentang Crembo</a>
+          <a class="menu-link" href="kelola-embed-youtube.html">Kelola Embed YouTube</a>
+          <a class="menu-link" href="kelola-embed-google-maps.html">Kelola Embed Google Maps</a>
+          <a class="menu-link" href="kelola-embed-instagram.html">Kelola Embed Instagram</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Lihat Home</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header kelola carousel waktu berjalan">
+        <h1>Kelola Carousel Home</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Lihat Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Kelola Slide Carousel Home</h2>
+          <p class="subhead">Admin dan Super Admin dapat menambah, edit, dan hapus slide carousel secara manual.</p>
+        </div>
+        <span id="roleChip" class="role-chip">Role: -</span>
+      </header>
+
+      <section class="form-panel" aria-label="Form kelola slide carousel">
+        <header class="panel-head">
+          <h2 id="formTitle">Tambah Slide Baru</h2>
+        </header>
+        <div class="panel-body">
+          <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
+
+          <form id="carouselForm">
+            <input id="slideId" type="hidden">
+            <input id="backgroundImage" type="hidden">
+
+            <div class="form-grid">
+              <div class="field full">
+                <label for="backgroundFile">Gambar Latar Belakang</label>
+                <div class="image-upload-wrap">
+                  <input id="backgroundFile" type="file" accept="image/*">
+                  <div class="image-meta">
+                    <span id="imageFileLabel">Belum ada file gambar dipilih.</span>
+                    <button id="clearImageBtn" class="btn ghost" type="button">Hapus Gambar</button>
+                  </div>
+                  <div id="backgroundPreview" class="image-preview">Preview gambar akan muncul di sini.</div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="title">Judul Slide</label>
+                <input id="title" type="text" required placeholder="Contoh: Open Recruitment Petugas">
+              </div>
+
+              <div class="field">
+                <label for="slug">Slug</label>
+                <input id="slug" type="text" placeholder="contoh: open-recruitment">
+              </div>
+
+              <div class="field full">
+                <label for="description">Deskripsi Singkat</label>
+                <textarea id="description" placeholder="Deskripsi ringkas yang tampil pada slide"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="buttonText">Teks Tombol</label>
+                <input id="buttonText" type="text" placeholder="Contoh: Lihat Detail">
+              </div>
+
+              <div class="field">
+                <label for="link">Link Tombol</label>
+                <input id="link" type="text" placeholder="contoh: agenda.html atau https://example.com">
+              </div>
+
+              <div class="field">
+                <label for="order">Urutan Tampil</label>
+                <input id="order" type="number" min="0" step="1" value="0">
+              </div>
+
+              <div class="field">
+                <label for="isActive">Status</label>
+                <label class="check-row"><input id="isActive" type="checkbox" checked> Aktifkan slide ini</label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button id="submitBtn" class="btn primary" type="submit">Simpan Slide</button>
+              <button id="cancelEditBtn" class="btn ghost" type="button" hidden>Batal Edit</button>
+              <button id="resetFormBtn" class="btn ghost" type="button">Reset Form</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="list-panel" aria-label="Daftar slide carousel">
+        <header class="panel-head">
+          <h2>Daftar Slide Carousel Home</h2>
+        </header>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Urut</th>
+                  <th>Preview</th>
+                  <th>Judul</th>
+                  <th>Slug</th>
+                  <th>Link</th>
+                  <th>Urutan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="slideRows"></tbody>
+            </table>
+          </div>
+          <p id="emptyState" class="empty-note" hidden>Belum ada slide tersimpan.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "crembo-home-carousel-slides";
+    const DEFAULT_SLIDES = [
+      {
+        id: "default-1",
+        title: "Jadwal Misa Mingguan",
+        slug: "jadwal-misa",
+        description: "Lihat jadwal pelayanan streaming mingguan terbaru dari tim multimedia.",
+        buttonText: "Lihat Jadwal",
+        link: "jadwal-streaming.html",
+        backgroundImage: "",
+        order: 1,
+        active: true
+      },
+      {
+        id: "default-2",
+        title: "Open Recruitment Petugas",
+        slug: "open-recruitment",
+        description: "Bergabung sebagai petugas multimedia untuk mendukung pelayanan misa.",
+        buttonText: "Daftar Sekarang",
+        link: "form-pendaftaran.html",
+        backgroundImage: "",
+        order: 2,
+        active: true
+      },
+      {
+        id: "default-3",
+        title: "Pengumuman Agenda",
+        slug: "agenda-terbaru",
+        description: "Pantau agenda dan pengumuman terbaru komunitas Crembo Media.",
+        buttonText: "Lihat Agenda",
+        link: "agenda.html",
+        backgroundImage: "",
+        order: 3,
+        active: true
+      }
+    ];
+
+    const roleChip = document.getElementById("roleChip");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const formTitle = document.getElementById("formTitle");
+    const carouselForm = document.getElementById("carouselForm");
+    const slideId = document.getElementById("slideId");
+    const backgroundImage = document.getElementById("backgroundImage");
+    const backgroundFile = document.getElementById("backgroundFile");
+    const imageFileLabel = document.getElementById("imageFileLabel");
+    const backgroundPreview = document.getElementById("backgroundPreview");
+    const clearImageBtn = document.getElementById("clearImageBtn");
+    const titleInput = document.getElementById("title");
+    const slugInput = document.getElementById("slug");
+    const descriptionInput = document.getElementById("description");
+    const buttonTextInput = document.getElementById("buttonText");
+    const linkInput = document.getElementById("link");
+    const orderInput = document.getElementById("order");
+    const isActiveInput = document.getElementById("isActive");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const resetFormBtn = document.getElementById("resetFormBtn");
+    const statusMessage = document.getElementById("statusMessage");
+    const slideRows = document.getElementById("slideRows");
+    const emptyState = document.getElementById("emptyState");
+
+    let draggingSlideId = "";
+
+    function getCurrentRole() {
+      const params = new URLSearchParams(window.location.search);
+      const roleFromQuery = params.get("role");
+
+      let roleFromStorage = "";
+      const storedSessionRaw = localStorage.getItem("crembo-login-session");
+      if (storedSessionRaw) {
+        try {
+          const sessionObj = JSON.parse(storedSessionRaw);
+          roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
+        } catch (error) {
+          roleFromStorage = "";
+        }
+      }
+
+      return roleFromQuery || roleFromStorage || "admin";
+    }
+
+    function formatRole(role) {
+      if (role === "super_admin") {
+        return "Super Admin";
+      }
+      if (role === "admin") {
+        return "Admin";
+      }
+      return "Anggota";
+    }
+
+    function normalizeSlide(item) {
+      return {
+        id: item && item.id ? String(item.id) : "slide-" + Date.now(),
+        title: item && item.title ? String(item.title) : "",
+        slug: item && item.slug ? String(item.slug) : "",
+        description: item && item.description ? String(item.description) : "",
+        buttonText: item && item.buttonText ? String(item.buttonText) : "Lihat Detail",
+        link: item && item.link ? String(item.link) : "#",
+        backgroundImage: item && item.backgroundImage ? String(item.backgroundImage) : "",
+        order: Number(item && item.order ? item.order : 0),
+        active: item && item.active !== false
+      };
+    }
+
+    function readSlides() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return DEFAULT_SLIDES.map(normalizeSlide);
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || !parsed.length) {
+          return DEFAULT_SLIDES.map(normalizeSlide);
+        }
+
+        return parsed.map(normalizeSlide);
+      } catch (error) {
+        return DEFAULT_SLIDES.map(normalizeSlide);
+      }
+    }
+
+    function writeSlides(slides) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(slides));
+    }
+
+    function sortSlides(slides) {
+      return slides.slice().sort(function (a, b) {
+        if (a.order === b.order) {
+          return a.title.localeCompare(b.title, "id", { sensitivity: "base" });
+        }
+        return a.order - b.order;
+      });
+    }
+
+    function slugify(text) {
+      return String(text || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function setStatus(text, kind) {
+      statusMessage.textContent = text;
+      statusMessage.className = "status show " + (kind || "ok");
+    }
+
+    function clearStatus() {
+      statusMessage.className = "status";
+      statusMessage.textContent = "";
+    }
+
+    function renderImagePreview(value, filename) {
+      if (value) {
+        backgroundPreview.style.backgroundImage = 'url("' + value.replace(/\"/g, "") + '")';
+        backgroundPreview.textContent = "";
+      } else {
+        backgroundPreview.style.backgroundImage = "none";
+        backgroundPreview.textContent = "Preview gambar akan muncul di sini.";
+      }
+
+      imageFileLabel.textContent = filename || (value ? "Gambar tersimpan dari data sebelumnya." : "Belum ada file gambar dipilih.");
+    }
+
+    function resetForm() {
+      carouselForm.reset();
+      slideId.value = "";
+      backgroundImage.value = "";
+      backgroundFile.value = "";
+      formTitle.textContent = "Tambah Slide Baru";
+      submitBtn.textContent = "Simpan Slide";
+      cancelEditBtn.hidden = true;
+      orderInput.value = "0";
+      isActiveInput.checked = true;
+      renderImagePreview("", "");
+      clearStatus();
+    }
+
+    function renderRows() {
+      const slides = sortSlides(readSlides());
+      slideRows.innerHTML = "";
+
+      if (!slides.length) {
+        emptyState.hidden = false;
+        return;
+      }
+
+      emptyState.hidden = true;
+
+      slides.forEach(function (slide) {
+        const tr = document.createElement("tr");
+        tr.setAttribute("draggable", "true");
+        tr.setAttribute("data-slide-id", slide.id);
+
+        const previewStyle = slide.backgroundImage
+          ? ' style="background-image:url(\'' + escapeHtml(slide.backgroundImage) + '\')"'
+          : "";
+
+        tr.innerHTML =
+          '<td data-label="Urut"><span class="drag-handle" title="Drag untuk ubah urutan">::</span></td>' +
+          '<td data-label="Preview"><div class="preview-box"' + previewStyle + '>' + (slide.backgroundImage ? "" : "Tanpa Gambar") + '</div></td>' +
+          '<td data-label="Judul"><strong>' + escapeHtml(slide.title || "-") + '</strong><br><small>' + escapeHtml(slide.description || "-") + '</small></td>' +
+          '<td data-label="Slug"><span class="slug-pill">' + escapeHtml(slide.slug || "-") + '</span></td>' +
+          '<td data-label="Link"><a href="' + escapeHtml(slide.link || "#") + '" target="_blank" rel="noopener">' + escapeHtml(slide.link || "-") + '</a></td>' +
+          '<td data-label="Urutan">' + escapeHtml(String(slide.order)) + '</td>' +
+          '<td data-label="Status"><span class="state-pill' + (slide.active ? ' active' : '') + '">' + (slide.active ? 'Aktif' : 'Nonaktif') + '</span></td>' +
+          '<td data-label="Aksi"><div class="action-stack">' +
+            '<button class="btn ghost" type="button" data-edit-id="' + escapeHtml(slide.id) + '">Edit</button>' +
+            '<button class="btn warn" type="button" data-delete-id="' + escapeHtml(slide.id) + '">Hapus</button>' +
+          '</div></td>';
+
+        tr.addEventListener("dragstart", function () {
+          draggingSlideId = slide.id;
+          tr.classList.add("dragging");
+        });
+
+        tr.addEventListener("dragend", function () {
+          draggingSlideId = "";
+          tr.classList.remove("dragging");
+          slideRows.querySelectorAll("tr").forEach(function (row) {
+            row.classList.remove("drop-target");
+          });
+        });
+
+        tr.addEventListener("dragover", function (event) {
+          event.preventDefault();
+          if (!draggingSlideId || draggingSlideId === slide.id) {
+            return;
+          }
+          tr.classList.add("drop-target");
+        });
+
+        tr.addEventListener("dragleave", function () {
+          tr.classList.remove("drop-target");
+        });
+
+        tr.addEventListener("drop", function (event) {
+          event.preventDefault();
+          tr.classList.remove("drop-target");
+          if (!draggingSlideId || draggingSlideId === slide.id) {
+            return;
+          }
+          reorderSlides(draggingSlideId, slide.id);
+        });
+
+        slideRows.appendChild(tr);
+      });
+    }
+
+    function reorderSlides(sourceId, targetId) {
+      const slides = sortSlides(readSlides());
+      const sourceIndex = slides.findIndex(function (item) { return item.id === sourceId; });
+      const targetIndex = slides.findIndex(function (item) { return item.id === targetId; });
+
+      if (sourceIndex < 0 || targetIndex < 0) {
+        return;
+      }
+
+      const moved = slides.splice(sourceIndex, 1)[0];
+      slides.splice(targetIndex, 0, moved);
+
+      slides.forEach(function (item, index) {
+        item.order = index + 1;
+      });
+
+      writeSlides(slides);
+      renderRows();
+      setStatus("Urutan slide berhasil diperbarui dengan drag and drop.", "ok");
+    }
+
+    function saveSlide(event) {
+      event.preventDefault();
+
+      const title = titleInput.value.trim();
+      if (!title) {
+        setStatus("Judul slide wajib diisi.", "warn");
+        return;
+      }
+
+      const id = slideId.value || ("slide-" + Date.now());
+      const slug = (slugInput.value.trim() || slugify(title));
+      const payload = normalizeSlide({
+        id: id,
+        title: title,
+        slug: slug,
+        description: descriptionInput.value.trim(),
+        buttonText: buttonTextInput.value.trim() || "Lihat Detail",
+        link: linkInput.value.trim() || "#",
+        backgroundImage: backgroundImage.value.trim(),
+        order: Number(orderInput.value || 0),
+        active: isActiveInput.checked
+      });
+
+      const slides = readSlides();
+      const idx = slides.findIndex(function (item) {
+        return item.id === id;
+      });
+
+      if (idx >= 0) {
+        slides[idx] = payload;
+        setStatus("Slide berhasil diupdate.", "ok");
+      } else {
+        slides.push(payload);
+        setStatus("Slide berhasil ditambahkan.", "ok");
+      }
+
+      writeSlides(slides);
+      renderRows();
+      resetForm();
+    }
+
+    function editSlide(id) {
+      const slides = readSlides();
+      const item = slides.find(function (slide) {
+        return slide.id === id;
+      });
+      if (!item) {
+        return;
+      }
+
+      slideId.value = item.id;
+      titleInput.value = item.title;
+      slugInput.value = item.slug;
+      descriptionInput.value = item.description;
+      buttonTextInput.value = item.buttonText;
+      linkInput.value = item.link;
+      backgroundImage.value = item.backgroundImage;
+      backgroundFile.value = "";
+      orderInput.value = String(item.order);
+      isActiveInput.checked = !!item.active;
+      renderImagePreview(item.backgroundImage, "");
+
+      formTitle.textContent = "Edit Slide Carousel";
+      submitBtn.textContent = "Update Slide";
+      cancelEditBtn.hidden = false;
+      setStatus("Mode edit aktif. Ubah data slide lalu klik Update Slide.", "warn");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteSlide(id) {
+      const ok = window.confirm("Hapus slide ini? Tindakan ini tidak dapat dibatalkan.");
+      if (!ok) {
+        return;
+      }
+
+      const slides = readSlides().filter(function (item) {
+        return item.id !== id;
+      });
+      writeSlides(slides);
+      renderRows();
+      resetForm();
+      setStatus("Slide berhasil dihapus.", "ok");
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    const currentRole = getCurrentRole();
+    roleChip.textContent = "Role: " + formatRole(currentRole);
+
+    carouselForm.addEventListener("submit", saveSlide);
+    resetFormBtn.addEventListener("click", resetForm);
+    cancelEditBtn.addEventListener("click", resetForm);
+    clearImageBtn.addEventListener("click", function () {
+      backgroundImage.value = "";
+      backgroundFile.value = "";
+      renderImagePreview("", "");
+    });
+
+    backgroundFile.addEventListener("change", function () {
+      const file = backgroundFile.files && backgroundFile.files[0];
+      if (!file) {
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        setStatus("File gambar tidak valid. Pilih file berformat gambar.", "warn");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        backgroundImage.value = String(reader.result || "");
+        renderImagePreview(backgroundImage.value, file.name);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    titleInput.addEventListener("input", function () {
+      if (!slideId.value) {
+        slugInput.value = slugify(titleInput.value);
+      }
+    });
+
+    slideRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const editId = target.getAttribute("data-edit-id");
+      if (editId) {
+        editSlide(editId);
+        return;
+      }
+
+      const deleteId = target.getAttribute("data-delete-id");
+      if (deleteId) {
+        deleteSlide(deleteId);
+      }
+    });
+
+    renderRows();
+    renderImagePreview("", "");
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

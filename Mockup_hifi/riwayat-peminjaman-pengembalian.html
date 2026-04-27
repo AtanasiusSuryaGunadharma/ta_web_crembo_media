@@ -1,0 +1,641 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Riwayat Peminjaman dan Pengembalian - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .brand { border: 1px solid #838383; background: rgba(255,255,255,.04); padding: 12px; border-radius: 12px; margin-bottom: 16px; }
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: .82rem; }
+    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255,255,255,.03); margin-bottom: 10px; overflow: hidden; }
+    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: .88rem; padding: 11px 12px; display: flex; justify-content: space-between; }
+    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255,255,255,.02); }
+    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: .83rem; margin-bottom: 4px; }
+    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
+    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
+    .side-actions a { text-decoration: none; border: 1px solid #8d8d8d; color: #ebebeb; text-align: center; padding: 9px 10px; border-radius: 10px; font-size: .82rem; }
+
+    .main { padding: 16px; }
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 700;
+      color: #1c1f27;
+      letter-spacing: 0.01em;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .meta-header {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .meta-sub {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 0.86rem;
+    }
+
+    .meta-header .chip {
+      border-color: rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .toolbar, .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: .84rem; color: #444; }
+    input, select {
+      width: 100%; border: 1px solid #bdbdbd; border-radius: 10px; padding: 8px 10px; font-size: .88rem; font-family: inherit; background: #fff;
+    }
+    .btn-ghost {
+      border-radius: 9px; font-weight: 700; padding: 8px 12px; font-size: .82rem; cursor: pointer; border: 1px solid #9ca3af; background: #fff; color: #1f2937;
+    }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 8px; margin-top: 10px; }
+    .summary-item { border: 1px solid #c7c7c7; background: #fafafa; padding: 10px; }
+    .summary-item p { margin: 0; font-size: .8rem; color: #565656; }
+    .summary-item strong { display: block; margin-top: 4px; font-size: 1.15rem; }
+
+    .table-scroll { border: 1px solid #c5c5c5; overflow: auto; background: #fff; }
+    .table-scroll table { min-width: 2200px; width: 100%; border-collapse: collapse; font-size: .84rem; }
+    th, td { border: 1px solid #cbcbcb; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #efefef; font-size: .76rem; text-transform: uppercase; letter-spacing: .02em; }
+
+    .status-pill { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: .74rem; border: 1px solid #c4c4c4; background: #f6f6f6; }
+    .status-pill.pending { border-color: #d4b06b; background: #fff8ea; color: #7a5a1f; }
+    .status-pill.approved { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
+    .status-pill.rejected { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
+    .status-pill.borrowed { border-color: #9bb6d4; background: #edf4ff; color: #1f4f7a; }
+    .status-pill.done { border-color: #b6b6b6; background: #f3f4f6; color: #424242; }
+    .status-pill.cancelled { border-color: #b0b0b0; background: #f4f4f4; color: #525252; }
+
+    .empty-note { margin: 10px 0 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: .86rem; color: #616161; }
+
+    .thumb {
+      width: 58px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #c8c8c8; background: #efefef;
+    }
+
+    @media (max-width: 1080px) {
+      .toolbar-grid { grid-template-columns: 1fr 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+    }
+    @media (max-width: 620px) {
+      .toolbar-grid, .summary-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Modul inventaris admin/super admin</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Ringkasan <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="dashboard.html">Dashboard Utama</a>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
+          <a class="menu-link" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
+          <a class="menu-link active" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header dashboard waktu berjalan">
+        <h1>Riwayat Peminjaman</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="meta-header">
+        <div>
+          <h2 class="meta-title">Riwayat Peminjaman dan Pengembalian</h2>
+          <p class="meta-sub">Riwayat lengkap untuk monitoring admin/super admin, termasuk bukti pengambilan dan pengembalian.</p>
+        </div>
+        <span class="chip">Filter: Semua</span>
+      </header>
+
+      <section class="toolbar">
+        <div class="toolbar-grid">
+          <div class="field">
+            <label for="searchInput">Cari riwayat</label>
+            <input id="searchInput" type="search" placeholder="Kode, peminjam, barang, catatan...">
+          </div>
+          <div class="field">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter">
+              <option value="all">Semua Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Disetujui">Disetujui</option>
+              <option value="Sedang Dipinjam">Sedang Dipinjam</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Ditolak">Ditolak</option>
+              <option value="Dibatalkan">Dibatalkan</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fromDate">Dari Tanggal</label>
+            <input id="fromDate" type="date">
+          </div>
+          <div class="field">
+            <label for="toDate">Sampai Tanggal</label>
+            <input id="toDate" type="date">
+          </div>
+          <div class="field" style="display:flex; gap:8px;">
+            <button id="downloadExcelBtn" class="btn-ghost" type="button">Download Excel</button>
+            <button id="downloadPdfBtn" class="btn-ghost" type="button">Download PDF</button>
+          </div>
+        </div>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Kode</th>
+                <th>Peminjam</th>
+                <th>Barang</th>
+                <th>Qty</th>
+                <th>Tanggal Pinjam</th>
+                <th>Target Kembali</th>
+                <th>Pengambilan</th>
+                <th>Lokasi Ambil</th>
+                <th>Kondisi Ambil</th>
+                <th>Catatan Ambil</th>
+                <th>Bukti Ambil</th>
+                <th>Pengembalian</th>
+                <th>Lokasi Kembali</th>
+                <th>Kondisi Kembali</th>
+                <th>Catatan Kembali</th>
+                <th>Bukti Kembali</th>
+                <th>Status</th>
+                <th>Catatan Admin</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p id="emptyState" class="empty-note" hidden>Tidak ada riwayat sesuai filter.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const REQUEST_KEY = "crembo-peminjaman-requests";
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const fromDate = document.getElementById("fromDate");
+    const toDate = document.getElementById("toDate");
+    const summaryGrid = document.getElementById("summaryGrid");
+    const rows = document.getElementById("rows");
+    const emptyState = document.getElementById("emptyState");
+    const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const liveDateTime = document.getElementById("liveDateTime");
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function readRequests() {
+      try {
+        const raw = localStorage.getItem(REQUEST_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value || "");
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
+    }
+
+    function formatEventDateTime(eventData, fallbackDate, fallbackTime) {
+      if (!eventData) {
+        return "-";
+      }
+
+      const directTime = eventData.time || eventData.datetime || eventData.timestamp;
+      if (directTime && String(directTime).indexOf("T") !== -1) {
+        return formatDateTime(directTime);
+      }
+
+      const datePart = eventData.date || fallbackDate;
+      const timePart = eventData.time || fallbackTime;
+      if (datePart && timePart) {
+        return formatDateTime(datePart + "T" + timePart);
+      }
+
+      if (datePart) {
+        return escapeHtml(datePart);
+      }
+
+      return "-";
+    }
+
+    function statusClass(status) {
+      if (status === "Disetujui") {
+        return "approved";
+      }
+      if (status === "Ditolak") {
+        return "rejected";
+      }
+      if (status === "Sedang Dipinjam") {
+        return "borrowed";
+      }
+      if (status === "Selesai") {
+        return "done";
+      }
+      if (status === "Dibatalkan") {
+        return "cancelled";
+      }
+      return "pending";
+    }
+
+    function filteredList() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedStatus = statusFilter.value;
+      const start = fromDate.value;
+      const end = toDate.value;
+
+      return readRequests().filter(function (item) {
+        const text = [
+          item.code,
+          item.borrowerName,
+          item.itemName,
+          item.itemCode,
+          item.purpose,
+          item.adminNote
+        ].join(" ").toLowerCase();
+
+        const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
+        const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
+        const matchesStart = !start || (item.borrowDate || "") >= start;
+        const matchesEnd = !end || (item.borrowDate || "") <= end;
+
+        return matchesKeyword && matchesStatus && matchesStart && matchesEnd;
+      }).sort(function (a, b) {
+        return new Date(b.createdAt || "1970-01-01").getTime() - new Date(a.createdAt || "1970-01-01").getTime();
+      });
+    }
+
+    function renderSummary(list) {
+      const total = list.length;
+      const active = list.filter(function (item) {
+        return ["Disetujui", "Sedang Dipinjam"].indexOf(item.status) !== -1;
+      }).length;
+      const finished = list.filter(function (item) { return item.status === "Selesai"; }).length;
+      const failed = list.filter(function (item) {
+        return ["Ditolak", "Dibatalkan"].indexOf(item.status) !== -1;
+      }).length;
+
+      summaryGrid.innerHTML =
+        '<article class="summary-item"><p>Total Riwayat</p><strong>' + total + '</strong></article>' +
+        '<article class="summary-item"><p>Transaksi Aktif</p><strong>' + active + '</strong></article>' +
+        '<article class="summary-item"><p>Transaksi Selesai</p><strong>' + finished + '</strong></article>' +
+        '<article class="summary-item"><p>Ditolak/Dibatalkan</p><strong>' + failed + '</strong></article>';
+    }
+
+    function renderTable() {
+      const list = filteredList();
+      renderSummary(list);
+
+      if (!list.length) {
+        rows.innerHTML = "";
+        emptyState.hidden = false;
+        return;
+      }
+      emptyState.hidden = true;
+
+      rows.innerHTML = list.map(function (item) {
+        const pickupLabel = item.pickup
+          ? escapeHtml(formatEventDateTime(item.pickup, item.tanggalDiambil, item.jamDiambil))
+          : '-';
+        const returnLabel = item.returnInfo
+          ? escapeHtml(formatEventDateTime(item.returnInfo, item.tanggalDikembalikan, item.jamDikembalikan))
+          : '-';
+
+        const pickupLocation = item.pickup && item.pickup.location
+          ? item.pickup.location
+          : '-';
+        const returnLocation = item.returnInfo && item.returnInfo.location
+          ? item.returnInfo.location
+          : '-';
+
+        const pickupCondition = item.pickup && item.pickup.condition
+          ? item.pickup.condition
+          : (item.kondisiSebelum || '-');
+        const returnCondition = item.returnInfo && (item.returnInfo.condition || item.returnInfo.conditions)
+          ? (item.returnInfo.condition || item.returnInfo.conditions)
+          : (item.kondisiSesudah || '-');
+
+        const pickupNote = item.pickup && (item.pickup.note || item.pickup.notes)
+          ? (item.pickup.note || item.pickup.notes)
+          : '-';
+        const returnNote = item.returnInfo && (item.returnInfo.note || item.returnInfo.notes)
+          ? (item.returnInfo.note || item.returnInfo.notes)
+          : '-';
+
+        const pickupProof = item.pickup && (item.pickup.proofPhoto || item.pickup.photo)
+          ? '<img class="thumb" src="' + escapeHtml(item.pickup.proofPhoto || item.pickup.photo) + '" alt="Bukti pengambilan">'
+          : '-';
+        const returnProof = item.returnInfo && (item.returnInfo.proofPhoto || item.returnInfo.photo)
+          ? '<img class="thumb" src="' + escapeHtml(item.returnInfo.proofPhoto || item.returnInfo.photo) + '" alt="Bukti pengembalian">'
+          : '-';
+
+        return '<tr>' +
+          '<td>' + escapeHtml(item.code || '-') + '</td>' +
+          '<td>' + escapeHtml(item.borrowerName || '-') + '<br><small>' + escapeHtml(item.borrowerPhone || '-') + '</small></td>' +
+          '<td>' + escapeHtml(item.itemName || '-') + '<br><small>' + escapeHtml(item.itemCode || '-') + '</small></td>' +
+          '<td>' + escapeHtml(item.quantity || 1) + '</td>' +
+          '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
+          '<td>' + escapeHtml(item.expectedReturnDate || '-') + '</td>' +
+          '<td>' + pickupLabel + '</td>' +
+          '<td>' + escapeHtml(pickupLocation) + '</td>' +
+          '<td>' + escapeHtml(pickupCondition) + '</td>' +
+          '<td>' + escapeHtml(pickupNote) + '</td>' +
+          '<td>' + pickupProof + '</td>' +
+          '<td>' + returnLabel + '</td>' +
+          '<td>' + escapeHtml(returnLocation) + '</td>' +
+          '<td>' + escapeHtml(returnCondition) + '</td>' +
+          '<td>' + escapeHtml(returnNote) + '</td>' +
+          '<td>' + returnProof + '</td>' +
+          '<td><span class="status-pill ' + statusClass(item.status) + '">' + escapeHtml(item.status || '-') + '</span></td>' +
+          '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function downloadExcel() {
+      const list = filteredList();
+      let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body>';
+      html += '<h3>Laporan Riwayat Peminjaman dan Pengembalian</h3>';
+      html += '<table border="1" cellspacing="0" cellpadding="6">';
+      html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Status</th><th>Waktu Pengambilan</th><th>Lokasi Ambil</th><th>Kondisi Ambil</th><th>Catatan Ambil</th><th>Waktu Pengembalian</th><th>Lokasi Kembali</th><th>Kondisi Kembali</th><th>Catatan Kembali</th><th>Catatan Admin</th></tr>';
+
+      if (!list.length) {
+        html += '<tr><td colspan="16">Tidak ada data riwayat sesuai filter.</td></tr>';
+      } else {
+        list.forEach(function (item) {
+          const pickupWhen = item.pickup ? formatEventDateTime(item.pickup, item.tanggalDiambil, item.jamDiambil) : '-';
+          const returnWhen = item.returnInfo ? formatEventDateTime(item.returnInfo, item.tanggalDikembalikan, item.jamDikembalikan) : '-';
+          const pickupLocation = item.pickup && item.pickup.location ? item.pickup.location : '-';
+          const returnLocation = item.returnInfo && item.returnInfo.location ? item.returnInfo.location : '-';
+          const pickupCondition = item.pickup && item.pickup.condition ? item.pickup.condition : (item.kondisiSebelum || '-');
+          const returnCondition = item.returnInfo && (item.returnInfo.condition || item.returnInfo.conditions) ? (item.returnInfo.condition || item.returnInfo.conditions) : (item.kondisiSesudah || '-');
+          const pickupNote = item.pickup && (item.pickup.note || item.pickup.notes) ? (item.pickup.note || item.pickup.notes) : '-';
+          const returnNote = item.returnInfo && (item.returnInfo.note || item.returnInfo.notes) ? (item.returnInfo.note || item.returnInfo.notes) : '-';
+
+          html += '<tr>' +
+            '<td>' + escapeHtml(item.code || '-') + '</td>' +
+            '<td>' + escapeHtml(item.borrowerName || '-') + '</td>' +
+            '<td>' + escapeHtml(item.itemName || '-') + '</td>' +
+            '<td>' + escapeHtml(item.quantity || 1) + '</td>' +
+            '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
+            '<td>' + escapeHtml(item.expectedReturnDate || '-') + '</td>' +
+            '<td>' + escapeHtml(item.status || '-') + '</td>' +
+            '<td>' + escapeHtml(pickupWhen) + '</td>' +
+            '<td>' + escapeHtml(pickupLocation) + '</td>' +
+            '<td>' + escapeHtml(pickupCondition) + '</td>' +
+            '<td>' + escapeHtml(pickupNote) + '</td>' +
+            '<td>' + escapeHtml(returnWhen) + '</td>' +
+            '<td>' + escapeHtml(returnLocation) + '</td>' +
+            '<td>' + escapeHtml(returnCondition) + '</td>' +
+            '<td>' + escapeHtml(returnNote) + '</td>' +
+            '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
+          '</tr>';
+        });
+      }
+
+      html += '</table></body></html>';
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'laporan-riwayat-peminjaman-pengembalian.xls';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadPdf() {
+      const list = filteredList();
+      const popup = window.open('', '_blank', 'width=1120,height=800');
+      if (!popup) {
+        return;
+      }
+
+      const bodyRows = list.length
+        ? list.map(function (item) {
+            return '<tr>' +
+              '<td>' + escapeHtml(item.code || '-') + '</td>' +
+              '<td>' + escapeHtml(item.borrowerName || '-') + '</td>' +
+              '<td>' + escapeHtml(item.itemName || '-') + '</td>' +
+              '<td>' + escapeHtml(item.status || '-') + '</td>' +
+              '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
+              '<td>' + escapeHtml(item.returnInfo ? formatDateTime(item.returnInfo.time) : '-') + '</td>' +
+            '</tr>';
+          }).join('')
+        : '<tr><td colspan="6">Tidak ada data riwayat sesuai filter.</td></tr>';
+
+      popup.document.write(
+        '<!doctype html><html><head><meta charset="utf-8"><title>Laporan Riwayat Peminjaman</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h2{margin:0 0 8px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:6px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f2f2}</style>' +
+        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body><h2>Laporan Riwayat Peminjaman dan Pengembalian</h2>' +
+        '<table><thead><tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Status</th><th>Tanggal Pinjam</th><th>Tanggal Pengembalian</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
+        '</body></html>'
+      );
+      popup.document.close();
+      popup.focus();
+      popup.print();
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    searchInput.addEventListener('input', renderTable);
+    statusFilter.addEventListener('change', renderTable);
+    fromDate.addEventListener('change', renderTable);
+    toDate.addEventListener('change', renderTable);
+    downloadExcelBtn.addEventListener('click', downloadExcel);
+    downloadPdfBtn.addEventListener('click', downloadPdf);
+
+    renderTable();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

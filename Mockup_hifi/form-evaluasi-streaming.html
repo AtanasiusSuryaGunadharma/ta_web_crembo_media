@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Evaluasi Streaming - Crembo Media</title>
+  <meta name="description" content="Isi evaluasi per jadwal misa streaming Crembo Media.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:#800000;--primary-dark:#5c0000;--primary-deeper:#3a0000;--primary-light:#a52a2a;
+      --accent-gold:#d4a017;--accent-gold-light:#f0c040;
+      --bg:#faf8f6;--surface:#ffffff;--ink:#1a1a1a;--ink-secondary:#4a4a4a;--muted:#7a7a7a;
+      --line:rgba(128,0,0,0.15);--line-soft:rgba(128,0,0,0.08);--hover:rgba(128,0,0,0.04);
+      --ok-bg:rgba(34,197,94,0.07);--ok-line:rgba(34,197,94,0.3);
+      --warn-bg:rgba(212,160,23,0.09);--warn-line:rgba(212,160,23,0.35);
+      --shadow-sm:0 1px 3px rgba(128,0,0,0.06);--shadow-md:0 4px 14px rgba(128,0,0,0.08);--shadow-lg:0 10px 30px rgba(128,0,0,0.12);
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --transition:0.3s cubic-bezier(0.4,0,0.2,1);--header-h:104px;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;}
+    a{color:inherit;text-decoration:none;transition:var(--transition);}
+    .container{width:min(1200px,92vw);margin:0 auto;}
+
+    /* HEADER */
+    .top-header{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 40%,var(--primary-light));position:sticky;top:0;z-index:1200;box-shadow:0 4px 20px rgba(128,0,0,0.3);}
+    .top-header .container{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding:16px 0;}
+    .logo-box{width:72px;height:72px;display:grid;place-items:center;padding:4px;background:rgba(255,255,255,0.1);border-radius:var(--radius-md);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);transition:var(--transition);}
+    .logo-box:hover{background:rgba(255,255,255,0.18);}
+    .logo-box img{max-width:100%;max-height:100%;object-fit:contain;}
+    .brand h1{margin:0;font-size:clamp(1.4rem,2.8vw,2rem);text-transform:uppercase;letter-spacing:.5px;color:#fff;font-weight:800;}
+    .brand p{margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:.88rem;}
+    .nav-wrap{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:var(--header-h);z-index:1150;box-shadow:var(--shadow-sm);}
+    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;flex-wrap:wrap;}
+    .menu-toggle{display:none;border:1px solid var(--line);background:var(--surface);padding:10px 16px;font-size:.9rem;cursor:pointer;border-radius:var(--radius-sm);font-family:inherit;font-weight:500;color:var(--primary);transition:var(--transition);}
+    .menu-toggle:hover{background:var(--hover);}
+    nav ul{margin:0;padding:0;list-style:none;display:flex;gap:4px;flex-wrap:wrap;}
+    nav a{display:inline-block;padding:8px 14px;font-size:.9rem;font-weight:500;border-radius:var(--radius-sm);color:var(--ink-secondary);transition:var(--transition);position:relative;}
+    nav a:hover{color:var(--primary);background:var(--hover);}
+    nav a.active{color:var(--primary);font-weight:700;}
+    nav a.active::after{content:"";position:absolute;bottom:2px;left:14px;right:14px;height:2px;background:var(--primary);border-radius:999px;}
+    .right-tools{display:flex;align-items:center;gap:10px;}
+    .search{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden;transition:var(--transition);}
+    .search:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,0.1);}
+    .search input{border:0;outline:none;padding:8px 16px;width:clamp(130px,16vw,180px);font-size:.88rem;background:transparent;font-family:inherit;}
+    .search button{border:0;background:var(--primary);color:#fff;padding:8px 16px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);}
+    .search button:hover{background:var(--primary-dark);}
+    .btn-login{border:1.5px solid var(--primary);background:transparent;color:var(--primary);padding:8px 18px;font-size:.88rem;font-weight:600;border-radius:999px;cursor:pointer;font-family:inherit;transition:var(--transition);}
+    .btn-login:hover{background:var(--primary);color:#fff;}
+
+    /* HERO */
+    .hero{min-height:220px;display:grid;place-items:center;text-align:center;padding:60px 20px;position:relative;overflow:hidden;isolation:isolate;background:linear-gradient(135deg,var(--primary-deeper) 0%,var(--primary) 50%,var(--primary-light) 100%);}
+    .hero::before{content:"";position:absolute;inset:0;background-image:url("IMG_1970.JPG");background-size:cover;background-position:center;opacity:.15;z-index:-1;}
+    .hero h2{margin:0;font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:800;color:#fff;text-transform:uppercase;text-shadow:0 4px 16px rgba(0,0,0,.4);}
+    .hero p{margin:10px 0 0;color:rgba(255,255,255,.8);font-size:.95rem;}
+
+    /* BREADCRUMB */
+    .breadcrumb-wrap{background:var(--surface);border-bottom:1px solid var(--line-soft);}
+    .breadcrumb{margin:0;padding:12px 0;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--muted);}
+    .breadcrumb li+li::before{content:"/";margin-right:8px;color:var(--line);}
+    .breadcrumb a:hover{color:var(--primary);}
+    .breadcrumb [aria-current]{color:var(--primary);font-weight:600;}
+
+    /* PAGE */
+    .content{padding:32px 0 48px;}
+
+    /* NOTICE */
+    .notice-card{background:rgba(212,160,23,0.07);border:1px solid rgba(212,160,23,0.35);border-radius:var(--radius-md);padding:14px 18px;font-size:.87rem;color:#7c5c0a;margin-bottom:24px;line-height:1.65;}
+    .notice-card a{color:var(--primary);font-weight:700;}
+    .notice-card a:hover{text-decoration:underline;}
+
+    /* STATUS CARD */
+    .status-card{background:var(--ok-bg);border:1px solid var(--ok-line);color:#166534;font-size:.92rem;padding:14px 18px;border-radius:var(--radius-md);margin-bottom:20px;display:none;animation:fadeInUp .4s ease;}
+    .status-card.show{display:block;}
+
+    /* CARD PANEL */
+    .eval-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);margin-bottom:24px;overflow:hidden;position:relative;}
+    .eval-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--accent-gold),var(--primary-light));}
+    .eval-card-head{padding:18px 24px;border-bottom:1px solid var(--line-soft);background:var(--bg);}
+    .eval-card-head h2{margin:0;font-size:1.05rem;font-weight:700;color:var(--primary);}
+    .eval-card-head p{margin:4px 0 0;font-size:.84rem;color:var(--muted);}
+    .eval-card-body{padding:24px;}
+
+    /* SESSION LIST */
+    .session-list{margin-top:14px;display:grid;gap:10px;max-height:240px;overflow:auto;padding-right:4px;}
+    .session-item{background:var(--bg);border:1px solid var(--line-soft);border-radius:var(--radius-sm);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+    .session-item strong{font-size:.9rem;color:var(--ink);}
+    .session-item small{color:var(--muted);font-size:.8rem;}
+    .tag{display:inline-block;border-radius:999px;padding:3px 11px;font-size:.75rem;font-weight:600;}
+    .tag.raya{background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);color:#7c5c0a;}
+    .tag.biasa{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#166534;}
+
+    /* SELECT GRID */
+    .select-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;}
+    .btn-primary{border:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:11px 20px;font-size:.9rem;font-weight:700;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);box-shadow:0 2px 8px rgba(128,0,0,0.2);}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(128,0,0,0.3);}
+    .btn-primary:disabled{background:#c0c0c0;cursor:not-allowed;box-shadow:none;transform:none;}
+    .btn{border:1.5px solid var(--line);background:transparent;color:var(--ink-secondary);padding:11px 18px;font-size:.88rem;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);}
+    .btn:hover{border-color:var(--primary);color:var(--primary);background:var(--hover);}
+
+    /* FIELD */
+    .field{display:grid;gap:6px;}
+    .field label{font-size:.8rem;font-weight:700;color:var(--ink-secondary);text-transform:uppercase;letter-spacing:.4px;}
+    .field input[type=text],.field input[type=date],.field input[type=time],.field textarea,.field select,.field input[type=search]{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 14px;font-size:.9rem;font-family:inherit;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 3px rgba(128,0,0,0.08);}
+    .field textarea{min-height:90px;resize:vertical;}
+    .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23800000'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+
+    /* ROWS */
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;}
+    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:14px;}
+
+    /* COMBO */
+    .combo{position:relative;}
+    .combo-trigger{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 14px;font-size:.9rem;font-family:inherit;text-align:left;cursor:pointer;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
+    .combo-trigger::after{content:"▾";float:right;color:var(--primary);font-size:.8rem;margin-top:2px;}
+    .combo-trigger:focus,.combo-trigger:hover{border-color:var(--primary);}
+    .combo-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;border:1.5px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);z-index:200;display:none;border-radius:var(--radius-sm);overflow:hidden;}
+    .combo-panel.show{display:block;}
+    .combo-search-box{border-bottom:1px solid var(--line-soft);padding:8px;}
+    .combo-search-input{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:7px 10px;font-size:.88rem;font-family:inherit;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
+    .combo-search-input:focus{border-color:var(--primary);}
+    .combo-options{max-height:200px;overflow-y:auto;}
+    .combo-option{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:var(--surface);text-align:left;padding:9px 14px;font-size:.88rem;cursor:pointer;font-family:inherit;color:var(--ink-secondary);transition:var(--transition);}
+    .combo-option:hover,.combo-option.active{background:var(--hover);color:var(--primary);}
+    .combo-empty{margin:0;padding:10px 14px;font-size:.84rem;color:var(--muted);font-style:italic;}
+
+    /* CHECK WRAP */
+    .check-wrap{border:1.5px solid var(--line-soft);background:var(--bg);padding:14px;display:grid;gap:10px;border-radius:var(--radius-sm);}
+    .check-wrap label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem;color:var(--ink-secondary);padding:4px 0;}
+    .check-wrap input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex-shrink:0;}
+
+    /* ROLES NOTE */
+    .roles-note{background:rgba(212,160,23,0.07);border:1px solid rgba(212,160,23,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:.84rem;color:#7c5c0a;margin-top:14px;margin-bottom:14px;}
+
+    /* STAFF EVAL */
+    .staff-eval-wrap{border:1.5px solid var(--line-soft);background:var(--bg);padding:16px;border-radius:var(--radius-sm);margin-top:6px;}
+    .staff-eval-head{margin:0 0 12px;font-size:.84rem;color:var(--muted);}
+    .staff-eval-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+    .staff-eval-item{border:1.5px solid var(--line);background:var(--surface);padding:14px;border-radius:var(--radius-md);display:grid;gap:10px;transition:var(--transition);}
+    .staff-eval-item:hover{border-color:var(--primary);}
+    .staff-eval-item h4{margin:0;font-size:.88rem;font-weight:700;color:var(--primary);}
+    .staff-eval-empty{margin:0;font-size:.85rem;color:var(--muted);font-style:italic;}
+
+    /* EXTRA STAFF */
+    .extra-staff-picker{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;}
+    .extra-staff-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .extra-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);padding:5px 12px;font-size:.82rem;border-radius:999px;color:var(--ink-secondary);}
+    .extra-chip button{border:1px solid var(--line);background:#fff;width:18px;height:18px;padding:0;border-radius:50%;line-height:1;cursor:pointer;font-size:.78rem;color:var(--primary);transition:var(--transition);}
+    .extra-chip button:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .extra-staff-empty{margin:8px 0 0;font-size:.84rem;color:var(--muted);font-style:italic;}
+
+    /* DYNAMIC QUESTIONS */
+    .dynamic-question-list{border:1.5px solid var(--line-soft);background:var(--bg);padding:14px;display:grid;gap:14px;border-radius:var(--radius-sm);}
+    .dynamic-question-item{border:1.5px solid var(--line);background:var(--surface);padding:16px;border-radius:var(--radius-md);display:grid;gap:10px;}
+    .dynamic-question-item h4{margin:0;font-size:.9rem;font-weight:700;color:var(--ink);}
+    .dynamic-help{margin:0;font-size:.82rem;color:var(--muted);}
+    .dynamic-options{display:grid;gap:8px;}
+    .dynamic-options label{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--ink-secondary);cursor:pointer;}
+    .dynamic-options input[type=checkbox],.dynamic-options input[type=radio]{accent-color:var(--primary);width:15px;height:15px;}
+    .dynamic-empty{margin:0;border:1px dashed var(--line);border-radius:var(--radius-sm);padding:12px;font-size:.85rem;color:var(--muted);font-style:italic;background:var(--surface);}
+
+    /* ACTION ROW */
+    .action-row{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;padding-top:20px;border-top:1px solid var(--line-soft);}
+
+    /* FORM CARD HIDDEN/SHOWN */
+    .form-card{display:none;}
+    .form-card.show{display:block;}
+
+    /* SECTION LABELS */
+    .form-section-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--primary);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line-soft);}
+
+    /* FOOTER */
+    .footer{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 60%,var(--primary-dark));margin-top:48px;color:rgba(255,255,255,.85);position:relative;overflow:hidden;}
+    .footer::before{content:"";position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none;}
+    .footer-main{padding:40px 0 28px;position:relative;z-index:1;}
+    .footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:30px;}
+    .footer-col{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);backdrop-filter:blur(10px);padding:24px;border-radius:var(--radius-md);transition:var(--transition);}
+    .footer-col:hover{background:rgba(255,255,255,.1);transform:translateY(-2px);}
+    .footer-brand{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+    .footer-logo{width:56px;height:56px;object-fit:contain;border:1px solid rgba(255,255,255,.2);padding:6px;background:rgba(255,255,255,.08);border-radius:var(--radius-sm);}
+    .footer-title{margin:0;font-size:1.05rem;font-weight:700;color:#fff;}
+    .footer-sub{margin:3px 0 0;font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.6;}
+    .contact-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:.9rem;}
+    .contact-list li{color:rgba(255,255,255,.8);display:flex;gap:8px;}
+    .contact-list strong{display:inline-block;min-width:70px;color:var(--accent-gold-light);font-weight:600;}
+    .social-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:.9rem;}
+    .social-item{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);transition:var(--transition);padding:4px 0;}
+    .social-item:hover{color:#fff;}
+    .social-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;border:1px solid rgba(212,160,23,.4);background:rgba(212,160,23,.15);color:var(--accent-gold-light);transition:var(--transition);}
+    .social-item:hover .social-dot{background:rgba(212,160,23,.3);transform:scale(1.1);}
+    .footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding:16px 0 20px;text-align:center;font-size:.84rem;color:rgba(255,255,255,.5);position:relative;z-index:1;}
+
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+    @media(max-width:980px){.row-3{grid-template-columns:1fr 1fr;}.footer-grid{grid-template-columns:1fr;}}
+    @media(max-width:700px){.row-3,.row-2,.select-grid,.extra-staff-picker{grid-template-columns:1fr;}.staff-eval-grid{grid-template-columns:1fr;}}
+    @media(max-width:760px){
+      .top-header .container{grid-template-columns:auto 1fr;align-items:center;gap:10px;padding:10px 0;text-align:left;}
+      .menu-toggle{display:inline-block;}
+      nav{width:100%;display:none;}
+      nav.open{display:block;animation:fadeSlideDown .3s ease;}
+      @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+      nav ul{flex-direction:column;align-items:stretch;}
+      nav a{display:block;border:1px solid var(--line);border-bottom-width:3px;text-align:center;}
+      .logo-box{width:52px;height:52px;padding:3px;margin:0;}
+      .brand h1{font-size:clamp(1.02rem,5vw,1.35rem);line-height:1.2;letter-spacing:.4px;}
+      .brand p{margin-top:3px;font-size:.76rem;line-height:1.35;}
+      .nav-row{align-items:stretch;}
+      .right-tools{width:100%;justify-content:stretch;flex-wrap:wrap;}
+      .search{flex:1 1 230px;}
+      .btn-login{flex:1 1 auto;justify-content:center;}
+    }
+    @media(max-width:520px){
+      .top-header .container{padding:8px 0;}
+      .logo-box{width:46px;height:46px;}
+      .brand h1{font-size:.96rem;}
+      .brand p{font-size:.72rem;}
+    }
+  </style>
+</head>
+<body>
+  <header class="top-header" id="topHeader">
+    <div class="container">
+      <a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+        <img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+      </a>
+      <div class="brand">
+        <h1>Crew Multimedia Baciro</h1>
+        <p>Jalan Melati Wetan 47 Baciro Gondokusuman Yogyakarta</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav-wrap">
+    <div class="container nav-row">
+      <button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
+      <nav id="mainNav" aria-label="Navigasi utama">
+        <ul>
+          <li><a href="home.html">Home</a></li>
+          <li><a href="profil.html">Profil</a></li>
+          <li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
+          <li><a href="agenda.html">Agenda</a></li>
+          <li><a href="pengumuman.html">Pengumuman</a></li>
+          <li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+        </ul>
+      </nav>
+      <div class="right-tools">
+        <form class="search" id="searchForm">
+          <input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
+          <button type="submit">Cari</button>
+        </form>
+        <a class="btn-login" href="login.html">Login</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero" aria-label="Header form evaluasi streaming">
+    <div>
+      <h2>Form Evaluasi Streaming</h2>
+      <p>Isi evaluasi per jadwal misa. Jadwal yang sudah diisi tidak akan muncul lagi.</p>
+    </div>
+  </section>
+
+  <div class="breadcrumb-wrap">
+    <div class="container">
+      <ol class="breadcrumb" aria-label="Breadcrumb">
+        <li><a href="home.html">Beranda</a></li>
+        <li aria-current="page">Form Evaluasi Streaming</li>
+      </ol>
+    </div>
+  </div>
+
+  <main class="container content">
+    <p class="notice-card">Halaman ini tidak ditampilkan di menu utama. Akses melalui URL manual: <strong>form-evaluasi-streaming.html</strong>. Untuk mengatur pertanyaan fleksibel, buka <a href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>.</p>
+
+    <!-- STATUS -->
+    <section id="statusCard" class="status-card" aria-live="polite"></section>
+
+    <!-- STEP 1: PILIH JADWAL -->
+    <div class="eval-card">
+      <div class="eval-card-head">
+        <h2>1 — Pilih Jadwal Yang Belum Diisi</h2>
+        <p>Hanya jadwal yang belum dievaluasi yang ditampilkan.</p>
+      </div>
+      <div class="eval-card-body">
+        <div class="select-grid">
+          <div class="field">
+            <label for="scheduleSelect">Tanggal - Jam Misa</label>
+            <select id="scheduleSelect"></select>
+          </div>
+          <button id="openFormBtn" class="btn-primary" type="button">Isi Evaluasi</button>
+        </div>
+        <div id="sessionList" class="session-list"></div>
+      </div>
+    </div>
+
+    <!-- STEP 2: FORM EVALUASI -->
+    <div id="evaluationFormCard" class="form-card eval-card">
+      <div class="eval-card-head">
+        <h2 id="formTitle">2 — Form Evaluasi</h2>
+        <p id="formSub"></p>
+      </div>
+      <div class="eval-card-body">
+        <form id="evaluationForm" novalidate>
+
+          <div class="form-section-label">Data Misa</div>
+          <div class="row-3">
+            <div class="field">
+              <label for="misaDate">Tanggal Misa</label>
+              <input id="misaDate" type="date" required>
+            </div>
+            <div class="field">
+              <label for="misaTime">Jam Misa</label>
+              <input id="misaTime" type="time" required>
+            </div>
+            <div class="field">
+              <label for="misaType">Jenis Misa</label>
+              <select id="misaType" required>
+                <option value="Biasa">Misa Biasa</option>
+                <option value="Hari Raya">Misa Hari Raya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="roles-note">Daftar petugas diambil dari jadwal tugas dan tetap bisa diganti jika ada tukeran petugas.</div>
+
+          <div class="form-section-label">Petugas Bertugas</div>
+          <div class="row-3">
+            <div class="field">
+              <label>Operator Bertugas</label>
+              <div class="combo" data-combo="operator">
+                <button class="combo-trigger" type="button" data-combo-trigger="operator" aria-expanded="false">Pilih operator...</button>
+                <div class="combo-panel" data-combo-panel="operator">
+                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="operator"></div>
+                  <div class="combo-options" data-combo-options="operator"></div>
+                </div>
+              </div>
+              <input id="operatorName" type="hidden">
+            </div>
+            <div class="field">
+              <label>Kameramen Bertugas</label>
+              <div class="combo" data-combo="camera">
+                <button class="combo-trigger" type="button" data-combo-trigger="camera" aria-expanded="false">Pilih kameramen...</button>
+                <div class="combo-panel" data-combo-panel="camera">
+                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="camera"></div>
+                  <div class="combo-options" data-combo-options="camera"></div>
+                </div>
+              </div>
+              <input id="cameraName" type="hidden">
+            </div>
+            <div class="field">
+              <label>Supervisor Bertugas</label>
+              <div class="combo" data-combo="supervisor">
+                <button class="combo-trigger" type="button" data-combo-trigger="supervisor" aria-expanded="false">Pilih supervisor...</button>
+                <div class="combo-panel" data-combo-panel="supervisor">
+                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="supervisor"></div>
+                  <div class="combo-options" data-combo-options="supervisor"></div>
+                </div>
+              </div>
+              <input id="supervisorName" type="hidden">
+            </div>
+          </div>
+
+          <div class="form-section-label">Pengisi Evaluasi</div>
+          <div class="row-2">
+            <div class="field">
+              <label>Nama Petugas Pengisi Evaluasi</label>
+              <div class="combo" data-combo="eval">
+                <button class="combo-trigger" type="button" data-combo-trigger="eval" aria-expanded="false">Pilih pengisi evaluasi...</button>
+                <div class="combo-panel" data-combo-panel="eval">
+                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="eval"></div>
+                  <div class="combo-options" data-combo-options="eval"></div>
+                </div>
+              </div>
+              <input id="evalName" type="hidden">
+            </div>
+            <div class="field">
+              <label for="evalRole">Role Pengisi Evaluasi</label>
+              <select id="evalRole" required>
+                <option value="Operator">Operator</option>
+                <option value="Kameramen">Kameramen</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Petugas Tambahan">Petugas Tambahan</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section-label">Petugas Tambahan</div>
+          <div class="field">
+            <label for="extraStaffInput">Petugas Tambahan (jika ada)</label>
+            <div class="extra-staff-picker">
+              <div class="combo" data-combo="extra">
+                <button class="combo-trigger" type="button" data-combo-trigger="extra" aria-expanded="false">Pilih anggota tambahan...</button>
+                <div class="combo-panel" data-combo-panel="extra">
+                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="extra"></div>
+                  <div class="combo-options" data-combo-options="extra"></div>
+                </div>
+              </div>
+              <input id="extraStaffInput" type="hidden">
+              <button id="addExtraStaffBtn" class="btn" type="button">+ Tambah</button>
+            </div>
+            <input id="extraStaff" type="hidden">
+            <div id="extraStaffChips" class="extra-staff-chips" aria-live="polite"></div>
+            <p id="extraStaffEmpty" class="extra-staff-empty">Belum ada petugas tambahan dipilih.</p>
+          </div>
+
+          <div class="form-section-label">Evaluasi Per Petugas</div>
+          <div class="field">
+            <div class="staff-eval-wrap">
+              <p class="staff-eval-head">Evaluasi per petugas akan terisi otomatis sesuai nama petugas yang dipilih di atas.</p>
+              <div id="staffEvalGrid" class="staff-eval-grid"></div>
+            </div>
+          </div>
+
+          <div class="form-section-label">Penilaian Umum</div>
+          <div class="field">
+            <label for="generalStreamAssessment">Penilaian General Streaming (Keseluruhan Misa)</label>
+            <select id="generalStreamAssessment" required>
+              <option value="Aman">Aman</option>
+              <option value="Kendala Ringan">Kendala Ringan</option>
+              <option value="Kendala Serius (Urgent)">Kendala Serius (Urgent)</option>
+            </select>
+          </div>
+
+          <div class="form-section-label">Catatan Kendala</div>
+          <div class="field">
+            <label for="technicalIssue">Kendala Teknis Selama Streaming</label>
+            <textarea id="technicalIssue" placeholder="Tulis kendala teknis: audio, kamera, koneksi, software, dll."></textarea>
+          </div>
+          <div class="field" style="margin-top:14px;">
+            <label for="liturgyIssue">Kendala Misa Non-Teknis (di luar teknis)</label>
+            <textarea id="liturgyIssue" placeholder="Tulis kendala non-teknis: alur misa, koordinasi, perubahan petugas mendadak, dll."></textarea>
+          </div>
+
+          <div class="form-section-label">Checklist Kondisi Pelayanan</div>
+          <div class="field">
+            <div class="check-wrap">
+              <label><input type="checkbox" id="checkStream"> Siaran berjalan sampai akhir</label>
+              <label><input type="checkbox" id="checkCoord"> Koordinasi tim berjalan baik</label>
+              <label><input type="checkbox" id="checkArchive"> Rekaman tersimpan dengan benar</label>
+            </div>
+          </div>
+
+          <div class="form-section-label">Catatan Penutup</div>
+          <div class="field">
+            <label for="finalNote">Catatan Penutup / Rekomendasi</label>
+            <textarea id="finalNote" placeholder="Catatan untuk perbaikan misa berikutnya"></textarea>
+          </div>
+
+          <div class="form-section-label">Pertanyaan Tambahan (Dinamis)</div>
+          <div class="field">
+            <div id="dynamicQuestionList" class="dynamic-question-list"></div>
+            <p id="dynamicQuestionEmpty" class="dynamic-empty" hidden>Belum ada pertanyaan tambahan. Silakan atur di halaman setting pertanyaan evaluasi.</p>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" type="submit">Simpan Evaluasi</button>
+            <button id="cancelBtn" class="btn" type="button">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-main">
+      <div class="container footer-grid">
+        <section class="footer-col" aria-label="Identitas Crembo">
+          <div class="footer-brand">
+            <img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+            <div><h4 class="footer-title">Crew Multimedia Baciro</h4><p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p></div>
+          </div>
+          <p class="footer-sub">Platform informasi, jadwal streaming, agenda, pengumuman, dan form pendaftaran komunitas.</p>
+        </section>
+        <section class="footer-col" aria-label="Kontak">
+          <h4 class="footer-title">Kontak</h4>
+          <ul class="contact-list" style="margin-top:14px;">
+            <li><strong>Email</strong> : crembomedia@example.com</li>
+            <li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
+            <li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+          </ul>
+        </section>
+        <section class="footer-col" aria-label="Media sosial">
+          <h4 class="footer-title">Media Sosial</h4>
+          <ul class="social-list" style="margin-top:14px;">
+            <li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
+            <li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
+            <li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+    <div class="footer-bottom"><div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div></div>
+  </footer>
+
+  <script>
+    // ─── ORIGINAL JS LOGIC (fully preserved) ─────────────────────────────────────
+    const STORAGE_KEY = "crembo-evaluasi-streaming";
+    const ACTIVE_MEMBER_STORAGE_KEY = "crembo-active-members";
+    const QUESTION_CONFIG_KEY = "crembo-evaluasi-question-config";
+    const NOTIFICATION_STORAGE_KEY = "crembo-admin-notifications";
+    const DEFAULT_QUESTION_CONFIG = [
+      { id:"kesan-pelayanan", label:"Apa kesan umum pelayanan streaming pada misa ini?", type:"single_choice", required:true, helpText:"Pilih satu penilaian umum.", options:["Sangat Baik","Baik","Cukup","Perlu Pendampingan"] },
+      { id:"hal-terbaik", label:"Bagian mana yang sudah paling baik?", type:"long_text", required:false, helpText:"Contoh: alur kamera, audio, koordinasi.", options:[] }
+    ];
+
+    const schedules = [
+      { id:"normal-2026-03-27-1800", date:"2026-03-27", time:"18:00", type:"Biasa",    title:"Misa Jumat Biasa",           team:{ operator:"Rikha",  camera:"Jeni",  supervisor:"Tyas" } },
+      { id:"normal-2026-03-28-1800", date:"2026-03-28", time:"18:00", type:"Biasa",    title:"Misa Sabtu Sore",            team:{ operator:"Lisa",  camera:"Evan",  supervisor:"Jose" } },
+      { id:"raya-2026-03-29-0800",   date:"2026-03-29", time:"08:00", type:"Hari Raya",title:"Minggu Palma - Sesi Pagi",   team:{ operator:"Rossa", camera:"Aurel", supervisor:"Asha" } },
+      { id:"raya-2026-03-29-1700",   date:"2026-03-29", time:"17:00", type:"Hari Raya",title:"Minggu Palma - Sesi Sore",   team:{ operator:"Rikha",  camera:"Jeni",  supervisor:"Tyas" } },
+      { id:"normal-2026-03-30-1800", date:"2026-03-30", time:"18:00", type:"Biasa",    title:"Misa Senin Biasa",           team:{ operator:"Lisa",  camera:"Evan",  supervisor:"Jose" } }
+    ];
+
+    const fallbackActiveMembers = ["Rikha","Jeni","Tyas","Lisa","Evan","Jose","Rossa","Aurel","Asha","Andre","Bima","Chandra","Dian","Elin","Ferry","Gita","Hana"];
+
+    const topHeader        = document.getElementById("topHeader");
+    const menuToggle       = document.getElementById("menuToggle");
+    const mainNav          = document.getElementById("mainNav");
+    const searchForm       = document.getElementById("searchForm");
+    const searchInput      = document.getElementById("searchInput");
+    const scheduleSelect   = document.getElementById("scheduleSelect");
+    const openFormBtn      = document.getElementById("openFormBtn");
+    const sessionList      = document.getElementById("sessionList");
+    const statusCard       = document.getElementById("statusCard");
+    const evaluationFormCard = document.getElementById("evaluationFormCard");
+    const formTitle        = document.getElementById("formTitle");
+    const formSub          = document.getElementById("formSub");
+    const evaluationForm   = document.getElementById("evaluationForm");
+    const cancelBtn        = document.getElementById("cancelBtn");
+    const misaDate         = document.getElementById("misaDate");
+    const misaTime         = document.getElementById("misaTime");
+    const misaType         = document.getElementById("misaType");
+    const operatorName     = document.getElementById("operatorName");
+    const cameraName       = document.getElementById("cameraName");
+    const supervisorName   = document.getElementById("supervisorName");
+    const evalName         = document.getElementById("evalName");
+    const evalRole         = document.getElementById("evalRole");
+    const extraStaffInput  = document.getElementById("extraStaffInput");
+    const addExtraStaffBtn = document.getElementById("addExtraStaffBtn");
+    const extraStaff       = document.getElementById("extraStaff");
+    const extraStaffChips  = document.getElementById("extraStaffChips");
+    const extraStaffEmpty  = document.getElementById("extraStaffEmpty");
+    const staffEvalGrid    = document.getElementById("staffEvalGrid");
+    const technicalIssue   = document.getElementById("technicalIssue");
+    const liturgyIssue     = document.getElementById("liturgyIssue");
+    const generalStreamAssessment = document.getElementById("generalStreamAssessment");
+    const finalNote        = document.getElementById("finalNote");
+    const dynamicQuestionList  = document.getElementById("dynamicQuestionList");
+    const dynamicQuestionEmpty = document.getElementById("dynamicQuestionEmpty");
+    const checkStream      = document.getElementById("checkStream");
+    const checkCoord       = document.getElementById("checkCoord");
+    const checkArchive     = document.getElementById("checkArchive");
+
+    let selectedScheduleId = "";
+    let activeMembers = [];
+    let selectedExtraStaff = [];
+    let dynamicQuestions = [];
+
+    const comboConfig = {
+      operator:   { hiddenInput: operatorName,   placeholder:"Pilih operator...",          allowEmpty:false },
+      camera:     { hiddenInput: cameraName,      placeholder:"Pilih kameramen...",         allowEmpty:false },
+      supervisor: { hiddenInput: supervisorName,  placeholder:"Pilih supervisor...",        allowEmpty:false },
+      eval:       { hiddenInput: evalName,        placeholder:"Pilih pengisi evaluasi...",  allowEmpty:false },
+      extra:      { hiddenInput: extraStaffInput, placeholder:"Pilih anggota tambahan...", allowEmpty:true }
+    };
+
+    function syncStickyOffset() { const h = topHeader ? topHeader.offsetHeight : 104; document.documentElement.style.setProperty("--header-h", h + "px"); }
+    function readStoredEvaluations() { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : {}; } catch(e) { return {}; } }
+    function writeStoredEvaluations(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+    function slugifyText(t) { return String(t||"").toLowerCase().replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").slice(0,40); }
+    function normalizeQuestionType(t) { const a=["short_text","long_text","single_choice","multi_choice"]; return a.indexOf(t)!==-1?t:"short_text"; }
+    function normalizeOptions(o) { if(!Array.isArray(o)) return []; const u=[]; o.forEach(function(i){const c=String(i||"").trim(); if(c&&u.indexOf(c)===-1)u.push(c);}); return u; }
+    function sanitizeQuestionConfig(items) { if(!Array.isArray(items)) return []; return items.map(function(item,index){ const label=String(item&&item.label?item.label:"").trim(); const id=slugifyText(item&&item.id?item.id:label)||("q-"+(index+1)); const type=normalizeQuestionType(item&&item.type); const options=(type==="single_choice"||type==="multi_choice")?normalizeOptions(item&&item.options):[]; return {id:id,label:label||(("Pertanyaan "+(index+1))),type:type,required:!!(item&&item.required),helpText:String(item&&item.helpText?item.helpText:"").trim(),options:options}; }).filter(function(i){return!!i.label;}); }
+    function readQuestionConfig() { try { const r=localStorage.getItem(QUESTION_CONFIG_KEY); if(!r) return sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG); const p=JSON.parse(r); const s=sanitizeQuestionConfig(p); return s.length?s:sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG); } catch(e) { return sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG); } }
+
+    function renderDynamicQuestions() {
+      dynamicQuestionList.innerHTML = "";
+      if (!dynamicQuestions.length) { dynamicQuestionEmpty.hidden=false; return; }
+      dynamicQuestionEmpty.hidden = true;
+      dynamicQuestions.forEach(function(question,index) {
+        const block = document.createElement("article");
+        block.className = "dynamic-question-item";
+        const title = document.createElement("h4");
+        title.textContent = (index+1)+". "+question.label+(question.required?" *":"");
+        block.appendChild(title);
+        if (question.helpText) { const h=document.createElement("p"); h.className="dynamic-help"; h.textContent=question.helpText; block.appendChild(h); }
+        const name = "dynamic-question-"+question.id;
+        if (question.type==="short_text"||question.type==="long_text") {
+          const input = question.type==="long_text"?document.createElement("textarea"):document.createElement("input");
+          if(question.type==="short_text") input.type="text";
+          input.name=name; input.dataset.questionId=question.id; input.dataset.questionType=question.type;
+          input.placeholder=question.type==="long_text"?"Tulis jawaban...":"Isi jawaban...";
+          input.required=!!question.required; block.appendChild(input);
+        }
+        if (question.type==="single_choice") {
+          const sel=document.createElement("select"); sel.name=name; sel.dataset.questionId=question.id; sel.dataset.questionType=question.type; sel.required=!!question.required;
+          const empty=document.createElement("option"); empty.value=""; empty.textContent="Pilih jawaban"; sel.appendChild(empty);
+          question.options.forEach(function(o){ const opt=document.createElement("option"); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
+          block.appendChild(sel);
+        }
+        if (question.type==="multi_choice") {
+          const wrap=document.createElement("div"); wrap.className="dynamic-options";
+          question.options.forEach(function(o,oi){ const lbl=document.createElement("label"); const cb=document.createElement("input"); cb.type="checkbox"; cb.name=name; cb.value=o; cb.dataset.questionId=question.id; cb.dataset.questionType=question.type; cb.dataset.required=question.required?"1":"0"; cb.id=name+"-"+oi; lbl.appendChild(cb); lbl.appendChild(document.createTextNode(o)); wrap.appendChild(lbl); });
+          block.appendChild(wrap);
+        }
+        dynamicQuestionList.appendChild(block);
+      });
+    }
+
+    function collectDynamicAnswers() { return dynamicQuestions.map(function(q){ const name="dynamic-question-"+q.id; let answer=""; if(q.type==="multi_choice"){answer=Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(n){return n.value;});}else{const i=document.querySelector('[name="'+name+'"]'); answer=i?String(i.value||"").trim():"";} return {id:q.id,label:q.label,type:q.type,required:!!q.required,answer:answer,options:q.options.slice()}; }); }
+    function validateDynamicAnswers(answers) { for(let i=0;i<answers.length;i++){const item=answers[i]; if(!item.required)continue; if(Array.isArray(item.answer)&&item.answer.length===0)return'Pertanyaan wajib belum dijawab: "'+item.label+'".'; if(!Array.isArray(item.answer)&&!String(item.answer||"").trim())return'Pertanyaan wajib belum dijawab: "'+item.label+'".';}return""; }
+    function readAdminNotifications() { try{const r=localStorage.getItem(NOTIFICATION_STORAGE_KEY); const p=r?JSON.parse(r):[]; return Array.isArray(p)?p:[];}catch(e){return[];} }
+    function saveAdminNotifications(i) { localStorage.setItem(NOTIFICATION_STORAGE_KEY,JSON.stringify(i)); }
+    function pushAdminNotification(item) { const n=readAdminNotifications(); if(n.some(function(e){return String(e&&e.id?e.id:"")=== String(item.id||"");})) return; n.unshift(item); saveAdminNotifications(n); }
+    function normalizeName(v) { return String(v||"").trim(); }
+    function readActiveMembers() { try{const r=localStorage.getItem(ACTIVE_MEMBER_STORAGE_KEY); if(!r)return []; const p=JSON.parse(r); if(!Array.isArray(p))return []; return p.map(function(i){if(typeof i==="string")return{name:i,isActive:true}; return{name:i&&i.name?String(i.name):"",isActive:i&&i.status?String(i.status).toLowerCase()==="aktif":i&&i.isActive!==false}; });}catch(e){return[];} }
+    function initActiveMembers() { const fromStorage=readActiveMembers().filter(function(i){return i.isActive;}).map(function(i){return normalizeName(i.name);}).filter(function(n){return n.length>0;}); const fromSchedules=[]; schedules.forEach(function(i){fromSchedules.push(i.team.operator,i.team.camera,i.team.supervisor);}); const merged=fromStorage.concat(fromSchedules,fallbackActiveMembers).filter(function(n){return normalizeName(n).length>0;}); const unique=[]; merged.forEach(function(n){const c=normalizeName(n); if(!unique.some(function(m){return m.toLowerCase()===c.toLowerCase();}))unique.push(c);}); unique.sort(function(a,b){return a.localeCompare(b,"id",{sensitivity:"base"});}); activeMembers=unique; }
+    function comboEl(part,key) { return document.querySelector('[data-combo-'+part+'="'+key+'"]'); }
+    function setComboValue(key,value) { const c=comboConfig[key]; const clean=normalizeName(value); const trigger=comboEl("trigger",key); c.hiddenInput.value=clean; trigger.textContent=clean||c.placeholder; }
+    function renderComboOptions(key,query) { const c=comboConfig[key]; const ow=comboEl("options",key); const cq=normalizeName(query).toLowerCase(); const sel=normalizeName(c.hiddenInput.value); const filtered=activeMembers.filter(function(n){return !cq||n.toLowerCase().indexOf(cq)!==-1;}); let html=""; if(c.allowEmpty){html+='<button class="combo-option'+(sel?"":"  active")+'" type="button" data-combo-value="" data-combo-key="'+key+'">-- kosong --</button>';} filtered.forEach(function(n){const ac=n.toLowerCase()===sel.toLowerCase()?" active":""; html+='<button class="combo-option'+ac+'" type="button" data-combo-value="'+escapeHtml(n)+'" data-combo-key="'+key+'">'+escapeHtml(n)+'</button>';}); if(!filtered.length){html+='<p class="combo-empty">Nama anggota tidak ditemukan.</p>';} ow.innerHTML=html; }
+    function closeCombo(key) { const p=comboEl("panel",key); const t=comboEl("trigger",key); p.classList.remove("show"); t.setAttribute("aria-expanded","false"); }
+    function closeAllCombos(exceptKey) { Object.keys(comboConfig).forEach(function(k){if(exceptKey&&k===exceptKey)return; closeCombo(k);}); }
+    function openCombo(key) { closeAllCombos(key); const p=comboEl("panel",key); const t=comboEl("trigger",key); const si=comboEl("search",key); p.classList.add("show"); t.setAttribute("aria-expanded","true"); renderComboOptions(key,si.value); si.focus(); }
+    function refreshComboSelections() { Object.keys(comboConfig).forEach(function(k){setComboValue(k,comboConfig[k].hiddenInput.value);}); }
+    function isActiveMemberName(n) { const c=normalizeName(n); return activeMembers.some(function(m){return m.toLowerCase()===c.toLowerCase();}); }
+    function syncExtraStaffHiddenInput() { extraStaff.value=selectedExtraStaff.join(", "); }
+    function renderExtraStaffChips() { extraStaffChips.innerHTML=""; if(selectedExtraStaff.length===0){extraStaffEmpty.style.display="block"; syncExtraStaffHiddenInput(); return;} extraStaffEmpty.style.display="none"; selectedExtraStaff.forEach(function(n){const chip=document.createElement("span"); chip.className="extra-chip"; chip.innerHTML='<span>'+escapeHtml(n)+'</span><button type="button" data-remove-name="'+escapeHtml(n)+'" aria-label="Hapus petugas tambahan '+escapeHtml(n)+'">×</button>'; extraStaffChips.appendChild(chip);}); syncExtraStaffHiddenInput(); }
+    function addExtraStaff() { const pn=normalizeName(extraStaffInput.value); if(!pn){setStatus("Pilih petugas tambahan dulu dari dropdown.",false);return;} if(!isActiveMemberName(pn)){setStatus("Nama petugas tambahan harus dipilih dari daftar anggota aktif.",false);return;} if(selectedExtraStaff.some(function(n){return n.toLowerCase()===pn.toLowerCase();})){setStatus("Petugas tambahan tersebut sudah dipilih.",false);return;} selectedExtraStaff.push(pn); setComboValue("extra",""); comboEl("search","extra").value=""; renderComboOptions("extra",""); renderExtraStaffChips(); renderStaffEvaluationFields(); }
+    function getAvailableSchedules() { const saved=readStoredEvaluations(); return schedules.filter(function(i){return !saved[i.id];}); }
+    function formatDate(d) { const dt=new Date(d+"T00:00:00"); return dt.toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"}); }
+    function setStatus(text,success) { statusCard.textContent=text; statusCard.classList.add("show"); if(success){statusCard.style.background="var(--ok-bg)"; statusCard.style.borderColor="var(--ok-line)"; statusCard.style.color="#166534";}else{statusCard.style.background="var(--warn-bg)"; statusCard.style.borderColor="var(--warn-line)"; statusCard.style.color="#6b4d18";} }
+    function resetFormState() { evaluationForm.reset(); evaluationFormCard.classList.remove("show"); selectedScheduleId=""; selectedExtraStaff=[]; staffEvalGrid.innerHTML=""; renderExtraStaffChips(); renderDynamicQuestions(); }
+    function escapeHtml(t) { return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+    function getCurrentStaffList() { const base=[operatorName.value.trim(),cameraName.value.trim(),supervisorName.value.trim()]; const all=base.concat(selectedExtraStaff); const unique=[]; all.forEach(function(n){if(!n)return; if(unique.indexOf(n)===-1)unique.push(n);}); return unique; }
+    function renderStaffEvaluationFields() { const staffList=getCurrentStaffList(); staffEvalGrid.innerHTML=""; if(staffList.length===0){staffEvalGrid.innerHTML='<p class="staff-eval-empty">Belum ada nama petugas. Isi nama petugas untuk memunculkan kolom evaluasi.</p>'; return;} staffList.forEach(function(staffName,index){const card=document.createElement("article"); card.className="staff-eval-item"; card.innerHTML='<h4>'+escapeHtml(staffName)+'</h4><div class="field"><label for="staffRating-'+index+'">Penilaian Singkat</label><select id="staffRating-'+index+'" class="staff-rating" data-staff-name="'+escapeHtml(staffName)+'" required><option value="">Pilih penilaian</option><option value="Sangat Baik">Sangat Baik</option><option value="Baik">Baik</option><option value="Cukup">Cukup</option><option value="Perlu Pendampingan">Perlu Pendampingan</option></select></div><div class="field"><label for="staffNote-'+index+'">Catatan Per Petugas</label><textarea id="staffNote-'+index+'" class="staff-note" data-staff-name="'+escapeHtml(staffName)+'" placeholder="Catatan performa '+escapeHtml(staffName)+'"></textarea></div>'; staffEvalGrid.appendChild(card);}); }
+    function collectStaffEvaluations() { const ratings=Array.from(document.querySelectorAll(".staff-rating")); const notes=Array.from(document.querySelectorAll(".staff-note")); return ratings.map(function(r,i){const n=notes[i]; return {name:r.dataset.staffName||"",rating:r.value,note:n?n.value:""};}); }
+    function drawScheduleOptions() { const available=getAvailableSchedules(); scheduleSelect.innerHTML=""; sessionList.innerHTML=""; if(available.length===0){scheduleSelect.innerHTML='<option value="">Semua jadwal sudah dievaluasi</option>'; openFormBtn.disabled=true; sessionList.innerHTML='<div class="session-item"><strong>Tidak ada jadwal tersisa</strong><small>Semua form evaluasi sudah diisi.</small></div>'; resetFormState(); return;} openFormBtn.disabled=false; available.forEach(function(item,index){const option=document.createElement("option"); option.value=item.id; option.textContent=formatDate(item.date)+" - "+item.time+" WIB - "+item.title; scheduleSelect.appendChild(option); const tagClass=item.type==="Hari Raya"?"tag raya":"tag biasa"; const row=document.createElement("div"); row.className="session-item"; row.innerHTML="<div><strong>"+formatDate(item.date)+" - "+item.time+" WIB</strong><br><small>"+item.title+"</small></div><span class=\""+tagClass+"\">"+item.type+"</span>"; sessionList.appendChild(row); if(index===0)selectedScheduleId=item.id;}); }
+    function getScheduleById(id) { return schedules.find(function(i){return i.id===id;}); }
+    function openFormForSelected() { const id=scheduleSelect.value; const schedule=getScheduleById(id); if(!schedule){setStatus("Pilih jadwal yang tersedia terlebih dahulu.",false);return;} selectedScheduleId=id; formTitle.textContent="2 — Form Evaluasi: "+schedule.title; formSub.textContent="Jadwal: "+formatDate(schedule.date)+" | "+schedule.time+" WIB | "+schedule.type; misaDate.value=schedule.date; misaTime.value=schedule.time; misaType.value=schedule.type; operatorName.value=schedule.team.operator; cameraName.value=schedule.team.camera; supervisorName.value=schedule.team.supervisor; evalName.value=schedule.team.operator; evalRole.value="Operator"; selectedExtraStaff=[]; extraStaffInput.value=""; ["operator","camera","supervisor","eval","extra"].forEach(function(k){comboEl("search",k).value="";}); technicalIssue.value=""; liturgyIssue.value=""; finalNote.value=""; checkStream.checked=false; checkCoord.checked=false; checkArchive.checked=false; generalStreamAssessment.value="Aman"; refreshComboSelections(); renderComboOptions("extra",""); renderExtraStaffChips(); renderStaffEvaluationFields(); dynamicQuestions=readQuestionConfig(); renderDynamicQuestions(); evaluationFormCard.classList.add("show"); setStatus("Silakan isi evaluasi untuk jadwal terpilih.",true); window.scrollTo({top:evaluationFormCard.offsetTop-150,behavior:"smooth"}); }
+    function saveEvaluation(event) { event.preventDefault(); if(!operatorName.value||!cameraName.value||!supervisorName.value||!evalName.value){setStatus("Lengkapi pilihan petugas (operator, kameramen, supervisor, dan pengisi evaluasi).",false);return;} if(!selectedScheduleId){setStatus("Jadwal belum dipilih.",false);return;} const schedule=getScheduleById(selectedScheduleId); if(!schedule){setStatus("Jadwal tidak ditemukan.",false);return;} const payload={scheduleId:selectedScheduleId,date:misaDate.value,time:misaTime.value,misaType:misaType.value,operator:operatorName.value,camera:cameraName.value,supervisor:supervisorName.value,evaluatorName:evalName.value,evaluatorRole:evalRole.value,extraStaff:selectedExtraStaff.slice(),technicalIssue:technicalIssue.value,liturgyIssue:liturgyIssue.value,generalAssessment:generalStreamAssessment.value,checklist:{stream:checkStream.checked,coordination:checkCoord.checked,archive:checkArchive.checked},staffEvaluations:collectStaffEvaluations(),dynamicAnswers:collectDynamicAnswers(),finalNote:finalNote.value,submittedAt:new Date().toISOString()}; const de=validateDynamicAnswers(payload.dynamicAnswers); if(de){setStatus(de,false);return;} const saved=readStoredEvaluations(); saved[selectedScheduleId]=payload; writeStoredEvaluations(saved); if(payload.generalAssessment==="Kendala Serius (Urgent)"){pushAdminNotification({id:"urgent-eval-"+selectedScheduleId,type:"tugas",title:"Urgent: Kendala Serius pada Evaluasi Streaming",message:schedule.title+" ("+payload.date+" "+payload.time+" WIB) ditandai Kendala Serius (Urgent). Segera tindak lanjuti.",date:new Date().toISOString().slice(0,16).replace("T"," "),status:"unread"});} setStatus("Evaluasi untuk "+schedule.title+" berhasil disimpan.",true); drawScheduleOptions(); resetFormState(); }
+    function cancelForm() { resetFormState(); setStatus("Pengisian evaluasi dibatalkan.",false); }
+
+    syncStickyOffset(); window.addEventListener("resize",syncStickyOffset);
+    menuToggle.addEventListener("click",function(){const isOpen=mainNav.classList.toggle("open");menuToggle.setAttribute("aria-expanded",String(isOpen));});
+    mainNav.querySelectorAll("a").forEach(function(link){link.addEventListener("click",function(){if(link.classList.contains("profile-parent-link")&&window.matchMedia("(max-width: 760px)").matches){return;}if(mainNav.classList.contains("open")){mainNav.classList.remove("open");menuToggle.setAttribute("aria-expanded","false");}});});
+    initActiveMembers(); dynamicQuestions=readQuestionConfig(); refreshComboSelections();
+    Object.keys(comboConfig).forEach(function(k){renderComboOptions(k,"");});
+    drawScheduleOptions(); renderDynamicQuestions();
+    scheduleSelect.addEventListener("change",function(){selectedScheduleId=scheduleSelect.value;});
+    openFormBtn.addEventListener("click",openFormForSelected);
+    cancelBtn.addEventListener("click",cancelForm);
+    evaluationForm.addEventListener("submit",saveEvaluation);
+    addExtraStaffBtn.addEventListener("click",addExtraStaff);
+    Object.keys(comboConfig).forEach(function(key){
+      const trigger=comboEl("trigger",key); const si=comboEl("search",key); const ow=comboEl("options",key);
+      trigger.addEventListener("click",function(){const p=comboEl("panel",key); if(p.classList.contains("show")){closeCombo(key);return;} openCombo(key);});
+      si.addEventListener("input",function(){renderComboOptions(key,si.value);});
+      ow.addEventListener("click",function(event){const option=event.target.closest(".combo-option"); if(!option)return; setComboValue(key,option.getAttribute("data-combo-value")||""); closeCombo(key); if(key==="operator"){if(evalRole.value==="Operator"||!evalName.value)setComboValue("eval",operatorName.value); renderStaffEvaluationFields();} if(key==="camera"||key==="supervisor"){renderStaffEvaluationFields();}});
+    });
+    document.addEventListener("click",function(event){const cr=event.target.closest(".combo"); if(!cr)closeAllCombos();});
+    extraStaffChips.addEventListener("click",function(event){const t=event.target; if(!(t instanceof HTMLButtonElement))return; const rn=normalizeName(t.dataset.removeName||""); if(!rn)return; selectedExtraStaff=selectedExtraStaff.filter(function(n){return n.toLowerCase()!==rn.toLowerCase();}); renderExtraStaffChips(); renderStaffEvaluationFields();});
+    searchForm.addEventListener("submit",function(event){event.preventDefault(); const k=searchInput.value.trim(); window.location.href="search.html?q="+encodeURIComponent(k);});
+
+    // Profile dropdown
+    (function(){
+      const DEFAULT_MENU=[{id:"sejarah",label:"Sejarah"},{id:"tentang-crembo",label:"Tentang Crembo"},{id:"struktur",label:"Struktur"},{id:"visi-misi",label:"Visi & Misi"}];
+      function getMenu(){try{const r=localStorage.getItem("crembo-profile-menu");if(!r)return DEFAULT_MENU;const p=JSON.parse(r);return Array.isArray(p)&&p.length?p.map(function(i){return typeof i==="string"?{id:i.toLowerCase().replace(/\s+/g,"-"),label:i}:i;}):DEFAULT_MENU;}catch(e){return DEFAULT_MENU;}}
+      function enhanceProfileHoverMenu(){const navList=document.querySelector(".nav-row nav ul");if(!navList)return;const anchor=navList.querySelector('a[href="profil.html"]');if(!anchor)return;const li=anchor.closest("li");const mobileQuery=window.matchMedia("(max-width: 760px)");li.classList.add("nav-dropdown-enhanced");if(!anchor.hasAttribute("data-profile-menu-label")){anchor.setAttribute("data-profile-menu-label","true");anchor.textContent=anchor.textContent.trim()+" ▾";}anchor.classList.add("profile-parent-link");anchor.setAttribute("aria-expanded","false");const dd=document.createElement("div");function applyDesktopDropdownStyle(){li.style.position="relative";Object.assign(dd.style,{position:"absolute",top:"calc(100% + 4px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});}function applyMobileDropdownStyle(){li.style.position="static";Object.assign(dd.style,{position:"static",top:"auto",left:"auto",minWidth:"0",width:"100%",border:"1px solid rgba(128,0,0,0.15)",background:"var(--bg)",boxShadow:"none",padding:"6px",display:"none",zIndex:"1300",borderRadius:"8px",marginTop:"6px"});}function syncDropdownMode(){if(mobileQuery.matches)applyMobileDropdownStyle();else applyDesktopDropdownStyle();anchor.setAttribute("aria-expanded","false");}dd.innerHTML=getMenu().map(function(i){return'<a href="profil.html?profil='+encodeURIComponent(i.id)+'" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">'+i.label+'</a>';}).join("");dd.addEventListener("mouseover",function(e){const l=e.target.closest("a");if(l){l.style.background="rgba(128,0,0,0.06)";l.style.color="#800000";}});dd.addEventListener("mouseout",function(e){const l=e.target.closest("a");if(l){l.style.background="transparent";l.style.color="#4a4a4a";}});li.appendChild(dd);anchor.addEventListener("click",function(event){if(!mobileQuery.matches)return;event.preventDefault();const isOpen=dd.style.display!=="block";dd.style.display=isOpen?"block":"none";anchor.setAttribute("aria-expanded",String(isOpen));});dd.querySelectorAll("a").forEach(function(link){link.addEventListener("click",function(){dd.style.display="none";anchor.setAttribute("aria-expanded","false");});});li.addEventListener("mouseenter",function(){if(!mobileQuery.matches)dd.style.display="block";});li.addEventListener("mouseleave",function(){if(!mobileQuery.matches)dd.style.display="none";});window.addEventListener("resize",syncDropdownMode);syncDropdownMode();}
+      enhanceProfileHoverMenu();
+    })();
+  </script>
+</body>
+</html>

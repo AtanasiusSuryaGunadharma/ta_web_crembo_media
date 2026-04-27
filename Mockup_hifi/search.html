@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Hasil Pencarian - Crembo Media</title>
+	<meta name="description" content="Hasil pencarian informasi di Crembo Media.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary:#800000;--primary-dark:#5c0000;--primary-deeper:#3a0000;--primary-light:#a52a2a;
+			--accent-gold:#d4a017;--accent-gold-light:#f0c040;
+			--bg:#faf8f6;--surface:#ffffff;--ink:#1a1a1a;--ink-secondary:#4a4a4a;--muted:#7a7a7a;
+			--line:rgba(128,0,0,0.15);--line-soft:rgba(128,0,0,0.08);--hover:rgba(128,0,0,0.04);
+			--shadow-sm:0 1px 3px rgba(128,0,0,0.06);--shadow-md:0 4px 14px rgba(128,0,0,0.08);--shadow-lg:0 10px 30px rgba(128,0,0,0.12);
+			--radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+			--transition:0.3s cubic-bezier(0.4,0,0.2,1);--header-h:104px;
+		}
+		*{box-sizing:border-box;}
+		body{margin:0;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;}
+		a{color:inherit;text-decoration:none;transition:var(--transition);}
+		.container{width:min(1200px,92vw);margin:0 auto;}
+
+		.top-header{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 40%,var(--primary-light));position:sticky;top:0;z-index:1200;box-shadow:0 4px 20px rgba(128,0,0,0.3);}
+		.top-header .container{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding:16px 0;}
+		.logo-box{width:72px;height:72px;display:grid;place-items:center;padding:4px;background:rgba(255,255,255,0.1);border-radius:var(--radius-md);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);transition:var(--transition);}
+		.logo-box:hover{background:rgba(255,255,255,0.18);}
+		.logo-box img{max-width:100%;max-height:100%;object-fit:contain;}
+		.brand h1{margin:0;font-size:clamp(1.4rem,2.8vw,2rem);text-transform:uppercase;letter-spacing:0.5px;color:#fff;font-weight:800;}
+		.brand p{margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:0.88rem;}
+		.nav-wrap{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:var(--header-h);z-index:1150;box-shadow:var(--shadow-sm);}
+		.nav-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;flex-wrap:wrap;}
+		.menu-toggle{display:none;border:1px solid var(--line);background:var(--surface);padding:10px 16px;font-size:0.9rem;cursor:pointer;border-radius:var(--radius-sm);font-family:inherit;font-weight:500;color:var(--primary);transition:var(--transition);}
+		.menu-toggle:hover{background:var(--hover);}
+		nav ul{margin:0;padding:0;list-style:none;display:flex;gap:4px;flex-wrap:wrap;}
+		nav a{display:inline-block;padding:8px 14px;font-size:0.9rem;font-weight:500;border-radius:var(--radius-sm);color:var(--ink-secondary);transition:var(--transition);position:relative;}
+		nav a:hover{color:var(--primary);background:var(--hover);}
+		nav a.active{color:var(--primary);font-weight:700;}
+		nav a.active::after{content:"";position:absolute;bottom:2px;left:14px;right:14px;height:2px;background:var(--primary);border-radius:999px;}
+		.right-tools{display:flex;align-items:center;gap:10px;}
+		.search{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden;transition:var(--transition);}
+		.search:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,0.1);}
+		.search input{border:0;outline:none;padding:8px 16px;width:clamp(130px,16vw,180px);font-size:0.88rem;background:transparent;font-family:inherit;}
+		.search button{border:0;background:var(--primary);color:#fff;padding:8px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;}
+		.search button:hover{background:var(--primary-dark);}
+		.btn-login{border:1.5px solid var(--primary);background:transparent;color:var(--primary);padding:8px 18px;font-size:0.88rem;font-weight:600;border-radius:999px;cursor:pointer;font-family:inherit;transition:var(--transition);}
+		.btn-login:hover{background:var(--primary);color:#fff;}
+
+		/* SEARCH HERO */
+		.search-hero{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 50%,var(--primary-light));padding:48px 20px 36px;text-align:center;position:relative;overflow:hidden;isolation:isolate;}
+		.search-hero::before{content:"";position:absolute;inset:0;background-image:url("IMG_1970.JPG");background-size:cover;background-position:center;opacity:0.1;z-index:-1;}
+		.search-hero h2{margin:0 0 24px;color:#fff;font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:800;text-shadow:0 4px 16px rgba(0,0,0,0.3);}
+
+		.search-bar-hero{display:flex;max-width:680px;margin:0 auto;border-radius:999px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,0.25);border:2px solid rgba(255,255,255,0.25);}
+		.search-bar-hero input{flex:1;border:0;outline:none;padding:14px 22px;font-size:1rem;font-family:inherit;color:var(--ink);background:#fff;}
+		.search-bar-hero button{border:0;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:14px 28px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:var(--transition);}
+		.search-bar-hero button:hover{background:linear-gradient(135deg,var(--primary-dark),var(--primary));}
+
+		/* QUICK FILTER TABS */
+		.quick-filters{display:flex;gap:8px;justify-content:center;margin-top:20px;flex-wrap:wrap;padding:0 16px;}
+		.qf-btn{border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.12);color:#fff;padding:6px 18px;font-size:0.82rem;font-weight:600;border-radius:999px;cursor:pointer;font-family:inherit;backdrop-filter:blur(8px);transition:var(--transition);}
+		.qf-btn:hover,.qf-btn.active{background:rgba(255,255,255,0.25);border-color:rgba(255,255,255,0.6);}
+
+		/* SORT BAR */
+		.sort-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+		.sort-label{font-size:0.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+		.sort-btn{padding:6px 14px;font-size:0.8rem;font-weight:600;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink-secondary);cursor:pointer;font-family:inherit;transition:var(--transition);}
+		.sort-btn:hover{border-color:var(--primary);color:var(--primary);}
+		.sort-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-color:var(--primary);box-shadow:0 2px 8px rgba(128,0,0,0.2);}
+
+		/* PAGE CONTENT */
+		.page-content{padding:32px 0 48px;}
+
+		/* SEARCH INFO */
+		.search-info{margin-bottom:24px;}
+		.search-query{font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:4px;}
+		.search-query em{color:var(--primary);font-style:normal;}
+		.search-count{font-size:0.88rem;color:var(--muted);}
+
+		/* SIDEBAR + MAIN layout */
+		.search-layout{display:grid;grid-template-columns:200px 1fr;gap:28px;align-items:start;}
+
+		/* TYPE SIDEBAR */
+		.type-panel{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:20px;position:sticky;top:calc(var(--header-h) + 60px);}
+		.type-panel h4{margin:0 0 14px;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+		.type-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;}
+		.type-btn{display:block;width:100%;border:1px solid transparent;background:transparent;color:var(--ink-secondary);padding:9px 12px;font-size:0.88rem;font-weight:500;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;text-align:left;transition:var(--transition);display:flex;justify-content:space-between;align-items:center;}
+		.type-btn:hover{background:var(--hover);color:var(--primary);border-color:var(--line);}
+		.type-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;font-weight:700;}
+		.type-count{font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,0.1);}
+		.type-btn.active .type-count{background:rgba(255,255,255,0.25);}
+
+		/* RESULT CARDS */
+		.results-list{display:grid;gap:16px;}
+		.result-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);display:grid;grid-template-columns:148px 1fr;overflow:hidden;transition:var(--transition);animation:fadeInUp 0.4s ease both;border-left:4px solid var(--primary);}
+		.result-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px);}
+		.result-thumb{background:linear-gradient(135deg,var(--primary-deeper),var(--primary));display:grid;place-items:center;color:rgba(255,255,255,0.3);font-size:0.78rem;}
+		.result-body{padding:18px 20px;display:flex;flex-direction:column;gap:8px;}
+		.result-type{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--primary);background:rgba(128,0,0,0.08);padding:3px 10px;border-radius:999px;display:inline-block;width:fit-content;}
+		.result-title{margin:0;font-size:1rem;font-weight:700;color:var(--ink);line-height:1.4;}
+		.result-title a:hover{color:var(--primary);}
+		.result-snippet{margin:0;font-size:0.87rem;color:var(--ink-secondary);line-height:1.65;}
+		.result-snippet em{background:rgba(128,0,0,0.1);color:var(--primary);font-style:normal;padding:0 3px;border-radius:3px;}
+		.result-meta{font-size:0.78rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;}
+
+		/* EMPTY STATE */
+		.empty-state{text-align:center;padding:60px 20px;color:var(--muted);background:var(--surface);border-radius:var(--radius-lg);}
+		.empty-icon{font-size:3rem;margin-bottom:12px;}
+		.empty-state h3{margin:0 0 8px;color:var(--ink);font-size:1.1rem;}
+		.empty-state p{margin:0;font-size:0.9rem;}
+
+		/* FOOTER */
+		.footer{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 60%,var(--primary-dark));margin-top:48px;color:rgba(255,255,255,0.85);position:relative;overflow:hidden;}
+		.footer::before{content:"";position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.03);pointer-events:none;}
+		.footer-main{padding:40px 0 28px;position:relative;z-index:1;}
+		.footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:30px;}
+		.footer-col{border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);backdrop-filter:blur(10px);padding:24px;border-radius:var(--radius-md);transition:var(--transition);}
+		.footer-col:hover{background:rgba(255,255,255,0.1);transform:translateY(-2px);}
+		.footer-brand{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+		.footer-logo{width:56px;height:56px;object-fit:contain;border:1px solid rgba(255,255,255,0.2);padding:6px;background:rgba(255,255,255,0.08);border-radius:var(--radius-sm);}
+		.footer-title{margin:0;font-size:1.05rem;font-weight:700;color:#fff;}
+		.footer-sub{margin:3px 0 0;font-size:0.85rem;color:rgba(255,255,255,0.6);line-height:1.6;}
+		.contact-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:0.9rem;}
+		.contact-list li{color:rgba(255,255,255,0.8);display:flex;gap:8px;}
+		.contact-list strong{display:inline-block;min-width:70px;color:var(--accent-gold-light);font-weight:600;}
+		.social-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:0.9rem;}
+		.social-item{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,0.8);transition:var(--transition);padding:4px 0;}
+		.social-item:hover{color:#fff;}
+		.social-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:0.7rem;font-weight:700;border:1px solid rgba(212,160,23,0.4);background:rgba(212,160,23,0.15);color:var(--accent-gold-light);transition:var(--transition);}
+		.social-item:hover .social-dot{background:rgba(212,160,23,0.3);transform:scale(1.1);}
+		.footer-bottom{border-top:1px solid rgba(255,255,255,0.1);padding:16px 0 20px;text-align:center;font-size:0.84rem;color:rgba(255,255,255,0.5);position:relative;z-index:1;}
+
+		@keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+		.result-card:nth-child(1){animation-delay:0.05s;}
+		.result-card:nth-child(2){animation-delay:0.1s;}
+		.result-card:nth-child(3){animation-delay:0.15s;}
+		.result-card:nth-child(4){animation-delay:0.2s;}
+		.result-card:nth-child(5){animation-delay:0.25s;}
+
+		@media(max-width:1000px){.search-layout{grid-template-columns:1fr;}.type-panel{position:static;}}
+		@media(max-width:700px){.result-card{grid-template-columns:1fr;}.result-thumb{height:120px;}}
+		@media(max-width:980px){.footer-grid{grid-template-columns:1fr;}}
+		@media(max-width:760px){
+			.top-header .container{grid-template-columns:auto 1fr;align-items:center;gap:10px;padding:10px 0;text-align:left;}
+			.menu-toggle{display:inline-block;}
+			nav{width:100%;display:none;}
+			nav.open{display:block;animation:fadeSlideDown 0.3s ease;}
+			@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+			nav ul{flex-direction:column;align-items:stretch;}
+			nav a{display:block;border:1px solid var(--line);border-bottom-width:3px;border-radius:var(--radius-sm);text-align:center;}
+			.logo-box{width:52px;height:52px;padding:3px;margin:0;}
+			.brand h1{font-size:clamp(1.02rem,5vw,1.35rem);line-height:1.2;letter-spacing:.4px;}
+			.brand p{margin-top:3px;font-size:.76rem;line-height:1.35;}
+			.nav-row{align-items:stretch;}
+			.right-tools{width:100%;justify-content:stretch;flex-wrap:wrap;}
+			.search{flex:1 1 230px;}
+			.btn-login{flex:1 1 auto;justify-content:center;}
+		}
+		@media(max-width:520px){
+			.top-header .container{padding:8px 0;}
+			.logo-box{width:46px;height:46px;}
+			.brand h1{font-size:.96rem;}
+			.brand p{font-size:.72rem;}
+		}
+	</style>
+</head>
+<body>
+	<header class="top-header" id="topHeader">
+		<div class="container">
+			<a href="home.html" class="logo-box" aria-label="Halaman utama">
+				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			</a>
+			<div class="brand">
+				<h1>Crew Multimedia Baciro</h1>
+				<p>Jalan Melati Wetan 47 Baciro Gondokusuman Yogyakarta</p>
+			</div>
+		</div>
+	</header>
+
+	<div class="nav-wrap">
+		<div class="container nav-row">
+			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
+			<nav id="mainNav" aria-label="Navigasi utama">
+				<ul>
+					<li><a href="home.html">Home</a></li>
+					<li><a href="profil.html">Profil</a></li>
+					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="agenda.html">Agenda</a></li>
+					<li><a href="pengumuman.html">Pengumuman</a></li>
+					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+				</ul>
+			</nav>
+			<div class="right-tools">
+				<form class="search" id="searchFormNav">
+					<input id="searchInputNav" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
+					<button type="submit">Cari</button>
+				</form>
+				<a class="btn-login" href="login.html">Login</a>
+			</div>
+		</div>
+	</div>
+
+	<!-- SEARCH HERO -->
+	<section class="search-hero" aria-label="Pencarian">
+		<h2>Cari Informasi</h2>
+		<form id="searchFormHero" class="search-bar-hero">
+			<input id="searchInputHero" type="search" placeholder="Ketik kata kunci pencarian..." aria-label="Kata kunci pencarian">
+			<button type="submit">Cari</button>
+		</form>
+		<div class="quick-filters">
+			<button class="qf-btn active" id="qf-semua" type="button" data-type="">Semua</button>
+			<button class="qf-btn" id="qf-pengumuman" type="button" data-type="Pengumuman">Pengumuman</button>
+			<button class="qf-btn" id="qf-agenda" type="button" data-type="Agenda">Agenda</button>
+			<button class="qf-btn" id="qf-jadwal" type="button" data-type="Jadwal">Jadwal</button>
+			<button class="qf-btn" id="qf-profil" type="button" data-type="Profil">Profil</button>
+		</div>
+	</section>
+
+	<main class="container page-content">
+		<div class="search-info">
+			<div class="search-query" id="searchQueryDisplay">Menampilkan semua hasil</div>
+			<div class="search-count" id="searchCountDisplay"></div>
+		</div>
+
+		<!-- SORT BAR -->
+		<div class="sort-bar" aria-label="Urutkan hasil">
+			<span class="sort-label">Urutkan:</span>
+			<button class="sort-btn active" type="button" data-sort="newest">Terbaru</button>
+			<button class="sort-btn" type="button" data-sort="oldest">Terlama</button>
+			<button class="sort-btn" type="button" data-sort="az">A → Z</button>
+			<button class="sort-btn" type="button" data-sort="za">Z → A</button>
+		</div>
+
+		<div class="search-layout">
+			<!-- Type sidebar -->
+			<aside class="type-panel" aria-label="Filter tipe konten">
+				<h4>Tipe Konten</h4>
+				<ul class="type-list" id="typeList">
+					<li><button class="type-btn active" type="button" data-type="">Semua <span class="type-count" id="cntSemua">0</span></button></li>
+					<li><button class="type-btn" type="button" data-type="Pengumuman">Pengumuman <span class="type-count" id="cntPengumuman">0</span></button></li>
+					<li><button class="type-btn" type="button" data-type="Agenda">Agenda <span class="type-count" id="cntAgenda">0</span></button></li>
+					<li><button class="type-btn" type="button" data-type="Jadwal">Jadwal <span class="type-count" id="cntJadwal">0</span></button></li>
+					<li><button class="type-btn" type="button" data-type="Profil">Profil <span class="type-count" id="cntProfil">0</span></button></li>
+				</ul>
+			</aside>
+
+			<!-- Results -->
+			<div>
+				<div id="resultsList" class="results-list">
+					<!-- Rendered by JS -->
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<footer class="footer">
+		<div class="footer-main">
+			<div class="container footer-grid">
+				<section class="footer-col">
+					<div class="footer-brand">
+						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<div><h4 class="footer-title">Crew Multimedia Baciro</h4><p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p></div>
+					</div>
+					<p class="footer-sub">Platform informasi, jadwal, agenda, dan pengumuman komunitas.</p>
+				</section>
+				<section class="footer-col">
+					<h4 class="footer-title">Kontak</h4>
+					<ul class="contact-list" style="margin-top:14px;">
+						<li><strong>Email</strong> : crembomedia@example.com</li>
+						<li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
+						<li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+					</ul>
+				</section>
+				<section class="footer-col">
+					<h4 class="footer-title">Media Sosial</h4>
+					<ul class="social-list" style="margin-top:14px;">
+						<li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
+						<li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
+						<li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
+					</ul>
+				</section>
+			</div>
+		</div>
+		<div class="footer-bottom"><div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div></div>
+	</footer>
+
+	<script>
+	const topHeader = document.getElementById("topHeader");
+	const menuToggle = document.getElementById("menuToggle");
+	const mainNav = document.getElementById("mainNav");
+	const searchQueryDisplay = document.getElementById("searchQueryDisplay");
+	const searchCountDisplay = document.getElementById("searchCountDisplay");
+	const resultsList = document.getElementById("resultsList");
+
+	// ─── DUMMY DATA ───────────────────────────────────────────────────────────────
+	const DUMMY_RESULTS = [
+		{ type:"Pengumuman", title:"Open Recruitment Anggota Baru Crembo Media 2026", snippet:"Crembo Media membuka kesempatan bergabung bagi umat Paroki Kristus Raja Baciro yang berminat melayani di bidang <em>multimedia</em>.", date:"01 Apr 2026", url:"pengumuman-detail.html?id=pengumuman-5" },
+		{ type:"Pengumuman", title:"Jadwal Misa Perayaan Paskah 2026 — Paroki Kristus Raja Baciro", snippet:"Informasi lengkap jadwal misa Paskah meliputi Misa Malam Paskah, Misa Pagi, dan rangkaian ibadat Pekan Suci beserta pembagian tugas petugas.", date:"15 Mar 2026", url:"pengumuman-detail.html?id=pengumuman-2" },
+		{ type:"Agenda", title:"Briefing Petugas Pekan Suci", snippet:"Agenda briefing internal untuk persiapan pelayanan <em>multimedia</em> selama rangkaian Pekan Suci. Pastikan semua petugas hadir.", date:"30 Mar 2026", url:"agenda-detail.html" },
+		{ type:"Agenda", title:"Pelatihan Operator Streaming", snippet:"Pendalaman teknis kamera, audio, dan live switch untuk tim operator baru dan lama. Wajib dihadiri oleh seluruh anggota aktif.", date:"03 Apr 2026", url:"agenda-detail.html" },
+		{ type:"Jadwal", title:"Jadwal Streaming Bulan April 2026", snippet:"Jadwal pelayanan misa reguler dan misa besar (Pekan Suci) tim Crembo Media April 2026. Termasuk Misa Kamis Putih, Jumat Agung, dan Paskah.", date:"Bulan April 2026", url:"jadwal-streaming.html" },
+		{ type:"Profil", title:"Tentang Crembo Media", snippet:"Crembo Media adalah tim pelayanan <em>multimedia</em> Paroki Kristus Raja Baciro yang bertugas mendokumentasikan dan menyiarkan perayaan liturgi.", date:"–", url:"profil.html?profil=tentang-crembo" },
+		{ type:"Profil", title:"Visi dan Misi Crembo Media", snippet:"Visi: Menjadi tim multimedia paroki yang profesional dan melayani dengan hati. Misi: Mendokumentasikan seluruh kegiatan liturgi secara berkualitas.", date:"–", url:"profil.html?profil=visi-misi" },
+		{ type:"Pengumuman", title:"Rekap Pelayanan Multimedia Bulan Maret 2026", snippet:"Ringkasan statistik streaming, jumlah kamera aktif, dan catatan teknis pelayanan <em>multimedia</em> selama bulan Maret 2026.", date:"02 Apr 2026", url:"pengumuman-detail.html?id=pengumuman-4" },
+	];
+
+	let currentQuery = "";
+	let currentType  = "";
+	let currentSort  = "newest";
+
+	function esc(str){ return String(str||""); }
+
+	function highlight(text, query) {
+		if (!query) return text;
+		const re = new RegExp("(" + query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + ")", "gi");
+		return String(text).replace(re, "<em>$1</em>");
+	}
+
+	function getTypeColor(type) {
+		const map = { Pengumuman:"var(--primary)", Agenda:"#166534", Jadwal:"#1e3a8a", Profil:"#7c3aed" };
+		return map[type] || "var(--primary)";
+	}
+
+	function getThumbGradient(type) {
+		const map = {
+			Pengumuman:"linear-gradient(135deg,#3a0000,#800000)",
+			Agenda:"linear-gradient(135deg,#1a3a1a,#2d6a2d)",
+			Jadwal:"linear-gradient(135deg,#1a1a3a,#2d2d6a)",
+			Profil:"linear-gradient(135deg,#2a0a3a,#5a1a6a)"
+		};
+		return map[type] || "linear-gradient(135deg,var(--primary-deeper),var(--primary))";
+	}
+
+	function filterResults(query, type) {
+		let data = DUMMY_RESULTS.slice();
+		if (type) data = data.filter(r => r.type === type);
+		if (query) {
+			const q = query.toLowerCase();
+			data = data.filter(r => r.title.toLowerCase().includes(q) || r.snippet.toLowerCase().includes(q));
+		}
+		// Sort
+		if (currentSort === "az") data.sort((a,b) => a.title.localeCompare(b.title, "id"));
+		else if (currentSort === "za") data.sort((a,b) => b.title.localeCompare(a.title, "id"));
+		else if (currentSort === "oldest") {} // already in original order as oldest
+		// "newest" = reverse of original order
+		else data.reverse();
+		return data;
+	}
+
+	function countByType(query) {
+		const counts = {};
+		DUMMY_RESULTS.forEach(r => {
+			if (!query || r.title.toLowerCase().includes(query.toLowerCase()) || r.snippet.toLowerCase().includes(query.toLowerCase())) {
+				counts[r.type] = (counts[r.type] || 0) + 1;
+			}
+		});
+		return counts;
+	}
+
+	function renderResults() {
+		const results = filterResults(currentQuery, currentType);
+		const counts  = countByType(currentQuery);
+		const total   = Object.values(counts).reduce((a,b) => a+b, 0);
+
+		// Update query label
+		if (currentQuery) {
+			searchQueryDisplay.innerHTML = 'Hasil pencarian untuk: <em>"' + esc(currentQuery) + '"</em>';
+		} else {
+			searchQueryDisplay.textContent = currentType ? currentType : "Semua hasil tersedia";
+		}
+		searchCountDisplay.textContent = results.length + " hasil ditemukan" + (currentType ? " dalam kategori " + currentType : "");
+
+		// Update counts in sidebar
+		document.getElementById("cntSemua").textContent = total;
+		["Pengumuman","Agenda","Jadwal","Profil"].forEach(t => {
+			const el = document.getElementById("cnt" + t); if (el) el.textContent = counts[t] || 0;
+		});
+
+		if (!results.length) {
+			resultsList.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>Tidak ada hasil ditemukan</h3><p>Coba kata kunci lain atau pilih kategori yang berbeda.</p></div>`;
+			return;
+		}
+
+		resultsList.innerHTML = results.map(r => `
+			<article class="result-card" style="border-left-color:${getTypeColor(r.type)}">
+				<div class="result-thumb" style="background:${getThumbGradient(r.type)}; min-height:120px;">Preview</div>
+				<div class="result-body">
+					<span class="result-type" style="color:${getTypeColor(r.type)};background:${getTypeColor(r.type)}18;">${esc(r.type)}</span>
+					<h3 class="result-title"><a href="${esc(r.url)}">${highlight(esc(r.title), currentQuery)}</a></h3>
+					<p class="result-snippet">${r.snippet}</p>
+					<div class="result-meta"><span>${esc(r.date)}</span></div>
+				</div>
+			</article>
+		`).join("");
+	}
+
+	function setTypeFilter(type) {
+		currentType = type;
+		document.querySelectorAll(".type-btn").forEach(b => b.classList.toggle("active", b.dataset.type === type));
+		document.querySelectorAll(".qf-btn").forEach(b => b.classList.toggle("active", b.dataset.type === type));
+		renderResults();
+	}
+
+	// ─── INIT ─────────────────────────────────────────────────────────────────────
+	(function init() {
+		const params = new URLSearchParams(window.location.search);
+		currentQuery = params.get("q") || "";
+		if (currentQuery) {
+			document.getElementById("searchInputHero").value = currentQuery;
+			document.getElementById("searchInputNav").value  = currentQuery;
+		}
+		renderResults();
+	})();
+
+	document.getElementById("searchFormHero").addEventListener("submit", function(e) {
+		e.preventDefault();
+		currentQuery = document.getElementById("searchInputHero").value.trim();
+		const url = new URL(window.location.href);
+		url.searchParams.set("q", currentQuery);
+		window.history.replaceState(null,"",url.toString());
+		renderResults();
+	});
+
+	document.getElementById("searchFormNav").addEventListener("submit", function(e) {
+		e.preventDefault();
+		const q = document.getElementById("searchInputNav").value.trim();
+		window.location.href = "search.html?q=" + encodeURIComponent(q);
+	});
+
+	document.querySelectorAll(".type-btn").forEach(b => b.addEventListener("click", () => setTypeFilter(b.dataset.type)));
+	document.querySelectorAll(".qf-btn").forEach(b => b.addEventListener("click", () => setTypeFilter(b.dataset.type)));
+
+	document.querySelectorAll(".sort-btn").forEach(b => b.addEventListener("click", function() {
+		currentSort = b.dataset.sort;
+		document.querySelectorAll(".sort-btn").forEach(s => s.classList.toggle("active", s.dataset.sort === currentSort));
+		renderResults();
+	}));
+
+	function syncStickyOffset() {
+		const h = topHeader ? topHeader.offsetHeight : 104;
+		document.documentElement.style.setProperty("--header-h", h + "px");
+	}
+	syncStickyOffset();
+	window.addEventListener("resize", syncStickyOffset);
+
+	menuToggle.addEventListener("click", function() {
+		const isOpen = mainNav.classList.toggle("open");
+		menuToggle.setAttribute("aria-expanded", String(isOpen));
+	});
+
+	mainNav.querySelectorAll("a").forEach(function(link) {
+		link.addEventListener("click", function() {
+			if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+				return;
+			}
+			if (mainNav.classList.contains("open")) {
+				mainNav.classList.remove("open");
+				menuToggle.setAttribute("aria-expanded", "false");
+			}
+		});
+	});
+
+	// Profile dropdown
+	(function() {
+		const DEFAULT_MENU = [{id:"sejarah",label:"Sejarah"},{id:"tentang-crembo",label:"Tentang Crembo"},{id:"struktur",label:"Struktur"},{id:"visi-misi",label:"Visi & Misi"}];
+		function getMenu() { try { const r=localStorage.getItem("crembo-profile-menu"); if(!r) return DEFAULT_MENU; const p=JSON.parse(r); return Array.isArray(p)&&p.length?p.map(i=>typeof i==="string"?{id:i.toLowerCase().replace(/\s+/g,"-"),label:i}:i):DEFAULT_MENU; } catch(e){return DEFAULT_MENU;} }
+		const nav=document.querySelector(".nav-row nav ul"), anchor=nav&&nav.querySelector('a[href="profil.html"]');
+		if (!anchor) return;
+		const li = anchor.closest("li");
+		const mobileQuery = window.matchMedia("(max-width: 760px)");
+		li.classList.add("nav-dropdown-enhanced");
+		if (!anchor.hasAttribute("data-profile-menu-label")) {
+			anchor.setAttribute("data-profile-menu-label", "true");
+			anchor.textContent = anchor.textContent.trim() + " ▾";
+		}
+		anchor.classList.add("profile-parent-link");
+		anchor.setAttribute("aria-expanded", "false");
+		const dd = document.createElement("div");
+		function applyDesktopDropdownStyle(){
+			li.style.position="relative";
+			Object.assign(dd.style,{position:"absolute",top:"calc(100% + 4px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});
+		}
+		function applyMobileDropdownStyle(){
+			li.style.position="static";
+			Object.assign(dd.style,{position:"static",top:"auto",left:"auto",minWidth:"0",width:"100%",border:"1px solid rgba(128,0,0,0.15)",background:"var(--bg)",boxShadow:"none",padding:"6px",display:"none",zIndex:"1300",borderRadius:"8px",marginTop:"6px"});
+		}
+		function syncDropdownMode(){
+			if (mobileQuery.matches) applyMobileDropdownStyle();
+			else applyDesktopDropdownStyle();
+			anchor.setAttribute("aria-expanded", "false");
+		}
+		dd.innerHTML=getMenu().map(i=>'<a href="profil.html?profil='+encodeURIComponent(i.id)+'" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">'+i.label+'</a>').join("");
+		dd.addEventListener("mouseover",e=>{const l=e.target.closest("a");if(l){l.style.background="rgba(128,0,0,0.06)";l.style.color="#800000";}});
+		dd.addEventListener("mouseout",e=>{const l=e.target.closest("a");if(l){l.style.background="transparent";l.style.color="#4a4a4a";}});
+		li.appendChild(dd);
+		anchor.addEventListener("click", function(event){
+			if (!mobileQuery.matches) return;
+			event.preventDefault();
+			const isOpen = dd.style.display !== "block";
+			dd.style.display = isOpen ? "block" : "none";
+			anchor.setAttribute("aria-expanded", String(isOpen));
+		});
+		dd.querySelectorAll("a").forEach(function(link){
+			link.addEventListener("click", function(){
+				dd.style.display = "none";
+				anchor.setAttribute("aria-expanded", "false");
+			});
+		});
+		li.addEventListener("mouseenter",()=>{ if(!mobileQuery.matches) dd.style.display="block"; });
+		li.addEventListener("mouseleave",()=>{ if(!mobileQuery.matches) dd.style.display="none"; });
+		window.addEventListener("resize", syncDropdownMode);
+		syncDropdownMode();
+	})();
+	</script>
+</body>
+</html>

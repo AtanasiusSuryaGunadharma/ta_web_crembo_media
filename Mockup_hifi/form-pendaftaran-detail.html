@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Detail Form Pendaftaran - Crembo Media</title>
+	<meta name="description" content="Isi form pendaftaran kegiatan komunitas Crew Multimedia Baciro.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #800000; --primary-dark: #5c0000; --primary-deeper: #3a0000; --primary-light: #a52a2a;
+			--accent-gold: #d4a017; --accent-gold-light: #f0c040;
+			--bg: #faf8f6; --surface: #ffffff; --ink: #1a1a1a; --ink-secondary: #4a4a4a; --muted: #7a7a7a;
+			--line: rgba(128,0,0,0.15); --line-soft: rgba(128,0,0,0.08); --hover: rgba(128,0,0,0.04);
+			--shadow-sm: 0 1px 3px rgba(128,0,0,0.06); --shadow-md: 0 4px 14px rgba(128,0,0,0.08);
+			--shadow-lg: 0 10px 30px rgba(128,0,0,0.12);
+			--radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+			--transition: 0.3s cubic-bezier(0.4,0,0.2,1); --header-h: 104px;
+		}
+		* { box-sizing: border-box; }
+		body { margin: 0; font-family: 'Inter',-apple-system,sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+		a { color: inherit; text-decoration: none; transition: var(--transition); }
+		.container { width: min(1200px, 92vw); margin: 0 auto; }
+
+		.top-header { background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 40%, var(--primary-light) 100%); position: sticky; top: 0; z-index: 1200; box-shadow: 0 4px 20px rgba(128,0,0,0.3); }
+		.top-header .container { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; padding: 16px 0; }
+		.logo-box { width: 72px; height: 72px; display: grid; place-items: center; padding: 4px; background: rgba(255,255,255,0.1); border-radius: var(--radius-md); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); transition: var(--transition); }
+		.logo-box:hover { background: rgba(255,255,255,0.18); }
+		.logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+		.brand h1 { margin: 0; font-size: clamp(1.4rem, 2.8vw, 2rem); text-transform: uppercase; letter-spacing: 0.5px; color: #fff; font-weight: 800; }
+		.brand p { margin: 4px 0 0; color: rgba(255,255,255,0.75); font-size: 0.88rem; }
+		.nav-wrap { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: var(--header-h); z-index: 1150; box-shadow: var(--shadow-sm); }
+		.nav-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; flex-wrap: wrap; }
+		.menu-toggle { display: none; border: 1px solid var(--line); background: var(--surface); padding: 10px 16px; font-size: 0.9rem; cursor: pointer; border-radius: var(--radius-sm); font-family: inherit; font-weight: 500; color: var(--primary); transition: var(--transition); }
+		.menu-toggle:hover { background: var(--hover); }
+		nav ul { margin: 0; padding: 0; list-style: none; display: flex; gap: 4px; flex-wrap: wrap; }
+		nav a { display: inline-block; padding: 8px 14px; font-size: 0.9rem; font-weight: 500; border-radius: var(--radius-sm); color: var(--ink-secondary); transition: var(--transition); position: relative; }
+		nav a:hover { color: var(--primary); background: var(--hover); }
+		nav a.active { color: var(--primary); font-weight: 700; }
+		nav a.active::after { content: ""; position: absolute; bottom: 2px; left: 14px; right: 14px; height: 2px; background: var(--primary); border-radius: 999px; }
+		.right-tools { display: flex; align-items: center; gap: 10px; }
+		.search { display: flex; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); overflow: hidden; }
+		.search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(128,0,0,0.1); }
+		.search input { border: 0; outline: none; padding: 8px 16px; width: clamp(130px,16vw,180px); font-size: 0.88rem; background: transparent; font-family: inherit; }
+		.search button { border: 0; background: var(--primary); color: #fff; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+		.search button:hover { background: var(--primary-dark); }
+		.btn-login { border: 1.5px solid var(--primary); background: transparent; color: var(--primary); padding: 8px 18px; font-size: 0.88rem; font-weight: 600; border-radius: 999px; cursor: pointer; font-family: inherit; transition: var(--transition); }
+		.btn-login:hover { background: var(--primary); color: #fff; }
+
+		.hero { min-height: 240px; position: relative; display: grid; place-items: center; text-align: center; padding: 60px 20px; overflow: hidden; isolation: isolate; background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%); }
+		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
+		.badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 999px; padding: 5px 16px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; backdrop-filter: blur(8px); margin-bottom: 12px; }
+		.hero h2 { margin: 0; color: #fff; font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; text-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+		.hero-meta { margin-top: 10px; color: rgba(255,255,255,0.75); font-size: 0.9rem; }
+		.breadcrumb-wrap { background: var(--surface); border-bottom: 1px solid var(--line-soft); }
+		.breadcrumb { margin: 0; padding: 12px 0; list-style: none; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
+		.breadcrumb li + li::before { content: "/"; margin-right: 8px; color: var(--line); }
+		.breadcrumb a:hover { color: var(--primary); }
+		.breadcrumb [aria-current] { color: var(--primary); font-weight: 600; }
+
+		/* CONTENT */
+		.page-content { padding: 32px 0 48px; }
+
+		.form-wrapper {
+			max-width: 780px;
+			margin: 0 auto;
+			animation: fadeInUp 0.5s ease both;
+		}
+
+		/* Info card */
+		.form-info-card {
+			background: var(--surface);
+			border-radius: var(--radius-lg);
+			box-shadow: var(--shadow-md);
+			padding: 24px 28px;
+			margin-bottom: 24px;
+			position: relative;
+			overflow: hidden;
+		}
+		.form-info-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent-gold), var(--primary-light)); }
+		.form-info-card h3 { margin: 0 0 6px; font-size: 1.35rem; font-weight: 800; color: var(--ink); }
+		.form-info-card p { margin: 0 0 16px; font-size: 0.92rem; color: var(--ink-secondary); }
+		.form-meta-bar { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); padding-top: 12px; border-top: 1px solid var(--line-soft); }
+		.form-meta-bar span { display: flex; align-items: center; gap: 5px; }
+		.form-meta-bar strong { color: var(--primary); }
+
+		/* Form card */
+		.form-card {
+			background: var(--surface);
+			border-radius: var(--radius-lg);
+			box-shadow: var(--shadow-md);
+			padding: 28px;
+			position: relative;
+			overflow: hidden;
+		}
+		.form-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent-gold), var(--primary-light)); }
+
+		/* FORM FIELDS */
+		.input-grid { display: grid; gap: 20px; }
+
+		.field { display: grid; gap: 6px; }
+		.field label { font-size: 0.88rem; font-weight: 600; color: var(--ink-secondary); }
+		.required::after { content: " *"; color: var(--primary); }
+
+		.field input[type="text"],
+		.field input[type="email"],
+		.field input[type="tel"],
+		.field input[type="number"],
+		.field input[type="date"],
+		.field textarea,
+		.field select {
+			width: 100%;
+			border: 1.5px solid var(--line);
+			background: var(--bg);
+			color: var(--ink);
+			padding: 11px 14px;
+			font-size: 0.9rem;
+			font-family: inherit;
+			border-radius: var(--radius-sm);
+			outline: none;
+			transition: var(--transition);
+		}
+		.field input:focus, .field textarea:focus, .field select:focus {
+			border-color: var(--primary);
+			background: var(--surface);
+			box-shadow: 0 0 0 3px rgba(128,0,0,0.08);
+		}
+		.field textarea { min-height: 100px; resize: vertical; }
+		.field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23800000'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
+
+		.radio-group,
+		.check-group {
+			display: grid;
+			gap: 10px;
+			border: 1.5px solid var(--line-soft);
+			padding: 14px;
+			background: var(--bg);
+			font-size: 0.9rem;
+			border-radius: var(--radius-sm);
+			transition: var(--transition);
+		}
+		.radio-group:focus-within, .check-group:focus-within { border-color: var(--primary); }
+
+		.radio-group label,
+		.check-group label {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			cursor: pointer;
+			padding: 6px 10px;
+			border-radius: var(--radius-sm);
+			transition: var(--transition);
+			font-weight: 400;
+			color: var(--ink-secondary);
+		}
+		.radio-group label:hover, .check-group label:hover { background: var(--hover); color: var(--primary); }
+		.radio-group input[type="radio"], .check-group input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+
+		.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+		/* ACTIONS */
+		.form-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line-soft); margin-top: 4px; }
+
+		.btn-submit { border: none; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: #fff; padding: 12px 28px; font-size: 0.95rem; font-weight: 700; border-radius: var(--radius-md); cursor: pointer; font-family: inherit; transition: var(--transition); box-shadow: 0 4px 12px rgba(128,0,0,0.25); letter-spacing: 0.3px; }
+		.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(128,0,0,0.35); }
+
+		.btn-reset { border: 1.5px solid var(--line); background: transparent; color: var(--ink-secondary); padding: 12px 20px; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-md); cursor: pointer; font-family: inherit; transition: var(--transition); }
+		.btn-reset:hover { border-color: var(--primary); color: var(--primary); background: var(--hover); }
+
+		.btn-back { border: 1.5px solid var(--line); background: transparent; color: var(--muted); padding: 12px 20px; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-md); cursor: pointer; font-family: inherit; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; }
+		.btn-back:hover { border-color: var(--ink-secondary); color: var(--ink-secondary); }
+
+		/* LOCKED STATE */
+		.form-locked {
+			text-align: center;
+			padding: 40px 20px;
+		}
+		.form-locked p { font-size: 1rem; color: var(--primary-dark); font-weight: 700; margin: 0 0 20px; }
+
+		/* SUCCESS STATE */
+		.form-success {
+			text-align: center;
+			padding: 40px 20px;
+			background: linear-gradient(135deg, rgba(34,197,94,0.06), rgba(34,197,94,0.02));
+			border: 1.5px solid rgba(34,197,94,0.2);
+			border-radius: var(--radius-md);
+		}
+		.success-icon { font-size: 3rem; margin-bottom: 12px; }
+		.form-success h4 { margin: 0 0 8px; color: #166534; font-size: 1.2rem; }
+		.form-success p { margin: 0 0 20px; color: var(--muted); font-size: 0.92rem; }
+
+		/* FOOTER */
+		.footer { background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 60%, var(--primary-dark) 100%); margin-top: 48px; color: rgba(255,255,255,0.85); position: relative; overflow: hidden; }
+		.footer::before { content: ""; position: absolute; top: -80px; right: -80px; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,0.03); pointer-events: none; }
+		.footer-main { padding: 40px 0 28px; position: relative; z-index: 1; }
+		.footer-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 30px; }
+		.footer-col { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); padding: 24px; border-radius: var(--radius-md); transition: var(--transition); }
+		.footer-col:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+		.footer-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+		.footer-logo { width: 56px; height: 56px; object-fit: contain; border: 1px solid rgba(255,255,255,0.2); padding: 6px; background: rgba(255,255,255,0.08); border-radius: var(--radius-sm); }
+		.footer-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: #fff; }
+		.footer-sub { margin: 3px 0 0; font-size: 0.85rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+		.contact-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
+		.contact-list li { color: rgba(255,255,255,0.8); display: flex; gap: 8px; }
+		.contact-list strong { display: inline-block; min-width: 70px; color: var(--accent-gold-light); font-weight: 600; }
+		.social-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
+		.social-item { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.8); transition: var(--transition); padding: 4px 0; }
+		.social-item:hover { color: #fff; }
+		.social-dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; border: 1px solid rgba(212,160,23,0.4); background: rgba(212,160,23,0.15); color: var(--accent-gold-light); transition: var(--transition); }
+		.social-item:hover .social-dot { background: rgba(212,160,23,0.3); transform: scale(1.1); }
+		.footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 16px 0 20px; text-align: center; font-size: 0.84rem; color: rgba(255,255,255,0.5); position: relative; z-index: 1; }
+
+		@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+		@media (max-width: 980px) { .footer-grid { grid-template-columns: 1fr; } .row-2 { grid-template-columns: 1fr; } }
+		@media (max-width: 760px) {
+			.top-header .container {
+				grid-template-columns: auto 1fr;
+				align-items: center;
+				gap: 10px;
+				padding: 10px 0;
+				text-align: left;
+			}
+			.menu-toggle { display: inline-block; }
+			nav { width: 100%; display: none; }
+			nav.open { display: block; animation: fadeSlideDown 0.3s ease; }
+			@keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+			nav ul { flex-direction: column; align-items: stretch; }
+			nav a { display: block; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: var(--radius-sm); text-align: center; }
+			.logo-box { width: 52px; height: 52px; padding: 3px; margin: 0; }
+			.brand h1 { font-size: clamp(1.02rem, 5vw, 1.35rem); line-height: 1.2; letter-spacing: 0.4px; }
+			.brand p { margin-top: 3px; font-size: 0.76rem; line-height: 1.35; }
+			.nav-row { align-items: stretch; }
+			.right-tools { width: 100%; justify-content: stretch; flex-wrap: wrap; }
+			.search { flex: 1 1 230px; }
+			.btn-login { flex: 1 1 auto; justify-content: center; }
+		}
+		@media (max-width: 520px) {
+			.top-header .container { padding: 8px 0; }
+			.logo-box { width: 46px; height: 46px; }
+			.brand h1 { font-size: 0.96rem; }
+			.brand p { font-size: 0.72rem; }
+		}
+	</style>
+</head>
+<body>
+	<header class="top-header" id="topHeader">
+		<div class="container">
+			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			</a>
+			<div class="brand">
+				<h1>Crew Multimedia Baciro</h1>
+				<p>Jalan Melati Wetan 47 Baciro Gondokusuman Yogyakarta</p>
+			</div>
+		</div>
+	</header>
+
+	<div class="nav-wrap">
+		<div class="container nav-row">
+			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
+			<nav id="mainNav" aria-label="Navigasi utama">
+				<ul>
+					<li><a href="home.html">Home</a></li>
+					<li><a href="profil.html">Profil</a></li>
+					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="agenda.html">Agenda</a></li>
+					<li><a href="pengumuman.html">Pengumuman</a></li>
+					<li><a class="active" href="form-pendaftaran.html">Form Pendaftaran</a></li>
+				</ul>
+			</nav>
+			<div class="right-tools">
+				<form class="search" id="searchForm">
+					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
+					<button type="submit">Cari</button>
+				</form>
+				<a class="btn-login" href="login.html">Login</a>
+			</div>
+		</div>
+	</div>
+
+	<section class="hero" aria-label="Header detail form pendaftaran">
+		<div>
+			<span class="badge">Form Pendaftaran</span>
+			<h2 id="heroTitle">Detail Form Pendaftaran</h2>
+			<div id="heroMeta" class="hero-meta">Memuat data form...</div>
+		</div>
+	</section>
+
+	<div class="breadcrumb-wrap">
+		<div class="container">
+			<ol class="breadcrumb" aria-label="Breadcrumb">
+				<li><a href="home.html">Beranda</a></li>
+				<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+				<li id="breadcrumbCurrent" aria-current="page">Detail Form</li>
+			</ol>
+		</div>
+	</div>
+
+	<main class="container page-content">
+		<div class="form-wrapper">
+			<!-- Info card -->
+			<div class="form-info-card" id="formInfoCard" style="display:none;">
+				<h3 id="formInfoTitle">Form Pendaftaran</h3>
+				<p id="formInfoDesc">Isi data berikut.</p>
+				<div class="form-meta-bar">
+					<span id="formMetaTarget"></span>
+					<span id="formMetaQuota"></span>
+					<span id="formMetaPeriod"></span>
+				</div>
+			</div>
+
+			<!-- Dynamic form card -->
+			<div class="form-card">
+				<form id="dynamicForm" class="input-grid" novalidate>
+					<!-- Rendered by JS -->
+				</form>
+			</div>
+		</div>
+	</main>
+
+	<footer class="footer">
+		<div class="footer-main">
+			<div class="container footer-grid">
+				<section class="footer-col" aria-label="Identitas Crembo">
+					<div class="footer-brand">
+						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<div>
+							<h4 class="footer-title">Crew Multimedia Baciro</h4>
+							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
+						</div>
+					</div>
+					<p class="footer-sub">Platform informasi, jadwal streaming, agenda, pengumuman, dan form pendaftaran komunitas.</p>
+				</section>
+				<section class="footer-col" aria-label="Kontak">
+					<h4 class="footer-title">Kontak</h4>
+					<ul class="contact-list" style="margin-top:14px;">
+						<li><strong>Email</strong> : crembomedia@example.com</li>
+						<li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
+						<li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+					</ul>
+				</section>
+				<section class="footer-col" aria-label="Media sosial">
+					<h4 class="footer-title">Media Sosial</h4>
+					<ul class="social-list" style="margin-top:14px;">
+						<li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
+						<li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
+						<li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
+					</ul>
+				</section>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div>
+		</div>
+	</footer>
+
+	<script>
+		const FORM_STORAGE_KEY = "crembo-registration-forms";
+		const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
+		const MEMBER_STORAGE_KEY = "crembo-members";
+		const SESSION_STORAGE_KEY = "crembo-login-session";
+
+		const params = new URLSearchParams(window.location.search);
+		const formId = params.get("id") || "";
+
+		const topHeader = document.getElementById("topHeader");
+		const menuToggle = document.getElementById("menuToggle");
+		const mainNav = document.getElementById("mainNav");
+		const searchForm = document.getElementById("searchForm");
+		const searchInput = document.getElementById("searchInput");
+		const heroTitle = document.getElementById("heroTitle");
+		const heroMeta = document.getElementById("heroMeta");
+		const breadcrumbCurrent = document.getElementById("breadcrumbCurrent");
+		const formInfoCard = document.getElementById("formInfoCard");
+		const formInfoTitle = document.getElementById("formInfoTitle");
+		const formInfoDesc = document.getElementById("formInfoDesc");
+		const formMetaTarget = document.getElementById("formMetaTarget");
+		const formMetaQuota = document.getElementById("formMetaQuota");
+		const formMetaPeriod = document.getElementById("formMetaPeriod");
+		const dynamicForm = document.getElementById("dynamicForm");
+
+		let forms = [];
+		let submissions = [];
+		let members = [];
+		let session = null;
+		let currentForm = null;
+
+		function syncStickyOffset() {
+			const h = topHeader ? topHeader.offsetHeight : 104;
+			document.documentElement.style.setProperty("--header-h", h + "px");
+		}
+
+		function safeParse(raw) { try { return JSON.parse(raw); } catch (e) { return null; } }
+
+		function makeId(prefix) { return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8); }
+
+		function normalizeMember(item, index) {
+			return { id: String(item && item.id ? item.id : "m-" + index), email: String(item && item.email ? item.email : "").toLowerCase(), phone: String(item && item.phone ? item.phone : "").replace(/\s+/g, ""), status: String(item && item.status ? item.status : "Aktif") };
+		}
+
+		function normalizeField(item, index) {
+			return { id: String(item && item.id ? item.id : makeId("field")), label: String(item && item.label ? item.label : "Pertanyaan " + (index + 1)), type: String(item && item.type ? item.type : "text"), required: Boolean(item && item.required), placeholder: String(item && item.placeholder ? item.placeholder : ""), options: Array.isArray(item && item.options) ? item.options.map(String) : [] };
+		}
+
+		function normalizeForm(item, index) {
+			return { id: String(item && item.id ? item.id : "form-" + (index + 1)), title: String(item && item.title ? item.title : "Form Pendaftaran"), description: String(item && item.description ? item.description : ""), target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public", visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible", openDate: String(item && item.openDate ? item.openDate : ""), closeDate: String(item && item.closeDate ? item.closeDate : ""), quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0, fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [], updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString()) };
+		}
+
+		function loadData() {
+			const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
+			const parsedForms = rawForms ? safeParse(rawForms) : null;
+			forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
+			const rawSubs = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+			const parsedSubs = rawSubs ? safeParse(rawSubs) : null;
+			submissions = Array.isArray(parsedSubs) ? parsedSubs : [];
+			const rawMembers = localStorage.getItem(MEMBER_STORAGE_KEY);
+			const parsedMembers = rawMembers ? safeParse(rawMembers) : null;
+			members = Array.isArray(parsedMembers) ? parsedMembers.map(normalizeMember) : [];
+			const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
+			const parsedSession = rawSession ? safeParse(rawSession) : null;
+			session = parsedSession && typeof parsedSession === "object" ? parsedSession : null;
+		}
+
+		function countSubmissions(id) { return submissions.filter(function(item) { return item && item.formId === id; }).length; }
+
+		function isRegisteredMember() {
+			if (!session || !session.identifier) return false;
+			if (session.role === "admin" || session.role === "super_admin") return true;
+			const identifier = String(session.identifier || "").toLowerCase();
+			const identifierType = String(session.identifierType || "");
+			return members.some(function(member) {
+				if (String(member.status || "").toLowerCase() !== "aktif") return false;
+				if (identifierType === "email") return member.email === identifier;
+				if (identifierType === "no_hp") return member.phone === identifier.replace(/\s+/g, "");
+				return false;
+			});
+		}
+
+		function formatDate(value) {
+			if (!value) return "-";
+			const d = new Date(value + "T00:00:00");
+			if (Number.isNaN(d.getTime())) return value;
+			const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+			return String(d.getDate()).padStart(2, "0") + " " + months[d.getMonth()] + " " + d.getFullYear();
+		}
+
+		function getFormState(item) {
+			const now = new Date();
+			const openDate = item.openDate ? new Date(item.openDate + "T00:00:00") : null;
+			const closeDate = item.closeDate ? new Date(item.closeDate + "T23:59:59") : null;
+			const submissionCount = countSubmissions(item.id);
+			if (item.visibility === "draft") return { open: false, reason: "draft", text: "Form masih dalam status draft" };
+			if (openDate && now < openDate) return { open: false, reason: "not_open", text: "Form belum dibuka" };
+			if (closeDate && now > closeDate) return { open: false, reason: "closed", text: "Form sudah ditutup" };
+			if (item.quota > 0 && submissionCount >= item.quota) return { open: false, reason: "quota", text: "Kuota pendaftaran sudah penuh" };
+			return { open: true, reason: "open", text: "Form aktif dan tersedia" };
+		}
+
+		function renderLocked(message) {
+			dynamicForm.innerHTML = '<div class="form-locked"><p>🚫 ' + message + '</p><a class="btn-back" href="form-pendaftaran.html">← Kembali ke Daftar Form</a></div>';
+		}
+
+		function inputHtml(field) {
+			const req = field.required ? " required" : "";
+			const placeholder = field.placeholder ? ' placeholder="' + field.placeholder.replace(/"/g, "&quot;") + '"' : "";
+			const id = "field-" + field.id;
+
+			if (field.type === "textarea") {
+				return '<textarea id="' + id + '"' + placeholder + req + '></textarea>';
+			}
+			if (field.type === "select") {
+				const opts = ['<option value="">Pilih jawaban...</option>'].concat(field.options.map(function(opt) { return '<option value="' + opt.replace(/"/g, "&quot;") + '">' + opt + '</option>'; })).join("");
+				return '<select id="' + id + '"' + req + '>' + opts + '</select>';
+			}
+			if (field.type === "radio") {
+				return '<div class="radio-group">' + field.options.map(function(opt, idx) {
+					return '<label><input type="radio" name="' + id + '" value="' + opt.replace(/"/g, "&quot;") + '"' + (field.required && idx === 0 ? " required" : "") + '> ' + opt + '</label>';
+				}).join("") + '</div>';
+			}
+			if (field.type === "checkbox") {
+				return '<div class="check-group">' + field.options.map(function(opt) {
+					return '<label><input type="checkbox" name="' + id + '" value="' + opt.replace(/"/g, "&quot;") + '"> ' + opt + '</label>';
+				}).join("") + '</div>';
+			}
+			return '<input id="' + id + '" type="' + field.type + '"' + placeholder + req + '>';
+		}
+
+		function renderForm() {
+			loadData();
+			currentForm = forms.find(function(item) { return item.id === formId; }) || null;
+
+			if (!currentForm) {
+				heroTitle.textContent = "Form Tidak Ditemukan";
+				heroMeta.textContent = "Periksa kembali daftar form pendaftaran.";
+				breadcrumbCurrent.textContent = "Form Tidak Ditemukan";
+				renderLocked("Form yang kamu cari tidak ada atau sudah dihapus.");
+				return;
+			}
+
+			const state = getFormState(currentForm);
+			const submissionCount = countSubmissions(currentForm.id);
+
+			heroTitle.textContent = currentForm.title;
+			heroMeta.textContent = "Batas pengisian: " + formatDate(currentForm.closeDate);
+			breadcrumbCurrent.textContent = currentForm.title;
+
+			formInfoCard.style.display = "";
+			formInfoTitle.textContent = currentForm.title;
+			formInfoDesc.textContent = currentForm.description || "Isi data berikut sesuai field yang tersedia.";
+			formMetaTarget.innerHTML = "<strong>Target:</strong> " + (currentForm.target === "internal" ? "Internal Anggota" : "Umum");
+			formMetaQuota.innerHTML = "<strong>Kuota:</strong> " + submissionCount + " / " + (currentForm.quota > 0 ? currentForm.quota : "Tidak terbatas");
+			formMetaPeriod.innerHTML = "<strong>Periode:</strong> " + formatDate(currentForm.openDate) + " – " + formatDate(currentForm.closeDate);
+
+			if (!state.open) { renderLocked(state.text + "."); return; }
+			if (currentForm.target === "internal" && !session) { renderLocked("Form ini khusus internal. Silakan login terlebih dahulu."); return; }
+			if (currentForm.target === "internal" && !isRegisteredMember()) { renderLocked("Form ini hanya untuk anggota internal yang terdaftar dan aktif."); return; }
+
+			const fieldsHtml = currentForm.fields.map(function(field) {
+				const labelClass = field.required ? "required" : "";
+				return '<div class="field"><label class="' + labelClass + '" for="field-' + field.id + '">' + field.label + '</label>' + inputHtml(field) + '</div>';
+			}).join("");
+
+			dynamicForm.innerHTML = fieldsHtml +
+				'<div class="form-actions">' +
+				'<button class="btn-submit" type="submit">Kirim Pendaftaran ✓</button>' +
+				'<button class="btn-reset" type="reset">Reset</button>' +
+				'<a class="btn-back" href="form-pendaftaran.html">← Kembali</a>' +
+				'</div>';
+		}
+
+		function collectAnswer(field) {
+			if (field.type === "radio") {
+				const checked = dynamicForm.querySelector('input[name="field-' + field.id + '"]:checked');
+				return checked ? checked.value : "";
+			}
+			if (field.type === "checkbox") {
+				const checked = Array.from(dynamicForm.querySelectorAll('input[name="field-' + field.id + '"]:checked'));
+				return checked.map(function(item) { return item.value; });
+			}
+			const el = document.getElementById("field-" + field.id);
+			return el ? String(el.value || "").trim() : "";
+		}
+
+		function validateField(field, value) {
+			if (!field.required) return true;
+			if (Array.isArray(value)) return value.length > 0;
+			return String(value || "").trim().length > 0;
+		}
+
+		function submitForm(event) {
+			event.preventDefault();
+			if (!currentForm) return;
+			const state = getFormState(currentForm);
+			if (!state.open) { alert(state.text + "."); return; }
+
+			const answers = [];
+			for (const field of currentForm.fields) {
+				const value = collectAnswer(field);
+				if (!validateField(field, value)) {
+					alert('Field "' + field.label + '" wajib diisi.');
+					return;
+				}
+				answers.push({ fieldId: field.id, label: field.label, type: field.type, value: value });
+			}
+
+			const payload = {
+				id: makeId("submit"),
+				formId: currentForm.id,
+				submittedAt: new Date().toISOString(),
+				submitter: session ? { identifier: session.identifier || "", identifierType: session.identifierType || "", role: session.role || "" } : { identifier: "public", identifierType: "public", role: "public" },
+				answers: answers
+			};
+
+			submissions.push(payload);
+			localStorage.setItem(SUBMISSION_STORAGE_KEY, JSON.stringify(submissions));
+
+			// Show success state
+			dynamicForm.innerHTML =
+				'<div class="form-success">' +
+				'<div class="success-icon">✅</div>' +
+				'<h4>Pendaftaran Berhasil Dikirim!</h4>' +
+				'<p>Terima kasih telah mendaftar. Data Anda telah tersimpan dan akan segera diproses oleh tim Crembo Media.</p>' +
+				'<a class="btn-back" href="form-pendaftaran.html">← Kembali ke Daftar Form</a>' +
+				'</div>';
+		}
+
+		syncStickyOffset();
+		window.addEventListener("resize", syncStickyOffset);
+
+		menuToggle.addEventListener("click", function () {
+			const isOpen = mainNav.classList.toggle("open");
+			menuToggle.setAttribute("aria-expanded", String(isOpen));
+		});
+
+		mainNav.querySelectorAll("a").forEach(function (link) {
+			link.addEventListener("click", function () {
+				if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+					return;
+				}
+				if (mainNav.classList.contains("open")) {
+					mainNav.classList.remove("open");
+					menuToggle.setAttribute("aria-expanded", "false");
+				}
+			});
+		});
+
+		searchForm.addEventListener("submit", function(e) {
+			e.preventDefault();
+			const q = searchInput.value.trim();
+			window.location.href = "search.html?q=" + encodeURIComponent(q);
+		});
+
+		renderForm();
+		dynamicForm.addEventListener("submit", submitForm);
+
+		(function() {
+			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";
+			const DEFAULT_PROFILE_MENU = [{ id: "sejarah", label: "Sejarah" }, { id: "tentang-crembo", label: "Tentang Crembo" }, { id: "struktur", label: "Struktur" }, { id: "visi-misi", label: "Visi & Misi" }];
+			function readProfileMenuItems() {
+				try {
+					const raw = localStorage.getItem(PROFILE_MENU_STORAGE_KEY);
+					if (!raw) return DEFAULT_PROFILE_MENU;
+					const parsed = JSON.parse(raw);
+					if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PROFILE_MENU;
+					return parsed.map(function(item) {
+						if (typeof item === "string") return { id: item.toLowerCase().replace(/\s+/g, "-"), label: item };
+						return { id: item && item.id ? String(item.id) : String((item && item.label) || "profil").toLowerCase().replace(/\s+/g, "-"), label: item && item.label ? String(item.label) : "Profil" };
+					});
+				} catch (err) { return DEFAULT_PROFILE_MENU; }
+			}
+			function enhanceProfileHoverMenu() {
+				const navList = document.querySelector(".nav-row nav ul");
+				if (!navList) return;
+				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				if (!profileAnchor) return;
+				const profileItem = profileAnchor.closest("li");
+				if (!profileItem) return;
+				const menuItems = readProfileMenuItems();
+				const mobileQuery = window.matchMedia("(max-width: 760px)");
+				profileItem.classList.add("nav-dropdown-enhanced");
+				if (!profileAnchor.hasAttribute("data-profile-menu-label")) {
+					profileAnchor.setAttribute("data-profile-menu-label", "true");
+					profileAnchor.textContent = profileAnchor.textContent.trim() + " ▾";
+				}
+				profileAnchor.classList.add("profile-parent-link");
+				profileAnchor.setAttribute("aria-expanded", "false");
+				const dropdown = document.createElement("div");
+				function applyDesktopDropdownStyle() {
+					profileItem.style.position = "relative";
+					Object.assign(dropdown.style, { position: "absolute", top: "calc(100% + 4px)", left: "0", minWidth: "200px", width: "auto", border: "1px solid rgba(128,0,0,0.15)", background: "#fff", boxShadow: "0 10px 30px rgba(128,0,0,0.12)", padding: "6px", display: "none", zIndex: "1300", borderRadius: "12px", marginTop: "0" });
+				}
+				function applyMobileDropdownStyle() {
+					profileItem.style.position = "static";
+					Object.assign(dropdown.style, { position: "static", top: "auto", left: "auto", minWidth: "0", width: "100%", border: "1px solid rgba(128,0,0,0.15)", background: "var(--bg)", boxShadow: "none", padding: "6px", display: "none", zIndex: "1300", borderRadius: "8px", marginTop: "6px" });
+				}
+				function syncDropdownMode() {
+					if (mobileQuery.matches) applyMobileDropdownStyle();
+					else applyDesktopDropdownStyle();
+					profileAnchor.setAttribute("aria-expanded", "false");
+				}
+				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
+				dropdown.addEventListener("mouseover", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; } });
+				dropdown.addEventListener("mouseout", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; } });
+				profileItem.appendChild(dropdown);
+				profileAnchor.addEventListener("click", function(event) {
+					if (!mobileQuery.matches) return;
+					event.preventDefault();
+					const isOpen = dropdown.style.display !== "block";
+					dropdown.style.display = isOpen ? "block" : "none";
+					profileAnchor.setAttribute("aria-expanded", String(isOpen));
+				});
+				dropdown.querySelectorAll("a").forEach(function(link) {
+					link.addEventListener("click", function() {
+						dropdown.style.display = "none";
+						profileAnchor.setAttribute("aria-expanded", "false");
+					});
+				});
+				profileItem.addEventListener("mouseenter", function() { if (!mobileQuery.matches) dropdown.style.display = "block"; });
+				profileItem.addEventListener("mouseleave", function() { if (!mobileQuery.matches) dropdown.style.display = "none"; });
+				window.addEventListener("resize", syncDropdownMode);
+				syncDropdownMode();
+			}
+			enhanceProfileHoverMenu();
+		})();
+	</script>
+</body>
+</html>

@@ -1,0 +1,673 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manajemen Form Pendaftaran - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --green: #0f8e4b;
+      --orange: #986200;
+      --danger: #bf1f1f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .meta-header {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.6rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .meta-badges {
+      display: inline-flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .headline {
+      border: 1px solid #d6d8de;
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 14px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .headline h2 { margin: 0; font-size: clamp(1.18rem, 2vw, 1.6rem); }
+    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
+
+    .headline > div:first-child { min-width: 0; flex: 1; }
+
+    .headline .btn.primary { margin-left: auto; }
+
+    .toolbar {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr;
+      gap: 8px;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
+      border-color: #2f66d8;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .btn.warn {
+      background: #fff;
+      color: #b91c1c;
+      border-color: #ef4444;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      min-width: 960px;
+    }
+
+    th, td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #efefef; font-size: 0.75rem; text-transform: uppercase; }
+
+    .title-cell strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.92rem;
+    }
+
+    .sub {
+      color: #4b5563;
+      font-size: 0.78rem;
+    }
+
+    .status {
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      border: 1px solid;
+      display: inline-block;
+    }
+
+    .status.visible {
+      background: #dcfce7;
+      color: var(--green);
+      border-color: #86efac;
+    }
+
+    .status.draft {
+      background: #fef3c7;
+      color: var(--orange);
+      border-color: #fcd34d;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      text-align: center;
+      color: #4b5563;
+      padding: 22px;
+      border: 1px dashed #9ca3af;
+      border-radius: 12px;
+      background: #f8fafc;
+      margin-top: 10px;
+    }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Kelola form pendaftaran kegiatan</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link active" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="meta-header" aria-label="Header dashboard waktu berjalan">
+        <div>
+          <h1 class="meta-title">Manajemen Form Pendaftaran</h1>
+          <p style="margin: 6px 0 0; color: rgba(255,255,255,0.85); font-size: 0.88rem;">Kelola form pendaftaran kegiatan.</p>
+        </div>
+        <div class="meta-badges">
+          <span id="liveDateTime" class="chip">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="headline">
+        <div>
+          <h2>Daftar Form Pendaftaran</h2>
+        </div>
+        <a class="btn primary" href="builder-form-pendaftaran.html">+ Buat Form Baru</a>
+      </header>
+
+      <section class="toolbar" aria-label="Filter form pendaftaran">
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Cari judul form...">
+          <select id="targetFilter">
+            <option value="all">Semua Target</option>
+            <option value="public">Umum</option>
+            <option value="internal">Internal</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="table-wrap" aria-label="Tabel form pendaftaran">
+        <table>
+          <thead>
+            <tr>
+              <th>Form</th>
+              <th>Target</th>
+              <th>Periode</th>
+              <th>Kuota</th>
+              <th>Visibilitas</th>
+              <th>Pendaftar</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="formRows"></tbody>
+        </table>
+      </section>
+
+      <div id="emptyState" class="empty" style="display:none;">Belum ada form pendaftaran.</div>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const FORM_STORAGE_KEY = "crembo-registration-forms";
+    const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
+
+    const searchInput = document.getElementById("searchInput");
+    const targetFilter = document.getElementById("targetFilter");
+    const formRows = document.getElementById("formRows");
+    const emptyState = document.getElementById("emptyState");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const notify = document.getElementById("notify");
+
+    let forms = [];
+    let submissions = [];
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2200);
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function normalizeField(item, index) {
+      return {
+        id: String(item && item.id ? item.id : makeId("field")),
+        label: String(item && item.label ? item.label : "Pertanyaan " + (index + 1)),
+        type: String(item && item.type ? item.type : "text"),
+        required: Boolean(item && item.required),
+        placeholder: String(item && item.placeholder ? item.placeholder : ""),
+        options: Array.isArray(item && item.options) ? item.options.map(String) : []
+      };
+    }
+
+    function normalizeForm(item, index) {
+      return {
+        id: String(item && item.id ? item.id : "form-" + (index + 1)),
+        title: String(item && item.title ? item.title : "Form Pendaftaran"),
+        description: String(item && item.description ? item.description : ""),
+        target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public",
+        visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible",
+        openDate: String(item && item.openDate ? item.openDate : ""),
+        closeDate: String(item && item.closeDate ? item.closeDate : ""),
+        quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0,
+        fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [],
+        updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString())
+      };
+    }
+
+    function defaultForms() {
+      return [
+        {
+          id: makeId("form"),
+          title: "Form Pendaftaran Open Recruitment",
+          description: "Form umum untuk pendaftaran anggota baru.",
+          target: "public",
+          visibility: "visible",
+          openDate: "2026-03-20",
+          closeDate: "2026-04-10",
+          quota: 100,
+          fields: [
+            { id: makeId("field"), label: "Nama Lengkap", type: "text", required: true, placeholder: "", options: [] },
+            { id: makeId("field"), label: "Email", type: "email", required: true, placeholder: "", options: [] },
+            { id: makeId("field"), label: "Alasan Bergabung", type: "textarea", required: true, placeholder: "", options: [] }
+          ],
+          updatedAt: new Date().toISOString()
+        }
+      ];
+    }
+
+    function loadForms() {
+      const raw = localStorage.getItem(FORM_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      forms = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeForm) : defaultForms().map(normalizeForm);
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+    }
+
+    function loadSubmissions() {
+      const raw = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      submissions = Array.isArray(parsed) ? parsed : [];
+    }
+
+    function saveForms() {
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+    }
+
+    function getSubmissionCount(formId) {
+      return submissions.filter(function (item) {
+        return item && item.formId === formId;
+      }).length;
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "-";
+      }
+      const d = new Date(value + "T00:00:00");
+      if (Number.isNaN(d.getTime())) {
+        return value;
+      }
+      return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function filteredForms() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const target = targetFilter.value;
+
+      return forms
+        .slice()
+        .sort(function (a, b) {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        })
+        .filter(function (item) {
+          if (target !== "all" && item.target !== target) {
+            return false;
+          }
+          if (!keyword) {
+            return true;
+          }
+          return item.title.toLowerCase().indexOf(keyword) >= 0;
+        });
+    }
+
+    function renderRows() {
+      const list = filteredForms();
+      if (!list.length) {
+        formRows.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+      formRows.innerHTML = list.map(function (item) {
+        const targetText = item.target === "internal" ? "Internal" : "Umum";
+        const visibilityText = item.visibility === "draft" ? "Draft" : "Ditampilkan";
+        const count = getSubmissionCount(item.id);
+        const quotaText = item.quota > 0 ? String(item.quota) : "Tanpa batas";
+
+        return "<tr>"
+          + "<td class=\"title-cell\"><strong>" + escapeHtml(item.title) + "</strong><div class=\"sub\">" + escapeHtml(item.description || "-") + "</div></td>"
+          + "<td>" + targetText + "</td>"
+          + "<td>" + escapeHtml(formatDate(item.openDate)) + " - " + escapeHtml(formatDate(item.closeDate)) + "</td>"
+          + "<td>" + quotaText + "</td>"
+          + "<td><span class=\"status " + (item.visibility === "draft" ? "draft" : "visible") + "\">" + visibilityText + "</span></td>"
+          + "<td>" + String(count) + "</td>"
+          + "<td><div class=\"inline-actions\">"
+          + "<a class=\"btn ghost\" href=\"pendaftar-form.html?formId=" + encodeURIComponent(item.id) + "\">Pendaftar</a>"
+          + "<a class=\"btn ghost\" href=\"builder-form-pendaftaran.html?id=" + encodeURIComponent(item.id) + "\">Edit</a>"
+          + "<button class=\"btn warn\" type=\"button\" data-delete-id=\"" + escapeHtml(item.id) + "\">Hapus</button>"
+          + "</div></td>"
+          + "</tr>";
+      }).join("");
+    }
+
+    function removeForm(id) {
+      const target = forms.find(function (item) { return item.id === id; });
+      if (!target) {
+        return;
+      }
+      const ok = window.confirm('Hapus form "' + target.title + '"?');
+      if (!ok) {
+        return;
+      }
+
+      forms = forms.filter(function (item) { return item.id !== id; });
+      saveForms();
+      renderRows();
+      showNotify("Form berhasil dihapus.");
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    formRows.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-delete-id]");
+      if (!button) {
+        return;
+      }
+      removeForm(button.getAttribute("data-delete-id") || "");
+    });
+
+    searchInput.addEventListener("input", renderRows);
+    targetFilter.addEventListener("change", renderRows);
+
+    loadForms();
+    loadSubmissions();
+    renderRows();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

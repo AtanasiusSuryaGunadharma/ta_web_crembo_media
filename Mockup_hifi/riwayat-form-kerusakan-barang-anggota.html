@@ -1,0 +1,958 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Riwayat Form Kerusakan Barang - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --blue-1: #202020;
+      --blue-2: #2d2d2d;
+      --blue-3: #141414;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .layout { min-height: 100vh; display: grid; grid-template-columns: 292px 1fr; }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--blue-1) 0%, var(--blue-2) 52%, var(--blue-3) 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 25;
+    }
+
+    .sidebar-backdrop.show { display: block; }
+
+    .sidebar > * { margin-bottom: 12px; }
+    .sidebar > *:last-child { margin-bottom: 0; }
+
+    .brand, .account, .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .brand { padding: 10px; display: grid; gap: 6px; }
+    .brand strong { font-size: 1rem; }
+    .brand small { font-size: 0.79rem; color: #dbe7ff; }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text { min-width: 0; display: grid; gap: 2px; }
+    .account-text strong { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .account-text small { color: #d8e4ff; font-size: 0.76rem; }
+
+    .menu-group { overflow: hidden; }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-items { display: none; border-top: 1px solid rgba(255,255,255,0.18); padding: 6px; }
+    .menu-group.open .menu-items { display: block; }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active,
+    .menu-link:hover {
+      border-color: rgba(255,255,255,0.42);
+      background: rgba(255,255,255,0.14);
+    }
+
+    .side-bottom { margin-top: 16px; display: grid; gap: 8px; }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .main { min-width: 0; padding: 20px; }
+
+    .dashboard-headline-bar,
+    .topbar {
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 700;
+      color: #fff;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .quick-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .quick-chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 5px 11px;
+      font-size: 0.74rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .content { padding: 0; display: grid; gap: 14px; }
+
+    .hero,
+    .panel,
+    .toolbar {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+    }
+
+    .hero {
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero h2 { margin: 0; font-size: clamp(1.3rem, 2.5vw, 1.95rem); }
+    .hero p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+    .chip {
+      border: 1px solid #bbc5d7;
+      border-radius: 999px;
+      background: #f8fafc;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr 220px 220px auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .field { display: grid; gap: 6px; }
+
+    .field label {
+      font-size: 0.84rem;
+      color: #4b4b4b;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #b8b8b8;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 13px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      touch-action: manipulation;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h3 { margin: 0; font-size: 1rem; }
+
+    .table-scroll {
+      border-top: 1px solid var(--line);
+      overflow: auto;
+      background: #fff;
+    }
+
+    .table-scroll table {
+      min-width: 980px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #d1d5db;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f4f6;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .status-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 0.74rem;
+      border: 1px solid #c4c4c4;
+      background: #f6f6f6;
+    }
+
+    .status-pill.waiting { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
+    .status-pill.process { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
+    .status-pill.done { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
+
+    .empty {
+      margin: 12px;
+      border: 1px dashed #bec8d8;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #5b6473;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      text-align: center;
+      padding: 18px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.42);
+    }
+
+    .modal[hidden] { display: none; }
+
+    .dialog {
+      width: min(860px, 95vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border: 2px solid #1f1f1f;
+      border-radius: 14px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dialog-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #d0d0d0;
+      background: #f6f6f6;
+    }
+
+    .dialog-head h3 { margin: 0; font-size: 1rem; }
+
+    .dialog-body {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .detail-item {
+      border: 1px solid #d7d7d7;
+      background: #fcfcfc;
+      border-radius: 9px;
+      padding: 8px;
+      font-size: 0.84rem;
+      color: #1f2937;
+    }
+
+    .detail-item strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #111827;
+    }
+
+    .detail-photo {
+      width: min(360px, 100%);
+      border-radius: 10px;
+      border: 1px solid #bdbdbd;
+      object-fit: cover;
+      background: #efefef;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .header,
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .quick-chip { width: 100%; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .toolbar { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .table-scroll { overflow-x: visible; border-top: 0; }
+      .table-scroll table { min-width: 0; }
+      .table-scroll thead { display: none; }
+      .table-scroll tbody { display: grid; gap: 10px; padding: 12px; }
+      .table-scroll tbody tr {
+        display: block;
+        border: 1px solid #dbe2ef;
+        border-radius: 12px;
+        background: #fff;
+        padding: 10px;
+      }
+      .table-scroll tbody td {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 8px;
+        border: 0;
+        border-bottom: 1px dashed #e5e9f2;
+        padding: 8px 0;
+      }
+      .table-scroll tbody td:last-child { border-bottom: 0; padding-bottom: 0; }
+      .table-scroll tbody td::before {
+        content: attr(data-label);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #64748b;
+        font-weight: 700;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main { padding: 12px; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Riwayat laporan kerusakan barang</small>
+      </div>
+
+      <div class="account">
+        <div id="memberAvatar" class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Anggota</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Peminjaman Barang <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link" href="pengajuan-peminjaman-barang-anggota.html">Pengajuan Peminjaman</a>
+          <a class="menu-link" href="input-pengembalian-barang-anggota.html">Input Pengembalian Barang</a>
+          <a class="menu-link" href="input-pengambilan-barang-anggota.html">Input Pengambilan Barang</a>
+          <a class="menu-link" href="riwayat-peminjaman-barang-anggota.html">Riwayat Peminjaman Saya</a>
+          <a class="menu-link" href="form-kerusakan-barang-anggota.html">Form Kerusakan Barang</a>
+          <a class="menu-link active" href="riwayat-form-kerusakan-barang-anggota.html">Riwayat Form Kerusakan</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="dashboard-headline-bar">
+        <button id="mobileMenuBtn" class="mobile-toggle" type="button">Menu</button>
+        <h1>Riwayat Form Kerusakan Barang</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="dashboard-anggota.html" title="Kembali ke Dashboard">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Dashboard Anggota Crembo Media</h2>
+          <p class="subhead">Lihat histori laporan kerusakan barang beserta status tindak lanjut dari admin.</p>
+        </div>
+        <div class="quick-filter" aria-label="Ringkasan riwayat form kerusakan">
+          <span class="quick-chip"><strong>Modul:</strong> Peminjaman Barang</span>
+          <span class="quick-chip"><strong>Tampilan:</strong> Riwayat Form</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="hero">
+          <div>
+            <h2>Riwayat Laporan Saya</h2>
+            <p>Lihat status tindak lanjut dari setiap form kerusakan barang yang sudah Anda kirim.</p>
+          </div>
+          <span id="countChip" class="chip">0 laporan</span>
+        </section>
+
+        <section class="toolbar" aria-label="Filter riwayat form kerusakan barang">
+          <div class="field">
+            <label for="searchInput">Cari laporan</label>
+            <input id="searchInput" type="search" placeholder="Cari ID, barang, atau kronologi...">
+          </div>
+
+          <div class="field">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter">
+              <option value="all">Semua Status</option>
+              <option value="Menunggu">Menunggu</option>
+              <option value="Diproses">Diproses</option>
+              <option value="Selesai">Selesai</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="severityFilter">Tingkat Kerusakan</label>
+            <select id="severityFilter">
+              <option value="all">Semua Tingkat</option>
+              <option value="Ringan">Ringan</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Berat">Berat</option>
+              <option value="Hilang">Hilang</option>
+            </select>
+          </div>
+
+          <a class="btn" href="form-kerusakan-barang-anggota.html">Buat Form Baru</a>
+        </section>
+
+        <section class="panel">
+          <header class="panel-head">
+            <h3>Daftar Riwayat Form</h3>
+          </header>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tanggal Lapor</th>
+                  <th>Barang</th>
+                  <th>Tingkat</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+          <div id="emptyState" class="empty" hidden>Belum ada form kerusakan barang yang Anda kirim.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <section id="detailModal" class="modal" hidden aria-label="Detail riwayat laporan" aria-modal="true" role="dialog">
+    <article class="dialog">
+      <header class="dialog-head">
+        <h3>Detail Laporan Kerusakan</h3>
+        <button id="closeDetailBtn" class="btn" type="button">Tutup</button>
+      </header>
+      <div id="detailBody" class="dialog-body"></div>
+    </article>
+  </section>
+
+  <script>
+    const SESSION_KEY = "crembo-login-session";
+    const SUBMISSION_KEY = "crembo-kerusakan-form-submissions";
+
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const memberName = document.getElementById("memberName");
+    const memberAvatar = document.getElementById("memberAvatar");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const countChip = document.getElementById("countChip");
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const severityFilter = document.getElementById("severityFilter");
+    const rows = document.getElementById("rows");
+    const emptyState = document.getElementById("emptyState");
+
+    const detailModal = document.getElementById("detailModal");
+    const closeDetailBtn = document.getElementById("closeDetailBtn");
+    const detailBody = document.getElementById("detailBody");
+
+    let sessionUser = null;
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed == null ? fallback : parsed;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value || "");
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
+    }
+
+    function statusClass(status) {
+      if (status === "Selesai") return "done";
+      if (status === "Diproses") return "process";
+      return "waiting";
+    }
+
+    function readSession() {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) {
+        return null;
+      }
+      return safeParse(raw, null);
+    }
+
+    function guardMember() {
+      const session = readSession();
+      if (!session) {
+        window.alert("Silakan login terlebih dahulu.");
+        window.location.href = "login.html";
+        return false;
+      }
+
+      const role = String(session.role || "").toLowerCase();
+      if (role && role !== "anggota") {
+        window.alert("Halaman ini khusus anggota.");
+        window.location.href = "dashboard.html";
+        return false;
+      }
+
+      sessionUser = session;
+      return true;
+    }
+
+    function readSubmissions() {
+      const parsed = safeParse(localStorage.getItem(SUBMISSION_KEY), []);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+
+    function memberIdentity(item) {
+      const memberId = String(item && item.memberId ? item.memberId : "").trim();
+      const identifier = String(item && item.memberIdentifier ? item.memberIdentifier : "").trim().toLowerCase();
+      const name = String(item && item.memberName ? item.memberName : "").trim().toLowerCase();
+      return { memberId: memberId, identifier: identifier, name: name };
+    }
+
+    function currentIdentity() {
+      return {
+        memberId: String(sessionUser.memberId || "").trim(),
+        identifier: String(sessionUser.identifier || "").trim().toLowerCase(),
+        name: String(sessionUser.fullName || "").trim().toLowerCase()
+      };
+    }
+
+    function getDummySubmissionsForCurrentMember() {
+      const memberNameValue = String(sessionUser.fullName || sessionUser.identifier || "Anggota").trim();
+      const memberIdValue = String(sessionUser.memberId || sessionUser.identifier || "anggota-demo").trim();
+      const memberIdentifierValue = String(sessionUser.identifier || "").trim();
+      const now = Date.now();
+
+      return [
+        {
+          id: "krk-demo-" + now,
+          submittedAt: new Date(now - (2 * 24 * 60 * 60 * 1000)).toISOString(),
+          memberId: memberIdValue,
+          memberName: memberNameValue,
+          memberIdentifier: memberIdentifierValue,
+          itemId: "manual-demo-1",
+          itemCode: "-",
+          itemName: "Tripod Kamera Utama",
+          severity: "Sedang",
+          incidentDate: "2026-04-13",
+          location: "Ruang Kontrol Streaming",
+          chronology: "Handle pengunci tripod longgar saat dipakai setup sebelum acara.",
+          photo: "",
+          adminStatus: "Menunggu"
+        },
+        {
+          id: "krk-demo-" + (now + 1),
+          submittedAt: new Date(now - (5 * 24 * 60 * 60 * 1000)).toISOString(),
+          memberId: memberIdValue,
+          memberName: memberNameValue,
+          memberIdentifier: memberIdentifierValue,
+          itemId: "manual-demo-2",
+          itemCode: "-",
+          itemName: "Kabel HDMI Cadangan",
+          severity: "Hilang",
+          incidentDate: "2026-04-10",
+          location: "Rak Kabel",
+          chronology: "Satu unit kabel HDMI cadangan tidak ditemukan setelah selesai bongkar perangkat.",
+          photo: "",
+          adminStatus: "Diproses"
+        }
+      ];
+    }
+
+    function mySubmissions() {
+      const me = currentIdentity();
+      const mine = readSubmissions().filter(function (item) {
+        const owner = memberIdentity(item);
+        if (me.memberId && owner.memberId && me.memberId === owner.memberId) {
+          return true;
+        }
+        if (me.identifier && owner.identifier && me.identifier === owner.identifier) {
+          return true;
+        }
+        if (me.name && owner.name && me.name === owner.name) {
+          return true;
+        }
+        return false;
+      });
+
+      const source = mine.length ? mine : getDummySubmissionsForCurrentMember();
+      return source.sort(function (a, b) {
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      });
+    }
+
+    function filteredSubmissions() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+      const severity = severityFilter.value;
+
+      return mySubmissions().filter(function (item) {
+        const text = [item.id, item.itemCode, item.itemName, item.chronology, item.location].join(" ").toLowerCase();
+        const matchKeyword = !keyword || text.indexOf(keyword) !== -1;
+        const matchStatus = status === "all" || String(item.adminStatus || "Menunggu") === status;
+        const matchSeverity = severity === "all" || String(item.severity || "") === severity;
+        return matchKeyword && matchStatus && matchSeverity;
+      });
+    }
+
+    function renderTable() {
+      const list = filteredSubmissions();
+      countChip.textContent = list.length + " laporan";
+
+      if (!list.length) {
+        rows.innerHTML = "";
+        emptyState.hidden = false;
+        return;
+      }
+
+      emptyState.hidden = true;
+      rows.innerHTML = list.map(function (item) {
+        const status = String(item.adminStatus || "Menunggu");
+        return '<tr>' +
+          '<td data-label="ID">' + escapeHtml(item.id || "-") + '</td>' +
+          '<td data-label="Tanggal Lapor">' + escapeHtml(formatDateTime(item.submittedAt)) + '</td>' +
+          '<td data-label="Barang">' + escapeHtml((item.itemCode || "-") + " - " + (item.itemName || "-")) + '</td>' +
+          '<td data-label="Tingkat">' + escapeHtml(item.severity || "-") + '</td>' +
+          '<td data-label="Status"><span class="status-pill ' + statusClass(status) + '">' + escapeHtml(status) + '</span></td>' +
+          '<td data-label="Aksi"><button class="btn" type="button" data-detail-id="' + escapeHtml(item.id || "") + '">Detail</button></td>' +
+        '</tr>';
+      }).join("");
+    }
+
+    function openDetail(reportId) {
+      const item = mySubmissions().find(function (entry) {
+        return String(entry.id || "") === String(reportId || "");
+      });
+      if (!item) {
+        return;
+      }
+
+      const photoHtml = item.photo
+        ? '<div class="detail-item"><strong>Foto Bukti</strong><img class="detail-photo" src="' + escapeHtml(item.photo) + '" alt="Foto bukti"></div>'
+        : '<div class="detail-item"><strong>Foto Bukti</strong>-</div>';
+
+      detailBody.innerHTML =
+        '<div class="detail-item"><strong>ID Laporan</strong>' + escapeHtml(item.id || "-") + '</div>' +
+        '<div class="detail-item"><strong>Tanggal Lapor</strong>' + escapeHtml(formatDateTime(item.submittedAt)) + '</div>' +
+        '<div class="detail-item"><strong>Barang</strong>' + escapeHtml((item.itemCode || "-") + " - " + (item.itemName || "-")) + '</div>' +
+        '<div class="detail-item"><strong>Tingkat Kerusakan</strong>' + escapeHtml(item.severity || "-") + '</div>' +
+        '<div class="detail-item"><strong>Status Admin</strong>' + escapeHtml(item.adminStatus || "Menunggu") + '</div>' +
+        '<div class="detail-item"><strong>Tanggal Kejadian</strong>' + escapeHtml(item.incidentDate || "-") + '</div>' +
+        '<div class="detail-item"><strong>Lokasi</strong>' + escapeHtml(item.location || "-") + '</div>' +
+        '<div class="detail-item"><strong>Kronologi</strong>' + escapeHtml(item.chronology || "-") + '</div>' +
+        photoHtml;
+
+      detailModal.hidden = false;
+    }
+
+    function closeDetail() {
+      detailModal.hidden = true;
+      detailBody.innerHTML = "";
+    }
+
+    function fillMemberIdentity() {
+      const fullName = String(sessionUser.fullName || sessionUser.identifier || "Anggota").trim();
+      memberName.textContent = fullName;
+      const initials = fullName.split(" ").map(function (word) {
+        return word.charAt(0).toUpperCase();
+      }).slice(0, 2).join("") || "AG";
+      memberAvatar.textContent = initials;
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    Array.from(document.querySelectorAll(".menu-group .menu-toggle")).forEach(function (toggleBtn) {
+      toggleBtn.addEventListener("click", function () {
+        const group = toggleBtn.closest(".menu-group");
+        group.classList.toggle("open");
+        toggleBtn.querySelector("span").textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    mobileMenuBtn.addEventListener("click", function () {
+      setSidebarOpen(!sidebar.classList.contains("show"));
+    });
+
+    sidebarBackdrop.addEventListener("click", function () {
+      setSidebarOpen(false);
+    });
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 1080px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+
+    searchInput.addEventListener("input", renderTable);
+    statusFilter.addEventListener("change", renderTable);
+    severityFilter.addEventListener("change", renderTable);
+
+    function handleDetailActivation(event) {
+      const button = event.target.closest ? event.target.closest("button[data-detail-id]") : null;
+      if (!button || !rows.contains(button)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      openDetail(String(button.getAttribute("data-detail-id") || ""));
+    }
+
+    rows.addEventListener("click", handleDetailActivation);
+    rows.addEventListener("pointerup", handleDetailActivation);
+    rows.addEventListener("touchend", handleDetailActivation, { passive: false });
+
+    closeDetailBtn.addEventListener("click", closeDetail);
+    detailModal.addEventListener("click", function (event) {
+      if (event.target === detailModal) {
+        closeDetail();
+      }
+    });
+
+    if (guardMember()) {
+      fillMemberIdentity();
+      renderTable();
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    }
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

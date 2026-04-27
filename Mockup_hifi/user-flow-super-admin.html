@@ -1,0 +1,396 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Flow Super Admin - Crembo Media</title>
+  <style>
+    :root {
+      --bg-a: #f4f7ff;
+      --bg-b: #eefcf7;
+      --ink: #0f172a;
+      --muted: #475569;
+      --card: #ffffff;
+      --line: #cbd5e1;
+      --accent: #1d4ed8;
+      --accent-2: #0f766e;
+      --shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at 8% 12%, #dbeafe 0%, transparent 35%),
+        radial-gradient(circle at 90% 20%, #d1fae5 0%, transparent 32%),
+        linear-gradient(160deg, var(--bg-a) 0%, var(--bg-b) 100%);
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero {
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.7vw, 2rem);
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid #93c5fd;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #fff;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+
+    .flow-switch {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .flow-switch a {
+      text-decoration: none;
+      border: 1px solid #93c5fd;
+      background: #ffffff;
+      color: #1e3a8a;
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .flow-switch a.active {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+      color: #ffffff;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .lane-head {
+      padding: 10px 12px;
+      border-bottom: 1px solid #dbeafe;
+      background: linear-gradient(180deg, #f8fbff 0%, #f1f7ff 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lane-head h2 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .lane-head small {
+      color: #475569;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .flow {
+      padding: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    .node {
+      flex: 1 1 220px;
+      min-width: 200px;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .node strong {
+      font-size: 0.86rem;
+      color: #0b3b8a;
+    }
+
+    .node p {
+      margin: 0;
+      font-size: 0.77rem;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    .node a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .arrow {
+      align-self: center;
+      font-size: 1.05rem;
+      color: #1e40af;
+      font-weight: 900;
+      padding: 0 2px;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+    }
+
+    .checklist {
+      border: 1px solid #99f6e4;
+      background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 0.8rem;
+      color: #134e4a;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .arrow { display: none; }
+      .node { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>User Flow Pengujian - Super Admin</h1>
+      <p>Flow ini dipakai untuk test keseluruhan fungsi wireframe dari perspektif Super Admin. Semua node bisa dibuka manual dari File Explorer. Setiap lane adalah task scenario, jadi penguji tinggal mengikuti input dummy dan aksi klik/update/hapus/download yang tertulis di node.</p>
+      <div class="legend">
+        <span class="pill">Role: Super Admin</span>
+        <span class="pill">Cakupan: Semua Modul</span>
+        <span class="pill">Tujuan: Skenario Pengujian End-to-End</span>
+      </div>
+      <div class="flow-switch" aria-label="Navigasi antar user flow">
+        <a class="active" href="user-flow-super-admin.html">Flow Super Admin</a>
+        <a href="user-flow-admin.html">Flow Admin</a>
+        <a href="user-flow-anggota.html">Flow Anggota</a>
+      </div>
+    </header>
+
+    <section class="lane uf-identity-lane">
+      <div class="lane-head">
+        <h2>Identitas Penguji</h2>
+        <small>Wajib diisi sebelum menilai flow</small>
+      </div>
+      <div class="flow" style="display:block; padding-bottom:12px;">
+        <div class="uf-grid">
+          <input id="testerFullName" type="text" placeholder="Nama lengkap penguji" required>
+          <input id="testerOrg" type="text" placeholder="Instansi / Kelas / Unit">
+          <select id="testerDevice" required>
+            <option value="" selected disabled>Pilih device yang digunakan</option>
+            <option value="PC/Laptop">PC/Laptop</option>
+            <option value="Handphone">Handphone</option>
+          </select>
+          <select id="testerBrowser" required>
+            <option value="" selected disabled>Pilih browser yang digunakan</option>
+            <option value="Google Chrome">Google Chrome</option>
+            <option value="Microsoft Edge">Microsoft Edge</option>
+            <option value="Mozilla Firefox">Mozilla Firefox</option>
+            <option value="Safari">Safari</option>
+            <option value="Opera">Opera</option>
+            <option value="Brave">Brave</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+          <input id="testerEmail" type="email" placeholder="Email penguji (opsional)">
+          <input id="testerPhone" type="text" placeholder="No HP penguji (opsional)">
+        </div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>1) Autentikasi & Masuk Dashboard</h2>
+        <small>Start flow</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Home / Entry</strong><p>Silakan buka home.html terlebih dahulu, lalu klik Login di kanan atas untuk memulai pengujian Super Admin.</p><a target="_blank" rel="noopener noreferrer" href="home.html">Buka home.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Login</strong><p>Setelah berada di halaman login, masukkan username dan password, lalu pilih akun Super Admin untuk masuk ke dashboard.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>OTP + Reset Password</strong><p>Jika menguji recovery akun, mulai dari forgot-password.html untuk input email, lanjut ke otp-verification.html untuk verifikasi kode, lalu ke reset-password.html untuk set password baru dan validasi bisa login lagi.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Dashboard Super Admin</strong><p>Setelah berhasil login, periksa dashboard Super Admin dan pastikan semua ringkasan utama tampil dengan benar.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>2) Manajemen User & Keanggotaan</h2>
+        <small>Kontrol akun dan akses</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Profil Admin</strong><p>Dari dashboard, buka profil admin untuk mengecek dan memperbarui data profil role admin atau super admin.</p><a target="_blank" rel="noopener noreferrer" href="profil-admin.html">profil-admin.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Manajemen Anggota</strong><p>Setelah profil dicek, buka manajemen anggota untuk melihat, menambah, mengubah, dan memvalidasi status keaktifan anggota.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Kelola Data Admin</strong><p>Masih dari bagian manajemen user, lanjutkan ke kelola data admin untuk menambah, mengedit, dan mengatur hak akses admin.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Setting Sertifikat</strong><p>Setelah data user dikelola, buka setting sertifikat untuk mengatur template sertifikat anggota.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>3) Operasional Streaming</h2>
+        <small>Jadwal, tugas, evaluasi</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Jadwal Streaming Admin</strong><p>Mulai dari dashboard, buka jadwal streaming untuk mengelola alur tugas misa atau streaming.</p><a target="_blank" rel="noopener noreferrer" href="jadwal-tugas-streaming-admin.html">jadwal-tugas-streaming-admin.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Registrasi Misa Besar</strong><p>Setelah jadwal dibuat, lanjut ke registrasi misa besar untuk menetapkan kebutuhan dan struktur tim.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Penugasan Petugas</strong><p>Setelah registrasi tersedia, lanjutkan ke penugasan petugas untuk assign anggota ke role operasional.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Monitoring & Hasil Evaluasi</strong><p>Setelah penugasan, buka monitoring-tugas-anggota.html untuk cek status tugas per anggota, lanjut ke hasil-evaluasi-streaming.html untuk melihat nilai/evaluasi, lalu verifikasi pertanyaan aktif di setting-pertanyaan-evaluasi-streaming.html.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>4) Inventaris & Peminjaman</h2>
+        <small>Barang dan approval</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Data Inventaris</strong><p>Masih dari dashboard, buka data inventaris untuk memeriksa master barang dan kondisinya.</p><a target="_blank" rel="noopener noreferrer" href="data-inventaris-barang.html">data-inventaris-barang.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Persetujuan Peminjaman</strong><p>Setelah data barang dicek, lanjutkan ke persetujuan peminjaman untuk approve atau reject pengajuan barang.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Riwayat Pinjam-Kembali</strong><p>Setelah approval, buka riwayat pinjam-kembali untuk memastikan transaksi tercatat dengan benar.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>4A) Kerusakan Barang</h2>
+        <small>Form, hasil, dan riwayat</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Hasil Laporan Kerusakan</strong><p>Setelah inventaris, buka hasil-form-kerusakan-barang.html untuk meninjau seluruh laporan kerusakan yang dikirim dari sisi anggota.</p><a target="_blank" rel="noopener noreferrer" href="hasil-form-kerusakan-barang.html">hasil-form-kerusakan-barang.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Audit Penanganan Kerusakan</strong><p>Dari halaman hasil laporan, uji alur audit data kerusakan, konsistensi informasi, dan kesiapan data untuk monitoring lintas modul.</p></div>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="lane">
+        <div class="lane-head"><h2>5) Informasi & Publikasi</h2><small>Konten publik</small></div>
+        <div class="flow">
+          <div class="node"><strong>Kelola Profil Organisasi</strong><p>Buka manajemen-profil.html untuk update data utama organisasi, simpan perubahan, lalu lanjut ke kelola-tentang-crembo.html untuk sinkronkan narasi profil/tentang agar konsisten di halaman publik.</p><a target="_blank" rel="noopener noreferrer" href="manajemen-profil.html">manajemen-profil.html</a> | <a target="_blank" rel="noopener noreferrer" href="kelola-tentang-crembo.html">kelola-tentang-crembo.html</a></div>
+          <div class="node"><strong>Berita / Pengumuman</strong><p>Mulai dari kelola-berita.html untuk melihat daftar berita, atur kategori di kelola-kategori-berita.html, buat/edit konten di form-berita.html, lalu cek hasil publikasi di pengumuman.html dan validasi detail konten di pengumuman-detail.html.</p></div>
+          <div class="node"><strong>Agenda Publik</strong><p>Buka manajemen-agenda.html untuk daftar agenda, lanjut buat/edit di form-agenda.html, lalu uji tampilan publik di agenda.html dan pastikan detail kegiatan tampil lengkap di agenda-detail.html.</p></div>
+        </div>
+      </section>
+
+      <section class="lane">
+        <div class="lane-head"><h2>6) Konten Utama Website</h2><small>Landing management</small></div>
+        <div class="flow">
+          <div class="node"><strong>Carousel Home</strong><p>Setelah konten publik, buka carousel home untuk mengatur hero atau slider halaman utama.</p><a target="_blank" rel="noopener noreferrer" href="kelola-carousel-home.html">kelola-carousel-home.html</a></div>
+          <div class="node"><strong>Embed Media</strong><p>Setelah carousel, buka kelola-embed-youtube.html untuk cek video utama, lanjut kelola-embed-instagram.html untuk feed sosial, lalu kelola-embed-google-maps.html untuk lokasi; pastikan semuanya muncul benar di halaman home.</p></div>
+          <div class="node"><strong>Pencarian + Profil Publik</strong><p>Uji search.html dengan beberapa kata kunci untuk memastikan hasil relevan, lalu buka profil.html untuk memverifikasi data profil publik sudah mengikuti perubahan modul sebelumnya.</p></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>7) Form Pendaftaran Kegiatan</h2>
+        <small>Builder hingga pendaftar</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Builder Form</strong><p>Setelah modul konten selesai, buka builder form untuk merancang struktur pendaftaran kegiatan dari awal.</p><a target="_blank" rel="noopener noreferrer" href="builder-form-pendaftaran.html">builder-form-pendaftaran.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Manajemen Form</strong><p>Setelah form dibuat, lanjutkan ke manajemen form untuk publish atau menutup form yang aktif.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Form Publik</strong><p>Setelah form dipublish, buka form-pendaftaran.html untuk simulasi pengisian awal, lanjut ke form-pendaftaran-detail.html untuk cek field detail dan validasi submit end-to-end.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Pendaftar</strong><p>Setelah form diisi, review daftar pendaftar dari sisi admin untuk memastikan data tersimpan.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head">
+        <h2>8) Log Aktivitas & Penutupan Sesi</h2>
+        <small>Audit dan exit</small>
+      </div>
+      <div class="flow">
+        <div class="node"><strong>Log Aktivitas</strong><p>Setelah semua modul selesai, buka log aktivitas untuk menguji filter, sorting, export, dan preview PDF pada cakupan Super Admin.</p><a target="_blank" rel="noopener noreferrer" href="log-aktivitas.html?role=super_admin&user=super.admin">log-aktivitas.html?role=super_admin</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Kembali ke Home</strong><p>Validasi kembali ke beranda publik.</p><a target="_blank" rel="noopener noreferrer" href="home.html">home.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Logout</strong><p>Akhiri sesi pengujian role super admin.</p></div>
+      </div>
+    </section>
+
+    <section id="ufQuestionnaire" class="lane" data-flow-slug="super-admin">
+      <div class="lane-head">
+        <h2>9) Form Kuesioner Pengujian</h2>
+        <small>Kartu pertanyaan muncul di setiap kotak flow, submit ada di bawah</small>
+      </div>
+      <form id="ufForm" class="uf-form" autocomplete="off">
+        <div class="uf-submit-row">
+          <button id="ufSubmitBtn" class="uf-btn" type="submit">Submit Hasil Pengujian</button>
+        </div>
+        <div id="ufSubmitInfo" class="uf-submit-info">Silakan isi kuesioner berdasarkan hasil pengujian Anda.</div>
+      </form>
+    </section>
+
+    <aside class="checklist">
+      <strong>Checklist Uji Cepat Super Admin:</strong><br>
+      1. Semua node dapat dibuka dari File Explorer.<br>
+      2. Flow lintas modul tidak terputus (streaming, inventaris, konten, anggota).<br>
+      3. Hak akses tertinggi tervalidasi di halaman log aktivitas.<br>
+      4. Export laporan (CSV/PDF preview) bisa di-trigger saat test.
+    </aside>
+  </div>
+  <script src="user-flow-submit.js"></script>
+</body>
+</html>
+
+

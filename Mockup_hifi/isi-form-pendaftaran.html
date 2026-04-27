@@ -1,0 +1,1336 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Isi Form Pendaftaran - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --accent: #1f2937;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 10% 0%, #f5f8ff 0%, #edf1f8 45%, #e8edf6 100%);
+    }
+
+    .app-layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 292px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #202020 0%, #2d2d2d 52%, #141414 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      display: block;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar > * {
+      margin-bottom: 12px;
+    }
+
+    .sidebar > *:last-child {
+      margin-bottom: 0;
+    }
+
+    .brand {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .brand strong {
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .brand small {
+      font-size: 0.79rem;
+      color: #dbe7ff;
+    }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .account-text strong {
+      font-size: 0.85rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .account-text small {
+      color: #d8e4ff;
+      font-size: 0.76rem;
+    }
+
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-items {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-group.open .menu-items {
+      display: block;
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .menu-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.55);
+      font-weight: 700;
+    }
+
+    .side-bottom {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .side-action:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 0;
+    }
+
+    .dashboard-headline-bar {
+      background: linear-gradient(135deg, #141414, #2d2d2d);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .home-globe {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #9ca3af;
+      background: #fff;
+      text-decoration: none;
+      color: #374151;
+    }
+
+    .home-globe svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .mobile-menu {
+      display: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2.5vw, 2rem);
+    }
+
+    .hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .chip {
+      border: 1px solid #bbc5d7;
+      border-radius: 999px;
+      background: #f8fafc;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 13px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.ghost {
+      border: 1px solid #9ca3af;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.04rem;
+    }
+
+    .filters {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1.6fr 0.7fr 0.7fr;
+      gap: 8px;
+    }
+
+    .filters input,
+    .filters select,
+    .form-block input,
+    .form-block select,
+    .form-block textarea {
+      width: 100%;
+      border: 1px solid #b8b8b8;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .cards {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      max-height: 72vh;
+      overflow-y: auto;
+    }
+
+    .card {
+      border: 1px solid #dbe2ef;
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      background: #fafcff;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 0.96rem;
+      line-height: 1.35;
+    }
+
+    .meta {
+      font-size: 0.79rem;
+      color: #5b6473;
+      display: grid;
+      gap: 3px;
+    }
+
+    .badge {
+      display: inline-flex;
+      width: fit-content;
+      border-radius: 999px;
+      border: 1px solid #c8d1e2;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .badge.internal {
+      border-color: #8b99b6;
+      background: #e9eef8;
+      color: #24344f;
+    }
+
+    .badge.public {
+      border-color: #adc7a8;
+      background: #edf9ea;
+      color: #245a2a;
+    }
+
+    .badge.done {
+      border-color: #9bc3a2;
+      background: #ebf9ef;
+      color: #166534;
+    }
+
+    .badge.closed {
+      border-color: #f0d978;
+      background: #fff9df;
+      color: #8a6d00;
+    }
+
+    .empty {
+      border: 1px dashed #b8c2d8;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #5b6473;
+      font-size: 0.84rem;
+      text-align: center;
+      padding: 20px 12px;
+    }
+
+    .form-wrap {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      max-height: 72vh;
+      overflow-y: auto;
+    }
+
+    .hint {
+      border: 1px dashed #bec8d8;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #5b6473;
+      padding: 14px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .form-block {
+      border: 1px solid #dbe2ef;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafbfc;
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-block h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .form-block label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #374151;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .required {
+      color: #b91c1c;
+    }
+
+    .options {
+      display: grid;
+      gap: 6px;
+      font-size: 0.84rem;
+    }
+
+    .options label {
+      font-weight: 500;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .review-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .review-list li {
+      border: 1px solid #dbe2ef;
+      border-radius: 10px;
+      background: #fff;
+      padding: 9px;
+      font-size: 0.83rem;
+      color: #334155;
+    }
+
+    .review-list strong {
+      display: block;
+      color: #111827;
+      margin-bottom: 3px;
+      font-size: 0.8rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1040px) {
+      .content-layout { grid-template-columns: 1fr; }
+      .cards,
+      .form-wrap { max-height: none; }
+      .page { padding: 12px; }
+    }
+
+    @media (max-width: 1080px) {
+      .app-layout { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 292px;
+        height: 100vh;
+        display: none;
+        z-index: 20;
+        overflow-y: auto;
+      }
+      .sidebar.show { display: block; }
+      .mobile-menu { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+    }
+
+    @media (max-width: 720px) {
+      .filters { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; align-items: flex-start; }
+      .hero-actions { flex-direction: column; width: 100%; }
+      .hero-actions .btn, .hero-actions .chip { width: 100%; }
+      .content-layout { grid-template-columns: 1fr; }
+      .page { padding: 12px; }
+    }
+
+    @media (max-width: 1000px) {
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Menu anggota disusun dari list fungsionalitas sistem</small>
+      </div>
+
+      <div class="account">
+        <div class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Atanasius Surya Guna</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Form Pendaftaran Kegiatan <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link active" href="isi-form-pendaftaran.html">Daftar Kegiatan</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a id="authAction" class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar">
+        <button id="mobileMenuBtn" class="mobile-menu" type="button">Menu</button>
+        <h1>Daftar Kegiatan</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="dashboard-anggota.html" title="Kembali ke Dashboard">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <div class="page">
+        <header class="hero">
+          <div>
+            <h1>Form Pendaftaran Kegiatan</h1>
+            <p>Lihat daftar form, isi satu kali, lalu review jawaban yang sudah dikirim.</p>
+          </div>
+          <div class="hero-actions">
+            <span id="accessChip" class="chip">Mode Pengunjung</span>
+          </div>
+        </header>
+
+        <div class="content-layout">
+          <section class="panel">
+            <header class="panel-head">
+              <h2>Daftar Form Tersedia</h2>
+              <span id="formCount" class="chip">0 form</span>
+            </header>
+
+            <div class="filters">
+              <input id="searchInput" type="search" placeholder="Cari judul atau deskripsi form...">
+              <select id="targetFilter">
+                <option value="all">Semua Target</option>
+                <option value="public">Umum</option>
+                <option value="internal">Internal</option>
+              </select>
+              <select id="sortFilter">
+                <option value="a-z">A-Z</option>
+                <option value="z-a">Z-A</option>
+                <option value="newest">Terbaru</option>
+                <option value="oldest">Terlama</option>
+              </select>
+            </div>
+
+            <div id="cards" class="cards"></div>
+          </section>
+
+          <section class="panel">
+            <header class="panel-head">
+              <h2 id="rightTitle">Isi Form</h2>
+              <span id="rightBadge" class="badge">Pilih form</span>
+            </header>
+
+            <div id="formWrap" class="form-wrap">
+              <div class="hint">
+                Pilih form dari daftar sebelah kiri untuk mulai mengisi. Jika form sudah pernah kamu submit, halaman ini otomatis berubah menjadi mode review jawaban.
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
+    menuGroups.forEach(function (group) {
+      const btn = group.querySelector(".menu-toggle");
+      btn.addEventListener("click", function () {
+        group.classList.toggle("open");
+        const mark = btn.querySelector("span");
+        mark.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    mobileMenuBtn.addEventListener("click", function () {
+      sidebar.classList.toggle("show");
+    });
+
+    const liveDateTime = document.getElementById("liveDateTime");
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    const sessionRaw = localStorage.getItem("crembo-login-session");
+    const memberName = document.getElementById("memberName");
+    if (sessionRaw) {
+      try {
+        const sessionData = JSON.parse(sessionRaw);
+        if (sessionData.fullName) {
+          memberName.textContent = sessionData.fullName;
+        } else if (sessionData.identifier) {
+          memberName.textContent = sessionData.identifier;
+        }
+      } catch (error) {
+      }
+    }
+    const FORM_STORAGE_KEY = "crembo-registration-forms";
+    const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
+    const SESSION_STORAGE_KEY = "crembo-login-session";
+    const GUEST_KEY = "crembo-form-guest-id";
+
+    const accessChip = document.getElementById("accessChip");
+    const authAction = document.getElementById("authAction");
+    const searchInput = document.getElementById("searchInput");
+    const targetFilter = document.getElementById("targetFilter");
+    const sortFilter = document.getElementById("sortFilter");
+    const formCount = document.getElementById("formCount");
+    const cards = document.getElementById("cards");
+    const rightTitle = document.getElementById("rightTitle");
+    const rightBadge = document.getElementById("rightBadge");
+    const formWrap = document.getElementById("formWrap");
+
+    let forms = [];
+    let submissions = [];
+    let session = null;
+    let activeFormId = "";
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function normalizeField(item, index) {
+      return {
+        id: String(item && item.id ? item.id : makeId("field")),
+        label: String(item && item.label ? item.label : "Pertanyaan " + (index + 1)),
+        type: String(item && item.type ? item.type : "text"),
+        required: Boolean(item && item.required),
+        placeholder: String(item && item.placeholder ? item.placeholder : ""),
+        options: Array.isArray(item && item.options) ? item.options.map(String) : []
+      };
+    }
+
+    function normalizeForm(item, index) {
+      return {
+        id: String(item && item.id ? item.id : "form-" + (index + 1)),
+        title: String(item && item.title ? item.title : "Form Pendaftaran"),
+        description: String(item && item.description ? item.description : ""),
+        target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public",
+        visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible",
+        openDate: String(item && item.openDate ? item.openDate : ""),
+        closeDate: String(item && item.closeDate ? item.closeDate : ""),
+        quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0,
+        fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : []
+      };
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function readData() {
+      const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
+      const parsedForms = safeParse(rawForms, []);
+      
+      // Default dummy data dengan periode panjang (jika kosong)
+      const DEMO_FORMS = [
+        {
+          id: "form-registrasi-2024",
+          title: "Form Registrasi Anggota Baru 2024-2025",
+          description: "Form registrasi untuk calon anggota baru tahun 2024-2025. Periode pendaftaran panjang untuk memastikan semua calon bisa mendaftar.",
+          target: "public",
+          visibility: "visible",
+          openDate: "2024-03-01",
+          closeDate: "2025-12-31",
+          quota: 50,
+          fields: [
+            { id: "field-1", label: "Nama Lengkap", type: "text", required: true, placeholder: "Masukkan nama lengkap Anda" },
+            { id: "field-2", label: "Nomor Anggota", type: "text", required: true, placeholder: "Nomor anggota dari pengurus" },
+            { id: "field-3", label: "Email", type: "email", required: true, placeholder: "Email aktif Anda" },
+            { id: "field-4", label: "Nomor Telepon", type: "tel", required: true, placeholder: "+62 8xxx xxxx xxx" },
+            { id: "field-5", label: "Divisi", type: "select", required: true, options: ["Multimedia", "Musik", "Liturgi", "Pengurus"] }
+          ]
+        },
+        {
+          id: "form-survey-2024",
+          title: "Survei Kepuasan Anggota Q2 2024",
+          description: "Survei kepuasan anggota untuk meningkatkan pelayanan di tahun 2024. Jawaban Anda sangat berharga bagi kemajuan organisasi.",
+          target: "internal",
+          visibility: "visible",
+          openDate: "2024-04-15",
+          closeDate: "2025-06-30",
+          quota: 0,
+          fields: [
+            { id: "field-6", label: "Berapa kepuasan Anda terhadap organisasi?", type: "radio", required: true, options: ["Sangat Puas", "Puas", "Cukup", "Kurang Puas"] },
+            { id: "field-7", label: "Aspek apa yang perlu ditingkatkan?", type: "checkbox", required: false, options: ["Program kegiatan", "Komunikasi", "Transparansi keuangan", "Fasilitas", "Lainnya"] },
+            { id: "field-8", label: "Saran dan masukan", type: "textarea", required: false, placeholder: "Tuliskan saran Anda di sini..." }
+          ]
+        },
+        {
+          id: "form-talent-show",
+          title: "Pendaftaran Talent Show Tahunan 2025",
+          description: "Daftarkan diri Anda untuk mengikuti talent show tahunan. Periode panjang memastikan semua anggota berkesempatan.",
+          target: "public",
+          visibility: "visible",
+          openDate: "2025-01-01",
+          closeDate: "2025-11-30",
+          quota: 100,
+          fields: [
+            { id: "field-9", label: "Nama Peserta", type: "text", required: true, placeholder: "Nama lengkap" },
+            { id: "field-10", label: "Kategori Bakat", type: "select", required: true, options: ["Musik Vokal", "Musik Instrumen", "Tari", "Drama", "Komedi", "Lainnya"] },
+            { id: "field-11", label: "Judul Penampilan", type: "text", required: true, placeholder: "Judul lagu/pertunjukan" },
+            { id: "field-12", label: "Durasi (menit)", type: "number", required: true, placeholder: "Estimasi durasi" }
+          ]
+        }
+      ];
+      
+      forms = Array.isArray(parsedForms) && parsedForms.length > 0 ? parsedForms.map(normalizeForm) : DEMO_FORMS.map(normalizeForm);
+
+      const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+      const parsedSubmissions = safeParse(rawSubmissions, []);
+      submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+
+      const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
+      const parsedSession = safeParse(rawSession, null);
+      session = parsedSession && typeof parsedSession === "object" ? parsedSession : null;
+    }
+
+    function getOrCreateGuestId() {
+      let id = localStorage.getItem(GUEST_KEY);
+      if (id) {
+        return id;
+      }
+      id = "guest-" + Math.random().toString(36).slice(2, 12);
+      localStorage.setItem(GUEST_KEY, id);
+      return id;
+    }
+
+    function getViewerContext() {
+      if (session && session.identifier) {
+        const idType = session.identifierType ? String(session.identifierType) : "identifier";
+        const identifier = String(session.identifier || "").trim().toLowerCase();
+        const guestId = getOrCreateGuestId();
+        return {
+          isLoggedIn: true,
+          key: "login:" + idType + ":" + identifier,
+          aliasKeys: ["login:" + idType + ":" + identifier, "guest:" + guestId],
+          identifier: String(session.fullName || session.identifier || "Pengguna"),
+          role: String(session.role || "anggota")
+        };
+      }
+
+      const guestId = getOrCreateGuestId();
+      return {
+        isLoggedIn: false,
+        key: "guest:" + guestId,
+        aliasKeys: ["guest:" + guestId],
+        identifier: "Pengunjung",
+        role: "public"
+      };
+    }
+
+    function countSubmissionByForm(formId) {
+      return submissions.filter(function (item) {
+        return item && item.formId === formId;
+      }).length;
+    }
+
+    function getMySubmission(formId) {
+      const viewer = getViewerContext();
+      const keys = Array.isArray(viewer.aliasKeys) && viewer.aliasKeys.length ? viewer.aliasKeys : [viewer.key];
+      return submissions.find(function (item) {
+        return item && item.formId === formId && item.submitter && keys.indexOf(String(item.submitter.key || "")) !== -1;
+      }) || null;
+    }
+
+    function refreshDataAndRender() {
+      const previousActiveId = activeFormId;
+      readData();
+      updateAccessHeader();
+      initTargetFilterByAccess();
+      renderCards();
+
+      const visibleList = getFilteredForms();
+      if (previousActiveId && visibleList.some(function (item) { return item.id === previousActiveId; })) {
+        activeFormId = previousActiveId;
+      } else if (!visibleList.some(function (item) { return item.id === activeFormId; })) {
+        activeFormId = "";
+      }
+
+      renderRightPanel();
+    }
+
+    function getFormStatus(form) {
+      const now = new Date();
+      const openDate = form.openDate ? new Date(form.openDate + "T00:00:00") : null;
+      const closeDate = form.closeDate ? new Date(form.closeDate + "T23:59:59") : null;
+      const usedQuota = countSubmissionByForm(form.id);
+
+      if (form.visibility === "draft") {
+        return { open: false, reason: "draft", text: "Draft" };
+      }
+      if (openDate && now < openDate) {
+        return { open: false, reason: "not_open", text: "Belum dibuka" };
+      }
+      if (closeDate && now > closeDate) {
+        return { open: false, reason: "closed", text: "Sudah ditutup" };
+      }
+      if (form.quota > 0 && usedQuota >= form.quota) {
+        return { open: false, reason: "quota", text: "Kuota penuh" };
+      }
+      return { open: true, reason: "open", text: "Aktif" };
+    }
+
+    function applyAccessRules(list) {
+      const viewer = getViewerContext();
+
+      return list.filter(function (form) {
+        if (form.visibility === "draft") {
+          return false;
+        }
+        if (!viewer.isLoggedIn && form.target === "internal") {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function getFilteredForms() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedTarget = targetFilter.value;
+      const sortBy = sortFilter.value;
+      const viewer = getViewerContext();
+
+      const filtered = applyAccessRules(forms)
+        .filter(function (form) {
+          if (selectedTarget !== "all" && form.target !== selectedTarget) {
+            return false;
+          }
+          if (!keyword) {
+            return true;
+          }
+          const text = (form.title + " " + form.description).toLowerCase();
+          return text.indexOf(keyword) !== -1;
+        });
+
+      return filtered.sort(function (a, b) {
+        if (sortBy === "a-z") {
+          return a.title.localeCompare(b.title);
+        }
+        if (sortBy === "z-a") {
+          return b.title.localeCompare(a.title);
+        }
+        if (sortBy === "newest") {
+          const dateA = a.openDate ? new Date(a.openDate) : new Date(0);
+          const dateB = b.openDate ? new Date(b.openDate) : new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        }
+        if (sortBy === "oldest") {
+          const dateA = a.openDate ? new Date(a.openDate) : new Date(0);
+          const dateB = b.openDate ? new Date(b.openDate) : new Date(0);
+          return dateA.getTime() - dateB.getTime();
+        }
+        return 0;
+      });
+    }
+
+    function updateAccessHeader() {
+      const viewer = getViewerContext();
+      if (accessChip) {
+        accessChip.textContent = viewer.isLoggedIn
+          ? "Login: " + viewer.identifier
+          : "Mode Pengunjung (Hanya Form Umum)";
+      }
+      if (authAction) {
+        authAction.textContent = viewer.isLoggedIn ? "Keluar" : "Login";
+        authAction.href = "login.html";
+      }
+    }
+
+    function renderCards() {
+      const list = getFilteredForms();
+      formCount.textContent = String(list.length) + " form";
+
+      if (!list.length) {
+        cards.innerHTML = '<div class="empty">Belum ada form yang bisa ditampilkan untuk akses saat ini.</div>';
+        if (activeFormId) {
+          activeFormId = "";
+          renderRightPanel();
+        }
+        return;
+      }
+
+      cards.innerHTML = list.map(function (form) {
+        const state = getFormStatus(form);
+        const mySubmission = getMySubmission(form.id);
+        const targetClass = form.target === "internal" ? "internal" : "public";
+        const targetText = form.target === "internal" ? "Internal" : "Umum";
+        const quotaText = form.quota > 0
+          ? String(countSubmissionByForm(form.id)) + "/" + String(form.quota)
+          : String(countSubmissionByForm(form.id)) + "/Tak terbatas";
+
+        let actionHtml = '<button class="btn ghost" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Lihat Detail</button>';
+
+        if (mySubmission) {
+          actionHtml = '<button class="btn" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Review Jawaban</button>';
+        } else if (!state.open) {
+          actionHtml = '<button class="btn ghost" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">' + escapeHtml(state.text) + '</button>';
+        } else {
+          actionHtml = '<button class="btn" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Isi Form</button>';
+        }
+
+        return '<article class="card">'
+          + '<span class="badge ' + targetClass + '">' + targetText + '</span>'
+          + '<h3>' + escapeHtml(form.title) + '</h3>'
+          + '<div class="meta">'
+          + '<span>Status: ' + escapeHtml(state.text) + '</span>'
+          + '<span>Periode: ' + escapeHtml(form.openDate || '-') + ' s/d ' + escapeHtml(form.closeDate || '-') + '</span>'
+          + '<span>Kuota: ' + escapeHtml(quotaText) + '</span>'
+          + '</div>'
+          + '<div style="font-size:0.83rem;color:#4b5563;">' + escapeHtml(form.description || '-') + '</div>'
+          + '<div class="actions" style="padding-top:2px;">' + actionHtml + '</div>'
+          + '</article>';
+      }).join("");
+
+      if (activeFormId && !list.some(function (item) { return item.id === activeFormId; })) {
+        activeFormId = "";
+        renderRightPanel();
+      }
+    }
+
+    function renderFieldInput(field, existingValue) {
+      const type = String(field.type || "text").toLowerCase();
+      const value = existingValue == null ? "" : existingValue;
+      const requiredAttr = field.required ? "required" : "";
+      const label = escapeHtml(field.label);
+
+      if (type === "textarea") {
+        return '<div class="form-block">'
+          + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
+          + '<textarea name="' + escapeHtml(field.id) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>' + escapeHtml(value) + '</textarea>'
+          + '</div>';
+      }
+
+      if (type === "select") {
+        const options = field.options.length ? field.options : ["Pilihan 1", "Pilihan 2"];
+        const optionHtml = ['<option value="">Pilih...</option>'].concat(options.map(function (opt) {
+          const selected = String(value) === String(opt) ? ' selected' : '';
+          return '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt) + '</option>';
+        })).join("");
+
+        return '<div class="form-block">'
+          + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
+          + '<select name="' + escapeHtml(field.id) + '" ' + requiredAttr + '>' + optionHtml + '</select>'
+          + '</div>';
+      }
+
+      if (type === "radio" || type === "checkbox") {
+        const options = field.options.length ? field.options : ["Pilihan 1", "Pilihan 2"];
+        const values = Array.isArray(value) ? value.map(String) : [String(value || "")];
+
+        return '<div class="form-block">'
+          + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
+          + '<div class="options">'
+          + options.map(function (opt, idx) {
+              const checked = values.indexOf(String(opt)) !== -1 ? ' checked' : '';
+              const inputName = type === "checkbox" ? field.id + '[]' : field.id;
+              return '<label><input type="' + type + '" name="' + escapeHtml(inputName) + '" value="' + escapeHtml(opt) + '"' + checked + ' ' + requiredAttr + '>' + escapeHtml(opt) + '</label>';
+            }).join("")
+          + '</div>'
+          + '</div>';
+      }
+
+      const htmlType = ["text", "email", "number", "date", "time", "tel"].indexOf(type) !== -1 ? type : "text";
+      return '<div class="form-block">'
+        + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
+        + '<input type="' + htmlType + '" name="' + escapeHtml(field.id) + '" value="' + escapeHtml(value) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>'
+        + '</div>';
+    }
+
+    function getFieldAnswerFromSubmission(submission, field) {
+      if (!submission || !Array.isArray(submission.answers)) {
+        return "";
+      }
+      const found = submission.answers.find(function (ans) {
+        return ans && ans.fieldId === field.id;
+      });
+      if (!found) {
+        return "";
+      }
+      return found.value;
+    }
+
+    function renderReview(form, submission) {
+      rightTitle.textContent = "Review Jawaban";
+      rightBadge.className = "badge done";
+      rightBadge.textContent = "Sudah submit";
+
+      const submittedAt = submission && submission.submittedAt ? new Date(submission.submittedAt) : null;
+      const submittedText = submittedAt && !Number.isNaN(submittedAt.getTime())
+        ? submittedAt.toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+        : "-";
+
+      const answersHtml = form.fields.map(function (field) {
+        const value = getFieldAnswerFromSubmission(submission, field);
+        const valueText = Array.isArray(value) ? value.join(", ") : String(value || "-");
+        return '<li><strong>' + escapeHtml(field.label) + '</strong>' + escapeHtml(valueText) + '</li>';
+      }).join("");
+
+      formWrap.innerHTML = '<div class="form-block">'
+        + '<h3>' + escapeHtml(form.title) + '</h3>'
+        + '<div style="font-size:0.8rem;color:#64748b;">Tanggal submit: ' + escapeHtml(submittedText) + '</div>'
+        + '</div>'
+        + '<ul class="review-list">' + answersHtml + '</ul>';
+    }
+
+    function renderFillForm(form, state) {
+      rightTitle.textContent = "Isi Form";
+      rightBadge.className = "badge";
+      rightBadge.textContent = state.text;
+
+      if (!state.open) {
+        formWrap.innerHTML = '<div class="hint">Form ini belum bisa diisi. Status saat ini: <strong>' + escapeHtml(state.text) + '</strong>.</div>';
+        return;
+      }
+
+      const fieldsHtml = form.fields.length
+        ? form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("")
+        : '<div class="hint">Form belum memiliki pertanyaan dari admin.</div>';
+
+      formWrap.innerHTML = '<form id="dynamicForm" style="display:grid;gap:10px;">'
+        + '<div class="form-block">'
+        + '<h3>' + escapeHtml(form.title) + '</h3>'
+        + '<div style="font-size:0.84rem;color:#5b6473;">' + escapeHtml(form.description || "-") + '</div>'
+        + '</div>'
+        + fieldsHtml
+        + '<div class="actions">'
+        + '<button type="submit" class="btn">Submit Jawaban</button>'
+        + '</div>'
+        + '</form>';
+
+      const dynamicForm = document.getElementById("dynamicForm");
+      dynamicForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        submitForm(form);
+      });
+    }
+
+    function submitForm(form) {
+      const viewer = getViewerContext();
+      if (getMySubmission(form.id)) {
+        renderRightPanel();
+        return;
+      }
+
+      const formElement = document.getElementById("dynamicForm");
+      if (!formElement) {
+        return;
+      }
+
+      const answers = form.fields.map(function (field) {
+        const type = String(field.type || "text").toLowerCase();
+        let value = "";
+
+        if (type === "checkbox") {
+          const checked = Array.from(formElement.querySelectorAll('input[name="' + field.id + '[]"]:checked'));
+          value = checked.map(function (item) { return item.value; });
+          if (field.required && value.length === 0) {
+            throw new Error("Mohon isi: " + field.label);
+          }
+        } else if (type === "radio") {
+          const selected = formElement.querySelector('input[name="' + field.id + '"]:checked');
+          value = selected ? selected.value : "";
+          if (field.required && !value) {
+            throw new Error("Mohon isi: " + field.label);
+          }
+        } else {
+          const input = formElement.querySelector('[name="' + field.id + '"]');
+          value = input ? String(input.value || "").trim() : "";
+          if (field.required && !value) {
+            throw new Error("Mohon isi: " + field.label);
+          }
+        }
+
+        return {
+          fieldId: field.id,
+          label: field.label,
+          value: value
+        };
+      });
+
+      const entry = {
+        id: makeId("sub"),
+        formId: form.id,
+        submittedAt: new Date().toISOString(),
+        submitter: {
+          key: viewer.key,
+          identifier: viewer.identifier,
+          role: viewer.role
+        },
+        answers: answers
+      };
+
+      submissions.push(entry);
+      localStorage.setItem(SUBMISSION_STORAGE_KEY, JSON.stringify(submissions));
+
+      renderCards();
+      renderRightPanel();
+      alert("Jawaban berhasil disimpan. Submit ulang tidak diperbolehkan.");
+    }
+
+    function renderRightPanel() {
+      const list = getFilteredForms();
+      const form = list.find(function (item) { return item.id === activeFormId; });
+
+      if (!form) {
+        rightTitle.textContent = "Isi Form";
+        rightBadge.className = "badge";
+        rightBadge.textContent = "Pilih form";
+        formWrap.innerHTML = '<div class="hint">Pilih form dari daftar sebelah kiri untuk mulai mengisi atau review jawaban.</div>';
+        return;
+      }
+
+      const mySubmission = getMySubmission(form.id);
+      const state = getFormStatus(form);
+
+      if (mySubmission) {
+        renderReview(form, mySubmission);
+        return;
+      }
+
+      renderFillForm(form, state);
+    }
+
+    cards.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      const button = target.closest("button[data-action='open']");
+      if (!button) {
+        return;
+      }
+
+      const id = button.getAttribute("data-id");
+      if (!id) {
+        return;
+      }
+
+      activeFormId = id;
+      renderRightPanel();
+    });
+
+    searchInput.addEventListener("input", function () {
+      renderCards();
+      renderRightPanel();
+    });
+
+    targetFilter.addEventListener("change", function () {
+      renderCards();
+      renderRightPanel();
+    });
+
+    sortFilter.addEventListener("change", function () {
+      renderCards();
+      renderRightPanel();
+    });
+
+    function initTargetFilterByAccess() {
+      const viewer = getViewerContext();
+      if (!viewer.isLoggedIn) {
+        targetFilter.value = "public";
+        targetFilter.innerHTML = '<option value="public">Umum</option>';
+        return;
+      }
+
+      if (targetFilter.options.length <= 1) {
+        targetFilter.innerHTML = ''
+          + '<option value="all">Semua Target</option>'
+          + '<option value="public">Umum</option>'
+          + '<option value="internal">Internal</option>';
+        targetFilter.value = "all";
+      }
+    }
+
+    window.addEventListener("storage", function (event) {
+      if (!event || !event.key) {
+        return;
+      }
+      if (event.key === FORM_STORAGE_KEY || event.key === SUBMISSION_STORAGE_KEY || event.key === SESSION_STORAGE_KEY || event.key === GUEST_KEY) {
+        refreshDataAndRender();
+      }
+    });
+
+    window.addEventListener("focus", refreshDataAndRender);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        refreshDataAndRender();
+      }
+    });
+
+    refreshDataAndRender();
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

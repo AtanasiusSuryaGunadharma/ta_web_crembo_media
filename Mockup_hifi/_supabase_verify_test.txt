@@ -1,0 +1,2 @@
+﻿verify_status=success
+verify_response={"id":"54ddd6fe-f8d2-41aa-9b43-ce66e7f23db7","tester_full_name":"Tester Otomatis Copilot","tester_org":"UAJY","tester_email":"tester.otomatis@example.com","submitted_at":"2026-04-10T16:03:22.503906+00:00"}

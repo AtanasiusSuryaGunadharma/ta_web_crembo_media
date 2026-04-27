@@ -1,0 +1,2757 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Beranda - Crembo Media</title>
+	<meta name="description" content="Crembo Media - Crew Multimedia Baciro, platform informasi jadwal streaming, agenda, dan pengumuman komunitas Paroki Kristus Raja Baciro Yogyakarta.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #800000;
+			--primary-dark: #5c0000;
+			--primary-deeper: #3a0000;
+			--primary-light: #a52a2a;
+			--primary-soft: #c0392b;
+			--accent: #e74c3c;
+			--accent-gold: #d4a017;
+			--accent-gold-light: #f0c040;
+			--bg: #faf8f6;
+			--bg-warm: #f5f0eb;
+			--surface: #ffffff;
+			--surface-warm: #fefcfa;
+			--ink: #1a1a1a;
+			--ink-secondary: #4a4a4a;
+			--muted: #7a7a7a;
+			--line: rgba(128, 0, 0, 0.15);
+			--line-soft: rgba(128, 0, 0, 0.08);
+			--hover: rgba(128, 0, 0, 0.04);
+			--shadow-sm: 0 1px 3px rgba(128, 0, 0, 0.06), 0 1px 2px rgba(0,0,0,0.04);
+			--shadow-md: 0 4px 14px rgba(128, 0, 0, 0.08), 0 2px 6px rgba(0,0,0,0.04);
+			--shadow-lg: 0 10px 30px rgba(128, 0, 0, 0.12), 0 4px 12px rgba(0,0,0,0.06);
+			--shadow-xl: 0 20px 50px rgba(128, 0, 0, 0.15), 0 8px 20px rgba(0,0,0,0.08);
+			--radius-sm: 8px;
+			--radius-md: 12px;
+			--radius-lg: 16px;
+			--radius-xl: 24px;
+			--transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			background: var(--bg);
+			color: var(--ink);
+			line-height: 1.6;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		a {
+			color: inherit;
+			text-decoration: none;
+			transition: var(--transition);
+		}
+
+		.container {
+			width: min(1200px, 92vw);
+			margin: 0 auto;
+		}
+
+		/* ═══════════════════════════════════════════
+		   TOP HEADER
+		   ═══════════════════════════════════════════ */
+		.top-header {
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 40%, var(--primary-light) 100%);
+			position: sticky;
+			top: 0;
+			z-index: 1200;
+			box-shadow: 0 4px 20px rgba(128, 0, 0, 0.3);
+		}
+
+		.top-header .container {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 20px;
+			align-items: center;
+			padding: 16px 0;
+		}
+
+		.logo-box {
+			width: 72px;
+			height: 72px;
+			display: grid;
+			place-items: center;
+			padding: 4px;
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: var(--radius-md);
+			backdrop-filter: blur(10px);
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			transition: var(--transition);
+		}
+
+		.logo-box:hover {
+			background: rgba(255, 255, 255, 0.18);
+			transform: scale(1.05);
+		}
+
+		.logo-box img {
+			max-width: 100%;
+			max-height: 100%;
+			object-fit: contain;
+			filter: none;
+		}
+
+		.brand h1 {
+			margin: 0;
+			font-size: clamp(1.4rem, 3vw, 2rem);
+			font-weight: 800;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: #ffffff;
+			text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		}
+
+		.brand p {
+			margin: 4px 0 0;
+			color: rgba(255, 255, 255, 0.7);
+			font-size: 0.88rem;
+			font-weight: 400;
+			letter-spacing: 0.3px;
+		}
+
+		/* ═══════════════════════════════════════════
+		   NAVIGATION
+		   ═══════════════════════════════════════════ */
+		.nav-wrap {
+			background: var(--surface);
+			border-bottom: 1px solid var(--line);
+			position: sticky;
+			top: var(--header-h, 104px);
+			z-index: 1150;
+			box-shadow: var(--shadow-sm);
+		}
+
+		.nav-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			padding: 0;
+		}
+
+		.menu-toggle {
+			display: none;
+			border: 1px solid var(--line);
+			background: var(--surface);
+			padding: 10px 16px;
+			font-size: 0.9rem;
+			cursor: pointer;
+			border-radius: var(--radius-sm);
+			font-family: inherit;
+			font-weight: 500;
+			color: var(--primary);
+			transition: var(--transition);
+		}
+
+		.menu-toggle:hover {
+			background: var(--hover);
+		}
+
+		nav ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			align-items: center;
+			gap: 2px;
+			flex-wrap: wrap;
+		}
+
+		nav a {
+			display: inline-block;
+			padding: 14px 18px;
+			border-bottom: 3px solid transparent;
+			font-size: 0.92rem;
+			font-weight: 500;
+			color: var(--ink-secondary);
+			letter-spacing: 0.2px;
+			position: relative;
+		}
+
+		nav a:hover,
+		nav a:focus-visible {
+			color: var(--primary);
+			border-bottom-color: var(--primary);
+			background: var(--hover);
+			outline: none;
+		}
+
+		nav a::after {
+			content: "";
+			position: absolute;
+			bottom: -3px;
+			left: 50%;
+			width: 0;
+			height: 3px;
+			background: var(--primary);
+			transition: var(--transition);
+			transform: translateX(-50%);
+		}
+
+		nav a:hover::after {
+			width: 100%;
+		}
+
+		.nav-dropdown-enhanced {
+			position: relative;
+		}
+
+		.nav-dropdown-enhanced.open > a {
+			color: var(--primary);
+			font-weight: 700;
+			border-bottom-color: var(--primary);
+		}
+
+		.right-tools {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			flex: 0 0 auto;
+		}
+
+		.search {
+			display: flex;
+			align-items: center;
+			border: 1.5px solid var(--line);
+			background: var(--bg);
+			border-radius: 999px;
+			overflow: hidden;
+			transition: var(--transition);
+		}
+
+		.search:focus-within {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+		}
+
+		.search input {
+			border: 0;
+			outline: none;
+			padding: 10px 16px;
+			width: clamp(140px, 18vw, 220px);
+			font-size: 0.88rem;
+			background: transparent;
+			font-family: inherit;
+			color: var(--ink);
+		}
+
+		.search input::placeholder {
+			color: var(--muted);
+		}
+
+		.search button {
+			border: none;
+			background: var(--primary);
+			color: #fff;
+			padding: 10px 18px;
+			cursor: pointer;
+			font-size: 0.85rem;
+			font-family: inherit;
+			font-weight: 600;
+			transition: var(--transition);
+			letter-spacing: 0.3px;
+		}
+
+		.search button:hover {
+			background: var(--primary-dark);
+		}
+
+		.btn-login {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			border: 2px solid var(--primary);
+			background: transparent;
+			color: var(--primary);
+			padding: 9px 22px;
+			cursor: pointer;
+			font-size: 0.88rem;
+			font-family: inherit;
+			font-weight: 600;
+			border-radius: 999px;
+			transition: var(--transition);
+			letter-spacing: 0.3px;
+		}
+
+		.btn-login:hover {
+			background: var(--primary);
+			color: #fff;
+			transform: translateY(-1px);
+			box-shadow: var(--shadow-md);
+		}
+
+		.btn-ghost {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			border: 1.5px solid var(--primary);
+			background: transparent;
+			color: var(--primary);
+			padding: 9px 20px;
+			cursor: pointer;
+			font-size: 0.85rem;
+			font-family: inherit;
+			font-weight: 600;
+			border-radius: var(--radius-sm);
+			transition: var(--transition);
+			letter-spacing: 0.2px;
+		}
+
+		.btn-ghost:hover {
+			background: var(--primary);
+			color: #fff;
+			transform: translateY(-1px);
+			box-shadow: var(--shadow-sm);
+		}
+
+		/* ═══════════════════════════════════════════
+		   HERO CAROUSEL
+		   ═══════════════════════════════════════════ */
+		.hero {
+			margin-top: 0;
+			background: linear-gradient(160deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%);
+			padding: 0;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.hero::before {
+			content: "";
+			position: absolute;
+			top: -50%;
+			right: -20%;
+			width: 600px;
+			height: 600px;
+			background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+			border-radius: 50%;
+			pointer-events: none;
+		}
+
+		.hero::after {
+			content: "";
+			position: absolute;
+			bottom: -30%;
+			left: -15%;
+			width: 500px;
+			height: 500px;
+			background: radial-gradient(circle, rgba(212, 160, 23, 0.08) 0%, transparent 70%);
+			border-radius: 50%;
+			pointer-events: none;
+		}
+
+		.hero-head {
+			display: none;
+		}
+
+		.carousel-wrap {
+			position: relative;
+			padding: 0;
+			background: transparent;
+			border: none;
+		}
+
+		.carousel-track {
+			display: flex;
+			gap: 0;
+			overflow-x: auto;
+			scroll-snap-type: x mandatory;
+			scroll-behavior: smooth;
+			padding-bottom: 0;
+			scrollbar-width: none;
+		}
+
+		.carousel-track::-webkit-scrollbar {
+			display: none;
+		}
+
+		.slide {
+			min-width: 100%;
+			scroll-snap-align: start;
+			border: none;
+			min-height: 360px;
+			padding: 60px 80px;
+			display: grid;
+			align-content: center;
+			gap: 16px;
+			position: relative;
+			overflow: hidden;
+			isolation: isolate;
+			background: transparent;
+		}
+
+		.slide::before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: -2;
+			background-image: var(--slide-bg, none);
+			background-size: cover;
+			background-position: center;
+		}
+
+		.slide::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: -1;
+			background: linear-gradient(135deg, rgba(58, 0, 0, 0.88) 0%, rgba(128, 0, 0, 0.7) 50%, rgba(165, 42, 42, 0.6) 100%);
+		}
+
+		.slide h3 {
+			margin: 0;
+			font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+			font-weight: 800;
+			color: #ffffff;
+			text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+			letter-spacing: 0.5px;
+			line-height: 1.3;
+		}
+
+		.slide p {
+			margin: 0;
+			color: rgba(255, 255, 255, 0.85);
+			max-width: 60ch;
+			font-size: 1.05rem;
+			line-height: 1.7;
+			font-weight: 300;
+		}
+
+		.slide-slug {
+			display: inline-block;
+			width: fit-content;
+			padding: 4px 14px;
+			border: 1px solid rgba(212, 160, 23, 0.5);
+			background: rgba(212, 160, 23, 0.15);
+			border-radius: 999px;
+			font-size: 0.72rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--accent-gold-light);
+			backdrop-filter: blur(4px);
+		}
+
+		.slide-link {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: fit-content;
+			padding: 12px 28px;
+			border: none;
+			background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+			color: var(--primary-deeper);
+			font-size: 0.9rem;
+			font-weight: 700;
+			border-radius: var(--radius-sm);
+			transition: var(--transition);
+			letter-spacing: 0.3px;
+			box-shadow: 0 4px 15px rgba(212, 160, 23, 0.3);
+		}
+
+		.slide-link:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 20px rgba(212, 160, 23, 0.4);
+			background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 100%);
+		}
+
+		.carousel-btn {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 44px;
+			height: 44px;
+			border: 1px solid rgba(255, 255, 255, 0.25);
+			background: rgba(255, 255, 255, 0.1);
+			backdrop-filter: blur(10px);
+			font-size: 1.3rem;
+			cursor: pointer;
+			border-radius: 50%;
+			color: #fff;
+			transition: var(--transition);
+			z-index: 10;
+			display: grid;
+			place-items: center;
+		}
+
+		.carousel-btn:hover {
+			background: rgba(255, 255, 255, 0.25);
+			transform: translateY(-50%) scale(1.1);
+		}
+
+		.carousel-btn.prev {
+			left: 20px;
+		}
+
+		.carousel-btn.next {
+			right: 20px;
+		}
+
+		.carousel-dots {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			padding: 18px 0 24px;
+			background: linear-gradient(to top, rgba(58, 0, 0, 0.3), transparent);
+			position: relative;
+			z-index: 5;
+			margin-top: -60px;
+		}
+
+		.dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.35);
+			transition: var(--transition);
+			cursor: pointer;
+		}
+
+		.dot.active {
+			background: var(--accent-gold-light);
+			width: 28px;
+			box-shadow: 0 0 10px rgba(212, 160, 23, 0.4);
+		}
+
+		/* ═══════════════════════════════════════════
+		   SECTIONS COMMON
+		   ═══════════════════════════════════════════ */
+		.section {
+			margin-top: 32px;
+			background: var(--surface);
+			border: none;
+			padding: 28px 32px;
+			border-radius: var(--radius-lg);
+			box-shadow: var(--shadow-md);
+			transition: var(--transition);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.section::before {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 4px;
+			background: linear-gradient(90deg, var(--primary) 0%, var(--accent-gold) 50%, var(--primary-light) 100%);
+			border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+		}
+
+		.section:hover {
+			box-shadow: var(--shadow-lg);
+		}
+
+		.section-title {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 20px;
+			padding-bottom: 14px;
+			border-bottom: 1px solid var(--line-soft);
+		}
+
+		.section-title h3 {
+			margin: 0;
+			font-size: 1.35rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			color: var(--primary);
+			position: relative;
+		}
+
+		/* ═══════════════════════════════════════════
+		   PROFIL / ABOUT
+		   ═══════════════════════════════════════════ */
+		.about-grid,
+		.cards-3,
+		.cards-2 {
+			display: grid;
+			gap: 20px;
+		}
+
+		.about-grid {
+			grid-template-columns: 1.15fr 1fr;
+			align-items: start;
+		}
+
+		.about-text {
+			border: 1px solid var(--line);
+			padding: 20px;
+			min-height: 220px;
+			border-radius: var(--radius-md);
+			background: var(--bg);
+		}
+
+		.about-editable {
+			margin: 0 0 16px;
+			padding: 16px;
+			border: none;
+			min-height: 130px;
+			background: transparent;
+			color: var(--ink-secondary);
+			font-size: 0.95rem;
+			line-height: 1.7;
+		}
+
+		.about-media-carousel {
+			border: 1px solid var(--line);
+			min-height: 220px;
+			background: var(--bg);
+			overflow: hidden;
+			display: grid;
+			grid-template-rows: 1fr auto;
+			position: relative;
+			border-radius: var(--radius-md);
+		}
+
+		.about-media-btn {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 36px;
+			height: 36px;
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			background: rgba(128, 0, 0, 0.5);
+			backdrop-filter: blur(4px);
+			cursor: pointer;
+			font-size: 1.1rem;
+			display: grid;
+			place-items: center;
+			z-index: 10;
+			border-radius: 50%;
+			color: #fff;
+			transition: var(--transition);
+		}
+
+		.about-media-btn:hover {
+			background: rgba(128, 0, 0, 0.75);
+			transform: translateY(-50%) scale(1.1);
+		}
+
+		.about-media-btn.prev { left: 10px; }
+		.about-media-btn.next { right: 10px; }
+
+		.about-media-stage {
+			min-height: 260px;
+			background-size: cover;
+			background-position: center;
+			position: relative;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			padding: 20px;
+			color: var(--muted);
+			font-size: 0.9rem;
+		}
+
+		.about-media-stage::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, rgba(128, 0, 0, 0.02) 0%, rgba(58, 0, 0, 0.12) 100%);
+			pointer-events: none;
+		}
+
+		.about-media-stage.empty {
+			background: linear-gradient(135deg, var(--bg-warm) 0%, var(--bg) 100%);
+		}
+
+		.about-media-stage.empty::after {
+			display: none;
+		}
+
+		.about-media-dots {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 6px;
+			padding: 10px;
+			border-top: 1px solid var(--line);
+			background: var(--surface);
+		}
+
+		.about-dot {
+			width: 9px;
+			height: 9px;
+			border-radius: 999px;
+			border: 1px solid var(--primary-light);
+			background: rgba(128, 0, 0, 0.15);
+			padding: 0;
+			cursor: pointer;
+			transition: var(--transition);
+		}
+
+		.about-dot.active {
+			background: var(--primary);
+			border-color: var(--primary);
+			transform: scale(1.2);
+		}
+
+		.embed-note {
+			margin: 10px 0 0;
+			font-size: 0.82rem;
+			color: var(--muted);
+			font-style: italic;
+		}
+
+		.dynamic-note {
+			margin: 0;
+			font-size: 0.84rem;
+			color: var(--muted);
+			font-style: italic;
+		}
+
+		/* ═══════════════════════════════════════════
+		   EMBED YOUTUBE / MAPS
+		   ═══════════════════════════════════════════ */
+		.embed-box {
+			border: 1px solid var(--line);
+			min-height: 240px;
+			background: var(--bg);
+			overflow: hidden;
+			border-radius: var(--radius-md);
+		}
+
+		.embed-box iframe {
+			width: 100%;
+			height: 100%;
+			min-height: 240px;
+			border: 0;
+			background: var(--bg);
+		}
+
+		.embed-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 20px;
+		}
+
+		.embed-card {
+			border: 1px solid var(--line);
+			padding: 18px;
+			border-radius: var(--radius-md);
+			background: var(--surface-warm);
+			transition: var(--transition);
+		}
+
+		.embed-card:hover {
+			box-shadow: var(--shadow-md);
+			transform: translateY(-2px);
+		}
+
+		.embed-card h4 {
+			margin: 0 0 12px;
+			font-size: 1.05rem;
+			font-weight: 600;
+			color: var(--primary);
+		}
+
+		/* ═══════════════════════════════════════════
+		   INSTAGRAM GRID
+		   ═══════════════════════════════════════════ */
+		.ig-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+		}
+
+		.ig-card {
+			border: 1px solid var(--line);
+			padding: 12px;
+			background: var(--surface);
+			border-radius: var(--radius-md);
+			transition: var(--transition);
+		}
+
+		.ig-card:hover {
+			box-shadow: var(--shadow-md);
+			transform: translateY(-3px);
+		}
+
+		.ig-card .embed-box,
+		.ig-card .embed-box iframe {
+			min-height: 250px;
+		}
+
+		/* ═══════════════════════════════════════════
+		   CARDS
+		   ═══════════════════════════════════════════ */
+		.cards-3 {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+
+		.cards-2 {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.card {
+			border: 1px solid var(--line);
+			background: var(--surface);
+			border-radius: var(--radius-md);
+			overflow: hidden;
+			transition: var(--transition);
+			position: relative;
+		}
+
+		.card:hover {
+			transform: translateY(-4px);
+			box-shadow: var(--shadow-lg);
+		}
+
+		.card .thumb {
+			min-height: 160px;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.card .thumb::after {
+			content: "";
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 50%;
+			background: linear-gradient(to top, rgba(128, 0, 0, 0.1), transparent);
+			pointer-events: none;
+		}
+
+		.card .body {
+			padding: 16px 18px 20px;
+		}
+
+		.meta-date {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 0.78rem;
+			color: var(--primary);
+			border: 1px solid rgba(128, 0, 0, 0.2);
+			padding: 4px 12px;
+			margin-bottom: 10px;
+			background: rgba(128, 0, 0, 0.04);
+			border-radius: 999px;
+			font-weight: 600;
+			letter-spacing: 0.2px;
+		}
+
+		.meta-date::before {
+			content: "📅";
+			font-size: 0.7rem;
+		}
+
+		.card h4 {
+			margin: 0 0 10px;
+			font-size: 1.05rem;
+			font-weight: 700;
+			min-height: 40px;
+			color: var(--ink);
+			line-height: 1.4;
+		}
+
+		.card p {
+			margin: 0;
+			font-size: 0.9rem;
+			color: var(--ink-secondary);
+			line-height: 1.6;
+		}
+
+		.card-actions {
+			margin-top: 14px;
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn-primary {
+			border: none;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+			color: #fff;
+			padding: 9px 20px;
+			cursor: pointer;
+			font-size: 0.85rem;
+			font-family: inherit;
+			font-weight: 600;
+			border-radius: var(--radius-sm);
+			transition: var(--transition);
+			letter-spacing: 0.2px;
+			box-shadow: 0 2px 8px rgba(128, 0, 0, 0.2);
+		}
+
+		.btn-primary:hover {
+			background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+			transform: translateY(-1px);
+			box-shadow: 0 4px 12px rgba(128, 0, 0, 0.3);
+		}
+
+		.frame {
+			background: linear-gradient(135deg, var(--bg-warm) 0%, var(--bg) 50%, rgba(128, 0, 0, 0.03) 100%);
+			min-height: 160px;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			color: var(--muted);
+			font-size: 0.9rem;
+			padding: 16px;
+			font-weight: 500;
+			position: relative;
+		}
+
+		.frame::before {
+			content: "🖼️";
+			font-size: 2rem;
+			display: block;
+			margin-bottom: 4px;
+			opacity: 0.5;
+		}
+
+		/* ═══════════════════════════════════════════
+		   SCHEDULE TABLE
+		   ═══════════════════════════════════════════ */
+		.schedule-table {
+			width: 100%;
+			border-collapse: separate;
+			border-spacing: 0;
+			font-size: 0.92rem;
+			border-radius: var(--radius-md);
+			overflow: hidden;
+			border: 1px solid var(--line);
+		}
+
+		.schedule-scroll {
+			width: 100%;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			overscroll-behavior-x: contain;
+		}
+
+		.schedule-scroll::-webkit-scrollbar {
+			height: 10px;
+		}
+
+		.schedule-scroll::-webkit-scrollbar-thumb {
+			background: rgba(128, 0, 0, 0.28);
+			border-radius: 999px;
+		}
+
+		.schedule-scroll::-webkit-scrollbar-track {
+			background: rgba(128, 0, 0, 0.06);
+			border-radius: 999px;
+		}
+
+		.schedule-preview-top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 10px;
+			flex-wrap: wrap;
+			margin-bottom: 14px;
+		}
+
+		.mode-pills {
+			display: inline-flex;
+			gap: 0;
+			border: 1px solid var(--line);
+			padding: 3px;
+			background: var(--bg);
+			border-radius: var(--radius-sm);
+		}
+
+		.mode-pill {
+			display: inline-block;
+			padding: 7px 16px;
+			border: none;
+			font-size: 0.83rem;
+			font-weight: 600;
+			background: transparent;
+			color: var(--ink-secondary);
+			border-radius: 6px;
+			transition: var(--transition);
+			cursor: pointer;
+		}
+
+		.mode-pill.active {
+			background: var(--primary);
+			color: #fff;
+			box-shadow: 0 2px 8px rgba(128, 0, 0, 0.25);
+		}
+
+		.schedule-note {
+			margin: 0;
+			font-size: 0.84rem;
+			color: var(--muted);
+			font-style: italic;
+		}
+
+		.schedule-note-banner {
+			border: 1px solid var(--line);
+			background: rgba(128, 0, 0, 0.03);
+			padding: 12px 16px;
+			margin: 12px 0 16px;
+			font-size: 0.88rem;
+			color: var(--ink-secondary);
+			border-radius: var(--radius-sm);
+			border-left: 4px solid var(--accent-gold);
+		}
+
+		.schedule-legend {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			margin-bottom: 14px;
+		}
+
+		.chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 6px 12px;
+			font-size: 0.8rem;
+			font-weight: 500;
+			background: var(--bg);
+			border: 1px solid var(--line);
+			border-radius: 999px;
+		}
+
+		.swatch {
+			display: inline-block;
+			width: 12px;
+			height: 12px;
+			border-radius: 4px;
+			border: 1px solid rgba(0,0,0,0.1);
+		}
+
+		.swatch.normal {
+			background: #27ae60;
+		}
+
+		.swatch.blocked {
+			background: var(--accent);
+		}
+
+		.schedule-table .no-col {
+			width: 62px;
+		}
+
+		.schedule-table .date-col {
+			width: 200px;
+		}
+
+		.schedule-table .time-col {
+			width: 120px;
+		}
+
+		.blocked-row td {
+			background: rgba(231, 76, 60, 0.06) !important;
+		}
+
+		.blocked-inline {
+			border: 1px solid rgba(231, 76, 60, 0.3);
+			padding: 8px 12px;
+			font-size: 0.84rem;
+			background: rgba(231, 76, 60, 0.05);
+			font-weight: 600;
+			border-radius: 6px;
+			color: #c0392b;
+		}
+
+		.blocked-inline span {
+			font-weight: 400;
+			color: var(--ink-secondary);
+		}
+
+		.schedule-table th,
+		.schedule-table td {
+			border: 1px solid var(--line);
+			padding: 12px 14px;
+			text-align: left;
+		}
+
+		.schedule-table th {
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 100%);
+			font-weight: 600;
+			color: #ffffff;
+			font-size: 0.88rem;
+			letter-spacing: 0.3px;
+			text-transform: uppercase;
+		}
+
+		.schedule-table tbody tr {
+			transition: var(--transition);
+		}
+
+		/* Baris normal: indikator hijau di sel pertama */
+		.schedule-table tbody tr:not(.blocked-row):not(.hariraya-row) td:first-child {
+			border-left: 4px solid #27ae60;
+			background: rgba(39, 174, 96, 0.04);
+		}
+
+		.schedule-table tbody tr:nth-child(even):not(.blocked-row):not(.hariraya-row) td {
+			background: rgba(39, 174, 96, 0.03);
+		}
+
+		.schedule-table tbody tr:nth-child(even):not(.blocked-row):not(.hariraya-row) td:first-child {
+			background: rgba(39, 174, 96, 0.07);
+		}
+
+		.schedule-table tbody tr:hover:not(.blocked-row):not(.hariraya-row) td {
+			background: rgba(39, 174, 96, 0.08);
+		}
+
+		.schedule-table tbody tr:hover:not(.blocked-row):not(.hariraya-row) td:first-child {
+			background: rgba(39, 174, 96, 0.12);
+		}
+
+		/* ═══════════════════════════════════════════
+		   LEGEND CHIPS
+		   ═══════════════════════════════════════════ */
+		.legend-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 14px;
+			font-size: 0.82rem;
+			font-weight: 500;
+			background: var(--surface);
+			border: 1px solid var(--line);
+			border-radius: 999px;
+			color: var(--ink-secondary);
+			box-shadow: var(--shadow-sm);
+		}
+
+		.legend-dot {
+			display: inline-block;
+			width: 11px;
+			height: 11px;
+			border-radius: 50%;
+			border: 2px solid rgba(0,0,0,0.08);
+			flex-shrink: 0;
+		}
+
+		.legend-dot.dot-normal {
+			background: #27ae60;
+			border-color: #1e8449;
+		}
+
+		.legend-dot.dot-blocked {
+			background: #e74c3c;
+			border-color: #c0392b;
+		}
+
+		/* ═══════════════════════════════════════════
+		   HARI RAYA MODE
+		   ═══════════════════════════════════════════ */
+		.hari-raya-banner {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			background: linear-gradient(135deg, rgba(212,160,23,0.08) 0%, rgba(212,160,23,0.04) 100%);
+			border: 1px solid rgba(212,160,23,0.3);
+			border-left: 4px solid var(--accent-gold);
+			border-radius: var(--radius-sm);
+			padding: 12px 16px;
+			margin-bottom: 14px;
+		}
+
+		.hari-raya-banner p {
+			margin: 0;
+			font-size: 0.88rem;
+			color: var(--ink-secondary);
+		}
+
+		.hari-raya-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 5px 14px;
+			background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+			color: #3a2000;
+			font-size: 0.78rem;
+			font-weight: 700;
+			border-radius: 999px;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			white-space: nowrap;
+			box-shadow: 0 2px 8px rgba(212,160,23,0.3);
+		}
+
+		.hariraya-row td {
+			background: rgba(212,160,23,0.04);
+		}
+
+		.hariraya-row:nth-child(even) td {
+			background: rgba(212,160,23,0.08);
+		}
+
+		.hariraya-row:hover td {
+			background: rgba(212,160,23,0.12) !important;
+		}
+
+		.hariraya-label {
+			display: inline-block;
+			margin-top: 3px;
+			font-size: 0.8rem;
+			color: var(--accent-gold);
+			font-weight: 600;
+			letter-spacing: 0.02em;
+		}
+
+		.scroll-top-btn {
+			position: fixed;
+			right: 22px;
+			bottom: 22px;
+			width: 58px;
+			height: 58px;
+			border: 1px solid rgba(255, 255, 255, 0.22);
+			border-radius: 999px;
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%);
+			color: #fff;
+			box-shadow: 0 14px 30px rgba(128, 0, 0, 0.28), 0 0 0 0 rgba(128, 0, 0, 0.2);
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+			z-index: 1400;
+			opacity: 0;
+			transform: translateY(16px) scale(0.92);
+			pointer-events: none;
+			transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+			backdrop-filter: blur(8px);
+		}
+
+		.scroll-top-btn::before {
+			content: "";
+			position: absolute;
+			inset: -6px;
+			border-radius: inherit;
+			border: 1px solid rgba(212, 160, 23, 0.28);
+			opacity: 0.75;
+			animation: scrollTopPulse 2.4s ease-out infinite;
+		}
+
+		.scroll-top-btn::after {
+			content: "";
+			position: absolute;
+			inset: 6px;
+			border-radius: inherit;
+			background: radial-gradient(circle at 30% 28%, rgba(255,255,255,0.25) 0%, transparent 42%);
+			pointer-events: none;
+		}
+
+		.scroll-top-btn svg {
+			position: relative;
+			z-index: 1;
+			width: 24px;
+			height: 24px;
+			transition: transform 0.25s ease;
+		}
+
+		.scroll-top-btn:hover {
+			transform: translateY(-2px) scale(1);
+			box-shadow: 0 16px 34px rgba(128, 0, 0, 0.34), 0 0 0 6px rgba(128, 0, 0, 0.08);
+			filter: brightness(1.06);
+		}
+
+		.scroll-top-btn:hover svg {
+			transform: translateY(-2px);
+		}
+
+		.scroll-top-btn.show {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+			pointer-events: auto;
+		}
+
+		.scroll-top-btn:focus-visible {
+			outline: 3px solid rgba(212, 160, 23, 0.55);
+			outline-offset: 3px;
+		}
+
+		@keyframes scrollTopPulse {
+			0% {
+				transform: scale(1);
+				opacity: 0.7;
+			}
+			70% {
+				transform: scale(1.24);
+				opacity: 0;
+			}
+			100% {
+				transform: scale(1.24);
+				opacity: 0;
+			}
+		}
+
+		/* ═══════════════════════════════════════════
+		   AGENDA LIST
+		   ═══════════════════════════════════════════ */
+		.agenda-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: grid;
+			gap: 10px;
+		}
+
+		.agenda-item {
+			border: 1px solid var(--line);
+			padding: 12px 16px;
+			display: flex;
+			justify-content: space-between;
+			gap: 10px;
+			align-items: center;
+			border-radius: var(--radius-sm);
+			transition: var(--transition);
+			background: var(--surface);
+		}
+
+		.agenda-item:hover {
+			border-color: var(--primary);
+			box-shadow: var(--shadow-sm);
+		}
+
+		.agenda-item small {
+			color: var(--muted);
+			font-size: 0.85rem;
+		}
+
+		/* ═══════════════════════════════════════════
+		   FOOTER
+		   ═══════════════════════════════════════════ */
+		.footer {
+			margin-top: 40px;
+			background: linear-gradient(160deg, var(--primary-deeper) 0%, var(--primary) 60%, var(--primary-dark) 100%);
+			padding: 0;
+			color: #ffffff;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.footer::before {
+			content: "";
+			position: absolute;
+			top: -30%;
+			right: -10%;
+			width: 500px;
+			height: 500px;
+			background: radial-gradient(circle, rgba(212, 160, 23, 0.06) 0%, transparent 70%);
+			border-radius: 50%;
+			pointer-events: none;
+		}
+
+		.footer-main {
+			padding: 40px 0 30px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.footer-grid {
+			display: grid;
+			grid-template-columns: 1.3fr 1fr 1fr;
+			gap: 30px;
+		}
+
+		.footer-col {
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			background: rgba(255, 255, 255, 0.06);
+			backdrop-filter: blur(10px);
+			padding: 24px;
+			border-radius: var(--radius-md);
+			transition: var(--transition);
+		}
+
+		.footer-col:hover {
+			background: rgba(255, 255, 255, 0.1);
+			transform: translateY(-2px);
+		}
+
+		.footer-brand {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			margin-bottom: 14px;
+		}
+
+		.footer-logo {
+			width: 56px;
+			height: 56px;
+			object-fit: contain;
+			filter: none;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			padding: 6px;
+			background: rgba(255, 255, 255, 0.08);
+			border-radius: var(--radius-sm);
+		}
+
+		.footer-title {
+			margin: 0;
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: #ffffff;
+		}
+
+		.footer-sub {
+			margin: 3px 0 0;
+			font-size: 0.85rem;
+			color: rgba(255, 255, 255, 0.6);
+			line-height: 1.6;
+		}
+
+		.contact-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: grid;
+			gap: 10px;
+			font-size: 0.9rem;
+		}
+
+		.contact-list li {
+			color: rgba(255, 255, 255, 0.8);
+			display: flex;
+			gap: 8px;
+		}
+
+		.contact-list strong {
+			display: inline-block;
+			min-width: 70px;
+			color: var(--accent-gold-light);
+			font-weight: 600;
+		}
+
+		.social-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: grid;
+			gap: 10px;
+			font-size: 0.9rem;
+		}
+
+		.social-item {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			color: rgba(255, 255, 255, 0.8);
+			transition: var(--transition);
+			padding: 4px 0;
+		}
+
+		.social-item:hover {
+			color: #ffffff;
+		}
+
+		.social-dot {
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			display: grid;
+			place-items: center;
+			font-size: 0.7rem;
+			font-weight: 700;
+			border: 1px solid rgba(212, 160, 23, 0.4);
+			background: rgba(212, 160, 23, 0.15);
+			color: var(--accent-gold-light);
+			transition: var(--transition);
+		}
+
+		.social-item:hover .social-dot {
+			background: rgba(212, 160, 23, 0.3);
+			transform: scale(1.1);
+		}
+
+		.footer-bottom {
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+			padding: 16px 0 20px;
+			text-align: center;
+			font-size: 0.84rem;
+			color: rgba(255, 255, 255, 0.5);
+			position: relative;
+			z-index: 1;
+		}
+
+		/* ═══════════════════════════════════════════
+		   RESPONSIVE
+		   ═══════════════════════════════════════════ */
+		@media (max-width: 980px) {
+			.about-grid,
+			.cards-3,
+			.cards-2 {
+				grid-template-columns: 1fr;
+			}
+
+			.embed-grid,
+			.ig-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
+			.right-tools {
+				width: 100%;
+				justify-content: flex-end;
+			}
+
+			.nav-row {
+				flex-wrap: wrap;
+			}
+
+			.footer-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.slide {
+				padding: 40px;
+				min-height: 280px;
+			}
+
+			.schedule-scroll {
+				margin: 0 -12px;
+				padding: 0 12px 6px;
+			}
+
+			.schedule-table {
+				min-width: 760px;
+				width: max-content;
+			}
+		}
+
+		@media (max-width: 760px) {
+			.top-header .container {
+				grid-template-columns: auto 1fr;
+				align-items: center;
+				gap: 10px;
+				padding: 10px 0;
+				text-align: left;
+			}
+
+			.logo-box {
+				width: 52px;
+				height: 52px;
+				padding: 3px;
+				margin: 0;
+			}
+
+			.brand h1 {
+				font-size: clamp(1.02rem, 5vw, 1.35rem);
+				line-height: 1.2;
+				letter-spacing: 0.4px;
+			}
+
+			.brand p {
+				margin-top: 3px;
+				font-size: 0.76rem;
+				line-height: 1.35;
+			}
+
+			.menu-toggle {
+				display: inline-block;
+			}
+
+			nav {
+				width: 100%;
+				display: none;
+			}
+
+			nav.open {
+				display: block;
+				animation: fadeSlideDown 0.3s ease;
+			}
+
+			@keyframes fadeSlideDown {
+				from { opacity: 0; transform: translateY(-8px); }
+				to { opacity: 1; transform: translateY(0); }
+			}
+
+			nav ul {
+				flex-direction: column;
+				align-items: stretch;
+			}
+
+			nav li {
+				width: 100%;
+			}
+
+			nav a {
+				display: block;
+				border: 1px solid var(--line);
+				border-bottom-width: 3px;
+				border-radius: var(--radius-sm);
+				text-align: center;
+			}
+
+			.nav-dropdown-enhanced {
+				position: static;
+			}
+
+			.nav-dropdown-enhanced .profile-hover-menu {
+				position: static !important;
+				top: auto !important;
+				left: auto !important;
+				min-width: 0 !important;
+				width: 100%;
+				margin-top: 6px;
+				border: 1px solid var(--line) !important;
+				box-shadow: none !important;
+				padding: 6px !important;
+				border-radius: var(--radius-sm) !important;
+				background: var(--bg) !important;
+				display: none !important;
+			}
+
+			.nav-dropdown-enhanced.open .profile-hover-menu {
+				display: block !important;
+			}
+
+			.nav-dropdown-enhanced .profile-hover-menu a {
+				display: block;
+				text-align: center;
+				border: 1px solid var(--line) !important;
+				border-radius: var(--radius-sm) !important;
+				background: var(--surface) !important;
+				margin-bottom: 4px !important;
+				color: var(--ink-secondary) !important;
+			}
+
+			.nav-dropdown-enhanced .profile-hover-menu a:last-child {
+				margin-bottom: 0 !important;
+			}
+
+			.right-tools {
+				width: 100%;
+				justify-content: stretch;
+				flex-wrap: wrap;
+			}
+
+			.search {
+				flex: 1 1 220px;
+			}
+
+			.search input {
+				width: 100%;
+			}
+
+			.btn-login {
+				flex: 1 1 auto;
+				justify-content: center;
+			}
+
+			.section-title {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+
+			.section {
+				padding: 20px 18px;
+				margin-top: 20px;
+				border-radius: var(--radius-md);
+			}
+
+			.carousel-btn {
+				width: 36px;
+				height: 36px;
+				font-size: 1rem;
+			}
+
+			.carousel-btn.prev { left: 10px; }
+			.carousel-btn.next { right: 10px; }
+
+			.slide {
+				padding: 30px 24px;
+				min-height: 240px;
+			}
+
+			.embed-grid,
+			.ig-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.schedule-scroll {
+				margin: 0 -18px;
+				padding: 0 18px 6px;
+			}
+
+			.schedule-table {
+				min-width: 760px;
+				width: max-content;
+			}
+		}
+
+		@media (max-width: 520px) {
+			.top-header .container {
+				padding: 8px 0;
+			}
+
+			.logo-box {
+				width: 46px;
+				height: 46px;
+			}
+
+			.brand h1 {
+				font-size: 0.96rem;
+			}
+
+			.brand p {
+				font-size: 0.72rem;
+			}
+
+			.scroll-top-btn {
+				right: 14px;
+				bottom: 14px;
+				width: 50px;
+				height: 50px;
+			}
+
+			.scroll-top-btn svg {
+				width: 21px;
+				height: 21px;
+			}
+		}
+
+		/* ═══════════════════════════════════════════
+		   ANIMATIONS
+		   ═══════════════════════════════════════════ */
+		@keyframes fadeInUp {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.section {
+			animation: fadeInUp 0.6s ease both;
+		}
+
+		.section:nth-child(1) { animation-delay: 0.1s; }
+		.section:nth-child(2) { animation-delay: 0.15s; }
+		.section:nth-child(3) { animation-delay: 0.2s; }
+		.section:nth-child(4) { animation-delay: 0.25s; }
+		.section:nth-child(5) { animation-delay: 0.3s; }
+		.section:nth-child(6) { animation-delay: 0.35s; }
+		.section:nth-child(7) { animation-delay: 0.4s; }
+
+		/* Smooth hover glow for buttons */
+		.btn-primary::after,
+		.btn-ghost::after,
+		.btn-login::after {
+			content: "";
+			position: absolute;
+			inset: -1px;
+			border-radius: inherit;
+			opacity: 0;
+			transition: opacity 0.3s;
+			pointer-events: none;
+		}
+
+		/* Card image hover zoom */
+		.card .thumb {
+			overflow: hidden;
+		}
+
+		.card:hover .thumb .frame-img {
+			transform: scale(1.05);
+		}
+	</style>
+</head>
+<body>
+	<header class="top-header" id="topHeader">
+		<div class="container">
+			<a href="#" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			</a>
+			<div class="brand">
+				<h1>Crew Multimedia Baciro</h1>
+				<p>Jalan Melati Wetan 47 Baciro Gondokusuman Yogyakarta</p>
+			</div>
+		</div>
+	</header>
+
+	<div class="nav-wrap">
+		<div class="container nav-row">
+			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
+			<nav id="mainNav" aria-label="Navigasi utama">
+				<ul>
+					<li><a href="#" style="color: var(--primary); font-weight: 700;">Home</a></li>
+					<li><a href="profil.html">Profil</a></li>
+					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="agenda.html">Agenda</a></li>
+					<li><a href="pengumuman.html">Pengumuman</a></li>
+					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+				</ul>
+			</nav>
+			<div class="right-tools">
+				<form class="search" id="searchForm">
+					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
+					<button type="submit">Cari</button>
+				</form>
+				<a class="btn-login" href="login.html">Login</a>
+			</div>
+		</div>
+	</div>
+
+	<section class="hero" aria-label="Hero carousel">
+		<div class="carousel-wrap">
+			<button id="carouselPrev" class="carousel-btn prev" type="button" aria-label="Slide sebelumnya">&#8249;</button>
+			<div id="carouselTrack" class="carousel-track" aria-label="Daftar slide carousel"></div>
+			<button id="carouselNext" class="carousel-btn next" type="button" aria-label="Slide berikutnya">&#8250;</button>
+		</div>
+		<div id="carouselDots" class="carousel-dots" aria-hidden="true"></div>
+	</section>
+
+	<main class="container">
+		<section class="section" aria-label="Tentang Crembo">
+			<div class="section-title">
+				<h3>Profil</h3>
+				<span class="dynamic-note">Deskripsi dan media profil dapat diisi manual.</span>
+			</div>
+			<div class="about-grid">
+				<div class="about-text">
+					<div id="aboutText" class="about-editable">
+						Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan
+						liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah login.
+					</div>
+					<a id="aboutLearnMoreBtn" class="btn-ghost" href="profil.html">Pelajari Lebih Lanjut →</a>
+				</div>
+				<div>
+					<div class="about-media-carousel">
+						<button id="aboutMediaPrev" class="about-media-btn prev" type="button" aria-label="Gambar profil sebelumnya">&#8249;</button>
+						<div id="aboutMediaStage" class="about-media-stage empty">Belum ada gambar. Tambahkan gambar melalui panel admin.</div>
+						<button id="aboutMediaNext" class="about-media-btn next" type="button" aria-label="Gambar profil berikutnya">&#8250;</button>
+						<div id="aboutMediaDots" class="about-media-dots"></div>
+					</div>
+					<p class="embed-note">Sumber media profil diatur melalui panel admin.</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" aria-label="Embed YouTube dan lokasi">
+			<div class="section-title">
+				<h3>YouTube & Google Maps</h3>
+				<span class="dynamic-note">Kedua link embed bisa diganti manual kapan saja.</span>
+			</div>
+			<div class="embed-grid">
+				<article class="embed-card">
+					<h4>Embed YouTube</h4>
+					<div class="embed-box">
+						<iframe id="ytFrame" src="" title="Embed YouTube" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+					</div>
+					<p class="embed-note">Link embed YouTube diatur melalui panel admin.</p>
+				</article>
+				<article class="embed-card">
+					<h4>Embed Google Maps</h4>
+					<div class="embed-box">
+						<iframe id="mapFrame" src="" title="Embed Google Maps" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+					</div>
+					<p class="embed-note">Link embed Google Maps diatur melalui panel admin.</p>
+				</article>
+			</div>
+		</section>
+
+		<section class="section" aria-label="Preview postingan instagram">
+			<div class="section-title">
+				<h3>Preview Postingan Instagram</h3>
+				<span class="dynamic-note">Tampilan 4 kotak menyamping untuk preview post IG.</span>
+			</div>
+			<div class="ig-grid">
+				<article class="ig-card">
+					<div class="embed-box"><iframe id="igFrame1" src="" title="Instagram preview 1" loading="lazy"></iframe></div>
+					<p class="embed-note">Sumber embed IG 1 diatur panel admin.</p>
+				</article>
+				<article class="ig-card">
+					<div class="embed-box"><iframe id="igFrame2" src="" title="Instagram preview 2" loading="lazy"></iframe></div>
+					<p class="embed-note">Sumber embed IG 2 diatur panel admin.</p>
+				</article>
+				<article class="ig-card">
+					<div class="embed-box"><iframe id="igFrame3" src="" title="Instagram preview 3" loading="lazy"></iframe></div>
+					<p class="embed-note">Sumber embed IG 3 diatur panel admin.</p>
+				</article>
+				<article class="ig-card">
+					<div class="embed-box"><iframe id="igFrame4" src="" title="Instagram preview 4" loading="lazy"></iframe></div>
+					<p class="embed-note">Sumber embed IG 4 diatur panel admin.</p>
+				</article>
+			</div>
+		</section>
+
+		<section class="section" aria-label="Jadwal Streaming">
+			<div class="section-title">
+				<h3>Jadwal Streaming</h3>
+				<a class="btn-ghost" href="jadwal-streaming.html">Lihat Semua →</a>
+			</div>
+			<div class="schedule-preview-top">
+				<div class="mode-pills" aria-label="Preview mode jadwal">
+					<button id="pillBulanan" class="mode-pill active" type="button" onclick="switchModePill('bulanan')">Bulanan Biasa</button>
+					<button id="pillHariRaya" class="mode-pill" type="button" onclick="switchModePill('hariraya')">Hari Raya</button>
+				</div>
+				<p class="schedule-note">Tanggal hari raya diblok dan diarahkan ke mode Hari Raya.</p>
+			</div>
+			<div id="homeMisaBesarNote" class="schedule-note-banner">Keterangan misa besar terbaru akan tampil di sini setelah registrasi disimpan.</div>
+			<div class="schedule-legend">
+				<span class="legend-chip"><span class="legend-dot dot-normal"></span> Jadwal normal</span>
+				<span class="legend-chip"><span class="legend-dot dot-blocked"></span> Diblok karena hari raya</span>
+			</div>
+			<!-- MODE: BULANAN BIASA -->
+			<div id="tableBulanan">
+				<div class="schedule-scroll">
+					<table class="schedule-table">
+						<thead>
+							<tr>
+								<th class="no-col">No</th>
+								<th class="date-col">Tanggal</th>
+								<th class="time-col">Jam</th>
+								<th>Operator</th>
+								<th>Kameramen</th>
+								<th>Supervisor</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1</td>
+								<td>27 Maret 2026</td>
+								<td>18:00</td>
+								<td>Rikha</td>
+								<td>Jeni</td>
+								<td>Tyas</td>
+							</tr>
+							<tr>
+								<td>2</td>
+								<td>28 Maret 2026</td>
+								<td>18:00</td>
+								<td>Lisa</td>
+								<td>Evan</td>
+								<td>Jose</td>
+							</tr>
+							<tr class="blocked-row">
+								<td>3</td>
+								<td>29 Maret 2026</td>
+								<td colspan="4">
+									<div class="blocked-inline">
+										DIBLOK: Misa Minggu Palma (Hari Raya)
+										<span>— buka mode Hari Raya untuk detail petugas khusus.</span>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>4</td>
+								<td>30 Maret 2026</td>
+								<td>18:00</td>
+								<td>Rossa</td>
+								<td>Aurel</td>
+								<td>Asha</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- MODE: HARI RAYA -->
+			<div id="tableHariRaya" style="display:none;">
+				<div class="hari-raya-banner">
+					<span class="hari-raya-badge">Mode Hari Raya</span>
+					<p>Jadwal khusus misa hari raya dengan formasi petugas lengkap.</p>
+				</div>
+				<div class="schedule-scroll">
+					<table class="schedule-table">
+						<thead>
+							<tr>
+								<th class="no-col">No</th>
+								<th class="date-col">Tanggal & Acara</th>
+								<th class="time-col">Jam</th>
+								<th>Operator</th>
+								<th>Kameramen</th>
+								<th>Supervisor</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="hariraya-row">
+								<td>1</td>
+								<td>
+									<strong>29 Maret 2026</strong><br>
+									<span class="hariraya-label">Misa Minggu Palma</span>
+								</td>
+								<td>08:00</td>
+								<td>Andi</td>
+								<td>Budi</td>
+								<td>Citra</td>
+							</tr>
+							<tr class="hariraya-row">
+								<td>2</td>
+								<td>
+									<strong>20 April 2026</strong><br>
+									<span class="hariraya-label">Misa Paskah</span>
+								</td>
+								<td>20:00</td>
+								<td>Dewi</td>
+								<td>Eka</td>
+								<td>Fajar</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" aria-label="Agenda">
+			<div class="section-title">
+				<h3>Agenda</h3>
+				<a class="btn-ghost" href="agenda.html">Lihat Semua →</a>
+			</div>
+			<div class="cards-3">
+				<article class="card">
+					<div class="thumb frame">Preview Gambar Agenda</div>
+					<div class="body">
+						<span class="meta-date">30 Maret 2026</span>
+						<h4>Briefing Petugas Pekan Suci</h4>
+						<p>Agenda briefing internal untuk persiapan pelayanan multimedia.</p>
+						<div class="card-actions">
+							<a class="btn-ghost" href="agenda-detail.html">Lihat Detail</a>
+							<a class="btn-primary" href="agenda-detail.html">Daftar</a>
+						</div>
+					</div>
+				</article>
+				<article class="card">
+					<div class="thumb frame">Preview Gambar Agenda</div>
+					<div class="body">
+						<span class="meta-date">03 April 2026</span>
+						<h4>Pelatihan Operator Streaming</h4>
+						<p>Pendalaman teknis kamera, audio, dan live switch untuk tim operator.</p>
+						<div class="card-actions">
+							<button class="btn-ghost" type="button">Lihat Detail</button>
+							<button class="btn-primary" type="button">Daftar</button>
+						</div>
+					</div>
+				</article>
+				<article class="card">
+					<div class="thumb frame">Preview Gambar Agenda</div>
+					<div class="body">
+						<span class="meta-date">10 April 2026</span>
+						<h4>Evaluasi Pelayanan Bulanan</h4>
+						<p>Sesi evaluasi hasil pelayanan dan penyusunan perbaikan bulan berikutnya.</p>
+						<div class="card-actions">
+							<button class="btn-ghost" type="button">Lihat Detail</button>
+						</div>
+					</div>
+				</article>
+			</div>
+		</section>
+
+		<section class="section" aria-label="Pengumuman atau berita">
+			<div class="section-title">
+				<h3>Pengumuman / Informasi / Berita</h3>
+				<a class="btn-ghost" href="pengumuman.html">Lihat Semua →</a>
+			</div>
+			<div class="cards-3">
+				<article class="card">
+					<div class="thumb frame">Placeholder Gambar</div>
+					<div class="body">
+						<span class="meta-date">25 Februari 2026</span>
+						<h4>Judul Informasi 1</h4>
+						<p>Ringkasan singkat informasi terbaru dari Crembo Media.</p>
+						<div class="card-actions">
+							<a class="btn-ghost" href="pengumuman-detail.html">Baca Selengkapnya →</a>
+						</div>
+					</div>
+				</article>
+				<article class="card">
+					<div class="thumb frame">Placeholder Gambar</div>
+					<div class="body">
+						<span class="meta-date">24 Februari 2026</span>
+						<h4>Judul Informasi 2</h4>
+						<p>Ringkasan singkat informasi terbaru dari Crembo Media.</p>
+						<div class="card-actions">
+							<a class="btn-ghost" href="pengumuman-detail.html">Baca Selengkapnya →</a>
+						</div>
+					</div>
+				</article>
+				<article class="card">
+					<div class="thumb frame">Placeholder Gambar</div>
+					<div class="body">
+						<span class="meta-date">20 Februari 2026</span>
+						<h4>Judul Informasi 3</h4>
+						<p>Ringkasan singkat informasi terbaru dari Crembo Media.</p>
+						<div class="card-actions">
+							<a class="btn-ghost" href="pengumuman-detail.html">Baca Selengkapnya →</a>
+						</div>
+					</div>
+				</article>
+			</div>
+		</section>
+
+		<section class="section" aria-label="Form pendaftaran">
+			<div class="section-title">
+				<h3>Form Pendaftaran</h3>
+				<a class="btn-ghost" href="form-pendaftaran.html">Lihat Semua →</a>
+			</div>
+			<div class="cards-2">
+				<article class="card">
+					<div class="thumb frame">Placeholder Form Pendaftaran Umum</div>
+					<div class="body">
+						<h4>Pendaftaran Kegiatan Umum</h4>
+						<p>Digunakan untuk open recruitment atau agenda yang terbuka untuk umum.</p>
+						<div class="card-actions">
+							<a class="btn-ghost" href="form-pendaftaran-detail.html">Lihat Detail</a>
+							<a class="btn-primary" href="form-pendaftaran-detail.html">Isi Form</a>
+						</div>
+					</div>
+				</article>
+				<article class="card">
+					<div class="thumb frame">Placeholder Form Pendaftaran Anggota</div>
+					<div class="body">
+						<h4>Pendaftaran Khusus Anggota</h4>
+						<p>Digunakan untuk kegiatan internal dan pendaftaran berbasis akun anggota.</p>
+						<div class="card-actions">
+							<a class="btn-ghost" href="form-pendaftaran-detail.html">Lihat Detail</a>
+							<a class="btn-primary" href="form-pendaftaran-detail.html">Isi Form</a>
+						</div>
+					</div>
+				</article>
+			</div>
+		</section>
+	</main>
+
+	<button id="scrollTopBtn" class="scroll-top-btn" type="button" aria-label="Scroll ke atas" title="Scroll ke atas">
+		<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			<path d="M12 19V5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+			<path d="M6.5 10.5L12 5l5.5 5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+		</svg>
+	</button>
+
+	<footer class="footer">
+		<div class="footer-main">
+			<div class="container footer-grid">
+				<section class="footer-col" aria-label="Identitas Crembo">
+					<div class="footer-brand">
+						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<div>
+							<h4 class="footer-title">Crew Multimedia Baciro</h4>
+							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
+						</div>
+					</div>
+					<p class="footer-sub">Platform informasi, jadwal streaming, agenda, dan pengumuman internal komunitas.</p>
+				</section>
+				<section class="footer-col" aria-label="Kontak">
+					<h4 class="footer-title">Kontak</h4>
+					<ul class="contact-list" style="margin-top: 14px;">
+						<li><strong>Email</strong> : crembomedia@example.com</li>
+						<li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
+						<li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+					</ul>
+				</section>
+				<section class="footer-col" aria-label="Media sosial">
+					<h4 class="footer-title">Media Sosial</h4>
+					<ul class="social-list" style="margin-top: 14px;">
+						<li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
+						<li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
+						<li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
+					</ul>
+				</section>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div>
+		</div>
+	</footer>
+
+	<script>
+		const topHeader = document.getElementById("topHeader");
+		const menuToggle = document.getElementById("menuToggle");
+		const mainNav = document.getElementById("mainNav");
+		const searchForm = document.getElementById("searchForm");
+		const searchInput = document.getElementById("searchInput");
+		const carouselTrack = document.getElementById("carouselTrack");
+		const carouselPrev = document.getElementById("carouselPrev");
+		const carouselNext = document.getElementById("carouselNext");
+		const carouselDots = document.getElementById("carouselDots");
+		const aboutText = document.getElementById("aboutText");
+		const aboutLearnMoreBtn = document.getElementById("aboutLearnMoreBtn");
+		const aboutMediaStage = document.getElementById("aboutMediaStage");
+		const aboutMediaDots = document.getElementById("aboutMediaDots");
+		const aboutMediaPrev = document.getElementById("aboutMediaPrev");
+		const aboutMediaNext = document.getElementById("aboutMediaNext");
+		const homeMisaBesarNote = document.getElementById("homeMisaBesarNote");
+		const scrollTopBtn = document.getElementById("scrollTopBtn");
+		const aboutSection = document.querySelector('section[aria-label="Tentang Crembo"]');
+		const CAROUSEL_STORAGE_KEY = "crembo-home-carousel-slides";
+		const ABOUT_STORAGE_KEY = "crembo-home-about-content";
+		const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
+		const DEFAULT_CAROUSEL_SLIDES = [
+			{
+				id: "default-1",
+				title: "Jadwal Misa Mingguan",
+				slug: "jadwal-misa",
+				description: "Lihat jadwal pelayanan streaming mingguan terbaru dari tim multimedia.",
+				link: "jadwal-streaming.html",
+				buttonText: "Lihat Jadwal",
+				backgroundImage: "",
+				order: 1,
+				active: true
+			},
+			{
+				id: "default-2",
+				title: "Open Recruitment Petugas",
+				slug: "open-recruitment",
+				description: "Bergabung sebagai petugas multimedia untuk mendukung pelayanan misa.",
+				link: "form-pendaftaran.html",
+				buttonText: "Daftar Sekarang",
+				backgroundImage: "",
+				order: 2,
+				active: true
+			},
+			{
+				id: "default-3",
+				title: "Pengumuman Agenda",
+				slug: "agenda-terbaru",
+				description: "Pantau agenda dan pengumuman terbaru komunitas Crembo Media.",
+				link: "agenda.html",
+				buttonText: "Lihat Agenda",
+				backgroundImage: "",
+				order: 3,
+				active: true
+			}
+		];
+
+		const DEFAULT_ABOUT_CONTENT = {
+			description: "Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah login.",
+			buttonText: "Pelajari Lebih Lanjut",
+			buttonLink: "profil.html",
+			autoSeconds: 5,
+			images: []
+		};
+
+		let autoScrollTimer = null;
+		let slideCount = 0;
+		let aboutSlideTimer = null;
+		let aboutMediaIndex = 0;
+		let aboutMediaImages = [];
+		let aboutAutoSeconds = 5;
+
+		function syncStickyOffset() {
+			const headerHeight = topHeader ? topHeader.offsetHeight : 104;
+			document.documentElement.style.setProperty("--header-h", headerHeight + "px");
+		}
+
+		function updateScrollTopVisibility() {
+			if (!scrollTopBtn || !aboutSection) {
+				return;
+			}
+
+			const triggerPoint = aboutSection.offsetTop - Math.min(window.innerHeight * 0.2, 160);
+			const shouldShow = window.scrollY >= Math.max(0, triggerPoint);
+			scrollTopBtn.classList.toggle("show", shouldShow);
+		}
+
+		function scrollToTop() {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		}
+
+		syncStickyOffset();
+		window.addEventListener("resize", syncStickyOffset);
+		window.addEventListener("scroll", updateScrollTopVisibility, { passive: true });
+		window.addEventListener("resize", updateScrollTopVisibility);
+
+		menuToggle.addEventListener("click", function () {
+			const isOpen = mainNav.classList.toggle("open");
+			menuToggle.setAttribute("aria-expanded", String(isOpen));
+			if (!isOpen) {
+				mainNav.querySelectorAll(".nav-dropdown-enhanced.open").forEach(function (item) {
+					item.classList.remove("open");
+					const link = item.querySelector("a");
+					if (link) {
+						link.setAttribute("aria-expanded", "false");
+					}
+				});
+			}
+		});
+
+		mainNav.querySelectorAll("a").forEach(function (link) {
+			link.addEventListener("click", function () {
+				if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+					return;
+				}
+				if (mainNav.classList.contains("open")) {
+					mainNav.classList.remove("open");
+					menuToggle.setAttribute("aria-expanded", "false");
+					mainNav.querySelectorAll(".nav-dropdown-enhanced.open").forEach(function (item) {
+						item.classList.remove("open");
+						const parentLink = item.querySelector("a");
+						if (parentLink) {
+							parentLink.setAttribute("aria-expanded", "false");
+						}
+					});
+				}
+			});
+		});
+
+		searchForm.addEventListener("submit", function (event) {
+			event.preventDefault();
+			const keyword = searchInput.value.trim();
+			window.location.href = "search.html?q=" + encodeURIComponent(keyword);
+		});
+
+		if (scrollTopBtn) {
+			scrollTopBtn.addEventListener("click", scrollToTop);
+		}
+
+		function escapeHtml(text) {
+			return String(text || "")
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/\"/g, "&quot;")
+				.replace(/'/g, "&#039;");
+		}
+
+		function readBigMassSchedules() {
+			try {
+				const raw = localStorage.getItem(BIG_MASS_STORAGE_KEY);
+				const parsed = raw ? JSON.parse(raw) : [];
+				return Array.isArray(parsed) ? parsed : [];
+			} catch (error) {
+				return [];
+			}
+		}
+
+		function renderHomeMisaNote() {
+			if (!homeMisaBesarNote) {
+				return;
+			}
+
+			const latestItem = readBigMassSchedules().filter(function (item) {
+				return item && (item.misaNote || item.note);
+			}).sort(function (a, b) {
+				const aTime = new Date((a.date || a.misaDate || "") + "T" + (a.time || a.misaTime || "00:00") + ":00").getTime();
+				const bTime = new Date((b.date || b.misaDate || "") + "T" + (b.time || b.misaTime || "00:00") + ":00").getTime();
+				return bTime - aTime;
+			})[0];
+
+			if (!latestItem) {
+				homeMisaBesarNote.textContent = "Keterangan misa besar terbaru akan tampil di sini setelah registrasi disimpan.";
+				return;
+			}
+
+			homeMisaBesarNote.textContent = "Keterangan misa besar terbaru: " + String(latestItem.misaNote || latestItem.note || "-");
+		}
+
+		function readCarouselSlides() {
+			try {
+				const raw = localStorage.getItem(CAROUSEL_STORAGE_KEY);
+				if (!raw) {
+					return DEFAULT_CAROUSEL_SLIDES.slice();
+				}
+
+				const parsed = JSON.parse(raw);
+				if (!Array.isArray(parsed) || !parsed.length) {
+					return DEFAULT_CAROUSEL_SLIDES.slice();
+				}
+
+				return parsed.filter(function (item) {
+					return item && item.active !== false;
+				}).sort(function (a, b) {
+					const aOrder = Number(a.order || 0);
+					const bOrder = Number(b.order || 0);
+					return aOrder - bOrder;
+				});
+			} catch (error) {
+				return DEFAULT_CAROUSEL_SLIDES.slice();
+			}
+		}
+
+		function normalizeAboutImage(item, index) {
+			return {
+				id: item && item.id ? String(item.id) : "about-img-" + Date.now() + "-" + index,
+				url: item && item.url ? String(item.url) : "",
+				order: Number(item && item.order ? item.order : index + 1),
+				active: item && item.active !== false
+			};
+		}
+
+		function readAboutContent() {
+			try {
+				const raw = localStorage.getItem(ABOUT_STORAGE_KEY);
+				if (!raw) {
+					return DEFAULT_ABOUT_CONTENT;
+				}
+
+				const parsed = JSON.parse(raw);
+				const images = Array.isArray(parsed && parsed.images) ? parsed.images.map(normalizeAboutImage) : [];
+
+				return {
+					description: parsed && parsed.description ? String(parsed.description) : DEFAULT_ABOUT_CONTENT.description,
+					buttonText: parsed && parsed.buttonText ? String(parsed.buttonText) : DEFAULT_ABOUT_CONTENT.buttonText,
+					buttonLink: parsed && parsed.buttonLink ? String(parsed.buttonLink) : DEFAULT_ABOUT_CONTENT.buttonLink,
+					autoSeconds: Math.min(30, Math.max(2, Number((parsed && parsed.autoSeconds) || DEFAULT_ABOUT_CONTENT.autoSeconds))),
+					images: images
+				};
+			} catch (error) {
+				return DEFAULT_ABOUT_CONTENT;
+			}
+		}
+
+		function buildAboutDots() {
+			aboutMediaDots.innerHTML = "";
+			aboutMediaImages.forEach(function (_, index) {
+				const dot = document.createElement("button");
+				dot.className = "about-dot";
+				dot.type = "button";
+				dot.setAttribute("aria-label", "Gambar profil " + (index + 1));
+				dot.addEventListener("click", function () {
+					showAboutImage(index);
+					startAboutAutoSlide();
+				});
+				aboutMediaDots.appendChild(dot);
+			});
+		}
+
+		function showAboutImage(index) {
+			if (!aboutMediaImages.length) {
+				aboutMediaStage.classList.add("empty");
+				aboutMediaStage.style.backgroundImage = "none";
+				aboutMediaStage.textContent = "Belum ada gambar. Tambahkan gambar melalui panel admin.";
+				aboutMediaDots.innerHTML = "";
+				return;
+			}
+
+			aboutMediaIndex = (index + aboutMediaImages.length) % aboutMediaImages.length;
+			const active = aboutMediaImages[aboutMediaIndex];
+			aboutMediaStage.classList.remove("empty");
+			aboutMediaStage.style.backgroundImage = 'url("' + String(active.url || "").replace(/\"/g, "") + '")';
+			aboutMediaStage.textContent = "";
+
+			const dots = aboutMediaDots.querySelectorAll(".about-dot");
+			dots.forEach(function (dot, dotIndex) {
+				dot.classList.toggle("active", dotIndex === aboutMediaIndex);
+			});
+		}
+
+		function startAboutAutoSlide() {
+			if (aboutSlideTimer) {
+				clearInterval(aboutSlideTimer);
+			}
+
+			if (aboutMediaImages.length <= 1) {
+				return;
+			}
+
+			aboutSlideTimer = setInterval(function () {
+				showAboutImage(aboutMediaIndex + 1);
+			}, aboutAutoSeconds * 1000);
+		}
+
+		function renderAboutSection() {
+			const aboutData = readAboutContent();
+			aboutText.innerHTML = escapeHtml(aboutData.description).replace(/\n/g, "<br>");
+			aboutLearnMoreBtn.textContent = (aboutData.buttonText || DEFAULT_ABOUT_CONTENT.buttonText) + " →";
+			aboutLearnMoreBtn.href = aboutData.buttonLink || DEFAULT_ABOUT_CONTENT.buttonLink;
+
+			aboutMediaImages = (aboutData.images || []).filter(function (item) {
+				return item && item.active !== false && item.url;
+			}).sort(function (a, b) {
+				return Number(a.order || 0) - Number(b.order || 0);
+			});
+
+			aboutAutoSeconds = Math.min(30, Math.max(2, Number(aboutData.autoSeconds || 5)));
+			aboutMediaIndex = 0;
+			buildAboutDots();
+			showAboutImage(0);
+			renderHomeMisaNote();
+			startAboutAutoSlide();
+		}
+
+		function renderCarouselSlides() {
+			const slides = readCarouselSlides();
+			carouselTrack.innerHTML = "";
+
+			if (!slides.length) {
+				carouselTrack.innerHTML =
+					'<article class="slide"><span class="slide-slug">kosong</span><h3>Belum ada slide aktif</h3><p>Admin dapat menambahkan slide melalui menu Kelola Carousel Home.</p></article>';
+				slideCount = 1;
+				return;
+			}
+
+			slides.forEach(function (item) {
+				const article = document.createElement("article");
+				article.className = "slide";
+				if (item.backgroundImage) {
+					article.style.setProperty("--slide-bg", 'url("' + String(item.backgroundImage).replace(/\"/g, "") + '")');
+				}
+
+				const slug = escapeHtml(item.slug || "slide");
+				const title = escapeHtml(item.title || "Tanpa Judul");
+				const description = escapeHtml(item.description || "");
+				const buttonLabel = escapeHtml(item.buttonText || "Lihat Detail");
+				const link = item.link ? String(item.link) : "#";
+
+				article.innerHTML =
+					'<span class="slide-slug">' + slug + '</span>' +
+					'<h3>' + title + '</h3>' +
+					'<p>' + description + '</p>' +
+					'<a class="slide-link" href="' + escapeHtml(link) + '">' + buttonLabel + '</a>';
+
+				carouselTrack.appendChild(article);
+			});
+
+			slideCount = slides.length;
+		}
+
+		function buildDots() {
+			carouselDots.innerHTML = "";
+			for (let i = 0; i < slideCount; i += 1) {
+				const dot = document.createElement("span");
+				dot.className = "dot";
+				if (i === 0) {
+					dot.classList.add("active");
+				}
+				carouselDots.appendChild(dot);
+			}
+		}
+
+		function syncActiveDot() {
+			if (!slideCount) {
+				return;
+			}
+			const slideWidth = carouselTrack.clientWidth;
+			const activeIndex = Math.round(carouselTrack.scrollLeft / slideWidth);
+			const dots = carouselDots.querySelectorAll(".dot");
+			dots.forEach(function (dot, index) {
+				dot.classList.toggle("active", index === activeIndex);
+			});
+		}
+
+		function scrollCarousel(direction) {
+			if (!slideCount) {
+				return;
+			}
+			const step = carouselTrack.clientWidth;
+			carouselTrack.scrollBy({ left: direction * step, behavior: "smooth" });
+		}
+
+		function startAutoScroll() {
+			if (autoScrollTimer) {
+				clearInterval(autoScrollTimer);
+			}
+
+			if (slideCount <= 1) {
+				return;
+			}
+
+			autoScrollTimer = setInterval(function () {
+				const step = carouselTrack.clientWidth;
+				const atEnd = carouselTrack.scrollLeft + step >= carouselTrack.scrollWidth - 2;
+				if (atEnd) {
+					carouselTrack.scrollTo({ left: 0, behavior: "smooth" });
+					return;
+				}
+				carouselTrack.scrollBy({ left: step, behavior: "smooth" });
+			}, 5000);
+		}
+
+		renderCarouselSlides();
+		buildDots();
+		renderAboutSection();
+		carouselTrack.addEventListener("scroll", syncActiveDot);
+		carouselPrev.addEventListener("click", function () { scrollCarousel(-1); });
+		carouselNext.addEventListener("click", function () { scrollCarousel(1); });
+		carouselTrack.addEventListener("mouseenter", function () {
+			if (autoScrollTimer) {
+				clearInterval(autoScrollTimer);
+			}
+		});
+		carouselTrack.addEventListener("mouseleave", startAutoScroll);
+		aboutMediaStage.addEventListener("mouseenter", function () {
+			if (aboutSlideTimer) {
+				clearInterval(aboutSlideTimer);
+			}
+		});
+		aboutMediaStage.addEventListener("mouseleave", startAboutAutoSlide);
+		aboutMediaPrev.addEventListener("click", function () {
+			showAboutImage(aboutMediaIndex - 1);
+			startAboutAutoSlide();
+		});
+		aboutMediaNext.addEventListener("click", function () {
+			showAboutImage(aboutMediaIndex + 1);
+			startAboutAutoSlide();
+		});
+		startAutoScroll();
+		updateScrollTopVisibility();
+
+	
+    (function () {
+      const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";
+      const DEFAULT_PROFILE_MENU = [
+        { id: "sejarah", label: "Sejarah" },
+        { id: "tentang-crembo", label: "Tentang Crembo" },
+        { id: "struktur", label: "Struktur" },
+        { id: "visi-misi", label: "Visi & Misi" }
+      ];
+
+      function readProfileMenuItems() {
+        try {
+          const raw = localStorage.getItem(PROFILE_MENU_STORAGE_KEY);
+          if (!raw) {
+            return DEFAULT_PROFILE_MENU;
+          }
+
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed) || parsed.length === 0) {
+            return DEFAULT_PROFILE_MENU;
+          }
+
+          return parsed.map(function (item) {
+            if (typeof item === "string") {
+              return { id: item.toLowerCase().replace(/\s+/g, "-"), label: item };
+            }
+            return {
+              id: item && item.id ? String(item.id) : String((item && item.label) || "profil").toLowerCase().replace(/\s+/g, "-"),
+              label: item && item.label ? String(item.label) : "Profil"
+            };
+          });
+        } catch (err) {
+          return DEFAULT_PROFILE_MENU;
+        }
+      }
+
+      function enhanceProfileHoverMenu() {
+        const navList = document.querySelector(".nav-row nav ul") || document.querySelector("nav ul");
+        if (!navList) {
+          return;
+        }
+
+        const profileAnchor = navList.querySelector('a[href="profil.html"]');
+        if (!profileAnchor) {
+          return;
+        }
+
+		const profileItem = profileAnchor.closest("li");
+		if (!profileItem || profileItem.querySelector(".profile-hover-menu, .nav-dropdown-menu")) {
+          return;
+        }
+
+        const menuItems = readProfileMenuItems();
+
+		profileItem.style.position = "relative";
+		profileItem.classList.add("nav-dropdown-enhanced");
+
+		if (!profileAnchor.hasAttribute("data-profile-menu-label")) {
+		  profileAnchor.setAttribute("data-profile-menu-label", "true");
+		  profileAnchor.textContent = profileAnchor.textContent.trim() + " ▾";
+		}
+		profileAnchor.classList.add("profile-parent-link");
+		profileAnchor.setAttribute("aria-expanded", "false");
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "profile-hover-menu";
+        dropdown.style.position = "absolute";
+        dropdown.style.top = "calc(100% + 2px)";
+        dropdown.style.left = "0";
+        dropdown.style.minWidth = "220px";
+        dropdown.style.border = "1px solid rgba(128, 0, 0, 0.12)";
+        dropdown.style.background = "#fff";
+        dropdown.style.boxShadow = "0 10px 30px rgba(128, 0, 0, 0.12), 0 4px 12px rgba(0,0,0,0.06)";
+        dropdown.style.padding = "6px";
+        dropdown.style.display = "none";
+        dropdown.style.zIndex = "1300";
+        dropdown.style.borderRadius = "12px";
+
+        dropdown.innerHTML = menuItems.map(function (item) {
+          return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:9px 14px;border:1px solid transparent;font-size:0.87rem;margin-bottom:2px;border-radius:8px;font-weight:500;color:#4a4a4a;transition:all 0.2s;">' + item.label + '</a>';
+        }).join("");
+
+        dropdown.addEventListener("mouseover", function (event) {
+          const link = event.target.closest("a");
+          if (link) {
+            link.style.borderColor = "rgba(128, 0, 0, 0.1)";
+            link.style.background = "rgba(128, 0, 0, 0.04)";
+            link.style.color = "#800000";
+          }
+        });
+
+        dropdown.addEventListener("mouseout", function (event) {
+          const link = event.target.closest("a");
+          if (link) {
+            link.style.borderColor = "transparent";
+            link.style.background = "transparent";
+            link.style.color = "#4a4a4a";
+          }
+        });
+
+        profileItem.appendChild(dropdown);
+
+		profileAnchor.addEventListener("click", function (event) {
+			if (window.matchMedia("(max-width: 760px)").matches) {
+				event.preventDefault();
+				const isOpen = profileItem.classList.toggle("open");
+				profileAnchor.setAttribute("aria-expanded", String(isOpen));
+				dropdown.style.display = isOpen ? "block" : "none";
+			}
+		});
+
+			dropdown.querySelectorAll("a").forEach(function (link) {
+				link.addEventListener("click", hideMenu);
+			});
+
+        function showMenu() {
+          dropdown.style.display = "block";
+        }
+
+        function hideMenu() {
+          dropdown.style.display = "none";
+			profileItem.classList.remove("open");
+			profileAnchor.setAttribute("aria-expanded", "false");
+        }
+
+        profileItem.addEventListener("mouseenter", showMenu);
+        profileItem.addEventListener("mouseleave", hideMenu);
+        profileItem.addEventListener("focusin", showMenu);
+        profileItem.addEventListener("focusout", function () {
+          setTimeout(function () {
+            if (!profileItem.contains(document.activeElement)) {
+              hideMenu();
+            }
+          }, 0);
+        });
+      }
+
+      enhanceProfileHoverMenu();
+    })();
+
+		// ── Toggle Jadwal Streaming: Bulanan Biasa ↔ Hari Raya ──
+		function switchModePill(mode) {
+			const pillBulanan   = document.getElementById('pillBulanan');
+			const pillHariRaya  = document.getElementById('pillHariRaya');
+			const tableBulanan  = document.getElementById('tableBulanan');
+			const tableHariRaya = document.getElementById('tableHariRaya');
+			if (!pillBulanan || !pillHariRaya || !tableBulanan || !tableHariRaya) return;
+			if (mode === 'bulanan') {
+				pillBulanan.classList.add('active');
+				pillHariRaya.classList.remove('active');
+				tableBulanan.style.display  = '';
+				tableHariRaya.style.display = 'none';
+			} else {
+				pillHariRaya.classList.add('active');
+				pillBulanan.classList.remove('active');
+				tableHariRaya.style.display = '';
+				tableBulanan.style.display  = 'none';
+			}
+		}
+  </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+﻿supabase_cli=False
+psql_cli=False
