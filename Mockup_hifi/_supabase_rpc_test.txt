@@ -1,2 +1,0 @@
-﻿rpc_status=success
-rpc_response="54ddd6fe-f8d2-41aa-9b43-ce66e7f23db7"

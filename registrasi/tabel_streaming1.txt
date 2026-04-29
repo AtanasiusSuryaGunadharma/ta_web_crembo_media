@@ -1,6 +1,0 @@
-Christoforus Tadeus|2025-05-30|18:00|Supervisor|None
-Christoforus Tadeus|2025-06-15|10:00|Operator|None
-Niko|2025-06-08|08:00|Supervisor|None
-rieanaditya|2025-05-29|18:00|Operator|None
-Ketrin|2025-06-02|18:00|Kameramen|None
-Ketrin|2025-06-03|18:00|Supervisor|None
