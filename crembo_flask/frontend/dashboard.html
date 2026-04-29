@@ -220,8 +220,8 @@
     <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Prototype dashboard admin dan super admin</p>
-        <span id="roleBadge" class="role-chip">Role: -</span>
+        <p>{{ current_user.nama if current_user and current_user.nama else 'Prototype dashboard admin dan super admin' }}</p>
+        <span id="roleBadge" class="role-chip">Role: {{ (current_user.role if current_user and current_user.role else 'admin') | replace('_', ' ') | title }}</span>
       </div>
 
       <div class="menu-group open">
@@ -494,6 +494,7 @@
   </div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const params = new URLSearchParams(window.location.search);
     const storedSessionRaw = localStorage.getItem("crembo-login-session");
     let storedRole = "";
@@ -507,7 +508,8 @@
       }
     }
 
-    const role = params.get("role") || storedRole || "admin";
+    const serverUser = window.CREMBO_CURRENT_USER || {};
+    const role = serverUser.role || params.get("role") || storedRole || "admin";
     const ADMIN_STORAGE_KEY = "crembo-admin-users";
 
     const roleBadge = document.getElementById("roleBadge");

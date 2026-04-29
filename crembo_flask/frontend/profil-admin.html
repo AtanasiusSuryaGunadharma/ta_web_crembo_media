@@ -353,8 +353,8 @@
     <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Profil akun admin dan super admin</p>
-        <span id="roleBadge" class="role-chip">Role: -</span>
+        <p>{{ current_user.nama if current_user and current_user.nama else 'Profil akun admin dan super admin' }}</p>
+        <span id="roleBadge" class="role-chip">Role: {{ (current_user.role if current_user and current_user.role else 'admin') | replace('_', ' ') | title }}</span>
       </div>
 
       <div class="menu-group">
@@ -473,13 +473,14 @@
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const SESSION_STORAGE_KEY = "crembo-login-session";
     const ADMIN_STORAGE_KEY = "crembo-admin-users";
     const SUPER_ADMIN_PROFILE_KEY = "crembo-super-admin-profile";
     const ADMIN_PASSWORDS_KEY = "crembo-admin-passwords";
 
     const params = new URLSearchParams(window.location.search);
-    const sessionRaw = localStorage.getItem(SESSION_STORAGE_KEY);
+    const serverUser = window.CREMBO_CURRENT_USER || {};
 
     function safeParse(raw) {
       try {
@@ -490,12 +491,28 @@
     }
 
     function readSession() {
+      if (serverUser && (serverUser.nama || serverUser.username || serverUser.email)) {
+        return {
+          logged_in: true,
+          role: serverUser.role || "admin",
+          fullName: serverUser.nama || serverUser.username || serverUser.email,
+          identifier: serverUser.username || serverUser.email || serverUser.telp || "",
+          identifierType: serverUser.email ? "email" : "username",
+          adminId: serverUser.user_id || "",
+          adminPermissions: serverUser.role === "super_admin" ? defaultPermissions() : {},
+          email: serverUser.email || "",
+          phone: serverUser.telp || "",
+          address: serverUser.alamat || "",
+          birthDate: serverUser.tgl_lahir || ""
+        };
+      }
+      const sessionRaw = localStorage.getItem(SESSION_STORAGE_KEY);
       const parsed = sessionRaw ? safeParse(sessionRaw) : null;
       return parsed && typeof parsed === "object" ? parsed : {};
     }
 
     const session = readSession();
-    const role = params.get("role") || String(session.role || "admin");
+    const role = String(serverUser.role || params.get("role") || session.role || "admin");
 
     if (role !== "admin" && role !== "super_admin") {
       window.location.replace("dashboard.html");
@@ -614,21 +631,22 @@
     function readSuperAdminProfile() {
       const raw = localStorage.getItem(SUPER_ADMIN_PROFILE_KEY);
       const parsed = raw ? safeParse(raw) : null;
+      const fallbackProfile = {
+        fullName: String(serverUser.nama || serverUser.username || session.fullName || session.identifier || "Super Admin"),
+        email: String(serverUser.email || "superadmin.crembo@example.com"),
+        phone: String(serverUser.telp || "08xx-xxxx-xxxx"),
+        address: String(serverUser.alamat || "Alamat belum diisi"),
+        birthDate: serverUser.tgl_lahir ? normalizeDateOnly(serverUser.tgl_lahir) : ""
+      };
       if (!parsed || typeof parsed !== "object") {
-        return {
-          fullName: String(session.fullName || session.identifier || "Super Admin"),
-          email: "superadmin.crembo@example.com",
-          phone: "08xx-xxxx-xxxx",
-          address: "Alamat belum diisi",
-          birthDate: ""
-        };
+        return fallbackProfile;
       }
       return {
-        fullName: String(parsed.fullName || session.fullName || session.identifier || "Super Admin"),
-        email: String(parsed.email || "superadmin.crembo@example.com"),
-        phone: String(parsed.phone || "08xx-xxxx-xxxx"),
-        address: String(parsed.address || "Alamat belum diisi"),
-        birthDate: normalizeDateOnly(parsed.birthDate)
+        fullName: String(parsed.fullName || fallbackProfile.fullName),
+        email: String(parsed.email || fallbackProfile.email),
+        phone: String(parsed.phone || fallbackProfile.phone),
+        address: String(parsed.address || fallbackProfile.address),
+        birthDate: normalizeDateOnly(parsed.birthDate || fallbackProfile.birthDate)
       };
     }
 
@@ -678,22 +696,22 @@
 
       const admins = readAdmins();
       currentAdminIndex = resolveCurrentAdminIndex(admins);
-      const fallbackName = String(session.fullName || session.identifier || "Admin");
+      const fallbackName = String(serverUser.nama || serverUser.username || session.fullName || session.identifier || "Admin");
 
       if (currentAdminIndex >= 0) {
         const admin = admins[currentAdminIndex];
         fullNameInput.value = String(admin.fullName || fallbackName);
-        emailInput.value = String(admin.email || "admin.crembo@example.com");
-        phoneInput.value = String(admin.phone || "08xx-xxxx-xxxx");
-        addressInput.value = String(admin.address || "Alamat belum diisi");
-        birthDateInput.value = normalizeDateOnly(admin.birthDate);
+        emailInput.value = String(admin.email || serverUser.email || "admin.crembo@example.com");
+        phoneInput.value = String(admin.phone || serverUser.telp || "08xx-xxxx-xxxx");
+        addressInput.value = String(admin.address || serverUser.alamat || "Alamat belum diisi");
+        birthDateInput.value = normalizeDateOnly(admin.birthDate || serverUser.tgl_lahir);
         activePermissions = normalizePermissions(admin.permissions || session.adminPermissions || defaultPermissions());
       } else {
         fullNameInput.value = fallbackName;
-        emailInput.value = String(session.identifierType === "email" ? session.identifier : "admin.crembo@example.com");
-        phoneInput.value = "08xx-xxxx-xxxx";
-        addressInput.value = "Alamat belum diisi";
-        birthDateInput.value = "";
+        emailInput.value = String(serverUser.email || (session.identifierType === "email" ? session.identifier : "admin.crembo@example.com"));
+        phoneInput.value = String(serverUser.telp || "08xx-xxxx-xxxx");
+        addressInput.value = String(serverUser.alamat || "Alamat belum diisi");
+        birthDateInput.value = normalizeDateOnly(serverUser.tgl_lahir || "");
         activePermissions = normalizePermissions(session.adminPermissions || defaultPermissions());
       }
 

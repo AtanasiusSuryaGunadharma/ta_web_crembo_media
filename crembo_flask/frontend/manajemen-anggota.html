@@ -611,12 +611,15 @@
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    window.CREMBO_MEMBER_ROWS = {{ member_rows | default([], true) | tojson }};
     const MEMBER_STORAGE_KEY = "crembo-members";
     const ACTIVE_MEMBER_STORAGE_KEY = "crembo-active-members";
     const STATUS_REQUEST_STORAGE_KEY = "crembo-member-status-requests";
     const LEGACY_SINGLE_REQUEST_KEY = "crembo-member-inactive-request";
 
     const params = new URLSearchParams(window.location.search);
+    const serverUser = window.CREMBO_CURRENT_USER || {};
     const storedSessionRaw = localStorage.getItem("crembo-login-session");
     let storedRole = "";
 
@@ -629,7 +632,7 @@
       }
     }
 
-    const role = params.get("role") || storedRole || "admin";
+    const role = serverUser.role || params.get("role") || storedRole || "admin";
 
     const roleBadge = document.getElementById("roleBadge");
     const anggotaMenu = document.getElementById("anggotaMenu");
@@ -924,6 +927,12 @@
     }
 
     function loadMembers() {
+      const serverRows = Array.isArray(window.CREMBO_MEMBER_ROWS) ? window.CREMBO_MEMBER_ROWS : [];
+      if (serverRows.length > 0) {
+        members = serverRows.map(normalizeMember);
+        return;
+      }
+
       const membersRaw = localStorage.getItem(MEMBER_STORAGE_KEY);
       const parsedMembers = membersRaw ? safeParse(membersRaw) : null;
       if (Array.isArray(parsedMembers) && parsedMembers.length > 0) {
@@ -951,6 +960,12 @@
     function saveMembers() {
       localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(members));
       syncActiveMembers();
+      fetch("/api/anggota/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ members: members })
+      }).catch(function () {
+      });
     }
 
     function loadRequests() {

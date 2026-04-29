@@ -31,21 +31,6 @@ CORE_TABLE_DDL: dict[str, str] = {
             UNIQUE KEY `uniq_anggota_telp` (`telp`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """,
-    "db_anggota": """
-        CREATE TABLE IF NOT EXISTS `db_anggota` (
-            `id` INT NOT NULL,
-            `nama` VARCHAR(255) NULL,
-            `username` VARCHAR(150) NULL,
-            `telp` VARCHAR(50) NULL,
-            `password` VARCHAR(255) NULL,
-            `role` VARCHAR(50) NULL,
-            `tgl_lahir` VARCHAR(50) NULL,
-            `email` VARCHAR(255) NULL,
-            `alamat` TEXT NULL,
-            `status_akun` VARCHAR(20) NOT NULL DEFAULT 'aktif',
-            PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-    """,
     "kegiatan": """
         CREATE TABLE IF NOT EXISTS `kegiatan` (
             `id` INT NOT NULL,

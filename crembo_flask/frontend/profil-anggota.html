@@ -582,8 +582,8 @@
       <div class="account">
         <div class="avatar">AG</div>
         <div class="account-text">
-          <strong id="memberName">Atanasius Surya Guna</strong>
-          <small>Role: Anggota Multimedia</small>
+          <strong id="memberName">{{ current_user.nama if current_user and current_user.nama else 'Atanasius Surya Guna' }}</strong>
+          <small>Role: {{ (current_user.role if current_user and current_user.role else 'user') | replace('_', ' ') | title }}</small>
         </div>
       </div>
 
@@ -625,6 +625,7 @@
         <div>
           <h2 class="headline">Dashboard Anggota Crembo Media</h2>
           <p class="subhead">Pengaturan profil, password, dan status keanggotaan tampil dalam satu halaman.</p>
+          window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
         </div>
         <div class="quick-filter" aria-label="Ringkasan cepat anggota">
           <span class="chip"><strong>Status:</strong> Aktif</span>
@@ -910,6 +911,10 @@
     }
 
     function readLoginName() {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (serverUser.nama || serverUser.username || serverUser.email) {
+        return serverUser.nama || serverUser.username || serverUser.email;
+      }
       const sessionRaw = localStorage.getItem("crembo-login-session");
       if (!sessionRaw) {
         return "Atanasius Surya Guna";
@@ -931,6 +936,18 @@
     }
 
     function readSession() {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (serverUser && (serverUser.nama || serverUser.username || serverUser.email)) {
+        return {
+          fullName: serverUser.nama || serverUser.username || serverUser.email,
+          identifier: serverUser.username || serverUser.email || serverUser.telp || "",
+          email: serverUser.email || "",
+          phone: serverUser.telp || "",
+          address: serverUser.alamat || "",
+          birthDate: serverUser.tgl_lahir || "",
+          role: serverUser.role || "user"
+        };
+      }
       const raw = localStorage.getItem("crembo-login-session");
       const parsed = raw ? safeParse(raw) : null;
       return parsed && typeof parsed === "object" ? parsed : {};
@@ -1128,18 +1145,20 @@
     }
 
     function defaultProfile() {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
       const loginName = readLoginName();
       return {
-        fullName: loginName,
-        email: "anggota.crembo@example.com",
-        phone: "08xx-xxxx-xxxx",
-        address: "Alamat belum diisi",
-        birthDate: "",
-        role: "Anggota Multimedia"
+        fullName: serverUser.nama || loginName,
+        email: serverUser.email || "anggota.crembo@example.com",
+        phone: serverUser.telp || "08xx-xxxx-xxxx",
+        address: serverUser.alamat || "Alamat belum diisi",
+        birthDate: serverUser.tgl_lahir || "",
+        role: serverUser.role ? serverUser.role.replaceAll("_", " ").replace(/\b\w/g, function (char) { return char.toUpperCase(); }) : "Anggota Multimedia"
       };
     }
 
     function readProfile() {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
       const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
       if (!raw) {
         return defaultProfile();
@@ -1147,11 +1166,11 @@
       try {
         const parsed = JSON.parse(raw);
         return {
-          fullName: parsed.fullName || defaultProfile().fullName,
-          email: parsed.email || defaultProfile().email,
-          phone: parsed.phone || defaultProfile().phone,
-          address: parsed.address || defaultProfile().address,
-          birthDate: parsed.birthDate || defaultProfile().birthDate,
+          fullName: parsed.fullName || serverUser.nama || defaultProfile().fullName,
+          email: parsed.email || serverUser.email || defaultProfile().email,
+          phone: parsed.phone || serverUser.telp || defaultProfile().phone,
+          address: parsed.address || serverUser.alamat || defaultProfile().address,
+          birthDate: parsed.birthDate || serverUser.tgl_lahir || defaultProfile().birthDate,
           role: parsed.role || defaultProfile().role
         };
       } catch (error) {

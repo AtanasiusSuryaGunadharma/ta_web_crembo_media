@@ -116,7 +116,10 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (72, 'Arya', 'Arya', '081324859094', 'scrypt:32768:8:1$i611QYvOcmtTNXBt$8f443083de045a9d389a51e27a4ca5713296679e91c2203e870245b56d60ab016d1063f8587a14004cfc1cd9ce7e7cc323827bcb7c1300c9ea86a1e05d74a309', 'user', '', 'aryadwika2010@gmail.com'),
 (73, 'Aoki', 'Aoki', '085743665416', 'scrypt:32768:8:1$uVLwUhPRoRMREi5O$401e7e9b5f793f89952b3845f87ebec60e64faff8655f816ef82541465a7a0e2b82b02aa00602ec61f6a75c939d2e528d671547a507b46c4f4b0629c752103b5', 'user', '', 'gizelleraina2401@gmail.com'),
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com'),
-(75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com');
+(75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com'),
+(1001, 'CREMBO Super Admin', 'superadmin', '081100000001', 'scrypt:32768:8:1$JyBWrrkOGuhe7jTd$54a802bcc99d80b72fd817a2e48f375e5ca0b60c4b17b9122e94bf8dbfeae146e509440f31c3a14e9ad60ba48f92b985f6ecc43b2f47a4b62af5cb3cf23fca08', 'super_admin', '1990-01-01', 'superadmin@crembo.test'),
+(1002, 'CREMBO Admin', 'admin.testing', '081100000002', 'scrypt:32768:8:1$kN2Qf3R9xY4aNcbm$8b8d1a4e3cde4f7e6db4f4d23b9c6d0f6c55fbb2e6f4f32d7dd1fd7f2a66c9debc0f2ef1fd4b8b5b6d3bc877b5e73968d9a12ad41f8e0dfbaf90a28d4d2e4f31', 'admin', '1992-02-02', 'admin@crembo.test'),
+(1003, 'CREMBO Anggota', 'anggota.testing', '081100000003', 'scrypt:32768:8:1$Q8m2n8Vt7H5sAa1K$2bd3d4bc7b49d2a1cd8b923b5f3dfe4fd67b8a3a2f5de7d9c3fb8ef4e2ea20f4d9dcb5f98df78e3e6ef5f6f7b1d3ef4b9b0f66d3f8e9a91c0a7f2e3b1a6c4d3a', 'user', '1995-03-03', 'anggota@crembo.test');
 
 -- --------------------------------------------------------
 
@@ -1814,12 +1817,6 @@ CREATE TABLE `tugas_form_slot` (
 ALTER TABLE `anggota`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_anggota_username` (`username`);
-
---
--- Indeks untuk tabel `db_anggota`
---
-ALTER TABLE `db_anggota`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indeks untuk tabel `kegiatan`

@@ -987,8 +987,8 @@
       <div class="account">
         <div class="avatar">AG</div>
         <div class="account-text">
-          <strong id="memberName">Atanasius Surya Guna</strong>
-          <small>Role: Anggota Multimedia</small>
+          <strong id="memberName">{{ current_user.nama if current_user and current_user.nama else 'Atanasius Surya Guna' }}</strong>
+          <small>Role: {{ (current_user.role if current_user and current_user.role else 'user') | replace('_', ' ') | title }}</small>
         </div>
       </div>
 
@@ -1265,6 +1265,7 @@
   </div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
     menuGroups.forEach(function (group) {
       const btn = group.querySelector(".menu-toggle");
@@ -1309,17 +1310,22 @@
       });
     });
 
-    const sessionRaw = localStorage.getItem("crembo-login-session");
     const memberName = document.getElementById("memberName");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
+    const serverUser = window.CREMBO_CURRENT_USER || {};
+    if (serverUser.nama || serverUser.username || serverUser.email) {
+      memberName.textContent = serverUser.nama || serverUser.username || serverUser.email;
+    } else {
+      const sessionRaw = localStorage.getItem("crembo-login-session");
+      if (sessionRaw) {
+        try {
+          const session = JSON.parse(sessionRaw);
+          if (session.fullName) {
+            memberName.textContent = session.fullName;
+          } else if (session.identifier) {
+            memberName.textContent = session.identifier;
+          }
+        } catch (error) {
         }
-      } catch (error) {
       }
     }
 
