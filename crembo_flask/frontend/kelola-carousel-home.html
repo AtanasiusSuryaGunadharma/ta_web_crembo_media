@@ -1,11 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kelola Carousel Home - Crembo Media</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="_admin-theme.css">
   <style>
     :root {
       --bg: #ececec;
@@ -275,6 +273,8 @@
       td::before { content: attr(data-label); font-size: 0.72rem; font-weight: 700; color: #4f4f4f; text-transform: uppercase; letter-spacing: 0.02em; }
     }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
@@ -417,6 +417,9 @@
   </div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+  </script>
+  <script>
     const roleChip = document.getElementById("roleChip");
     const liveDateTime = document.getElementById("liveDateTime");
     const formTitle = document.getElementById("formTitle");
@@ -445,8 +448,21 @@
     let draggingSlideId = "";
 
     function getCurrentRole() {
+      // Priority: server session > URL param > localStorage > default
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (serverUser.role) return String(serverUser.role);
       const params = new URLSearchParams(window.location.search);
-      return params.get("role") || "admin";
+      const roleFromQuery = params.get("role");
+      if (roleFromQuery) return roleFromQuery;
+      let roleFromStorage = "";
+      const storedSessionRaw = localStorage.getItem("crembo-login-session");
+      if (storedSessionRaw) {
+        try {
+          const sessionObj = JSON.parse(storedSessionRaw);
+          roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
+        } catch (error) { roleFromStorage = ""; }
+      }
+      return roleFromStorage || "admin";
     }
 
     function formatRole(role) {

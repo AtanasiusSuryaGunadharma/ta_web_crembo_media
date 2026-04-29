@@ -409,6 +409,9 @@
   </div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+  </script>
+  <script>
     const roleChip = document.getElementById("roleChip");
     const liveDateTime = document.getElementById("liveDateTime");
     const ytUrlInput = document.getElementById("ytUrl");
@@ -421,8 +424,12 @@
     let draggingId = "";
 
     function getCurrentRole() {
+      // Priority: server session > URL param > localStorage > default
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (serverUser.role) return String(serverUser.role);
       const params = new URLSearchParams(window.location.search);
       const roleFromQuery = params.get("role");
+      if (roleFromQuery) return roleFromQuery;
       let roleFromStorage = "";
       const storedSessionRaw = localStorage.getItem("crembo-login-session");
       if (storedSessionRaw) {
@@ -431,7 +438,7 @@
           roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
         } catch (error) { roleFromStorage = ""; }
       }
-      return roleFromQuery || roleFromStorage || "admin";
+      return roleFromStorage || "admin";
     }
 
     function formatRole(role) {
