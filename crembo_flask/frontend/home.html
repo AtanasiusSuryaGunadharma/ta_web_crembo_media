@@ -767,30 +767,191 @@
 		}
 
 		/* ═══════════════════════════════════════════
-		   INSTAGRAM GRID
+		   INSTAGRAM CAROUSEL
 		   ═══════════════════════════════════════════ */
-		.ig-grid {
-			display: grid;
-			grid-template-columns: repeat(4, minmax(0, 1fr));
-			gap: 16px;
+
+		.instagram-empty-state[hidden] {
+			display: none !important;
 		}
 
-		.ig-card {
+		.instagram-carousel-shell {
+			position: relative;
 			border: 1px solid var(--line);
-			padding: 12px;
-			background: var(--surface);
-			border-radius: var(--radius-md);
-			transition: var(--transition);
+			background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,248,245,0.98) 100%);
+			border-radius: var(--radius-lg);
+			padding: 16px 54px;
+			overflow: hidden;
 		}
 
-		.ig-card:hover {
+		.instagram-carousel-shell.empty {
+			padding: 18px;
+		}
+
+		.instagram-carousel-track {
+			display: flex;
+			gap: 18px;
+			overflow-x: auto;
+			scroll-behavior: smooth;
+			scroll-snap-type: x mandatory;
+			padding-bottom: 8px;
+			-ms-overflow-style: none;
+			scrollbar-width: none;
+		}
+
+		.instagram-carousel-track::-webkit-scrollbar {
+			display: none;
+		}
+
+		.instagram-item {
+			flex: 0 0 calc((100% - 36px) / 3);
+			scroll-snap-align: start;
+		}
+
+		.instagram-card {
+			border: 1px solid #e0e0e0;
+			padding: 0;
+			background: #fff;
+			border-radius: 12px;
+			transition: all 0.3s ease;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+		}
+
+		.instagram-card:hover {
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+			border-color: #d0d0d0;
+		}
+
+		.instagram-card-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			padding: 12px 14px;
+			border-bottom: 1px solid #f0f0f0;
+			background: #fafafa;
+			font-size: 0.9rem;
+			font-weight: 600;
+			color: #333;
+		}
+
+		.ig-title {
+			color: #1f1f1f;
+			font-weight: 700;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.instagram-badge {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 4px 8px;
+			border-radius: 999px;
+			background: rgba(128, 0, 0, 0.08);
+			color: var(--primary);
+			font-size: 0.7rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+		}
+
+		.instagram-card .embed-box {
+			flex: 1;
+			overflow-y: auto;
+			min-height: 300px;
+			max-height: 500px;
+			padding: 0;
+		}
+
+		.instagram-card .embed-box,
+		.instagram-card .embed-box iframe,
+		.instagram-media {
+			width: 100% !important;
+		}
+
+		.instagram-empty-state {
+			min-height: 160px;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			padding: 24px;
+			color: var(--ink-secondary);
+		}
+
+		.instagram-scroll-btn {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			z-index: 2;
+			width: 38px;
+			height: 38px;
+			border: 0;
+			border-radius: 999px;
+			background: var(--primary);
+			color: #fff;
 			box-shadow: var(--shadow-md);
-			transform: translateY(-3px);
+			cursor: pointer;
 		}
 
-		.ig-card .embed-box,
-		.ig-card .embed-box iframe {
-			min-height: 250px;
+		.instagram-scroll-btn.prev { left: 12px; }
+		.instagram-scroll-btn.next { right: 12px; }
+
+		.instagram-scroll-btn:hover {
+			background: var(--primary-dark);
+		}
+
+		.ig-embed-wrapper {
+			position: relative;
+			max-height: 500px;
+			overflow: auto;
+			border-radius: 0;
+			margin: 0;
+			flex-grow: 1;
+			padding: 12px;
+		}
+
+		.ig-embed-wrapper::after {
+			content: "";
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 0;
+			background: transparent;
+			pointer-events: none;
+		}
+
+		.ig-read-more-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			text-align: center;
+			padding: 11px 14px;
+			background: linear-gradient(135deg, #f05033 0%, #e1306c 100%);
+			color: #fff;
+			font-weight: 700;
+			font-size: 0.85rem;
+			border: none;
+			border-radius: 0;
+			border-top: 1px solid rgba(255, 255, 255, 0.2);
+			cursor: pointer;
+			transition: all 0.3s ease;
+			text-decoration: none;
+			margin-top: auto;
+		}
+
+		.ig-read-more-btn:hover {
+			background: linear-gradient(135deg, #e1306c 0%, #833ab4 100%);
+			transform: scale(1.02);
+		}
+
+		.ig-icon {
+			font-size: 1.1em;
 		}
 
 		/* ═══════════════════════════════════════════
@@ -1994,28 +2155,17 @@
 			</div>
 		</section>
 
-		<section class="section" aria-label="Preview postingan instagram">
+		<section class="section" aria-label="Instagram">
 			<div class="section-title">
-				<h3>Preview Postingan Instagram</h3>
-				<span class="dynamic-note">Tampilan 4 kotak menyamping untuk preview post IG.</span>
+				<h3>Instagram</h3>
 			</div>
-			<div class="ig-grid">
-				<article class="ig-card">
-					<div class="embed-box"><iframe id="igFrame1" src="" title="Instagram preview 1" loading="lazy"></iframe></div>
-					<p class="embed-note">Sumber embed IG 1 diatur panel admin.</p>
-				</article>
-				<article class="ig-card">
-					<div class="embed-box"><iframe id="igFrame2" src="" title="Instagram preview 2" loading="lazy"></iframe></div>
-					<p class="embed-note">Sumber embed IG 2 diatur panel admin.</p>
-				</article>
-				<article class="ig-card">
-					<div class="embed-box"><iframe id="igFrame3" src="" title="Instagram preview 3" loading="lazy"></iframe></div>
-					<p class="embed-note">Sumber embed IG 3 diatur panel admin.</p>
-				</article>
-				<article class="ig-card">
-					<div class="embed-box"><iframe id="igFrame4" src="" title="Instagram preview 4" loading="lazy"></iframe></div>
-					<p class="embed-note">Sumber embed IG 4 diatur panel admin.</p>
-				</article>
+			<div class="instagram-carousel-shell" id="instagramCarouselShell">
+				<button type="button" class="instagram-scroll-btn prev" id="instagramPrevBtn" aria-label="Geser Instagram ke kiri">&lsaquo;</button>
+				<button type="button" class="instagram-scroll-btn next" id="instagramNextBtn" aria-label="Geser Instagram ke kanan">&rsaquo;</button>
+				<div class="instagram-carousel-track" id="instagramCarouselTrack"></div>
+			</div>
+			<div id="instagramEmptyState" class="instagram-empty-state embed-note" hidden>
+				Belum ada post Instagram aktif. Admin dapat menambahkan konten dari panel kelola.
 			</div>
 		</section>
 
@@ -2316,12 +2466,23 @@
 		const aboutMediaDots = document.getElementById("aboutMediaDots");
 		const aboutMediaPrev = document.getElementById("aboutMediaPrev");
 		const aboutMediaNext = document.getElementById("aboutMediaNext");
+		const instagramCarouselShell = document.getElementById("instagramCarouselShell");
+		const instagramCarouselTrack = document.getElementById("instagramCarouselTrack");
+		const instagramPrevBtn = document.getElementById("instagramPrevBtn");
+		const instagramNextBtn = document.getElementById("instagramNextBtn");
+		const instagramEmptyState = document.getElementById("instagramEmptyState");
 		const homeMisaBesarNote = document.getElementById("homeMisaBesarNote");
 		const scrollTopBtn = document.getElementById("scrollTopBtn");
 		const aboutSection = document.querySelector('section[aria-label="Tentang Crembo"]');
+		
 		const CAROUSEL_STORAGE_KEY = "crembo-home-carousel-slides";
 		const ABOUT_STORAGE_KEY = "crembo-home-about-content";
 		const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
+		
+		// PERBAIKAN BUG FATAL: Variabel HOME_DATA dipindah ke atas agar tidak menyebabkan error (Crash)
+		const HOME_DATA = window.CREMBO_HOME_DATA || {};
+		const INSTAGRAM_AUTO_SECONDS = Number(HOME_DATA.instagramAutoSeconds || 4);
+
 		const DEFAULT_CAROUSEL_SLIDES = [
 			{
 				id: "default-1",
@@ -2365,7 +2526,6 @@
 			autoSeconds: 5,
 			images: []
 		};
-		const HOME_DATA = window.CREMBO_HOME_DATA || {};
 
 		let autoScrollTimer = null;
 		let slideCount = 0;
@@ -2373,6 +2533,9 @@
 		let aboutMediaIndex = 0;
 		let aboutMediaImages = [];
 		let aboutAutoSeconds = 5;
+		let instagramCarouselPaused = false;
+		let instagramAutoTimer = null;
+		let instagramAutoLastTime = null;
 
 		function syncStickyOffset() {
 			const headerHeight = topHeader ? topHeader.offsetHeight : 104;
@@ -2383,7 +2546,6 @@
 			if (!scrollTopBtn || !aboutSection) {
 				return;
 			}
-
 			const triggerPoint = aboutSection.offsetTop - Math.min(window.innerHeight * 0.2, 160);
 			const shouldShow = window.scrollY >= Math.max(0, triggerPoint);
 			scrollTopBtn.classList.toggle("show", shouldShow);
@@ -2459,7 +2621,6 @@
 			if (!homeMisaBesarNote) {
 				return;
 			}
-
 			const latestItem = readBigMassSchedules().filter(function (item) {
 				return item && (item.misaNote || item.note);
 			}).sort(function (a, b) {
@@ -2472,7 +2633,6 @@
 				homeMisaBesarNote.textContent = "Keterangan misa besar terbaru akan tampil di sini setelah registrasi disimpan.";
 				return;
 			}
-
 			homeMisaBesarNote.textContent = "Keterangan misa besar terbaru: " + String(latestItem.misaNote || latestItem.note || "-");
 		}
 
@@ -2528,6 +2688,174 @@
 			};
 		}
 
+		function normalizeInstagramPost(item, index) {
+			const title = item && item.title ? String(item.title) : "Instagram";
+			const rawUrl = item && item.url ? String(item.url).trim() : "";
+			const url = rawUrl && /^https?:\/\//i.test(rawUrl) ? rawUrl : (rawUrl ? "https://" + rawUrl : "");
+			const permalink = url ? url.replace(/\/?$/, "/") + "?utm_source=ig_embed&utm_campaign=loading" : "";
+
+			return {
+				id: item && item.id ? String(item.id) : "instagram-" + Date.now() + "-" + index,
+				title: title,
+				url: url,
+				permalink: permalink,
+				order: Number(item && item.order ? item.order : index + 1),
+				active: item && item.active !== false
+			};
+		}
+
+		function readInstagramPosts() {
+			const parsed = HOME_DATA.instagramPosts;
+			if (!Array.isArray(parsed) || !parsed.length) {
+				return [];
+			}
+
+			return parsed
+				.map(normalizeInstagramPost)
+				.filter(function (item) {
+					return item && item.active !== false && item.url && item.permalink;
+				})
+				.sort(function (a, b) {
+					return Number(a.order || 0) - Number(b.order || 0);
+				});
+		}
+
+		function clearInstagramAutoScroll() {
+			if (instagramAutoTimer) {
+				window.cancelAnimationFrame(instagramAutoTimer);
+				instagramAutoTimer = null;
+			}
+			instagramAutoLastTime = null;
+		}
+
+		function getInstagramLoopWidth() {
+			if (!instagramCarouselTrack) return 0;
+			return instagramCarouselTrack.scrollWidth / 2;
+		}
+
+		function normalizeInstagramLoop() {
+			if (!instagramCarouselTrack) return;
+
+			const loopWidth = getInstagramLoopWidth();
+			if (loopWidth <= 0) return;
+
+			if (instagramCarouselTrack.scrollLeft >= loopWidth) {
+				instagramCarouselTrack.scrollLeft -= loopWidth;
+			} else if (instagramCarouselTrack.scrollLeft < 0) {
+				instagramCarouselTrack.scrollLeft += loopWidth;
+			}
+		}
+
+		function animateInstagramCarousel(ts) {
+			if (instagramAutoLastTime === null) {
+				instagramAutoLastTime = ts;
+			}
+
+			const dt = (ts - instagramAutoLastTime) / 1000;
+			instagramAutoLastTime = ts;
+
+			if (!instagramCarouselPaused && instagramCarouselTrack) {
+				instagramCarouselTrack.scrollLeft += 28 * dt;
+				normalizeInstagramLoop();
+			}
+
+			instagramAutoTimer = window.requestAnimationFrame(animateInstagramCarousel);
+		}
+
+		function startInstagramAutoScroll() {
+			clearInstagramAutoScroll();
+			if (!instagramCarouselTrack || instagramCarouselTrack.children.length <= 1) {
+				return;
+			}
+			instagramAutoTimer = window.requestAnimationFrame(animateInstagramCarousel);
+		}
+
+		function shiftInstagram(direction) {
+			if (!instagramCarouselTrack) return;
+			const firstItem = instagramCarouselTrack.querySelector('.instagram-item');
+			if (!firstItem) return;
+
+			instagramCarouselPaused = true;
+			const gap = 18;
+			const step = firstItem.offsetWidth + gap;
+			instagramCarouselTrack.scrollBy({ left: direction * step, behavior: 'smooth' });
+			window.setTimeout(function () {
+				normalizeInstagramLoop();
+				instagramCarouselPaused = false;
+			}, 450);
+		}
+
+		function renderInstagramSection() {
+			if (!instagramCarouselTrack) return;
+
+			const posts = readInstagramPosts();
+			instagramCarouselTrack.innerHTML = "";
+
+			if (!posts.length) {
+				instagramCarouselShell.classList.add("empty");
+				if (instagramEmptyState) {
+					instagramEmptyState.hidden = false;
+					instagramEmptyState.style.display = "block"; 
+				}
+				if (instagramPrevBtn) instagramPrevBtn.hidden = true;
+				if (instagramNextBtn) instagramNextBtn.hidden = true;
+				return;
+			}
+
+			instagramCarouselShell.classList.remove("empty");
+			if (instagramEmptyState) {
+				instagramEmptyState.hidden = true;
+				instagramEmptyState.style.display = "none"; 
+			}
+			
+			if (instagramPrevBtn) instagramPrevBtn.hidden = posts.length <= 3;
+			if (instagramNextBtn) instagramNextBtn.hidden = posts.length <= 3;
+
+			posts.forEach(function (item, idx) {
+				const article = document.createElement("article");
+				article.className = "instagram-item";
+				
+				const cardId = "ig-card-" + idx;
+				
+				article.innerHTML =
+					'<div class="instagram-card" id="' + cardId + '">' +
+						'<div class="instagram-card-head">' +
+							'<span class="ig-title">' + escapeHtml(item.title || "Instagram Post") + '</span>' +
+							'<span class="instagram-badge">Aktif</span>' +
+						'</div>' +
+						'<div class="ig-embed-wrapper">' +
+							'<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="' + escapeHtml(item.permalink || item.url) + '" data-instgrm-version="14" style="margin:0 auto; width:100%; min-width:100%;"></blockquote>' +
+						'</div>' +
+						'<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="ig-read-more-btn" title="Buka di Instagram">' +
+							'<span class="ig-icon">📷</span> Lihat di Instagram' +
+						'</a>' +
+					'</div>';
+				instagramCarouselTrack.appendChild(article);
+			});
+
+			if (posts.length > 3) {
+				const originalItems = Array.prototype.slice.call(instagramCarouselTrack.children);
+				originalItems.forEach(function (item) {
+					const clone = item.cloneNode(true);
+					clone.classList.add("ig-clone");
+					instagramCarouselTrack.appendChild(clone);
+				});
+			}
+
+			if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === "function") {
+				window.instgrm.Embeds.process();
+			} else {
+                setTimeout(function() {
+                    if (window.instgrm && window.instgrm.Embeds) {
+                        window.instgrm.Embeds.process();
+                    }
+                }, 1500);
+            }
+
+			instagramCarouselPaused = false;
+			startInstagramAutoScroll();
+		}
+
 		function buildAboutDots() {
 			aboutMediaDots.innerHTML = "";
 			aboutMediaImages.forEach(function (_, index) {
@@ -2556,16 +2884,14 @@
 			const active = aboutMediaImages[aboutMediaIndex];
 			aboutMediaStage.classList.remove("empty");
 
-			// Deteksi jika tipe media adalah video, render iframe YouTube
 			if (active.type === "video") {
 				const match = active.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
 				if (match && match[1]) {
 					const embedUrl = "https://www.youtube.com/embed/" + match[1] + "?rel=0";
-					aboutMediaStage.style.backgroundImage = "none"; // Hilangkan background image
+					aboutMediaStage.style.backgroundImage = "none";
 					aboutMediaStage.innerHTML = '<iframe width="100%" height="100%" src="' + embedUrl + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius: var(--radius-md);"></iframe>';
 				}
 			} else {
-				// Jika bukan video, jalankan normal sebagai gambar
 				aboutMediaStage.style.backgroundImage = 'url("' + String(active.previewUrl || active.url || "").replace(/\"/g, "") + '")';
 				aboutMediaStage.innerHTML = "";
 			}
@@ -2580,11 +2906,9 @@
 			if (aboutSlideTimer) {
 				clearInterval(aboutSlideTimer);
 			}
-
 			if (aboutMediaImages.length <= 1) {
 				return;
 			}
-
 			aboutSlideTimer = setInterval(function () {
 				showAboutImage(aboutMediaIndex + 1);
 			}, aboutAutoSeconds * 1000);
@@ -2659,9 +2983,7 @@
 		}
 
 		function syncActiveDot() {
-			if (!slideCount) {
-				return;
-			}
+			if (!slideCount) return;
 			const slideWidth = carouselTrack.clientWidth;
 			const activeIndex = Math.round(carouselTrack.scrollLeft / slideWidth);
 			const dots = carouselDots.querySelectorAll(".dot");
@@ -2671,9 +2993,7 @@
 		}
 
 		function scrollCarousel(direction) {
-			if (!slideCount) {
-				return;
-			}
+			if (!slideCount) return;
 			const step = carouselTrack.clientWidth;
 			carouselTrack.scrollBy({ left: direction * step, behavior: "smooth" });
 		}
@@ -2682,11 +3002,9 @@
 			if (autoScrollTimer) {
 				clearInterval(autoScrollTimer);
 			}
-
 			if (slideCount <= 1) {
 				return;
 			}
-
 			autoScrollTimer = setInterval(function () {
 				const step = carouselTrack.clientWidth;
 				const atEnd = carouselTrack.scrollLeft + step >= carouselTrack.scrollWidth - 2;
@@ -2698,22 +3016,21 @@
 			}, 5000);
 		}
 
+        // INIT SEMUA FUNGSI UTAMA
 		renderCarouselSlides();
 		buildDots();
 		renderAboutSection();
+		renderInstagramSection();
+        
 		carouselTrack.addEventListener("scroll", syncActiveDot);
 		carouselPrev.addEventListener("click", function () { scrollCarousel(-1); });
 		carouselNext.addEventListener("click", function () { scrollCarousel(1); });
 		carouselTrack.addEventListener("mouseenter", function () {
-			if (autoScrollTimer) {
-				clearInterval(autoScrollTimer);
-			}
+			if (autoScrollTimer) clearInterval(autoScrollTimer);
 		});
 		carouselTrack.addEventListener("mouseleave", startAutoScroll);
 		aboutMediaStage.addEventListener("mouseenter", function () {
-			if (aboutSlideTimer) {
-				clearInterval(aboutSlideTimer);
-			}
+			if (aboutSlideTimer) clearInterval(aboutSlideTimer);
 		});
 		aboutMediaStage.addEventListener("mouseleave", startAboutAutoSlide);
 		aboutMediaPrev.addEventListener("click", function () {
@@ -2724,6 +3041,30 @@
 			showAboutImage(aboutMediaIndex + 1);
 			startAboutAutoSlide();
 		});
+		if (instagramPrevBtn) {
+			instagramPrevBtn.addEventListener("click", function () {
+				shiftInstagram(-1);
+			});
+		}
+		if (instagramNextBtn) {
+			instagramNextBtn.addEventListener("click", function () {
+				shiftInstagram(1);
+			});
+		}
+		if (instagramCarouselShell) {
+			instagramCarouselShell.addEventListener("mouseenter", function () {
+				instagramCarouselPaused = true;
+			});
+			instagramCarouselShell.addEventListener("mouseleave", function () {
+				instagramCarouselPaused = false;
+			});
+			instagramCarouselShell.addEventListener("touchstart", function () {
+				instagramCarouselPaused = true;
+			}, { passive: true });
+			instagramCarouselShell.addEventListener("touchend", function () {
+				instagramCarouselPaused = false;
+			}, { passive: true });
+		}
 		startAutoScroll();
 		updateScrollTopVisibility();
 
@@ -2877,6 +3218,7 @@
 				tableBulanan.style.display  = 'none';
 			}
 		}
-  </script>
+	</script>
+	<script async src="https://www.instagram.com/embed.js"></script>
 </body>
 </html>

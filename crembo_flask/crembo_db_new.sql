@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Apr 2026 pada 21.13
+-- Waktu pembuatan: 29 Apr 2026 pada 21.38
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -119,6 +119,32 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (73, 'Aoki', 'Aoki', '085743665416', 'scrypt:32768:8:1$uVLwUhPRoRMREi5O$401e7e9b5f793f89952b3845f87ebec60e64faff8655f816ef82541465a7a0e2b82b02aa00602ec61f6a75c939d2e528d671547a507b46c4f4b0629c752103b5', 'user', '', 'gizelleraina2401@gmail.com', 'Alamat belum diisi', 'aktif', '2026-04-30 01:16:14', '2026-04-30 01:16:14'),
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-04-30 01:16:14', '2026-04-30 01:16:14'),
 (75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', 'Alamat belum diisi', 'aktif', '2026-04-30 01:16:14', '2026-04-30 01:16:14');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `instagram_posts`
+--
+
+CREATE TABLE `instagram_posts` (
+  `id_instagram` varchar(100) NOT NULL,
+  `judul_instagram` varchar(200) NOT NULL,
+  `url_instagram` varchar(255) NOT NULL,
+  `urutan` int(11) NOT NULL DEFAULT 0,
+  `tgl_instagram` datetime DEFAULT current_timestamp(),
+  `ip` varchar(25) DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `instagram_posts`
+--
+
+INSERT INTO `instagram_posts` (`id_instagram`, `judul_instagram`, `url_instagram`, `urutan`, `tgl_instagram`, `ip`, `status`) VALUES
+('ig-1777491045898', 'Oprec Crembo 2025', 'https://www.instagram.com/p/DLM-_zlzR2Q/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 1, '2026-04-30 02:32:56', '127.0.0.1', 1),
+('ig-1777491111872', 'Tipe-tipe petugas Crembo waktu Misa', 'https://www.instagram.com/reel/DWszMKVDd4H/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 2, '2026-04-30 02:32:56', '127.0.0.1', 1),
+('ig-1777491154924', 'Dokum Tablo 2025', 'https://www.instagram.com/p/DIwR16YSqQf/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 3, '2026-04-30 02:32:56', '127.0.0.1', 1),
+('ig-1777491176427', 'Dokum Minggu Palma 2025', 'https://www.instagram.com/p/DIdUeCkRUyz/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 4, '2026-04-30 02:32:56', '127.0.0.1', 1);
 
 -- --------------------------------------------------------
 
@@ -1766,6 +1792,12 @@ CREATE TABLE `tugas_form_slot` (
 ALTER TABLE `anggota`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_anggota_username` (`username`);
+
+--
+-- Indeks untuk tabel `instagram_posts`
+--
+ALTER TABLE `instagram_posts`
+  ADD PRIMARY KEY (`id_instagram`);
 
 --
 -- Indeks untuk tabel `kegiatan`

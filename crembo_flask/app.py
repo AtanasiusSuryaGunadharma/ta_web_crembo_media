@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import re
+import time
 
 import mysql.connector
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_from_directory, session, url_for
@@ -259,6 +260,21 @@ def ensure_auth_schema() -> None:
         '''
     )
 
+    cursor.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS `instagram_posts` (
+          `id_instagram` varchar(100) NOT NULL,
+          `judul_instagram` varchar(200) NOT NULL,
+          `url_instagram` varchar(255) NOT NULL,
+          `urutan` int(11) NOT NULL DEFAULT 0,
+          `tgl_instagram` datetime DEFAULT CURRENT_TIMESTAMP,
+          `ip` varchar(25) DEFAULT NULL,
+          `status` tinyint(1) NOT NULL DEFAULT 1,
+          PRIMARY KEY (`id_instagram`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        '''
+    )
+
     conn.commit()
     cursor.close()
     conn.close()
@@ -402,6 +418,87 @@ def load_about_content_from_db() -> dict[str, object]:
         return default_about
 
 
+def is_valid_instagram_url(url: str) -> bool:
+    return bool(re.match(r"^https?://(www\.)?(instagram\.com|instagr\.am)/(p|reel|tv)/[A-Za-z0-9_\-\.]+/?", (url or "").strip(), re.IGNORECASE))
+
+
+def normalize_instagram_url(url: str) -> str:
+    raw = (url or "").strip()
+    if raw and not re.match(r"^https?://", raw, re.IGNORECASE):
+        raw = "https://" + raw
+    return raw
+
+
+def load_instagram_posts_from_db(limit: int | None = None, active_only: bool = True) -> list[dict[str, object]]:
+    try:
+        ensure_auth_schema()
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        sql = "SELECT `id_instagram`, `judul_instagram`, `url_instagram`, `urutan`, `status`, `tgl_instagram` FROM `instagram_posts`"
+        if active_only:
+            sql += " WHERE `status` = 1"
+        sql += " ORDER BY `urutan` ASC, `id_instagram` DESC"
+        if limit is not None:
+            sql += " LIMIT %s"
+            cursor.execute(sql, (int(limit),))
+        else:
+            cursor.execute(sql)
+        rows = cursor.fetchall() or []
+        cursor.close()
+        conn.close()
+        return [
+            {
+                "id": row.get("id_instagram"),
+                "title": row.get("judul_instagram") or "Instagram",
+                "url": row.get("url_instagram") or "",
+                "order": row.get("urutan") or 0,
+                "active": bool(row.get("status")),
+                "createdAt": row.get("tgl_instagram") or "",
+            }
+            for row in rows
+        ]
+    except Exception:
+        return []
+
+
+def save_instagram_posts_payload(payload: list[dict[str, object]]) -> int:
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute("DELETE FROM `instagram_posts`")
+        saved_count = 0
+        for index, item in enumerate(payload, start=1):
+            title = str(item.get("title") or item.get("judul") or "").strip()
+            url = normalize_instagram_url(str(item.get("url") or item.get("url_instagram") or "").strip())
+            if not title or not url or not is_valid_instagram_url(url):
+                continue
+
+            post_id = str(item.get("id") or item.get("id_instagram") or f"ig-{index}-{int(time.time())}")
+            order_value = int(item.get("order") or item.get("urutan") or index)
+            active_value = 1 if item.get("active", True) else 0
+
+            cursor.execute(
+                """
+                INSERT INTO `instagram_posts`
+                (`id_instagram`, `judul_instagram`, `url_instagram`, `urutan`, `tgl_instagram`, `ip`, `status`)
+                VALUES (%s, %s, %s, %s, NOW(), %s, %s)
+                """,
+                (post_id, title, url, order_value, request.remote_addr or "127.0.0.1", active_value),
+            )
+            saved_count += 1
+
+        conn.commit()
+        return saved_count
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def build_home_page_data() -> dict[str, object]:
     return {
         "carouselSlides": [
@@ -440,7 +537,9 @@ def build_home_page_data() -> dict[str, object]:
             },
         ],
         "aboutContent": load_about_content_from_db(),
+        "instagramPosts": load_instagram_posts_from_db(limit=12, active_only=True),
         "bigMassSchedules": [],
+        "instagramAutoSeconds": 4,
         "profileMenu": [
             {"id": "sejarah", "label": "Sejarah"},
             {"id": "tentang-crembo", "label": "Tentang Crembo"},
@@ -770,6 +869,23 @@ def sync_tentang_media():
     cursor.close()
     conn.close()
     return jsonify({"success": True, "count": len(payload)})
+
+
+@app.route("/api/instagram/posts", methods=["GET"])
+def get_instagram_posts():
+    ensure_auth_schema()
+    return jsonify({"ok": True, "posts": load_instagram_posts_from_db(limit=None, active_only=False)})
+
+
+@app.route("/api/instagram/posts/sync", methods=["POST"])
+def sync_instagram_posts():
+    ensure_auth_schema()
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, list):
+        return jsonify({"ok": False, "message": "Invalid payload format"}), 400
+
+    saved_count = save_instagram_posts_payload(payload)
+    return jsonify({"ok": True, "count": saved_count})
 
 import werkzeug.utils
 

@@ -580,7 +580,7 @@
         <p>Modul kelola embed Instagram</p>
       </div>
 
-      <div class="menu-group">
+      <div class="menu-group open">
         <button class="group-toggle" type="button">Konten Utama Website <span>-</span></button>
         <div class="group-items">
           <a class="menu-link" href="kelola-carousel-home.html">Kelola Carousel Home</a>
@@ -691,9 +691,6 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "crembo-home-instagram-posts";
-    const DEFAULT_POSTS = [];
-
     const roleChip = document.getElementById("roleChip");
     const liveDateTime = document.getElementById("liveDateTime");
     const formTitle = document.getElementById("formTitle");
@@ -712,27 +709,11 @@
     const urlPreview = document.getElementById("urlPreview");
 
     let draggingPostId = "";
-
-    function extractInstagramPostId(url) {
-      if (!url) return "";
-      
-      // Format: https://www.instagram.com/p/POST_ID/ atau https://instagram.com/p/POST_ID/
-      const match = url.match(/(?:instagram\.com|instagr\.am)\/(?:p|reel)\/([a-zA-Z0-9_-]+)/);
-      if (match) return match[1];
-      
-      return "";
-    }
-
-    function getInstagramGraphUrl(postId) {
-      if (!postId) return "";
-      // Instagram membutuhkan API untuk mendapatkan preview, tapi kita akan gunakan placeholder
-      return "instagram-" + postId;
-    }
+    let instagramPosts = [];
 
     function getCurrentRole() {
       const params = new URLSearchParams(window.location.search);
       const roleFromQuery = params.get("role");
-
       let roleFromStorage = "";
       const storedSessionRaw = localStorage.getItem("crembo-login-session");
       if (storedSessionRaw) {
@@ -743,17 +724,12 @@
           roleFromStorage = "";
         }
       }
-
       return roleFromQuery || roleFromStorage || "admin";
     }
 
     function formatRole(role) {
-      if (role === "super_admin") {
-        return "Super Admin";
-      }
-      if (role === "admin") {
-        return "Admin";
-      }
+      if (role === "super_admin") return "Super Admin";
+      if (role === "admin") return "Admin";
       return "Anggota";
     }
 
@@ -766,36 +742,20 @@
         .replace(/'/g, "&#039;");
     }
 
-    function normalizePost(item) {
+    function extractInstagramPostId(url) {
+      if (!url) return "";
+      const match = url.match(/(?:instagram\.com|instagr\.am)\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
+      return match ? match[1] : "";
+    }
+
+    function normalizePost(item, index) {
       return {
-        id: item && item.id ? String(item.id) : "post-" + Date.now(),
+        id: item && item.id ? String(item.id) : "ig-" + Date.now() + "-" + index,
         title: item && item.title ? String(item.title) : "",
         url: item && item.url ? String(item.url) : "",
-        order: Number(item && item.order ? item.order : 0),
+        order: Number(item && item.order ? item.order : index + 1),
         active: item && item.active !== false
       };
-    }
-
-    function readPosts() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-          return DEFAULT_POSTS.slice();
-        }
-
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed) || !parsed.length) {
-          return DEFAULT_POSTS.slice();
-        }
-
-        return parsed.map(normalizePost);
-      } catch (error) {
-        return DEFAULT_POSTS.slice();
-      }
-    }
-
-    function writePosts(posts) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
     }
 
     function sortPosts(posts) {
@@ -804,6 +764,18 @@
           return a.title.localeCompare(b.title, "id", { sensitivity: "base" });
         }
         return a.order - b.order;
+      });
+    }
+
+    function renumberPosts(posts) {
+      return sortPosts(posts).map(function (item, index) {
+        return {
+          id: item.id,
+          title: item.title,
+          url: item.url,
+          order: index + 1,
+          active: item.active !== false
+        };
       });
     }
 
@@ -817,25 +789,107 @@
       statusMessage.textContent = "";
     }
 
+    function getNextOrder() {
+      if (!instagramPosts.length) {
+        return 1;
+      }
+      return Math.max.apply(null, instagramPosts.map(function (item) {
+        return Number(item.order || 0);
+      })) + 1;
+    }
+
     function resetForm() {
       instagramForm.reset();
       postId.value = "";
       formTitle.textContent = "Tambah Post Instagram Baru";
       submitBtn.textContent = "Simpan Post";
       cancelEditBtn.hidden = true;
-      postOrder.value = "0";
+      postOrder.value = String(getNextOrder());
       isActive.checked = true;
       urlPreview.style.display = "none";
       urlPreview.innerHTML = "";
       clearStatus();
     }
 
+    function showUrlPreview(url) {
+      if (!url) {
+        urlPreview.style.display = "none";
+        urlPreview.innerHTML = "";
+        return;
+      }
+
+      const postIdVal = extractInstagramPostId(url);
+      const isValidInstagram = /instagram\.com|instagr\.am/i.test(url);
+
+      if (isValidInstagram && postIdVal) {
+        urlPreview.innerHTML = '<div style="color: #116d3f; font-weight: 600;">URL Instagram valid</div>';
+        urlPreview.style.color = "#116d3f";
+      } else if (isValidInstagram) {
+        urlPreview.innerHTML = '<div style="color: #9b5b00; font-weight: 600;">Format URL Instagram belum lengkap</div>';
+        urlPreview.style.color = "#9b5b00";
+      } else {
+        urlPreview.innerHTML = '<div style="color: #9b5b00; font-weight: 600;">Pastikan URL berasal dari Instagram</div>';
+        urlPreview.style.color = "#9b5b00";
+      }
+
+      urlPreview.style.display = "block";
+    }
+
+    async function loadPosts() {
+      try {
+        const res = await fetch("/api/instagram/posts");
+        const data = await res.json();
+        instagramPosts = Array.isArray(data.posts) ? data.posts.map(normalizePost) : [];
+        instagramPosts = renumberPosts(instagramPosts);
+        renderRows();
+        if (!postId.value) {
+          postOrder.value = String(getNextOrder());
+        }
+        if (!instagramPosts.length) {
+          emptyState.hidden = false;
+        }
+      } catch (error) {
+        instagramPosts = [];
+        renderRows();
+        emptyState.hidden = false;
+        setStatus("Gagal memuat data Instagram dari database.", "warn");
+      }
+    }
+
+    async function syncPosts(successMessage, failureMessage) {
+      const payload = renumberPosts(instagramPosts);
+      try {
+        const res = await fetch("/api/instagram/posts/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok || !result.ok) {
+          setStatus(failureMessage || "Gagal menyimpan data Instagram.", "danger");
+          return false;
+        }
+
+        instagramPosts = payload;
+        renderRows();
+        if (!postId.value) {
+          postOrder.value = String(getNextOrder());
+        }
+        setStatus(successMessage || "Perubahan berhasil disimpan ke database.", "ok");
+        return true;
+      } catch (error) {
+        setStatus(failureMessage || "Kesalahan jaringan.", "danger");
+        return false;
+      }
+    }
+
     function renderRows() {
-      const posts = sortPosts(readPosts());
+      const posts = sortPosts(instagramPosts);
       postRows.innerHTML = "";
 
       if (!posts.length) {
         emptyState.hidden = false;
+        emptyState.textContent = "Belum ada post Instagram aktif. Tambahkan data agar tampil di home.";
         return;
       }
 
@@ -847,7 +901,9 @@
         tr.setAttribute("data-post-id", post.id);
 
         const postIdVal = extractInstagramPostId(post.url);
-        const previewHtml = postIdVal ? '<div class="preview-placeholder">📷</div>' : '<div class="preview-placeholder">No Preview</div>';
+        const previewHtml = postIdVal ? '<div class="preview-placeholder">IG</div>' : '<div class="preview-placeholder">No Preview</div>';
+        const toggleLabel = post.active ? "Sembunyikan" : "Tampilkan";
+        const toggleClass = post.active ? "btn ghost" : "btn primary";
 
         tr.innerHTML =
           '<td data-label="Preview" class="preview-cell">' + previewHtml + '</td>' +
@@ -858,6 +914,7 @@
           '<td data-label="Status"><span class="state-pill' + (post.active ? ' active' : '') + '">' + (post.active ? 'Aktif' : 'Nonaktif') + '</span></td>' +
           '<td data-label="Aksi"><div class="action-stack">' +
             '<button class="btn ghost" type="button" data-edit-id="' + escapeHtml(post.id) + '">Edit</button>' +
+            '<button class="btn ' + (post.active ? 'ghost' : 'primary') + '" type="button" data-toggle-id="' + escapeHtml(post.id) + '">' + toggleLabel + '</button>' +
             '<button class="btn warn" type="button" data-delete-id="' + escapeHtml(post.id) + '">Hapus</button>' +
           '</div></td>';
 
@@ -899,8 +956,8 @@
       });
     }
 
-    function reorderPosts(sourceId, targetId) {
-      const posts = sortPosts(readPosts());
+    async function reorderPosts(sourceId, targetId) {
+      const posts = sortPosts(instagramPosts);
       const sourceIndex = posts.findIndex(function (item) { return item.id === sourceId; });
       const targetIndex = posts.findIndex(function (item) { return item.id === targetId; });
 
@@ -910,17 +967,11 @@
 
       const moved = posts.splice(sourceIndex, 1)[0];
       posts.splice(targetIndex, 0, moved);
-
-      posts.forEach(function (item, index) {
-        item.order = index + 1;
-      });
-
-      writePosts(posts);
-      renderRows();
-      setStatus("Urutan post berhasil diperbarui dengan drag and drop.", "ok");
+      instagramPosts = renumberPosts(posts);
+      await syncPosts("Urutan post berhasil diperbarui.");
     }
 
-    function savePost(event) {
+    async function savePost(event) {
       event.preventDefault();
 
       const title = postTitle.value.trim();
@@ -936,36 +987,36 @@
         return;
       }
 
-      const id = postId.value || ("post-" + Date.now());
+      if (!extractInstagramPostId(url)) {
+        setStatus("Masukkan URL Instagram post/reel/tv yang valid.", "warn");
+        return;
+      }
+
+      const id = postId.value || ("ig-" + Date.now());
       const payload = normalizePost({
         id: id,
         title: title,
         url: url,
-        order: Number(postOrder.value || 0),
+        order: Number(postOrder.value || getNextOrder()),
         active: isActive.checked
-      });
+      }, instagramPosts.length + 1);
 
-      const posts = readPosts();
-      const idx = posts.findIndex(function (item) {
+      const idx = instagramPosts.findIndex(function (item) {
         return item.id === id;
       });
 
       if (idx >= 0) {
-        posts[idx] = payload;
-        setStatus("Post berhasil diupdate.", "ok");
+        instagramPosts[idx] = payload;
       } else {
-        posts.push(payload);
-        setStatus("Post berhasil ditambahkan.", "ok");
+        instagramPosts.push(payload);
       }
 
-      writePosts(posts);
-      renderRows();
+      await syncPosts(idx >= 0 ? "Post berhasil diupdate." : "Post berhasil ditambahkan.");
       resetForm();
     }
 
     function editPost(id) {
-      const posts = readPosts();
-      const item = posts.find(function (post) {
+      const item = instagramPosts.find(function (post) {
         return post.id === id;
       });
 
@@ -987,43 +1038,29 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function deletePost(id) {
+    async function deletePost(id) {
       const ok = window.confirm("Hapus post ini? Tindakan ini tidak dapat dibatalkan.");
       if (!ok) {
         return;
       }
 
-      const posts = readPosts().filter(function (item) {
+      instagramPosts = instagramPosts.filter(function (item) {
         return item.id !== id;
       });
-      writePosts(posts);
-      renderRows();
+      await syncPosts("Post berhasil dihapus.");
       resetForm();
-      setStatus("Post berhasil dihapus.", "ok");
     }
 
-    function showUrlPreview(url) {
-      if (!url) {
-        urlPreview.style.display = "none";
-        urlPreview.innerHTML = "";
+    async function togglePost(id) {
+      const item = instagramPosts.find(function (post) {
+        return post.id === id;
+      });
+      if (!item) {
         return;
       }
 
-      const postIdVal = extractInstagramPostId(url);
-      const isValidInstagram = url.includes("instagram.com") || url.includes("instagr.am");
-
-      if (isValidInstagram && postIdVal) {
-        urlPreview.innerHTML = '<div style="color: #116d3f; font-weight: 600;">\✓ URL Instagram valid</div>';
-        urlPreview.style.color = "#116d3f";
-      } else if (isValidInstagram) {
-        urlPreview.innerHTML = '<div style="color: #9b5b00; font-weight: 600;">\⚠ Format URL tidak terkenali</div>';
-        urlPreview.style.color = "#9b5b00";
-      } else {
-        urlPreview.innerHTML = '<div style="color: #9b5b00; font-weight: 600;">\⚠ Pastikan URL dari Instagram</div>';
-        urlPreview.style.color = "#9b5b00";
-      }
-
-      urlPreview.style.display = "block";
+      item.active = !item.active;
+      await syncPosts(item.active ? "Post ditampilkan di home." : "Post disembunyikan dari home.");
     }
 
     function updateLiveDateTime() {
@@ -1042,7 +1079,6 @@
 
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
-
     roleChip.textContent = "Role: " + formatRole(getCurrentRole());
 
     instagramForm.addEventListener("submit", savePost);
@@ -1053,8 +1089,8 @@
     });
 
     postRows.addEventListener("click", function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLButtonElement)) {
+      const target = event.target.closest("button");
+      if (!target) {
         return;
       }
 
@@ -1064,13 +1100,20 @@
         return;
       }
 
+      const toggleId = target.getAttribute("data-toggle-id");
+      if (toggleId) {
+        togglePost(toggleId);
+        return;
+      }
+
       const deleteId = target.getAttribute("data-delete-id");
       if (deleteId) {
         deletePost(deleteId);
       }
     });
 
-    renderRows();
+    resetForm();
+    loadPosts();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>
