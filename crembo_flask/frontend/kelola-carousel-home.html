@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -707,6 +707,13 @@
       if (!slideId.value) {
         slugInput.value = slugify(titleInput.value);
       }
+    });
+
+    clearImageBtn.addEventListener("click", function () {
+      backgroundImage.value = "";
+      backgroundFile.value = "";
+      renderImagePreview("", "");
+      setStatus("✓ Gambar dihapus", "ok");
     });
 
     resetFormBtn.addEventListener("click", resetForm);
