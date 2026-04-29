@@ -657,14 +657,17 @@ def set_tentang_config():
         auto_seconds = int(data.get("autoSeconds", 5))
     except (ValueError, TypeError):
         auto_seconds = 5
-        
+
     conn = mysql_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE `tentang_crembo_config` 
-        SET `description`=%s, `button_text`=%s, `button_link`=%s, `auto_seconds`=%s 
-                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    cursor.execute(
+        """
+        UPDATE `tentang_crembo_config`
+        SET `description`=%s, `button_text`=%s, `button_link`=%s, `auto_seconds`=%s
+        WHERE `id`=1
+        """,
+        (description, button_text, button_link, auto_seconds),
+    )
     conn.commit()
     cursor.close()
     conn.close()
