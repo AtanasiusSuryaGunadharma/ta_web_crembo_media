@@ -625,7 +625,9 @@
         <div>
           <h2 class="headline">Dashboard Anggota Crembo Media</h2>
           <p class="subhead">Pengaturan profil, password, dan status keanggotaan tampil dalam satu halaman.</p>
-          window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+          <script>
+            window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+          </script>
         </div>
         <div class="quick-filter" aria-label="Ringkasan cepat anggota">
           <span class="chip"><strong>Status:</strong> Aktif</span>
@@ -651,7 +653,7 @@
             <form id="profileForm" class="panel-body">
               <div class="field">
                 <label for="fullName">Nama Lengkap</label>
-                <input id="fullName" type="text" required>
+                <input id="fullName" type="text" readonly required>
               </div>
               <div class="field">
                 <label for="memberUsername">Username</label>
@@ -1198,7 +1200,7 @@
       memberRole.value = profile.role;
     }
 
-    function saveProfile(event) {
+    async function saveProfile(event) {
       event.preventDefault();
       const currentProfile = readProfile();
       const payload = {
@@ -1216,12 +1218,26 @@
         return;
       }
 
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
-      renderProfile();
-      showNotify("Profil anggota berhasil diperbarui.");
+      try {
+        const response = await fetch("/api/profile/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!result.ok) {
+          showNotify("Gagal: " + result.message);
+          return;
+        }
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
+        renderProfile();
+        showNotify("Profil anggota berhasil diperbarui.");
+      } catch (e) {
+        showNotify("Terjadi kesalahan jaringan.");
+      }
     }
 
-    function submitPassword(event) {
+    async function submitPassword(event) {
       event.preventDefault();
       if (newPassword.value.length < 6) {
         showNotify("Password baru minimal 6 karakter.");
@@ -1231,10 +1247,27 @@
         showNotify("Konfirmasi password tidak cocok.");
         return;
       }
-      currentPassword.value = "";
-      newPassword.value = "";
-      confirmPassword.value = "";
-      showNotify("Password berhasil diperbarui.");
+      try {
+        const response = await fetch("/api/profile/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            currentPassword: currentPassword.value,
+            newPassword: newPassword.value
+          })
+        });
+        const result = await response.json();
+        if (!result.ok) {
+          showNotify("Gagal: " + result.message);
+          return;
+        }
+        currentPassword.value = "";
+        newPassword.value = "";
+        confirmPassword.value = "";
+        showNotify("Password berhasil diperbarui.");
+      } catch (e) {
+        showNotify("Terjadi kesalahan jaringan.");
+      }
     }
 
     function formatDate(value) {

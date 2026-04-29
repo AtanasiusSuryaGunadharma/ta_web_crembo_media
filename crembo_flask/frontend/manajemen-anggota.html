@@ -772,7 +772,13 @@
     }
 
     function defaultPasswordFromBirthDate(birthDate) {
-      return String(birthDate || "").replace(/-/g, "");
+      const raw = String(birthDate || "").trim();
+      if (!raw) return "";
+      const parts = raw.split("-");
+      if (parts.length === 3) {
+        return parts[2] + "/" + parts[1] + "/" + parts[0];
+      }
+      return raw;
     }
 
     function normalizeRegisteredAt(value) {
@@ -1368,6 +1374,17 @@
 
       if (!payload.name || !payload.username || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
         showNotify("Nama, username, email, nomor WA, alamat, dan tanggal lahir wajib diisi.");
+        return;
+      }
+
+      // Validasi unik untuk username, email, dan telepon
+      const isDuplicate = members.some(function(m) {
+        if (m.id === payload.id) return false;
+        return m.username === payload.username || m.email === payload.email || m.phone === payload.phone;
+      });
+
+      if (isDuplicate) {
+        showNotify("Username, email, atau nomor WA sudah digunakan oleh anggota lain.");
         return;
       }
 

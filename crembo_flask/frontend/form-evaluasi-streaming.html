@@ -220,7 +220,114 @@
       .brand h1{font-size:.96rem;}
       .brand p{font-size:.72rem;}
     }
-  </style>
+  
+		/* ═══════════════════════════════════════════
+		   USER DROPDOWN
+		   ═══════════════════════════════════════════ */
+		.user-dropdown {
+			position: relative;
+			display: inline-block;
+		}
+
+		.user-dropdown-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: var(--surface);
+			border: 1.5px solid var(--line);
+			padding: 6px 14px;
+			border-radius: 999px;
+			cursor: pointer;
+			font-size: 0.88rem;
+			font-family: inherit;
+			font-weight: 600;
+			color: var(--ink);
+			transition: var(--transition);
+		}
+
+		.user-dropdown-btn:hover {
+			border-color: var(--primary);
+			box-shadow: var(--shadow-sm);
+		}
+
+		.user-dropdown-btn .avatar {
+			width: 28px;
+			height: 28px;
+			border-radius: 50%;
+			background: var(--primary-light);
+			color: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 0.8rem;
+			font-weight: 700;
+		}
+
+		.user-dropdown-menu {
+			position: absolute;
+			top: calc(100% + 8px);
+			right: 0;
+			background: var(--surface);
+			border: 1px solid var(--line);
+			border-radius: var(--radius-md);
+			box-shadow: var(--shadow-md);
+			min-width: 220px;
+			opacity: 0;
+			visibility: hidden;
+			transform: translateY(-10px);
+			transition: var(--transition);
+			z-index: 1200;
+			overflow: hidden;
+		}
+
+		.user-dropdown:hover .user-dropdown-menu,
+		.user-dropdown:focus-within .user-dropdown-menu {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+		}
+
+		.user-dropdown-header {
+			padding: 12px 16px;
+			background: var(--bg-warm);
+			border-bottom: 1px solid var(--line-soft);
+		}
+
+		.user-dropdown-header p {
+			margin: 0;
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--primary);
+		}
+
+		.user-dropdown-header span {
+			display: block;
+			font-size: 0.75rem;
+			color: var(--muted);
+			margin-top: 2px;
+		}
+
+		.user-dropdown-links {
+			display: flex;
+			flex-direction: column;
+			padding: 8px 0;
+		}
+
+		.user-dropdown-links a {
+			padding: 10px 16px;
+			font-size: 0.88rem;
+			color: var(--ink-secondary);
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			transition: var(--transition);
+		}
+
+		.user-dropdown-links a:hover {
+			background: var(--hover);
+			color: var(--primary);
+		}
+	</style>
 </head>
 <body>
   <header class="top-header" id="topHeader">
@@ -253,7 +360,28 @@
           <input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
           <button type="submit">Cari</button>
         </form>
-        <a class="btn-login" href="login.html">Login</a>
+        				{% if current_user.logged_in %}
+				<div class="user-dropdown">
+					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
+						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
+						<span>{{ current_user.nama.split()[0] if current_user.nama else current_user.username }}</span>
+					</button>
+					<div class="user-dropdown-menu">
+						<div class="user-dropdown-header">
+							<p>{{ current_user.nama }}</p>
+							<span>{{ current_user.email }}</span>
+							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
+						</div>
+						<div class="user-dropdown-links">
+							<a href="dashboard.html">Dashboard</a>
+							<a href="profil.html">Pengaturan Profil</a>
+							<a href="/logout" style="color: var(--accent);">Keluar</a>
+						</div>
+					</div>
+				</div>
+				{% else %}
+				<a class="btn-login" href="login.html">Login</a>
+				{% endif %}
       </div>
     </div>
   </div>

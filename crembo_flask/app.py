@@ -159,7 +159,13 @@ def hash_member_password(password_value: str, birth_date: str) -> str:
 
 
 def default_password_from_birth_date(birth_date: str) -> str:
-    return re.sub(r"[^0-9]", "", birth_date or "")
+    raw = (birth_date or "").strip()
+    if not raw:
+        return ""
+    parts = raw.split("-")
+    if len(parts) == 3:
+        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    return raw
 
 
 def ensure_column(cursor, table_name: str, column_name: str, definition: str) -> None:
@@ -525,6 +531,95 @@ def api_anggota_sync():
 
     sync_members_from_payload(members)
     return jsonify({"ok": True, "members": read_members_for_admin()})
+
+
+@app.route("/api/profile/update", methods=["POST"])
+def api_profile_update():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    # Extract fields (do not allow updating role, nama, etc. if not authorized)
+    # The requirement is that full name is readonly, so we skip it.
+    username = payload.get("username", "").strip()
+    email = payload.get("email", "").strip()
+    telp = payload.get("phone", "").strip()
+    alamat = payload.get("address", "").strip()
+    tgl_lahir = payload.get("birthDate", "").strip()
+
+    if not username or not email:
+        return jsonify({"ok": False, "message": "Username dan email wajib diisi."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        user_id = session.get("user_id")
+        
+        # Check uniqueness of username and email (excluding current user)
+        cursor.execute("SELECT id FROM anggota WHERE (username = %s OR email = %s OR telp = %s) AND id != %s", (username, email, telp, user_id))
+        if cursor.fetchone():
+            return jsonify({"ok": False, "message": "Username, email, atau telepon sudah digunakan oleh akun lain."}), 400
+            
+        cursor.execute(
+            """
+            UPDATE anggota 
+            SET username = %s, email = %s, telp = %s, alamat = %s, tgl_lahir = %s
+            WHERE id = %s
+            """,
+            (username, email, telp, alamat, tgl_lahir, user_id)
+        )
+        conn.commit()
+        
+        # Update session
+        session["username"] = username
+        session["email"] = email
+        session["telp"] = telp
+        session["alamat"] = alamat
+        session["tgl_lahir"] = tgl_lahir
+        
+        return jsonify({"ok": True, "message": "Profil berhasil diperbarui."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/profile/password", methods=["POST"])
+def api_profile_password():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    current_password = payload.get("currentPassword", "")
+    new_password = payload.get("newPassword", "")
+
+    if len(new_password) < 6:
+        return jsonify({"ok": False, "message": "Password baru minimal 6 karakter."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        user_id = session.get("user_id")
+        cursor.execute("SELECT password, tgl_lahir FROM anggota WHERE id = %s", (user_id,))
+        row = cursor.fetchone()
+        
+        if not row or not check_password_hash(row["password"], current_password):
+            return jsonify({"ok": False, "message": "Password saat ini salah."}), 400
+            
+        hashed_new_password = hash_member_password(new_password, row.get("tgl_lahir", ""))
+        
+        cursor.execute("UPDATE anggota SET password = %s WHERE id = %s", (hashed_new_password, user_id))
+        conn.commit()
+        
+        return jsonify({"ok": True, "message": "Password berhasil diperbarui."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route("/<path:page>")

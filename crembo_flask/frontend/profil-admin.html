@@ -400,7 +400,7 @@
           <form id="profileForm" class="panel-body">
             <div class="field">
               <label for="fullNameInput">Nama Lengkap</label>
-              <input id="fullNameInput" type="text" required>
+              <input id="fullNameInput" type="text" readonly required>
             </div>
             <div class="field">
               <label for="usernameInput">Username</label>
@@ -728,7 +728,7 @@
       renderPermissionPanel();
     }
 
-    function saveProfile(event) {
+    async function saveProfile(event) {
       event.preventDefault();
 
       const payload = {
@@ -745,44 +745,59 @@
         return;
       }
 
-      if (role === "super_admin") {
-        localStorage.setItem(SUPER_ADMIN_PROFILE_KEY, JSON.stringify(payload));
-      } else {
-        const admins = readAdmins();
-        const data = {
-          id: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].id || ("adm-" + Date.now())) : ("adm-" + Date.now()),
-          role: "admin",
-          status: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].status || "Aktif") : "Aktif",
-          loginIdentifier: currentAdminIndex >= 0
-            ? String(admins[currentAdminIndex].loginIdentifier || payload.email)
-            : String(session.identifier || payload.email),
-          permissions: currentAdminIndex >= 0
-            ? normalizePermissions(admins[currentAdminIndex].permissions || activePermissions)
-            : normalizePermissions(activePermissions),
-          createdAt: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].createdAt || new Date().toISOString()) : new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          fullName: payload.fullName,
-          username: payload.username,
-          email: payload.email,
-          phone: payload.phone,
-          address: payload.address,
-          birthDate: payload.birthDate
-        };
-
-        if (currentAdminIndex >= 0) {
-          admins[currentAdminIndex] = Object.assign({}, admins[currentAdminIndex], data);
-        } else {
-          admins.push(data);
-          currentAdminIndex = admins.length - 1;
+      try {
+        const response = await fetch("/api/profile/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!result.ok) {
+          showNotify("Gagal: " + result.message);
+          return;
         }
-        saveAdmins(admins);
-      }
 
-      const nextSession = Object.assign({}, session, {
-        fullName: payload.fullName
-      });
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(nextSession));
-      showNotify("Profil berhasil diperbarui.");
+        if (role === "super_admin") {
+          localStorage.setItem(SUPER_ADMIN_PROFILE_KEY, JSON.stringify(payload));
+        } else {
+          const admins = readAdmins();
+          const data = {
+            id: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].id || ("adm-" + Date.now())) : ("adm-" + Date.now()),
+            role: "admin",
+            status: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].status || "Aktif") : "Aktif",
+            loginIdentifier: currentAdminIndex >= 0
+              ? String(admins[currentAdminIndex].loginIdentifier || payload.email)
+              : String(session.identifier || payload.email),
+            permissions: currentAdminIndex >= 0
+              ? normalizePermissions(admins[currentAdminIndex].permissions || activePermissions)
+              : normalizePermissions(activePermissions),
+            createdAt: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].createdAt || new Date().toISOString()) : new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            fullName: payload.fullName,
+            username: payload.username,
+            email: payload.email,
+            phone: payload.phone,
+            address: payload.address,
+            birthDate: payload.birthDate
+          };
+
+          if (currentAdminIndex >= 0) {
+            admins[currentAdminIndex] = Object.assign({}, admins[currentAdminIndex], data);
+          } else {
+            admins.push(data);
+            currentAdminIndex = admins.length - 1;
+          }
+          saveAdmins(admins);
+        }
+
+        const nextSession = Object.assign({}, session, {
+          fullName: payload.fullName
+        });
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(nextSession));
+        showNotify("Profil berhasil diperbarui.");
+      } catch (e) {
+        showNotify("Terjadi kesalahan jaringan.");
+      }
     }
 
     function accountPasswordKey() {
@@ -804,7 +819,7 @@
       return parsed && typeof parsed === "object" ? parsed : {};
     }
 
-    function savePassword(event) {
+    async function savePassword(event) {
       event.preventDefault();
       if (newPasswordInput.value.length < 6) {
         showNotify("Password baru minimal 6 karakter.");
@@ -815,22 +830,33 @@
         return;
       }
 
-      const key = accountPasswordKey();
-      const store = readPasswordStore();
-      const currentStored = String(store[key] || "");
+      try {
+        const response = await fetch("/api/profile/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            currentPassword: currentPasswordInput.value,
+            newPassword: newPasswordInput.value
+          })
+        });
+        const result = await response.json();
+        if (!result.ok) {
+          showNotify("Gagal: " + result.message);
+          return;
+        }
 
-      if (currentStored && currentPasswordInput.value !== currentStored) {
-        showNotify("Password saat ini tidak sesuai.");
-        return;
+        const key = accountPasswordKey();
+        const store = readPasswordStore();
+        store[key] = newPasswordInput.value;
+        localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(store));
+
+        currentPasswordInput.value = "";
+        newPasswordInput.value = "";
+        confirmPasswordInput.value = "";
+        showNotify("Password berhasil diperbarui.");
+      } catch (e) {
+        showNotify("Terjadi kesalahan jaringan.");
       }
-
-      store[key] = newPasswordInput.value;
-      localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(store));
-
-      currentPasswordInput.value = "";
-      newPasswordInput.value = "";
-      confirmPasswordInput.value = "";
-      showNotify("Password berhasil diperbarui.");
     }
 
     function updateLiveDateTime() {
