@@ -1164,8 +1164,7 @@
         + '<div class="meta"><span>Total data: ' + rows.length + ' anggota</span><span>Dibuat pada: ' + generatedAt + '</span><span>Sumber: Modul Manajemen Data Anggota - Crembo Media</span></div>'
         + '<table><thead><tr><th>No</th><th>Nama</th><th>Username</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr></thead><tbody>'
         + tableRows
-        + '</tbody></table></main><input type="file" id="csvFileInput" accept=".csv" style="display:none;">
-</body></html>';
+        + '</tbody></table></main></body></html>';
     }
 
     function openMemberReportPreview() {
@@ -1212,9 +1211,7 @@
         + '<table border="1">'
         + tableHeader
         + tableBody
-        + '</table>'
-        + '<input type="file" id="csvFileInput" accept=".csv" style="display:none;">
-</body></html>';
+        + '</table></body></html>';
 
       const blob = new Blob(["\ufeff", excelHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
       const url = URL.createObjectURL(blob);

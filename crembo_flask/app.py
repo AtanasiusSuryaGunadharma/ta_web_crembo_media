@@ -250,6 +250,36 @@ def ensure_auth_schema() -> None:
         legacy_cursor.close()
         cursor.execute("DROP TABLE `db_anggota`")
 
+    
+    cursor.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS `tentang_crembo_config` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `description` text DEFAULT NULL,
+          `button_text` varchar(255) DEFAULT NULL,
+          `button_link` varchar(255) DEFAULT NULL,
+          `auto_seconds` int(11) DEFAULT 5,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        '''
+    )
+    cursor.execute("SELECT COUNT(*) FROM `tentang_crembo_config`")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO `tentang_crembo_config` (`id`, `description`, `button_text`, `button_link`, `auto_seconds`) VALUES (1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas.', 'Pelajari Lebih Lanjut', 'profil.html', 5)")
+
+    cursor.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS `tentang_crembo_media` (
+          `id` varchar(100) NOT NULL,
+          `type` varchar(50) DEFAULT 'image',
+          `url` text DEFAULT NULL,
+          `order_index` int(11) DEFAULT 0,
+          `is_visible` tinyint(1) DEFAULT 1,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        '''
+    )
+
     conn.commit()
     cursor.close()
     conn.close()
@@ -661,3 +691,128 @@ if __name__ == "__main__":
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)
+
+
+
+# --- TENTANG CREMBO ENDPOINTS ---
+
+@app.route("/api/tentang/config", methods=["GET"])
+def get_tentang_config():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM `tentang_crembo_config` LIMIT 1")
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if row:
+        return jsonify({
+            "description": row["description"],
+            "buttonText": row["button_text"],
+            "buttonLink": row["button_link"],
+            "autoSeconds": row["auto_seconds"]
+        })
+    return jsonify({})
+
+@app.route("/api/tentang/config", methods=["POST"])
+def set_tentang_config():
+    data = request.json or {}
+    description = data.get("description", "")
+    button_text = data.get("buttonText", "")
+    button_link = data.get("buttonLink", "")
+    try:
+        auto_seconds = int(data.get("autoSeconds", 5))
+    except (ValueError, TypeError):
+        auto_seconds = 5
+        
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE `tentang_crembo_config` 
+        SET `description`=%s, `button_text`=%s, `button_link`=%s, `auto_seconds`=%s 
+        WHERE `id`=1
+    """, (description, button_text, button_link, auto_seconds))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route("/api/tentang/media", methods=["GET"])
+def get_tentang_media():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT `id`, `type`, `url`, `order_index`, `is_visible` FROM `tentang_crembo_media` ORDER BY `order_index` ASC")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    out = []
+    for r in rows:
+        out.append({
+            "id": r["id"],
+            "type": r["type"],
+            "url": r["url"],
+            "order": r["order_index"],
+            "active": bool(r["is_visible"])
+        })
+    return jsonify(out)
+
+@app.route("/api/tentang/media/sync", methods=["POST"])
+def sync_tentang_media():
+    payload = request.json
+    if not isinstance(payload, list):
+        return jsonify({"success": False, "error": "Invalid payload format"}), 400
+        
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    
+    # Simple sync: delete all and insert fresh order
+    cursor.execute("DELETE FROM `tentang_crembo_media`")
+    
+    for item in payload:
+        item_id = item.get("id", "")
+        item_type = item.get("type", "image")
+        url = item.get("url", "")
+        order = int(item.get("order", 0))
+        active = 1 if item.get("active", True) else 0
+        
+        if item_id:
+            cursor.execute("""
+                INSERT INTO `tentang_crembo_media` (`id`, `type`, `url`, `order_index`, `is_visible`)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (item_id, item_type, url, order, active))
+            
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True, "count": len(payload)})
+
+import werkzeug.utils
+
+@app.route("/api/upload_image", methods=["POST"])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({"success": False, "error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"success": False, "error": "No selected file"}), 400
+        
+    if file:
+        filename = werkzeug.utils.secure_filename(file.filename)
+        # Ensure uploads dir exists
+        upload_folder = os.path.join(app.root_path, 'frontend', 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        # Make filename unique
+        import time
+        import random
+        base, ext = os.path.splitext(filename)
+        new_filename = f"{base}_{int(time.time())}{ext}"
+        
+        filepath = os.path.join(upload_folder, new_filename)
+        file.save(filepath)
+        
+        return jsonify({
+            "success": True, 
+            "url": f"uploads/{new_filename}"
+        })
+        
