@@ -362,9 +362,48 @@ def login_target_for_role(role: str) -> str:
     return url_for("dashboard")
 
 
-@app.route("/")
-def index():
-    home_page_data = {
+def load_about_content_from_db() -> dict[str, object]:
+    default_about = {
+        "description": "Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah login.",
+        "buttonText": "Pelajari Lebih Lanjut",
+        "buttonLink": "profil.html",
+        "autoSeconds": 5,
+        "images": [],
+    }
+
+    try:
+        ensure_auth_schema()
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT description, button_text, button_link, auto_seconds FROM `tentang_crembo_config` WHERE `id`=1 LIMIT 1")
+        cfg = cursor.fetchone() or {}
+        cursor.execute("SELECT `id`, `type`, `url`, `order_index`, `is_visible` FROM `tentang_crembo_media` ORDER BY `order_index` ASC")
+        media_rows = cursor.fetchall() or []
+        cursor.close()
+        conn.close()
+
+        return {
+            "description": cfg.get("description") or default_about["description"],
+            "buttonText": cfg.get("button_text") or default_about["buttonText"],
+            "buttonLink": cfg.get("button_link") or default_about["buttonLink"],
+            "autoSeconds": int(cfg.get("auto_seconds") or default_about["autoSeconds"]),
+            "images": [
+                {
+                    "id": row.get("id"),
+                    "type": row.get("type") or "image",
+                    "url": row.get("url") or "",
+                    "order": row.get("order_index") or 0,
+                    "active": bool(row.get("is_visible")),
+                }
+                for row in media_rows
+            ],
+        }
+    except Exception:
+        return default_about
+
+
+def build_home_page_data() -> dict[str, object]:
+    return {
         "carouselSlides": [
             {
                 "id": "default-1",
@@ -400,13 +439,7 @@ def index():
                 "active": True,
             },
         ],
-        "aboutContent": {
-            "description": "Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah login.",
-            "buttonText": "Pelajari Lebih Lanjut",
-            "buttonLink": "profil.html",
-            "autoSeconds": 5,
-            "images": [],
-        },
+        "aboutContent": load_about_content_from_db(),
         "bigMassSchedules": [],
         "profileMenu": [
             {"id": "sejarah", "label": "Sejarah"},
@@ -415,6 +448,11 @@ def index():
             {"id": "visi-misi", "label": "Visi & Misi"},
         ],
     }
+
+
+@app.route("/")
+def index():
+    home_page_data = build_home_page_data()
     return render_template("home.html", home_page_data=home_page_data, current_user=current_user_context())
 
 
@@ -621,6 +659,8 @@ def render_mockup_page(page: str):
 
     if template_exists(candidate):
         extra_context = {"current_user": current_user_context()}
+        if candidate == "home.html":
+            extra_context["home_page_data"] = build_home_page_data()
         if candidate == "manajemen-anggota.html":
             extra_context["member_rows"] = read_members_for_admin() if session.get("logged_in") else []
         return render_template(candidate, **extra_context)
@@ -632,6 +672,7 @@ def render_mockup_page(page: str):
 
 @app.route("/api/tentang/config", methods=["GET"])
 def get_tentang_config():
+    ensure_auth_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM `tentang_crembo_config` LIMIT 1")
@@ -649,6 +690,7 @@ def get_tentang_config():
 
 @app.route("/api/tentang/config", methods=["POST"])
 def set_tentang_config():
+    ensure_auth_schema()
     data = request.json or {}
     description = data.get("description", "")
     button_text = data.get("buttonText", "")
@@ -662,9 +704,13 @@ def set_tentang_config():
     cursor = conn.cursor()
     cursor.execute(
         """
-        UPDATE `tentang_crembo_config`
-        SET `description`=%s, `button_text`=%s, `button_link`=%s, `auto_seconds`=%s
-        WHERE `id`=1
+        INSERT INTO `tentang_crembo_config` (`id`, `description`, `button_text`, `button_link`, `auto_seconds`)
+        VALUES (1, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+          `description` = VALUES(`description`),
+          `button_text` = VALUES(`button_text`),
+          `button_link` = VALUES(`button_link`),
+          `auto_seconds` = VALUES(`auto_seconds`)
         """,
         (description, button_text, button_link, auto_seconds),
     )
@@ -675,6 +721,7 @@ def set_tentang_config():
 
 @app.route("/api/tentang/media", methods=["GET"])
 def get_tentang_media():
+    ensure_auth_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT `id`, `type`, `url`, `order_index`, `is_visible` FROM `tentang_crembo_media` ORDER BY `order_index` ASC")
@@ -695,6 +742,7 @@ def get_tentang_media():
 
 @app.route("/api/tentang/media/sync", methods=["POST"])
 def sync_tentang_media():
+    ensure_auth_schema()
     payload = request.json
     if not isinstance(payload, list):
         return jsonify({"success": False, "error": "Invalid payload format"}), 400
@@ -727,11 +775,17 @@ import werkzeug.utils
 
 @app.route("/api/upload_image", methods=["POST"])
 def upload_image():
+    ensure_auth_schema()
     if 'file' not in request.files:
         return jsonify({"success": False, "error": "No file part"}), 400
     file = request.files['file']
     if file.filename == '':
         return jsonify({"success": False, "error": "No selected file"}), 400
+
+    allowed_ext = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+    _, ext = os.path.splitext(file.filename.lower())
+    if ext not in allowed_ext or not (file.mimetype or "").startswith("image/"):
+        return jsonify({"success": False, "error": "File harus berupa gambar (jpg/png/gif/webp/bmp)."}), 400
         
     if file:
         filename = werkzeug.utils.secure_filename(file.filename)

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Apr 2026 pada 20.16
+-- Waktu pembuatan: 29 Apr 2026 pada 20.33
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -198,7 +198,7 @@ CREATE TABLE `tentang_crembo_config` (
 --
 
 INSERT INTO `tentang_crembo_config` (`id`, `description`, `button_text`, `button_link`, `auto_seconds`) VALUES
-(1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas.', 'Pelajari Lebih Lanjut', 'profil.html', 5);
+(1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah loginnnnnnnnn.', 'Pelajari Lebih Lanjut', 'https://www.instagram.com/crembo_media?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', 5);
 
 -- --------------------------------------------------------
 
@@ -213,6 +213,15 @@ CREATE TABLE `tentang_crembo_media` (
   `order_index` int(11) DEFAULT 0,
   `is_visible` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tentang_crembo_media`
+--
+
+INSERT INTO `tentang_crembo_media` (`id`, `type`, `url`, `order_index`, `is_visible`) VALUES
+('about-img-1777487364855-0', 'image', 'uploads/foto_baju_koki_1777487364.jpg', 1, 1),
+('about-img-1777487374027-0', 'image', 'uploads/sertifikat-anggota-zxczxczxc_1777487374.jpg', 2, 1),
+('vid-1777487425472', 'video', 'https://youtu.be/_GVYvIC-6fA?si=HRMlwiYHctAeuNeT', 3, 1);
 
 -- --------------------------------------------------------
 

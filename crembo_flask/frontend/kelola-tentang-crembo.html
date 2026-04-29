@@ -557,7 +557,7 @@
         <p>Modul kelola section Tentang Crembo</p>
       </div>
 
-      <div class="menu-group">
+      <div class="menu-group open">
         <button class="group-toggle" type="button">Konten Utama Website <span>-</span></button>
         <div class="group-items">
           <a class="menu-link" href="kelola-carousel-home.html">Kelola Carousel Home</a>
@@ -675,7 +675,7 @@
     </main>
   </div>
 
-  <script>
+<script>
     const roleChip = document.getElementById("roleChip");
     const liveDateTime = document.getElementById("liveDateTime");
     const aboutForm = document.getElementById("aboutForm");
@@ -799,7 +799,7 @@
               body: JSON.stringify(mediaItems)
           });
           if (res.ok) {
-              setMediaStatus("Urutan & status media berhasil disimpan.", "ok");
+              setMediaStatus("Perubahan berhasil disimpan ke database.", "ok");
           } else {
               setMediaStatus("Gagal menyimpan media.", "warn");
           }
@@ -819,74 +819,79 @@
       imageRows.innerHTML = "";
 
       if (!mediaItems.length) {
-        emptyState.hidden = false;
-        emptyState.textContent = "Belum ada media. Upload gambar atau tambah video untuk menampilkan slideshow di home.";
-        return;
+          emptyState.hidden = false;
+          emptyState.textContent = "Belum ada media. Upload gambar atau tambah video untuk menampilkan slideshow di home.";
+          return;
       }
       emptyState.hidden = true;
 
       mediaItems.forEach(function (item) {
-        const tr = document.createElement("tr");
-        tr.setAttribute("draggable", "true");
-        tr.setAttribute("data-image-id", item.id);
+          const tr = document.createElement("tr");
+          tr.setAttribute("data-image-id", item.id);
 
-        let previewUrl = item.url;
-        let isVideo = item.type === "video";
-        if (isVideo) {
-            // Extract YT ID
-            const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
-            if (match && match[1]) {
-                previewUrl = 'https://img.youtube.com/vi/' + match[1] + '/hqdefault.jpg';
-            }
-        }
-
-        const previewStyle = previewUrl
-          ? ' style="background-image:url(\'' + escapeHtml(previewUrl) + '\')"'
-          : "";
+          let previewContent = "";
+          let isVideo = item.type === "video";
           
-        const label = isVideo ? `<span style="background:red; color:white; padding: 2px 4px; font-size:10px; border-radius:4px; position:absolute; bottom:5px; right:5px; z-index:10;">VIDEO</span>` : "";
+          if (isVideo) {
+              const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
+              if (match && match[1]) {
+                  const embedUrl = 'https://www.youtube.com/embed/' + match[1] + '?rel=0';
+                  previewContent = '<iframe src="' + embedUrl + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; height:100%; position:relative; z-index:5;"></iframe>';
+              }
+          } else {
+              const previewBg = item.url ? 'background-image:url(\'' + escapeHtml(item.url) + '\'); background-size: cover; background-position: center;' : "";
+              previewContent = '<div style="width:100%; height:100%; ' + previewBg + '"></div>';
+          }
 
-        tr.innerHTML =
-          '<td data-label="Urut"><span class="drag-handle" title="Drag untuk ubah urutan">::</span></td>' +
-          '<td data-label="Preview"><div class="preview-box"' + previewStyle + ' style="position:relative;">' + (previewUrl ? label : "Tanpa Thumbnail") + '</div></td>' +
-          '<td data-label="Status"><span class="state-pill' + (item.active ? ' active' : '') + '">' + (item.active ? 'Aktif' : 'Nonaktif') + '</span></td>' +
-          '<td data-label="Urutan">' + escapeHtml(String(item.order)) + '</td>' +
-          '<td data-label="Aksi"><div class="action-stack">' +
-            '<button class="btn ghost" type="button" data-toggle-id="' + escapeHtml(item.id) + '">' + (item.active ? 'Nonaktifkan' : 'Aktifkan') + '</button>' +
-            '<button class="btn warn" type="button" data-delete-id="' + escapeHtml(item.id) + '">Hapus</button>' +
-          '</div></td>';
+          const label = isVideo ? '<span style="background:red; color:white; padding: 2px 4px; font-size:10px; border-radius:4px; position:absolute; bottom:5px; right:5px; z-index:10; pointer-events:none;">VIDEO</span>' : "";
 
-        tr.addEventListener("dragstart", function () {
-          draggingImageId = item.id;
-          tr.classList.add("dragging");
-        });
-        tr.addEventListener("dragend", function () {
-          draggingImageId = "";
-          tr.classList.remove("dragging");
-          imageRows.querySelectorAll("tr").forEach(row => row.classList.remove("drop-target"));
-        });
-        tr.addEventListener("dragover", function (event) {
-          event.preventDefault();
-          if (!draggingImageId || draggingImageId === item.id) return;
-          tr.classList.add("drop-target");
-        });
-        tr.addEventListener("dragleave", function () {
-          tr.classList.remove("drop-target");
-        });
-        tr.addEventListener("drop", function (event) {
-          event.preventDefault();
-          tr.classList.remove("drop-target");
-          if (!draggingImageId || draggingImageId === item.id) return;
-          reorderImages(draggingImageId, item.id);
-        });
+          tr.innerHTML =
+              '<td data-label="Urut"><span class="drag-handle" title="Drag untuk ubah urutan">::</span></td>' +
+              '<td data-label="Preview"><div style="position:relative; width:140px; height:80px; background:#f4f4f4; border:1px dashed #999; overflow:hidden;">' + previewContent + label + '</div></td>' +
+              '<td data-label="Status"><span class="state-pill' + (item.active ? ' active' : '') + '">' + (item.active ? 'Aktif' : 'Nonaktif') + '</span></td>' +
+              '<td data-label="Urutan">' + escapeHtml(String(item.order)) + '</td>' +
+              '<td data-label="Aksi"><div class="action-stack">' +
+              '<button class="btn primary" type="button" data-edit-id="' + escapeHtml(item.id) + '">Edit</button>' +
+              '<button class="btn ghost" type="button" data-toggle-id="' + escapeHtml(item.id) + '">' + (item.active ? 'Nonaktifkan' : 'Aktifkan') + '</button>' +
+              '<button class="btn warn" type="button" data-delete-id="' + escapeHtml(item.id) + '">Hapus</button>' +
+              '</div></td>';
 
-        imageRows.appendChild(tr);
+          const dragHandle = tr.querySelector('.drag-handle');
+          dragHandle.addEventListener('mouseenter', function() { tr.setAttribute('draggable', 'true'); });
+          dragHandle.addEventListener('mouseleave', function() { tr.setAttribute('draggable', 'false'); });
+
+          tr.addEventListener("dragstart", function () {
+              draggingImageId = item.id;
+              tr.classList.add("dragging");
+          });
+          tr.addEventListener("dragend", function () {
+              draggingImageId = "";
+              tr.classList.remove("dragging");
+              imageRows.querySelectorAll("tr").forEach(row => row.classList.remove("drop-target"));
+              tr.setAttribute('draggable', 'false');
+          });
+          tr.addEventListener("dragover", function (event) {
+              event.preventDefault();
+              if (!draggingImageId || draggingImageId === item.id) return;
+              tr.classList.add("drop-target");
+          });
+          tr.addEventListener("dragleave", function () {
+              tr.classList.remove("drop-target");
+          });
+          tr.addEventListener("drop", function (event) {
+              event.preventDefault();
+              tr.classList.remove("drop-target");
+              if (!draggingImageId || draggingImageId === item.id) return;
+              reorderImages(draggingImageId, item.id);
+          });
+
+          imageRows.appendChild(tr);
       });
     }
 
     function reorderImages(sourceId, targetId) {
-      const sourceIndex = mediaItems.findIndex(i => i.id === sourceId);
-      const targetIndex = mediaItems.findIndex(i => i.id === targetId);
+      const sourceIndex = mediaItems.findIndex(i => String(i.id) === String(sourceId));
+      const targetIndex = mediaItems.findIndex(i => String(i.id) === String(targetId));
 
       if (sourceIndex < 0 || targetIndex < 0) return;
 
@@ -898,25 +903,79 @@
       });
 
       renderRows();
-      setMediaStatus("Urutan diubah (belum disimpan).", "warn");
+      saveMediaSync();
     }
 
     function toggleImage(id) {
-      const target = mediaItems.find(i => i.id === id);
+      const target = mediaItems.find(i => String(i.id) === String(id));
       if (!target) return;
       target.active = !target.active;
       renderRows();
-      setMediaStatus("Status diubah (belum disimpan).", "warn");
+      saveMediaSync();
     }
 
     function deleteImage(id) {
-      const ok = window.confirm("Hapus media ini? (Perubahan akan langsung hilang dari tabel)");
+      const ok = window.confirm("Hapus media ini? (Data akan langsung dihapus dari sistem)");
       if (!ok) return;
 
-      mediaItems = mediaItems.filter(i => i.id !== id);
+      // FIX PENTING: Bandingkan menggunakan format String untuk mencegah bug mis-type
+      mediaItems = mediaItems.filter(i => String(i.id) !== String(id));
+      
       mediaItems.forEach((item, index) => { item.order = index + 1; });
       renderRows();
-      setMediaStatus("Media dihapus (belum disimpan).", "warn");
+      saveMediaSync();
+    }
+
+    function editImage(id) {
+      const target = mediaItems.find(i => String(i.id) === String(id));
+      if (!target) return;
+
+      if (target.type === "video") {
+          const newUrl = window.prompt("Ganti Link Video YouTube baru:", target.url);
+          if (newUrl !== null && newUrl.trim() !== "") {
+              let match = newUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
+              if(!match) {
+                  alert("URL YouTube tidak valid.");
+                  return;
+              }
+              target.url = newUrl.trim();
+              renderRows();
+              saveMediaSync();
+          }
+      } else {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = async function(e) {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!file.type.startsWith("image/")) {
+                  alert("File harus berupa gambar.");
+                  return;
+              }
+              
+              const formData = new FormData();
+              formData.append("file", file);
+              
+              try {
+                  setMediaStatus("Sedang mengunggah gambar baru...", "warn");
+                  const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+                  const json = await res.json();
+                  
+                  if (json.success) {
+                      target.url = json.url;
+                      renderRows();
+                      saveMediaSync();
+                  } else {
+                      alert("Gagal upload gambar: " + json.error);
+                  }
+              } catch(err) {
+                  console.error("Upload error:", err);
+                  alert("Terjadi kesalahan jaringan saat upload gambar.");
+              }
+          };
+          input.click(); 
+      }
     }
 
     async function handleUpload() {
@@ -956,7 +1015,7 @@
       
       renderRows();
       aboutImagesInput.value = "";
-      setMediaStatus("Gambar diupload (belum disimpan).", "warn");
+      saveMediaSync();
     }
 
     addVideoBtn.addEventListener("click", function() {
@@ -978,16 +1037,22 @@
         });
         
         renderRows();
-        setMediaStatus("Video ditambahkan (belum disimpan).", "warn");
+        saveMediaSync();
     });
 
     imageRows.addEventListener("click", function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLButtonElement)) return;
-      const toggleId = target.getAttribute("data-toggle-id");
-      if (toggleId) return toggleImage(toggleId);
-      const deleteId = target.getAttribute("data-delete-id");
-      if (deleteId) deleteImage(deleteId);
+        // FIX KLIK PENTING: Pakai event.target.closest("button") biar kalau klik text di dalamnya tetap aman
+        const target = event.target.closest("button");
+        if (!target) return;
+        
+        const editId = target.getAttribute("data-edit-id");
+        if (editId) return editImage(editId);
+        
+        const toggleId = target.getAttribute("data-toggle-id");
+        if (toggleId) return toggleImage(toggleId);
+        
+        const deleteId = target.getAttribute("data-delete-id");
+        if (deleteId) return deleteImage(deleteId);
     });
 
     aboutForm.addEventListener("submit", saveConfig);
@@ -1017,6 +1082,7 @@
     // Initial fetch
     loadConfig();
     loadMedia();
-</script>
+  </script>
+  <script src="_sidebar-fix.js"></script>
 </body>
 </html>
