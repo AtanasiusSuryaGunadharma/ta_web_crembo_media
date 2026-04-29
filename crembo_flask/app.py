@@ -25,44 +25,7 @@ MYSQL_CONFIG = {
     "autocommit": False,
 }
 
-DEMO_ACCOUNTS = [
-    {
-        "id": 1001,
-        "nama": "CREMBO Super Admin",
-        "username": "superadmin",
-        "telp": "081100000001",
-        "email": "superadmin@crembo.test",
-        "alamat": "Jl. Demo Super Admin 1, Baciro",
-        "role": "super_admin",
-        "status_akun": "aktif",
-        "tgl_lahir": "1990-01-01",
-        "password": "Testing123!",
-    },
-    {
-        "id": 1002,
-        "nama": "CREMBO Admin",
-        "username": "admin.testing",
-        "telp": "081100000002",
-        "email": "admin@crembo.test",
-        "alamat": "Jl. Demo Admin 2, Baciro",
-        "role": "admin",
-        "status_akun": "aktif",
-        "tgl_lahir": "1992-02-02",
-        "password": "Testing123!",
-    },
-    {
-        "id": 1003,
-        "nama": "CREMBO Anggota",
-        "username": "anggota.testing",
-        "telp": "081100000003",
-        "email": "anggota@crembo.test",
-        "alamat": "Jl. Demo Anggota 3, Baciro",
-        "role": "user",
-        "status_akun": "aktif",
-        "tgl_lahir": "1995-03-03",
-        "password": "Testing123!",
-    },
-]
+
 
 
 def template_exists(template_name: str) -> bool:
@@ -285,43 +248,7 @@ def ensure_auth_schema() -> None:
     conn.close()
 
 
-def seed_demo_accounts() -> None:
-    ensure_auth_schema()
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
 
-    for account in DEMO_ACCOUNTS:
-        hashed_password = generate_password_hash(account["password"])
-        cursor.execute(
-            "SELECT id FROM `anggota` WHERE username = %s OR email = %s OR telp = %s LIMIT 1",
-            (account["username"], account["email"], account["telp"]),
-        )
-        if cursor.fetchone():
-            continue
-
-        cursor.execute(
-            """
-            INSERT INTO `anggota`
-            (`id`, `nama`, `username`, `telp`, `password`, `role`, `tgl_lahir`, `email`, `alamat`, `status_akun`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                account["id"],
-                account["nama"],
-                account["username"],
-                account["telp"],
-                hashed_password,
-                account["role"],
-                account["tgl_lahir"],
-                account["email"],
-                account["alamat"],
-                account["status_akun"],
-            ),
-        )
-
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 
 def fetch_member(identifier: str):
@@ -687,7 +614,6 @@ def render_mockup_page(page: str):
 if __name__ == "__main__":
     try:
         ensure_auth_schema()
-        seed_demo_accounts()
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)

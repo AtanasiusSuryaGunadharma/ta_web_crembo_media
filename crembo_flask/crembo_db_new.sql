@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Apr 2026 pada 16.56
+-- Waktu pembuatan: 29 Apr 2026 pada 18.04
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -118,6 +118,1633 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', NULL, 'aktif'),
 (75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', NULL, 'aktif');
 
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `kegiatan`
+--
+
+CREATE TABLE `kegiatan` (
+  `id` int(11) NOT NULL,
+  `judul` varchar(255) NOT NULL,
+  `tanggal` varchar(50) NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'draft',
+  `misa_json` longtext NOT NULL,
+  `created_at` varchar(50) NOT NULL,
+  `updated_at` varchar(50) NOT NULL,
+  `misa_ke` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `kegiatan`
+--
+
+INSERT INTO `kegiatan` (`id`, `judul`, `tanggal`, `status`, `misa_json`, `created_at`, `updated_at`, `misa_ke`) VALUES
+(1, 'Misa Rabu Abu', '2026-02-18', 'deleted', '[]', '2026-01-24 10:03:33', '2026-01-25 22:18:20', NULL),
+(2, 'Misa Rabu Abu', '2026-02-18', 'deleted', '[]', '2026-01-24 10:46:01', '2026-01-25 22:18:28', NULL),
+(3, 'Misa Rabu Abu', '2026-02-18', 'deleted', '[{\"misa_ke\": 1, \"jam\": \"17:00\", \"dp_username\": \"Daflo\", \"op_username\": \"Christoforus Tadeus\", \"vmix_username\": \"Claire\", \"kamera\": [\"Chris\", \"Chessa\", \"Callista\"], \"supervisor\": [\"Botun\", \"Bima\", \"Bian\"], \"fotografer\": [\"Belinda\", \"Babe\", \"Aurel\"]}, {\"misa_ke\": 2, \"jam\": \"19:01\", \"dp_username\": \"Daflo\", \"op_username\": \"Claire\", \"vmix_username\": \"Christoforus Tadeus\", \"kamera\": [\"Chris\", \"Chessa\", \"Callista\", \"Aurel\"], \"supervisor\": [\"Botun\", \"Bima\", \"Bian\"], \"fotografer\": [\"Belinda\", \"Babe\"]}]', '2026-01-25 02:01:08', '2026-01-25 22:18:05', NULL),
+(4, 'Misa Rabu Abu', '2026-02-17', 'deleted', '[{\"misa_ke\": 1, \"jam\": \"18:00\", \"dp_username\": \"Vio\", \"op_username\": \"Vio\", \"vmix_username\": \"\", \"kamera\": [\"Wima\", \"Orel\", \"Lisa\"], \"supervisor\": [\"There\", \"Callista\"], \"fotografer\": [\"Stella\", \"Ketrin\"]}]', '2026-01-25 21:10:54', '2026-01-25 22:18:15', NULL),
+(5, 'Misa Rabu Abu', '2026-02-17', 'publish', '[{\"misa_ke\": 1, \"jam\": \"18:00\", \"dp_username\": \"Vio\", \"op_username\": \"Lisa\", \"vmix_username\": \"\", \"kamera\": [\"Wima\", \"Orel\", \"Dhani\"], \"supervisor\": [\"There\", \"Callista\"], \"fotografer\": [\"Stella\", \"Ketrin\"]}]', '2026-01-25 22:46:53', '2026-01-31 12:50:45', NULL),
+(6, 'Misa Rabu Abu', '2026-02-18', 'publish', '[{\"misa_ke\": 1, \"jam\": \"16:30\", \"dp_username\": \"Belinda\", \"op_username\": \"Christoforus Tadeus\", \"vmix_username\": \"\", \"kamera\": [\"Reva\", \"Luciana Tyas\", \"Asha\"], \"supervisor\": [\"Pria\", \"Jose\"], \"fotografer\": [\"Naresh\", \"Aruna\"]}, {\"misa_ke\": 2, \"jam\": \"18:30\", \"dp_username\": \"Aura\", \"op_username\": \"Ata Surya\", \"vmix_username\": \"\", \"kamera\": [\"Rikha\", \"Chessa\", \"Jeni\"], \"supervisor\": [\"Evan\", \"Panji\"], \"fotografer\": [\"Weka\", \"Egi\"]}]', '2026-01-25 22:52:51', '2026-01-31 12:47:44', NULL),
+(7, 'Misa Minggu Palma', '2026-03-28', 'publish', '[{\"misa_ke\": 1, \"jam\": \"18:00\", \"dp_username\": \"Ata Surya\", \"op_username\": \"Aura\", \"vmix_username\": \"Regio\", \"kamera\": [\"Rikha\", \"Tita\", \"Rossa\", \"Jeni\"], \"supervisor\": [\"Claire\", \"Dhani\", \"Ifa\"], \"fotografer\": [\"Aurel\", \"Nawung\"]}]', '2026-02-22 17:56:38', '2026-02-25 18:26:03', NULL),
+(8, 'Misa Minggu Palma', '2026-03-29', 'publish', '[{\"misa_ke\": 2, \"jam\": \"07:30\", \"dp_username\": \"Ketrin\", \"op_username\": \"Deva\", \"vmix_username\": \"Florencia\", \"kamera\": [\"Jeni\", \"Rikha\", \"Jose\", \"Callista\"], \"supervisor\": [\"Nadia\", \"Luciana Tyas\", \"Kanes\"], \"fotografer\": [\"Aoki\", \"Aruna\"]}, {\"misa_ke\": 3, \"jam\": \"10:00\", \"dp_username\": \"rieanaditya\", \"op_username\": \"Rafael\", \"vmix_username\": \"Wima\", \"kamera\": [\"Ata Surya\", \"Satrio\", \"Jeje\", \"Regio\"], \"supervisor\": [\"Pria\", \"Christoforus Tadeus\", \"Noel\", \"Dewi\"], \"fotografer\": [\"Paul\", \"Weka\"]}, {\"misa_ke\": 4, \"jam\": \"16:30\", \"dp_username\": \"Vio\", \"op_username\": \"Lisa\", \"vmix_username\": \"Aurel\", \"kamera\": [\"Reva\", \"Kane\", \"Arya\", \"Dhani\"], \"supervisor\": [\"Evan\", \"There\", \"Panji\"], \"fotografer\": [\"Belinda\", \"Bian\"]}, {\"misa_ke\": 5, \"jam\": \"18:30\", \"dp_username\": \"Wima\", \"op_username\": \"Orel\", \"vmix_username\": \"Asha\", \"kamera\": [\"Kanes\", \"Jose\", \"Aura\", \"Stella\"], \"supervisor\": [\"Tyas\", \"Regio\", \"Ata Surya\"], \"fotografer\": [\"Jeje\", \"Chessa\"]}]', '2026-02-22 17:59:19', '2026-03-04 16:16:34', NULL),
+(9, 'Misa Kamis Putih', '2026-04-02', 'publish', '[{\"misa_ke\": 1, \"jam\": \"17:00\", \"dp_username\": \"Bian\", \"op_username\": \"Belinda\", \"vmix_username\": \"There\", \"kamera\": [\"Lisa\", \"Reva\", \"Vio\", \"Kane\"], \"supervisor\": [\"Panji\", \"Arya\", \"Evan\"], \"fotografer\": [\"Aurel\", \"Dhani\"]}, {\"misa_ke\": 2, \"jam\": \"19:30\", \"dp_username\": \"Christoforus Tadeus\", \"op_username\": \"Tita\", \"vmix_username\": \"Rossa\", \"kamera\": [\"Chessa\", \"Rikha\", \"Jeni\", \"Ifa\"], \"supervisor\": [\"Stella\", \"Arya\", \"Botun\"], \"fotografer\": [\"Claire\", \"Nawung\"]}]', '2026-02-22 18:12:11', '2026-02-25 18:25:47', NULL),
+(10, 'Ibadat Jalan Salib Meditatif', '2026-04-03', 'publish', '[{\"misa_ke\": 1, \"jam\": \"09:00\", \"dp_username\": \"Shehan\", \"op_username\": \"Jeje\", \"vmix_username\": \"\", \"kamera\": [\"Nadia\", \"Lisa\"], \"supervisor\": [\"Pria\", \"Noel\"], \"fotografer\": [\"Ketrin\", \"Rafael\"]}]', '2026-02-22 18:14:17', '2026-03-04 15:16:23', NULL),
+(11, 'Ibadat Jumat Agung', '2026-04-03', 'publish', '[{\"misa_ke\": 1, \"jam\": \"15:00\", \"dp_username\": \"Jeje\", \"op_username\": \"Ketrin\", \"vmix_username\": \"Deva\", \"kamera\": [\"Rafael\", \"Florencia\", \"Claire\", \"Callista\"], \"supervisor\": [\"Chessa\", \"Noel\", \"Nadia\"], \"fotografer\": [\"Regio\", \"Nawung\"]}, {\"misa_ke\": 2, \"jam\": \"18:30\", \"dp_username\": \"Orel\", \"op_username\": \"Asha\", \"vmix_username\": \"Wima\", \"kamera\": [\"Luciana Tyas\", \"Aruna\", \"Kanes\", \"Jose\"], \"supervisor\": [\"Tyas\", \"Naresh\", \"Noel\"], \"fotografer\": [\"Aura\", \"Stella\"]}]', '2026-02-22 18:18:00', '2026-03-12 18:57:33', NULL),
+(12, 'Misa Malam Paskah', '2026-04-04', 'publish', '[{\"misa_ke\": 1, \"jam\": \"17:00\", \"dp_username\": \"Niko\", \"op_username\": \"Vio\", \"vmix_username\": \"Lisa\", \"kamera\": [\"Dhani\", \"Evan\", \"Bian\", \"Belinda\"], \"supervisor\": [\"Panji\", \"There\", \"Arya\"], \"fotografer\": [\"Weka\", \"Kane\"]}, {\"misa_ke\": 2, \"jam\": \"20:30\", \"dp_username\": \"Pria\", \"op_username\": \"Asha\", \"vmix_username\": \"Orel\", \"kamera\": [\"Wima\", \"Rafael\", \"Nadia\", \"Naresh\"], \"supervisor\": [\"Panji\", \"Egi\", \"Tyas\"], \"fotografer\": [\"Nawung\", \"Paul\"]}]', '2026-02-22 18:21:51', '2026-02-25 18:25:35', NULL),
+(13, 'Misa Minggu Paskah', '2026-04-05', 'publish', '[{\"misa_ke\": 1, \"jam\": \"08:00\", \"dp_username\": \"Aura\", \"op_username\": \"Claire\", \"vmix_username\": \"Christoforus Tadeus\", \"kamera\": [\"Callista\", \"Kanes\", \"Chessa\", \"Botun\"], \"supervisor\": [\"Jose\", \"Aruna\", \"There\"], \"fotografer\": [\"Luciana Tyas\", \"Aoki\"]}, {\"misa_ke\": 2, \"jam\": \"18:00\", \"dp_username\": \"Deva\", \"op_username\": \"Florencia\", \"vmix_username\": \"Pria\", \"kamera\": [\"Tita\", \"Ifa\", \"Rossa\", \"Egi\"], \"supervisor\": [\"Botun\", \"Stella\", \"Naresh\"], \"fotografer\": [\"Tyas\", \"Satrio\"]}]', '2026-02-22 18:33:01', '2026-03-12 18:43:21', NULL),
+(14, 'Ibadat Sabtu Suci', '2026-04-04', 'publish', '[{\"misa_ke\": 1, \"jam\": \"05:30\", \"dp_username\": \"Shehan\", \"op_username\": \"Weka\", \"vmix_username\": \"\", \"kamera\": [\"Dewi\", \"Christoforus Tadeus\"], \"supervisor\": [\"Tyas\"], \"fotografer\": [\"Paul\"]}]', '2026-03-04 15:17:21', '2026-03-14 20:57:32', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `kegiatan_form`
+--
+
+CREATE TABLE `kegiatan_form` (
+  `id` int(11) NOT NULL,
+  `judul` varchar(255) DEFAULT NULL,
+  `slug` varchar(255) DEFAULT NULL,
+  `jumlah_hari` int(11) DEFAULT NULL,
+  `jumlah_misa` int(11) DEFAULT NULL,
+  `jml_kamera` int(11) DEFAULT NULL,
+  `jml_supervisor` int(11) DEFAULT NULL,
+  `jml_fotografer` int(11) DEFAULT NULL,
+  `misa_terakhir` date DEFAULT NULL,
+  `form_json` longtext DEFAULT NULL,
+  `is_published` int(11) DEFAULT 0,
+  `created_at` varchar(50) DEFAULT NULL,
+  `updated_at` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tentang_crembo_config`
+--
+
+CREATE TABLE `tentang_crembo_config` (
+  `id` int(11) NOT NULL,
+  `description` text DEFAULT NULL,
+  `button_text` varchar(255) DEFAULT NULL,
+  `button_link` varchar(255) DEFAULT NULL,
+  `auto_seconds` int(11) DEFAULT 5
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tentang_crembo_config`
+--
+
+INSERT INTO `tentang_crembo_config` (`id`, `description`, `button_text`, `button_link`, `auto_seconds`) VALUES
+(1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas.', 'Pelajari Lebih Lanjut', 'profil.html', 5);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tentang_crembo_media`
+--
+
+CREATE TABLE `tentang_crembo_media` (
+  `id` varchar(100) NOT NULL,
+  `type` varchar(50) DEFAULT 'image',
+  `url` text DEFAULT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `is_visible` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_05`
+--
+
+CREATE TABLE `tugas_2025_05` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_05`
+--
+
+INSERT INTO `tugas_2025_05` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Rafael', '2025-05-20', '18:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_06`
+--
+
+CREATE TABLE `tugas_2025_06` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_06`
+--
+
+INSERT INTO `tugas_2025_06` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Orel', '2025-06-03', '18:00', 'Supervisor'),
+(2, 'Wima', '2025-06-03', '18:00', 'Kameramen');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_07`
+--
+
+CREATE TABLE `tugas_2025_07` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_07`
+--
+
+INSERT INTO `tugas_2025_07` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Botun', '2025-07-06', '10:00', 'Operator'),
+(2, 'Botun', '2025-07-03', '18:00', 'Supervisor'),
+(3, 'Botun', '2025-07-10', '18:00', 'Kameramen'),
+(4, 'Regio', '2025-07-13', '19:00', 'Supervisor'),
+(5, 'Dewi', '2025-07-14', '18:00', 'Operator'),
+(6, 'Dewi', '2025-07-16', '18:00', 'Kameramen'),
+(7, 'Dewi', '2025-07-17', '18:00', 'Supervisor'),
+(8, 'Claire', '2025-07-10', '18:00', 'Supervisor'),
+(9, 'Claire', '2025-07-16', '18:00', 'Supervisor'),
+(10, 'Jose', '2025-07-02', '18:00', 'Supervisor'),
+(11, 'Jose', '2025-07-23', '18:00', 'Supervisor'),
+(12, 'Jose', '2025-07-14', '18:00', 'Kameramen'),
+(13, 'There', '2025-07-06', '19:00', 'Operator'),
+(14, 'There', '2025-07-20', '10:00', 'Operator'),
+(15, 'Florencia', '2025-07-17', '18:00', 'Kameramen'),
+(16, 'Floren', '2025-07-06', '19:00', 'Kameramen'),
+(17, 'Orel', '2025-07-02', '18:00', 'Kameramen'),
+(18, 'Orel', '2025-07-23', '18:00', 'Kameramen'),
+(19, 'Wima', '2025-07-02', '18:00', 'Operator'),
+(20, 'Wima', '2025-07-23', '18:00', 'Operator'),
+(21, 'Rossa', '2025-07-14', '18:00', 'Supervisor'),
+(22, 'Tyas', '2025-07-21', '18:00', 'Operator'),
+(23, 'Tyas', '2025-07-24', '18:00', 'Kameramen'),
+(24, 'Noel', '2025-07-06', '19:00', 'Supervisor'),
+(25, 'Noel', '2025-07-20', '17:00', 'Supervisor'),
+(26, 'Noel', '2025-07-27', '19:00', 'Supervisor'),
+(27, 'Belinda', '2025-07-18', '18:00', 'Supervisor'),
+(28, 'Belinda', '2025-07-24', '18:00', 'Supervisor'),
+(29, 'Tyas', '2025-07-18', '18:00', 'Kameramen'),
+(30, 'Belinda', '2025-07-21', '18:00', 'Supervisor'),
+(31, 'Tita', '2025-07-06', '10:00', 'Kameramen'),
+(32, 'Tyas', '2025-07-13', '19:00', 'Kameramen'),
+(33, 'Tita', '2025-07-16', '18:00', 'Operator'),
+(34, 'Rossa', '2025-07-06', '10:00', 'Supervisor'),
+(35, 'Toto', '2025-07-15', '18:00', 'Kameramen'),
+(36, 'Lisa', '2025-07-17', '18:00', 'Operator'),
+(37, 'Aurel', '2025-07-29', '18:00', 'Kameramen'),
+(38, 'Aurel', '2025-07-15', '18:00', 'Supervisor'),
+(39, 'Aurel', '2025-07-22', '18:00', 'Kameramen'),
+(40, 'Jeni', '2025-07-06', '08:00', 'Operator'),
+(41, 'Jeni', '2025-07-13', '08:00', 'Supervisor'),
+(42, 'Rikha', '2025-07-06', '08:00', 'Supervisor'),
+(43, 'Rikha', '2025-07-13', '08:00', 'Operator'),
+(44, 'There', '2025-07-27', '19:00', 'Operator'),
+(45, 'Aura', '2025-07-15', '18:00', 'Operator'),
+(46, 'Aura', '2025-07-20', '17:00', 'Operator'),
+(47, 'Aura', '2025-07-27', '19:00', 'Kameramen'),
+(48, 'Floren', '2025-07-03', '18:00', 'Operator'),
+(49, 'Vio', '2025-07-05', '18:00', 'Supervisor'),
+(50, 'Vio', '2025-07-20', '10:00', 'Kameramen'),
+(51, 'Vio', '2025-07-27', '10:00', 'Operator'),
+(52, 'Putra', '2025-07-05', '18:00', 'Kameramen'),
+(53, 'Putra', '2025-07-03', '18:00', 'Kameramen'),
+(54, 'Bian', '2025-07-10', '18:00', 'Operator'),
+(55, 'Bian', '2025-07-20', '17:00', 'Kameramen'),
+(56, 'Ifa', '2025-07-13', '17:00', 'Supervisor'),
+(57, 'Ifa', '2025-07-06', '17:00', 'Supervisor'),
+(58, 'Ifa', '2025-07-27', '17:00', 'Supervisor'),
+(59, 'Aura', '2025-07-13', '17:00', 'Kameramen'),
+(60, 'There', '2025-07-13', '17:00', 'Operator'),
+(61, 'Ketrin', '2025-07-11', '18:00', 'Operator'),
+(62, 'Ketrin', '2025-07-13', '08:00', 'Kameramen'),
+(63, 'Nadia', '2025-07-29', '18:00', 'Supervisor'),
+(64, 'Lisa', '2025-07-29', '18:00', 'Operator'),
+(65, 'Christoforus Tadeus', '2025-07-05', '18:00', 'Operator'),
+(66, 'Christoforus Tadeus', '2025-07-04', '18:00', 'Supervisor'),
+(67, 'Pria', '2025-07-22', '18:00', 'Operator'),
+(68, 'Christoforus Tadeus', '2025-07-01', '18:00', 'Supervisor'),
+(69, 'Nadia', '2025-07-04', '18:00', 'Kameramen'),
+(70, 'Weka', '2025-07-11', '18:00', 'Supervisor'),
+(71, 'Weka', '2025-07-04', '18:00', 'Operator'),
+(72, 'There', '2025-07-20', '10:00', 'Supervisor'),
+(73, 'Paul', '2025-07-01', '18:00', 'Operator'),
+(74, 'Paul', '2025-07-09', '18:00', 'Supervisor'),
+(75, 'Paul', '2025-07-12', '18:00', 'Supervisor'),
+(76, 'Rosel', '2025-07-22', '18:00', 'Supervisor'),
+(77, 'Rosel', '2025-07-21', '18:00', 'Kameramen'),
+(78, 'Michel', '2025-07-09', '18:00', 'Operator'),
+(79, 'Michel', '2025-07-08', '18:00', 'Kameramen'),
+(80, 'Michel', '2025-07-11', '18:00', 'Kameramen'),
+(81, 'Ketrin', '2025-07-18', '18:00', 'Operator'),
+(82, 'Noel', '2025-07-01', '18:00', 'Kameramen'),
+(83, 'Pria', '2025-07-27', '17:00', 'Operator'),
+(84, 'Kanes', '2025-07-27', '17:00', 'Kameramen'),
+(85, 'Kanes', '2025-07-06', '17:00', 'Kameramen'),
+(86, 'Tita', '2025-07-06', '17:00', 'Operator'),
+(87, 'Lisa', '2025-07-07', '18:00', 'Operator'),
+(88, 'Floren', '2025-07-13', '10:00', 'Kameramen'),
+(89, 'Toto', '2025-07-24', '18:00', 'Operator'),
+(90, 'Rossa', '2025-07-07', '18:00', 'Supervisor'),
+(91, 'Vista', '2025-07-07', '18:00', 'Kameramen'),
+(92, 'Ketrin', '2025-07-06', '08:00', 'Kameramen'),
+(93, 'Ketrin', '2025-07-09', '18:00', 'Kameramen'),
+(94, 'Panji', '2025-07-08', '18:00', 'Operator'),
+(95, 'Alta', '2025-07-08', '18:00', 'Supervisor'),
+(96, 'Alta', '2025-07-27', '10:00', 'Supervisor'),
+(101, 'Kanes', '2025-07-28', '18:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_08`
+--
+
+CREATE TABLE `tugas_2025_08` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_08`
+--
+
+INSERT INTO `tugas_2025_08` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Tyas', '2025-08-18', '18:00', 'Kameramen'),
+(2, 'Regio', '2025-08-06', '18:00', 'Operator'),
+(3, 'Regio', '2025-08-12', '18:00', 'Supervisor'),
+(6, 'Ketrin', '2025-08-08', '18:00', 'Operator'),
+(7, 'Tita', '2025-08-16', '18:00', 'Operator'),
+(8, 'Veny', '2025-08-03', '10:00', 'Kameramen'),
+(9, 'Veny', '2025-08-10', '08:00', 'Supervisor'),
+(10, 'Noel', '2025-08-03', '19:00', 'Supervisor'),
+(11, 'Noel', '2025-08-10', '19:00', 'Supervisor'),
+(12, 'Noel', '2025-08-31', '19:00', 'Supervisor'),
+(13, 'Belinda', '2025-08-19', '18:00', 'Supervisor'),
+(14, 'Belinda', '2025-08-21', '18:00', 'Kameramen'),
+(15, 'Belinda', '2025-08-26', '18:00', 'Supervisor'),
+(16, 'Tita', '2025-08-24', '10:00', 'Kameramen'),
+(17, 'Rossa', '2025-08-24', '10:00', 'Operator'),
+(18, 'There', '2025-08-03', '19:00', 'Operator'),
+(19, 'Tyas', '2025-08-06', '18:00', 'Kameramen'),
+(20, 'There', '2025-08-31', '19:00', 'Operator'),
+(21, 'There', '2025-08-24', '19:00', 'Operator'),
+(22, 'Tyas', '2025-08-19', '18:00', 'Operator'),
+(23, 'Tyas', '2025-08-21', '18:00', 'Operator'),
+(24, 'Tyas', '2025-08-26', '18:00', 'Kameramen'),
+(25, 'Aura', '2025-08-08', '18:00', 'Supervisor'),
+(26, 'Tyas', '2025-08-12', '18:00', 'Kameramen'),
+(27, 'Aura', '2025-08-23', '18:00', 'Operator'),
+(28, 'Panji', '2025-08-03', '19:00', 'Kameramen'),
+(29, 'Panji', '2025-08-24', '19:00', 'Supervisor'),
+(30, 'Orel', '2025-08-18', '18:00', 'Supervisor'),
+(31, 'Aurel', '2025-08-20', '18:00', 'Kameramen'),
+(32, 'Aurel', '2025-08-19', '18:00', 'Kameramen'),
+(33, 'Aurel', '2025-08-27', '18:00', 'Operator'),
+(34, 'Regio', '2025-08-23', '18:00', 'Supervisor'),
+(35, 'Tyas', '2025-08-23', '18:00', 'Kameramen'),
+(36, 'Vio', '2025-08-02', '18:00', 'Supervisor'),
+(37, 'Vio', '2025-08-16', '18:00', 'Supervisor'),
+(38, 'Jeni', '2025-08-03', '08:00', 'Kameramen'),
+(39, 'Jeni', '2025-08-10', '08:00', 'Operator'),
+(40, 'Jeni', '2025-08-24', '08:00', 'Supervisor'),
+(41, 'Rikha', '2025-08-03', '08:00', 'Operator'),
+(42, 'Rikha', '2025-08-10', '08:00', 'Kameramen'),
+(43, 'Rikha', '2025-08-24', '08:00', 'Kameramen'),
+(44, 'Wima', '2025-08-27', '18:00', 'Kameramen'),
+(45, 'Orel', '2025-08-27', '18:00', 'Supervisor'),
+(46, 'Orel', '2025-08-20', '18:00', 'Operator'),
+(47, 'Wima', '2025-08-20', '18:00', 'Supervisor'),
+(48, 'Deva', '2025-08-08', '18:00', 'Kameramen'),
+(49, 'Lisa', '2025-08-13', '18:00', 'Operator'),
+(50, 'Wima', '2025-08-18', '18:00', 'Operator'),
+(51, 'Lisa', '2025-08-25', '18:00', 'Operator'),
+(52, 'Bian', '2025-08-10', '19:00', 'Operator'),
+(53, 'Alta', '2025-08-25', '18:00', 'Supervisor'),
+(54, 'Florencia', '2025-08-25', '18:00', 'Kameramen'),
+(55, 'Bian', '2025-08-24', '10:00', 'Supervisor'),
+(56, 'Claire', '2025-08-13', '18:00', 'Supervisor'),
+(57, 'Alta', '2025-08-10', '19:00', 'Kameramen'),
+(58, 'Florencia', '2025-08-16', '18:00', 'Kameramen'),
+(59, 'Florencia', '2025-08-13', '18:00', 'Kameramen'),
+(60, 'Claire', '2025-08-06', '18:00', 'Supervisor'),
+(61, 'Lisa', '2025-08-04', '18:00', 'Operator'),
+(62, 'Christoforus Tadeus', '2025-08-01', '18:00', 'Supervisor'),
+(63, 'Christoforus Tadeus', '2025-08-11', '18:00', 'Supervisor'),
+(64, 'Asha', '2025-08-21', '18:00', 'Supervisor'),
+(65, 'Asha', '2025-08-24', '19:00', 'Kameramen'),
+(66, 'Asha', '2025-08-31', '19:00', 'Kameramen'),
+(67, 'Nadia', '2025-08-04', '18:00', 'Kameramen'),
+(68, 'Nadia', '2025-08-11', '18:00', 'Kameramen'),
+(69, 'Ketrin', '2025-08-14', '18:00', 'Operator'),
+(70, 'Deva', '2025-08-14', '18:00', 'Supervisor'),
+(71, 'Rossa', '2025-08-26', '18:00', 'Operator'),
+(72, 'Paul', '2025-08-05', '18:00', 'Supervisor'),
+(73, 'Paul', '2025-08-07', '18:00', 'Supervisor'),
+(74, 'Deva', '2025-08-04', '18:00', 'Supervisor'),
+(75, 'Pria', '2025-08-02', '18:00', 'Kameramen'),
+(76, 'Pria', '2025-08-03', '17:00', 'Supervisor'),
+(77, 'Satrio', '2025-08-01', '18:00', 'Operator'),
+(78, 'Paul', '2025-08-09', '18:00', 'Supervisor'),
+(79, 'Satrio', '2025-08-02', '18:00', 'Operator'),
+(80, 'Aura', '2025-08-03', '17:00', 'Operator'),
+(81, 'Floren', '2025-08-03', '17:00', 'Kameramen'),
+(82, 'Floren', '2025-08-09', '18:00', 'Operator'),
+(83, 'Weka', '2025-08-05', '18:00', 'Operator'),
+(84, 'Weka', '2025-08-07', '18:00', 'Operator'),
+(85, 'Floren', '2025-08-12', '18:00', 'Operator'),
+(86, 'Weka', '2025-08-09', '18:00', 'Kameramen'),
+(87, 'Christoforus Tadeus', '2025-08-22', '18:00', 'Supervisor'),
+(88, 'Veny', '2025-08-01', '18:00', 'Kameramen'),
+(89, 'Michel', '2025-08-05', '18:00', 'Kameramen'),
+(90, 'Michel', '2025-08-28', '18:00', 'Supervisor'),
+(91, 'Michel', '2025-08-07', '18:00', 'Kameramen'),
+(92, 'Jose', '2025-08-28', '18:00', 'Kameramen'),
+(93, 'Nawung', '2025-08-03', '10:00', 'Supervisor'),
+(94, 'Putra', '2025-08-14', '18:00', 'Kameramen'),
+(95, 'Putra', '2025-08-22', '18:00', 'Kameramen'),
+(96, 'Kanes', '2025-08-28', '18:00', 'Operator'),
+(97, 'Chris', '2025-08-03', '08:00', 'Supervisor'),
+(98, 'Chris', '2025-08-03', '10:00', 'Operator'),
+(99, 'Ifa', '2025-08-11', '18:00', 'Operator'),
+(100, 'Ifa', '2025-08-22', '18:00', 'Operator'),
+(101, 'Ifa', '2025-08-24', '08:00', 'Operator'),
+(102, 'There', '2025-08-17', '19:00', 'Operator'),
+(103, 'Ketrin', '2025-08-29', '18:00', 'Operator'),
+(104, 'Toto', '2025-08-10', '10:00', 'Supervisor'),
+(105, 'There', '2025-08-10', '10:00', 'Operator'),
+(106, 'Naresh', '2025-08-10', '17:00', 'Operator'),
+(107, 'Naresh', '2025-08-29', '18:00', 'Kameramen'),
+(108, 'Naresh', '2025-08-30', '18:00', 'Supervisor'),
+(109, 'Nawung', '2025-08-29', '18:00', 'Supervisor'),
+(110, 'Nawung', '2025-08-15', '18:00', 'Operator'),
+(111, 'Vio', '2025-08-15', '18:00', 'Kameramen'),
+(112, 'Pria', '2025-08-30', '18:00', 'Kameramen'),
+(113, 'Yuta', '2025-08-17', '19:00', 'Supervisor'),
+(114, 'Yuta', '2025-08-31', '17:00', 'Kameramen'),
+(115, 'Bima', '2025-08-15', '18:00', 'Supervisor'),
+(116, 'Bima', '2025-08-30', '18:00', 'Operator'),
+(117, 'Ketrin', '2025-08-17', '08:00', 'Operator'),
+(118, 'Ketrin', '2025-08-31', '17:00', 'Supervisor'),
+(119, 'Kinan', '2025-08-10', '17:00', 'Kameramen'),
+(120, 'Aura', '2025-08-31', '17:00', 'Operator'),
+(121, 'Panji', '2025-08-10', '17:00', 'Supervisor'),
+(122, 'Putra', '2025-08-17', '17:00', 'Kameramen'),
+(123, 'Toto', '2025-08-17', '17:00', 'Operator'),
+(124, 'Satrio', '2025-08-17', '10:00', 'Kameramen'),
+(125, 'There', '2025-08-24', '17:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_09`
+--
+
+CREATE TABLE `tugas_2025_09` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_09`
+--
+
+INSERT INTO `tugas_2025_09` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Noel', '2025-09-07', '17:00', 'Supervisor'),
+(2, 'Noel', '2025-09-14', '19:00', 'Supervisor'),
+(3, 'Noel', '2025-09-28', '17:00', 'Supervisor'),
+(4, 'Aura', '2025-09-02', '18:00', 'Supervisor'),
+(5, 'Aura', '2025-09-14', '17:00', 'Operator'),
+(6, 'Aura', '2025-09-27', '18:00', 'Operator'),
+(7, 'Jose', '2025-09-23', '18:00', 'Supervisor'),
+(8, 'Jose', '2025-09-10', '18:00', 'Supervisor'),
+(9, 'Jose', '2025-09-03', '18:00', 'Supervisor'),
+(10, 'Bian', '2025-09-04', '18:00', 'Supervisor'),
+(11, 'Bian', '2025-09-14', '10:00', 'Operator'),
+(12, 'Bian', '2025-09-25', '18:00', 'Supervisor'),
+(13, 'Ata Surya', '2025-09-02', '18:00', 'Operator'),
+(14, 'Ata Surya', '2025-09-03', '18:00', 'Kameramen'),
+(15, 'Ata Surya', '2025-09-04', '18:00', 'Operator'),
+(16, 'Rossa', '2025-09-28', '10:00', 'Operator'),
+(17, 'Tita', '2025-09-28', '10:00', 'Kameramen'),
+(18, 'Rossa', '2025-09-17', '18:00', 'Operator'),
+(19, 'Tita', '2025-09-17', '18:00', 'Kameramen'),
+(20, 'Ketrin', '2025-09-16', '18:00', 'Operator'),
+(21, 'Aura', '2025-09-07', '17:00', 'Operator'),
+(22, 'Rosel', '2025-09-24', '18:00', 'Supervisor'),
+(23, 'Jeni', '2025-09-07', '08:00', 'Supervisor'),
+(24, 'Jeni', '2025-09-14', '08:00', 'Operator'),
+(25, 'Rikha', '2025-09-07', '08:00', 'Operator'),
+(26, 'Rikha', '2025-09-14', '08:00', 'Kameramen'),
+(27, 'Jeni', '2025-09-21', '08:00', 'Kameramen'),
+(28, 'Rikha', '2025-09-21', '08:00', 'Operator'),
+(29, 'Tyas', '2025-09-11', '18:00', 'Operator'),
+(30, 'Deva', '2025-09-11', '18:00', 'Supervisor'),
+(31, 'Aurel', '2025-09-02', '18:00', 'Kameramen'),
+(32, 'Belinda', '2025-09-04', '18:00', 'Kameramen'),
+(33, 'Belinda', '2025-09-11', '18:00', 'Kameramen'),
+(34, 'Belinda', '2025-09-08', '18:00', 'Supervisor'),
+(35, 'Tyas', '2025-09-08', '18:00', 'Kameramen'),
+(36, 'Ifa', '2025-09-27', '18:00', 'Kameramen'),
+(37, 'Ifa', '2025-09-28', '10:00', 'Supervisor'),
+(38, 'Aurel', '2025-09-03', '18:00', 'Operator'),
+(39, 'Asha', '2025-09-14', '17:00', 'Kameramen'),
+(40, 'Vio', '2025-09-06', '18:00', 'Operator'),
+(41, 'There', '2025-09-07', '19:00', 'Operator'),
+(42, 'Vio', '2025-09-20', '18:00', 'Operator'),
+(43, 'Vio', '2025-09-27', '18:00', 'Supervisor'),
+(44, 'There', '2025-09-28', '19:00', 'Operator'),
+(45, 'There', '2025-09-14', '19:00', 'Operator'),
+(46, 'Asha', '2025-09-18', '18:00', 'Operator'),
+(47, 'There', '2025-09-21', '19:00', 'Operator'),
+(48, 'Kanes', '2025-09-17', '18:00', 'Supervisor'),
+(49, 'Asha', '2025-09-24', '18:00', 'Kameramen'),
+(50, 'Kanes', '2025-09-19', '18:00', 'Kameramen'),
+(51, 'Michel', '2025-09-09', '18:00', 'Operator'),
+(52, 'Michel', '2025-09-16', '18:00', 'Supervisor'),
+(53, 'Michel', '2025-09-18', '18:00', 'Kameramen'),
+(54, 'Florencia', '2025-09-18', '18:00', 'Supervisor'),
+(55, 'Alta', '2025-09-14', '10:00', 'Supervisor'),
+(56, 'Botun', '2025-09-16', '18:00', 'Kameramen'),
+(57, 'Botun', '2025-09-24', '18:00', 'Operator'),
+(58, 'Botun', '2025-09-28', '17:00', 'Kameramen'),
+(59, 'Satrio', '2025-09-30', '18:00', 'Kameramen'),
+(60, 'Satrio', '2025-09-29', '18:00', 'Kameramen'),
+(61, 'Lisa', '2025-09-01', '18:00', 'Operator'),
+(62, 'Christoforus Tadeus', '2025-09-01', '18:00', 'Supervisor'),
+(63, 'Floren', '2025-09-07', '19:00', 'Kameramen'),
+(64, 'Orel', '2025-09-09', '18:00', 'Supervisor'),
+(65, 'Orel', '2025-09-30', '18:00', 'Supervisor'),
+(66, 'Orel', '2025-09-22', '18:00', 'Operator'),
+(67, 'Lisa', '2025-09-15', '18:00', 'Operator'),
+(68, 'Ketrin', '2025-09-29', '18:00', 'Supervisor'),
+(69, 'Nawung', '2025-09-07', '19:00', 'Supervisor'),
+(70, 'Nawung', '2025-09-14', '19:00', 'Kameramen'),
+(71, 'Putra', '2025-09-09', '18:00', 'Kameramen'),
+(72, 'Putra', '2025-09-10', '18:00', 'Kameramen'),
+(73, 'Chris', '2025-09-07', '17:00', 'Kameramen'),
+(74, 'Chris', '2025-09-06', '18:00', 'Kameramen'),
+(75, 'Chris', '2025-09-14', '17:00', 'Supervisor'),
+(76, 'Toto', '2025-09-12', '18:00', 'Kameramen'),
+(77, 'Toto', '2025-09-14', '10:00', 'Kameramen'),
+(78, 'Tyas', '2025-09-25', '18:00', 'Kameramen'),
+(79, 'Claire', '2025-09-15', '18:00', 'Supervisor'),
+(80, 'Claire', '2025-09-22', '18:00', 'Kameramen'),
+(81, 'Panji', '2025-09-21', '10:00', 'Supervisor'),
+(82, 'Panji', '2025-09-07', '10:00', 'Supervisor'),
+(83, 'Panji', '2025-09-21', '19:00', 'Supervisor'),
+(84, 'Bian', '2025-09-06', '18:00', 'Supervisor'),
+(85, 'Rossa', '2025-09-08', '18:00', 'Operator'),
+(86, 'Nadia', '2025-09-15', '18:00', 'Kameramen'),
+(87, 'Christoforus Tadeus', '2025-09-14', '08:00', 'Supervisor'),
+(88, 'Christoforus Tadeus', '2025-09-07', '08:00', 'Kameramen'),
+(89, 'Alta', '2025-09-12', '18:00', 'Supervisor'),
+(90, 'Weka', '2025-09-05', '18:00', 'Operator'),
+(91, 'Weka', '2025-09-23', '18:00', 'Kameramen'),
+(92, 'Wima', '2025-09-05', '18:00', 'Supervisor'),
+(93, 'Wima', '2025-09-12', '18:00', 'Operator'),
+(94, 'Wima', '2025-09-25', '18:00', 'Operator'),
+(95, 'Weka', '2025-09-10', '18:00', 'Operator'),
+(96, 'Pria', '2025-09-13', '18:00', 'Supervisor'),
+(97, 'Pria', '2025-09-23', '18:00', 'Operator'),
+(98, 'Pria', '2025-09-29', '18:00', 'Operator'),
+(99, 'Florencia', '2025-09-07', '10:00', 'Kameramen'),
+(100, 'Floren', '2025-09-05', '18:00', 'Kameramen'),
+(101, 'Ifa', '2025-09-07', '10:00', 'Operator'),
+(102, 'Paul', '2025-09-13', '18:00', 'Operator'),
+(103, 'Vista', '2025-09-22', '18:00', 'Supervisor'),
+(104, 'Paul', '2025-09-20', '18:00', 'Kameramen'),
+(105, 'Paul', '2025-09-28', '17:00', 'Operator'),
+(106, 'Rafael', '2025-09-13', '18:00', 'Kameramen'),
+(107, 'Rafael', '2025-09-20', '18:00', 'Supervisor'),
+(108, 'Rafael', '2025-09-26', '18:00', 'Operator'),
+(109, 'Claire', '2025-09-26', '18:00', 'Kameramen'),
+(110, 'Bima', '2025-09-21', '08:00', 'Supervisor'),
+(111, 'Bima', '2025-09-26', '18:00', 'Supervisor'),
+(112, 'Bima', '2025-09-30', '18:00', 'Operator'),
+(113, 'Nadia', '2025-09-21', '19:00', 'Kameramen'),
+(114, 'Nadia', '2025-09-28', '08:00', 'Operator'),
+(115, 'Tita', '2025-09-28', '08:00', 'Kameramen'),
+(116, 'Deva', '2025-09-28', '19:00', 'Supervisor'),
+(117, 'Veny', '2025-09-21', '17:00', 'Kameramen'),
+(118, 'Veny', '2025-09-28', '19:00', 'Kameramen'),
+(119, 'Naresh', '2025-09-28', '08:00', 'Supervisor'),
+(120, 'Deva', '2025-09-21', '17:00', 'Supervisor'),
+(121, 'There', '2025-09-21', '10:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_10`
+--
+
+CREATE TABLE `tugas_2025_10` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_10`
+--
+
+INSERT INTO `tugas_2025_10` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'There', '2025-10-05', '19:00', 'Operator'),
+(2, 'Belinda', '2025-10-06', '18:00', 'Kameramen'),
+(3, 'Belinda', '2025-10-09', '18:00', 'Supervisor'),
+(4, 'Belinda', '2025-10-15', '18:00', 'Supervisor'),
+(5, 'Tyas', '2025-10-06', '18:00', 'Operator'),
+(6, 'Tyas', '2025-10-09', '18:00', 'Kameramen'),
+(7, 'Tyas', '2025-10-15', '18:00', 'Operator'),
+(8, 'Jose', '2025-10-02', '18:00', 'Supervisor'),
+(9, 'Jose', '2025-10-10', '18:00', 'Kameramen'),
+(10, 'Jose', '2025-10-23', '18:00', 'Supervisor'),
+(11, 'Wima', '2025-10-22', '18:00', 'Operator'),
+(12, 'Wima', '2025-10-23', '18:00', 'Kameramen'),
+(13, 'Wima', '2025-10-29', '18:00', 'Supervisor'),
+(14, 'Rafael', '2025-10-11', '18:00', 'Kameramen'),
+(15, 'Rafael', '2025-10-18', '18:00', 'Kameramen'),
+(16, 'Orel', '2025-10-22', '18:00', 'Kameramen'),
+(17, 'Rafael', '2025-10-04', '18:00', 'Kameramen'),
+(18, 'Orel', '2025-10-29', '18:00', 'Operator'),
+(19, 'Orel', '2025-10-13', '18:00', 'Supervisor'),
+(20, 'Nadia', '2025-10-10', '18:00', 'Supervisor'),
+(21, 'There', '2025-10-12', '19:00', 'Supervisor'),
+(22, 'There', '2025-10-26', '08:00', 'Supervisor'),
+(23, 'There', '2025-10-19', '19:00', 'Operator'),
+(24, 'Vio', '2025-10-04', '18:00', 'Operator'),
+(25, 'Vio', '2025-10-11', '18:00', 'Supervisor'),
+(26, 'Vio', '2025-10-18', '18:00', 'Operator'),
+(27, 'Noel', '2025-10-05', '17:00', 'Supervisor'),
+(28, 'Noel', '2025-10-19', '17:00', 'Supervisor'),
+(29, 'Noel', '2025-10-26', '19:00', 'Supervisor'),
+(30, 'Christoforus Tadeus', '2025-10-01', '18:00', 'Supervisor'),
+(31, 'Christoforus Tadeus', '2025-10-07', '18:00', 'Supervisor'),
+(32, 'Aura', '2025-10-12', '19:00', 'Operator'),
+(33, 'Aurel', '2025-10-06', '18:00', 'Supervisor'),
+(34, 'Aurel', '2025-10-07', '18:00', 'Kameramen'),
+(35, 'Bian', '2025-10-05', '17:00', 'Operator'),
+(36, 'Bian', '2025-10-14', '18:00', 'Supervisor'),
+(37, 'Bian', '2025-10-19', '17:00', 'Operator'),
+(38, 'Putra', '2025-10-01', '18:00', 'Kameramen'),
+(39, 'Putra', '2025-10-02', '18:00', 'Kameramen'),
+(40, 'Putra', '2025-10-08', '18:00', 'Kameramen'),
+(41, 'Jeni', '2025-10-05', '08:00', 'Kameramen'),
+(42, 'Ketrin', '2025-10-03', '18:00', 'Operator'),
+(43, 'Rikha', '2025-10-05', '08:00', 'Operator'),
+(44, 'Alta', '2025-10-05', '17:00', 'Kameramen'),
+(45, 'Regio', '2025-10-12', '17:00', 'Supervisor'),
+(46, 'Tyas', '2025-10-12', '17:00', 'Operator'),
+(47, 'Rossa', '2025-10-09', '18:00', 'Operator'),
+(48, 'Rossa', '2025-10-19', '08:00', 'Operator'),
+(49, 'Tita', '2025-10-08', '18:00', 'Operator'),
+(50, 'Tita', '2025-10-26', '10:00', 'Operator'),
+(51, 'Rossa', '2025-10-26', '10:00', 'Supervisor'),
+(52, 'Tita', '2025-10-19', '08:00', 'Kameramen'),
+(53, 'Botun', '2025-10-08', '18:00', 'Supervisor'),
+(54, 'Botun', '2025-10-16', '18:00', 'Supervisor'),
+(55, 'Botun', '2025-10-21', '18:00', 'Operator'),
+(56, 'Paul', '2025-10-04', '18:00', 'Supervisor'),
+(57, 'Paul', '2025-10-01', '18:00', 'Operator'),
+(58, 'Paul', '2025-10-02', '18:00', 'Operator'),
+(59, 'Deva', '2025-10-03', '18:00', 'Kameramen'),
+(60, 'Chris', '2025-10-12', '19:00', 'Kameramen'),
+(61, 'Chris', '2025-10-19', '17:00', 'Kameramen'),
+(62, 'Ifa', '2025-10-12', '10:00', 'Kameramen'),
+(63, 'Ifa', '2025-10-25', '18:00', 'Kameramen'),
+(64, 'Ifa', '2025-10-24', '18:00', 'Supervisor'),
+(65, 'Asha', '2025-10-29', '18:00', 'Kameramen'),
+(66, 'Pria', '2025-10-05', '19:00', 'Supervisor'),
+(67, 'Pria', '2025-10-19', '08:00', 'Supervisor'),
+(68, 'Michel', '2025-10-07', '18:00', 'Operator'),
+(69, 'Michel', '2025-10-16', '18:00', 'Operator'),
+(70, 'Michel', '2025-10-22', '18:00', 'Supervisor'),
+(71, 'Asha', '2025-10-23', '18:00', 'Operator'),
+(72, 'Asha', '2025-10-19', '19:00', 'Kameramen'),
+(73, 'Nawung', '2025-10-26', '19:00', 'Kameramen'),
+(74, 'Nawung', '2025-10-18', '18:00', 'Supervisor'),
+(75, 'Naresh', '2025-10-05', '19:00', 'Kameramen'),
+(76, 'Naresh', '2025-10-13', '18:00', 'Operator'),
+(77, 'Naresh', '2025-10-28', '18:00', 'Kameramen'),
+(78, 'Christoforus Tadeus', '2025-10-03', '18:00', 'Supervisor'),
+(79, 'Ketrin', '2025-10-28', '18:00', 'Supervisor'),
+(80, 'Weka', '2025-10-11', '18:00', 'Operator'),
+(81, 'Weka', '2025-10-14', '18:00', 'Operator'),
+(82, 'Weka', '2025-10-16', '18:00', 'Kameramen'),
+(83, 'Claire', '2025-10-21', '18:00', 'Supervisor'),
+(84, 'Claire', '2025-10-30', '18:00', 'Supervisor'),
+(85, 'Claire', '2025-10-14', '18:00', 'Kameramen'),
+(86, 'Floren', '2025-10-12', '17:00', 'Kameramen'),
+(87, 'Floren', '2025-10-19', '10:00', 'Operator'),
+(88, 'Dewi', '2025-10-28', '18:00', 'Operator'),
+(89, 'Dewi', '2025-10-27', '18:00', 'Supervisor'),
+(90, 'Satrio', '2025-10-13', '18:00', 'Kameramen'),
+(91, 'Satrio', '2025-10-15', '18:00', 'Kameramen'),
+(92, 'Satrio', '2025-10-17', '18:00', 'Supervisor'),
+(93, 'Lisa', '2025-10-20', '18:00', 'Operator'),
+(94, 'Lisa', '2025-10-27', '18:00', 'Operator'),
+(95, 'Deva', '2025-10-26', '17:00', 'Kameramen'),
+(96, 'Deva', '2025-10-19', '19:00', 'Supervisor'),
+(97, 'Panji', '2025-10-05', '10:00', 'Supervisor'),
+(98, 'Panji', '2025-10-17', '18:00', 'Kameramen'),
+(99, 'Panji', '2025-10-24', '18:00', 'Kameramen'),
+(100, 'Bima', '2025-10-05', '10:00', 'Operator'),
+(101, 'Veny', '2025-10-05', '08:00', 'Supervisor'),
+(102, 'Veny', '2025-10-10', '18:00', 'Operator'),
+(103, 'Florencia', '2025-10-20', '18:00', 'Kameramen'),
+(104, 'Florencia', '2025-10-19', '10:00', 'Kameramen'),
+(105, 'Florencia', '2025-10-24', '18:00', 'Operator'),
+(106, 'Kanes', '2025-10-17', '18:00', 'Operator'),
+(107, 'Kanes', '2025-10-21', '18:00', 'Kameramen'),
+(108, 'Kanes', '2025-10-26', '17:00', 'Operator'),
+(109, 'Alta', '2025-10-25', '18:00', 'Operator'),
+(110, 'Bima', '2025-10-20', '18:00', 'Supervisor'),
+(111, 'Bima', '2025-10-25', '18:00', 'Supervisor'),
+(112, 'Aura', '2025-10-26', '19:00', 'Operator'),
+(113, 'Daflo', '2025-10-12', '08:00', 'Operator'),
+(114, 'Daflo', '2025-10-19', '10:00', 'Supervisor'),
+(115, 'Daflo', '2025-10-26', '17:00', 'Supervisor'),
+(116, 'Panji', '2025-10-31', '18:00', 'Supervisor'),
+(117, 'Nadia', '2025-10-27', '18:00', 'Kameramen'),
+(118, 'Nadia', '2025-10-26', '08:00', 'Kameramen'),
+(119, 'Ata Surya', '2025-10-05', '10:00', 'Kameramen'),
+(120, 'Toto', '2025-10-12', '10:00', 'Operator'),
+(121, 'Toto', '2025-10-26', '10:00', 'Kameramen'),
+(122, 'Alta', '2025-10-12', '10:00', 'Supervisor'),
+(123, 'Chris', '2025-10-31', '18:00', 'Kameramen'),
+(124, 'There', '2025-10-30', '18:00', 'Operator'),
+(125, 'Ata Surya', '2025-10-31', '18:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_11`
+--
+
+CREATE TABLE `tugas_2025_11` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_11`
+--
+
+INSERT INTO `tugas_2025_11` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'There', '2025-11-09', '19:00', 'Operator'),
+(2, 'There', '2025-11-23', '19:00', 'Operator'),
+(3, 'Rossa', '2025-11-09', '10:00', 'Operator'),
+(4, 'Tita', '2025-11-09', '10:00', 'Kameramen'),
+(5, 'Tita', '2025-11-16', '10:00', 'Operator'),
+(6, 'Rossa', '2025-11-16', '10:00', 'Supervisor'),
+(7, 'Noel', '2025-11-02', '17:00', 'Supervisor'),
+(8, 'Noel', '2025-11-09', '17:00', 'Supervisor'),
+(9, 'Noel', '2025-11-23', '17:00', 'Supervisor'),
+(10, 'Belinda', '2025-11-06', '18:00', 'Supervisor'),
+(11, 'Belinda', '2025-11-11', '18:00', 'Kameramen'),
+(12, 'Belinda', '2025-11-18', '18:00', 'Supervisor'),
+(13, 'Tyas', '2025-11-06', '18:00', 'Kameramen'),
+(14, 'Tyas', '2025-11-11', '18:00', 'Operator'),
+(15, 'Tyas', '2025-11-18', '18:00', 'Kameramen'),
+(16, 'Tyas', '2025-11-18', '18:00', 'Operator'),
+(17, 'Tita', '2025-11-23', '10:00', 'Operator'),
+(18, 'Christoforus Tadeus', '2025-11-04', '18:00', 'Supervisor'),
+(19, 'Weka', '2025-11-03', '18:00', 'Supervisor'),
+(20, 'Weka', '2025-11-04', '18:00', 'Operator'),
+(21, 'Weka', '2025-11-05', '18:00', 'Supervisor'),
+(22, 'Bian', '2025-11-03', '18:00', 'Operator'),
+(23, 'Bian', '2025-11-09', '17:00', 'Operator'),
+(24, 'Bian', '2025-11-14', '18:00', 'Supervisor'),
+(25, 'Floren', '2025-11-08', '18:00', 'Kameramen'),
+(26, 'Dewi', '2025-11-12', '18:00', 'Operator'),
+(27, 'Dewi', '2025-11-13', '18:00', 'Supervisor'),
+(28, 'Dewi', '2025-11-17', '18:00', 'Kameramen'),
+(29, 'Florencia', '2025-11-12', '18:00', 'Supervisor'),
+(30, 'Ifa', '2025-11-09', '08:00', 'Operator'),
+(31, 'Ifa', '2025-11-16', '08:00', 'Kameramen'),
+(32, 'Aurel', '2025-11-12', '18:00', 'Kameramen'),
+(33, 'Aura', '2025-11-23', '17:00', 'Operator'),
+(34, 'Ata Surya', '2025-11-23', '17:00', 'Kameramen'),
+(35, 'Noel', '2025-11-02', '08:00', 'Operator'),
+(36, 'Christoforus Tadeus', '2025-11-02', '08:00', 'Supervisor'),
+(37, 'Pria', '2025-11-16', '19:00', 'Supervisor'),
+(38, 'Pria', '2025-11-30', '10:00', 'Supervisor'),
+(39, 'Vio', '2025-11-01', '18:00', 'Operator'),
+(40, 'Vio', '2025-11-07', '18:00', 'Operator'),
+(41, 'Vio', '2025-11-08', '18:00', 'Operator'),
+(42, 'There', '2025-11-16', '19:00', 'Operator'),
+(43, 'Ketrin', '2025-11-13', '18:00', 'Operator'),
+(44, 'Ketrin', '2025-11-08', '18:00', 'Supervisor'),
+(45, 'Botun', '2025-11-03', '18:00', 'Kameramen'),
+(46, 'Botun', '2025-11-05', '18:00', 'Operator'),
+(47, 'Botun', '2025-11-25', '18:00', 'Supervisor'),
+(48, 'Asha', '2025-11-06', '18:00', 'Operator'),
+(49, 'Asha', '2025-11-04', '18:00', 'Kameramen'),
+(50, 'Nawung', '2025-11-15', '18:00', 'Supervisor'),
+(51, 'Nawung', '2025-11-23', '19:00', 'Supervisor'),
+(52, 'Michel', '2025-11-11', '18:00', 'Supervisor'),
+(53, 'Michel', '2025-11-20', '18:00', 'Operator'),
+(54, 'Michel', '2025-11-27', '18:00', 'Operator'),
+(55, 'Jose', '2025-11-19', '18:00', 'Kameramen'),
+(56, 'Jose', '2025-11-26', '18:00', 'Supervisor'),
+(57, 'Jose', '2025-11-13', '18:00', 'Kameramen'),
+(58, 'Wima', '2025-11-05', '18:00', 'Kameramen'),
+(59, 'Wima', '2025-11-26', '18:00', 'Kameramen'),
+(60, 'Wima', '2025-11-20', '18:00', 'Supervisor'),
+(61, 'Orel', '2025-11-20', '18:00', 'Kameramen'),
+(62, 'Orel', '2025-11-26', '18:00', 'Operator'),
+(63, 'Floren', '2025-11-22', '18:00', 'Kameramen'),
+(64, 'There', '2025-11-02', '10:00', 'Operator'),
+(65, 'Satrio', '2025-11-25', '18:00', 'Kameramen'),
+(66, 'Orel', '2025-11-27', '18:00', 'Supervisor'),
+(67, 'Satrio', '2025-11-28', '18:00', 'Supervisor'),
+(68, 'Putra', '2025-11-10', '18:00', 'Kameramen'),
+(69, 'Putra', '2025-11-17', '18:00', 'Supervisor'),
+(70, 'Putra', '2025-11-19', '18:00', 'Supervisor'),
+(71, 'Satrio', '2025-11-24', '18:00', 'Kameramen'),
+(72, 'Ketrin', '2025-11-02', '08:00', 'Kameramen'),
+(73, 'Naresh', '2025-11-02', '17:00', 'Operator'),
+(74, 'Nadia', '2025-11-02', '19:00', 'Operator'),
+(75, 'Lisa', '2025-11-02', '17:00', 'Kameramen'),
+(76, 'Rafael', '2025-11-02', '10:00', 'Supervisor'),
+(77, 'Paul', '2025-11-02', '19:00', 'Supervisor'),
+(78, 'Panji', '2025-11-02', '19:00', 'Kameramen'),
+(79, 'Kanes', '2025-11-07', '18:00', 'Kameramen'),
+(80, 'Toto', '2025-11-02', '10:00', 'Kameramen'),
+(81, 'Panji', '2025-11-09', '17:00', 'Kameramen'),
+(82, 'Panji', '2025-11-09', '19:00', 'Supervisor'),
+(83, 'Nadia', '2025-11-23', '10:00', 'Supervisor'),
+(84, 'Nadia', '2025-11-10', '18:00', 'Supervisor'),
+(85, 'Lisa', '2025-11-10', '18:00', 'Operator'),
+(86, 'Lisa', '2025-11-17', '18:00', 'Operator'),
+(87, 'Deva', '2025-11-30', '19:00', 'Supervisor'),
+(88, 'Deva', '2025-11-09', '19:00', 'Kameramen'),
+(89, 'Deva', '2025-11-23', '19:00', 'Kameramen'),
+(90, 'Aura', '2025-11-30', '17:00', 'Operator'),
+(91, 'Pria', '2025-11-23', '08:00', 'Supervisor'),
+(92, 'Nawung', '2025-11-30', '19:00', 'Kameramen'),
+(93, 'Asha', '2025-11-14', '18:00', 'Operator'),
+(94, 'Aura', '2025-11-16', '17:00', 'Operator'),
+(95, 'Bima', '2025-11-15', '18:00', 'Operator'),
+(96, 'Bima', '2025-11-24', '18:00', 'Supervisor'),
+(97, 'Bima', '2025-11-30', '19:00', 'Operator'),
+(98, 'Claire', '2025-11-09', '08:00', 'Kameramen'),
+(99, 'Claire', '2025-11-16', '08:00', 'Operator'),
+(100, 'Florencia', '2025-11-22', '18:00', 'Operator'),
+(101, 'Claire', '2025-11-29', '18:00', 'Supervisor'),
+(102, 'Ifa', '2025-11-19', '18:00', 'Operator'),
+(103, 'Kanes', '2025-11-23', '10:00', 'Kameramen'),
+(104, 'Kanes', '2025-11-30', '17:00', 'Kameramen'),
+(105, 'Chris', '2025-11-28', '18:00', 'Operator'),
+(106, 'Chris', '2025-11-23', '08:00', 'Operator'),
+(107, 'Chris', '2025-11-16', '19:00', 'Kameramen'),
+(108, 'Paul', '2025-11-16', '10:00', 'Kameramen'),
+(109, 'Naresh', '2025-11-14', '18:00', 'Kameramen'),
+(110, 'Naresh', '2025-11-25', '18:00', 'Operator'),
+(111, 'Paul', '2025-11-07', '18:00', 'Supervisor'),
+(112, 'Rossa', '2025-11-27', '18:00', 'Kameramen'),
+(113, 'Rafael', '2025-11-28', '18:00', 'Kameramen'),
+(114, 'Rafael', '2025-11-16', '17:00', 'Supervisor'),
+(115, 'Floren', '2025-11-30', '08:00', 'Operator'),
+(116, 'Toto', '2025-11-09', '10:00', 'Supervisor'),
+(117, 'Toto', '2025-11-15', '18:00', 'Kameramen'),
+(118, 'Daflo', '2025-11-16', '17:00', 'Kameramen'),
+(119, 'Daflo', '2025-11-21', '18:00', 'Supervisor'),
+(120, 'Daflo', '2025-11-23', '08:00', 'Kameramen'),
+(121, 'Asha', '2025-11-24', '18:00', 'Operator'),
+(122, 'Alta', '2025-11-22', '18:00', 'Supervisor'),
+(123, 'There', '2025-11-30', '10:00', 'Operator'),
+(124, 'Asha', '2025-11-30', '10:00', 'Kameramen'),
+(125, 'There', '2025-11-21', '18:00', 'Operator'),
+(126, 'Panji', '2025-11-21', '18:00', 'Kameramen'),
+(127, 'Bian', '2025-11-29', '18:00', 'Kameramen'),
+(128, 'Jose', '2025-11-29', '18:00', 'Operator'),
+(129, 'Putra', '2025-11-30', '17:00', 'Supervisor'),
+(130, 'Weka', '2025-11-30', '08:00', 'Supervisor'),
+(131, 'Michel', '2025-11-30', '08:00', 'Kameramen');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2025_12`
+--
+
+CREATE TABLE `tugas_2025_12` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2025_12`
+--
+
+INSERT INTO `tugas_2025_12` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Dewi', '2025-12-04', '18:00', 'Operator'),
+(2, 'Dewi', '2025-12-09', '18:00', 'Kameramen'),
+(3, 'Ata Surya', '2025-12-02', '18:00', 'Operator'),
+(4, 'Orel', '2025-12-15', '18:00', 'Operator'),
+(5, 'Orel', '2025-12-02', '18:00', 'Supervisor'),
+(6, 'Asha', '2025-12-15', '18:00', 'Supervisor'),
+(7, 'There', '2025-12-31', '18:00', 'Operator'),
+(8, 'Noel', '2025-12-07', '19:00', 'Supervisor'),
+(9, 'Noel', '2025-12-21', '19:00', 'Supervisor'),
+(10, 'Noel', '2025-12-28', '19:00', 'Supervisor'),
+(11, 'Asha', '2025-12-02', '18:00', 'Kameramen'),
+(12, 'Panji', '2025-12-21', '10:00', 'Supervisor'),
+(13, 'There', '2025-12-14', '10:00', 'Operator'),
+(14, 'Panji', '2025-12-21', '17:00', 'Operator'),
+(15, 'Panji', '2025-12-21', '08:00', 'Supervisor'),
+(16, 'Tita', '2025-12-07', '10:00', 'Operator'),
+(17, 'Stella', '2025-12-07', '10:00', 'Kameramen'),
+(18, 'Reva', '2025-12-07', '08:00', 'Kameramen'),
+(19, 'Dhani', '2025-12-07', '08:00', 'Operator'),
+(20, 'Dhani', '2025-12-14', '08:00', 'Kameramen'),
+(21, 'Reva', '2025-12-14', '08:00', 'Operator'),
+(22, 'Dhani', '2025-12-21', '10:00', 'Operator'),
+(23, 'Reva', '2025-12-21', '10:00', 'Kameramen'),
+(24, 'Tita', '2025-12-17', '18:00', 'Kameramen'),
+(25, 'Stella', '2025-12-17', '18:00', 'Operator'),
+(26, 'Weka', '2025-12-04', '18:00', 'Supervisor'),
+(27, 'Weka', '2025-12-05', '18:00', 'Operator'),
+(28, 'Weka', '2025-12-03', '18:00', 'Operator'),
+(29, 'Vio', '2025-12-06', '18:00', 'Operator'),
+(30, 'Vio', '2025-12-13', '18:00', 'Supervisor'),
+(31, 'Christoforus Tadeus', '2025-12-07', '10:00', 'Supervisor'),
+(32, 'Ata Surya', '2025-12-03', '18:00', 'Supervisor'),
+(33, 'Lisa', '2025-12-09', '18:00', 'Operator'),
+(34, 'Belinda', '2025-12-15', '18:00', 'Kameramen'),
+(35, 'Aura', '2025-12-09', '18:00', 'Supervisor'),
+(36, 'Belinda', '2025-12-17', '18:00', 'Supervisor'),
+(37, 'Belinda', '2025-12-18', '18:00', 'Supervisor'),
+(38, 'Tyas', '2025-12-18', '18:00', 'Operator'),
+(39, 'Claire', '2025-12-07', '08:00', 'Supervisor'),
+(40, 'Arya', '2025-12-07', '19:00', 'Operator'),
+(41, 'Tyas', '2025-12-20', '18:00', 'Kameramen'),
+(42, 'Evan', '2025-12-07', '19:00', 'Kameramen'),
+(43, 'Claire', '2025-12-03', '18:00', 'Kameramen'),
+(44, 'Claire', '2025-12-04', '18:00', 'Kameramen'),
+(45, 'Chessa', '2025-12-07', '17:00', 'Operator'),
+(46, 'Chessa', '2025-12-14', '10:00', 'Kameramen'),
+(47, 'Chessa', '2025-12-20', '18:00', 'Operator'),
+(48, 'Tyas', '2025-12-07', '17:00', 'Kameramen'),
+(49, 'Egi', '2025-12-05', '18:00', 'Kameramen'),
+(50, 'Egi', '2025-12-10', '18:00', 'Operator'),
+(51, 'Rossa', '2025-12-16', '18:00', 'Operator'),
+(52, 'Egi', '2025-12-16', '18:00', 'Kameramen'),
+(53, 'Christoforus Tadeus', '2025-12-05', '18:00', 'Supervisor'),
+(54, 'Aruna', '2025-12-12', '18:00', 'Kameramen'),
+(55, 'Luciana Tyas', '2025-12-12', '18:00', 'Operator'),
+(56, 'Aruna', '2025-12-10', '18:00', 'Kameramen'),
+(57, 'Kane', '2025-12-14', '17:00', 'Operator'),
+(58, 'Kane', '2025-12-06', '18:00', 'Kameramen'),
+(59, 'Luciana Tyas', '2025-12-14', '10:00', 'Supervisor'),
+(60, 'Bian', '2025-12-06', '18:00', 'Supervisor'),
+(61, 'Bian', '2025-12-14', '17:00', 'Supervisor'),
+(62, 'Kane', '2025-12-01', '18:00', 'Operator'),
+(63, 'Kanes', '2025-12-18', '18:00', 'Kameramen'),
+(64, 'Arya', '2025-12-13', '18:00', 'Kameramen'),
+(65, 'Arya', '2025-12-14', '17:00', 'Kameramen'),
+(66, 'Michel', '2025-12-11', '18:00', 'Operator'),
+(67, 'Michel', '2025-12-19', '18:00', 'Operator'),
+(68, 'Michel', '2025-12-08', '18:00', 'Supervisor'),
+(69, 'Bian', '2025-12-01', '18:00', 'Supervisor'),
+(70, 'Evan', '2025-12-01', '18:00', 'Kameramen'),
+(71, 'Chris', '2025-12-07', '17:00', 'Supervisor'),
+(72, 'Chris', '2025-12-08', '18:00', 'Kameramen'),
+(73, 'Chris', '2025-12-10', '18:00', 'Supervisor'),
+(74, 'Aurel', '2025-12-16', '18:00', 'Supervisor'),
+(75, 'Vio', '2025-12-20', '18:00', 'Supervisor'),
+(76, 'Callista', '2025-12-08', '18:00', 'Operator'),
+(77, 'Callista', '2025-12-22', '18:00', 'Kameramen'),
+(78, 'Callista', '2025-12-23', '18:00', 'Kameramen'),
+(79, 'Ketrin', '2025-12-14', '19:00', 'Supervisor'),
+(80, 'Aruna', '2025-12-14', '08:00', 'Supervisor'),
+(81, 'Aurel', '2025-12-11', '18:00', 'Kameramen'),
+(82, 'Jose', '2025-12-11', '18:00', 'Supervisor'),
+(83, 'Jose', '2025-12-23', '18:00', 'Supervisor'),
+(84, 'Nadia', '2025-12-31', '18:00', 'Supervisor'),
+(85, 'Kanes', '2025-12-21', '08:00', 'Kameramen'),
+(86, 'Nadia', '2025-12-26', '18:00', 'Supervisor'),
+(87, 'Jose', '2025-12-26', '18:00', 'Kameramen'),
+(88, 'Botun', '2025-12-12', '18:00', 'Supervisor'),
+(89, 'Botun', '2025-12-13', '18:00', 'Operator'),
+(90, 'Dewi', '2025-12-14', '19:00', 'Operator'),
+(91, 'Deva', '2025-12-14', '19:00', 'Kameramen'),
+(92, 'Jeni', '2025-12-21', '17:00', 'Kameramen'),
+(93, 'Aura', '2025-12-28', '19:00', 'Operator'),
+(94, 'Aura', '2025-12-23', '18:00', 'Operator'),
+(95, 'Floren', '2025-12-19', '18:00', 'Kameramen'),
+(96, 'Floren', '2025-12-21', '19:00', 'Kameramen'),
+(97, 'Paul', '2025-12-21', '17:00', 'Supervisor'),
+(98, 'Deva', '2025-12-31', '18:00', 'Kameramen'),
+(99, 'Deva', '2025-12-28', '19:00', 'Kameramen'),
+(100, 'Aurel', '2025-12-22', '18:00', 'Supervisor'),
+(101, 'Luciana Tyas', '2025-12-21', '08:00', 'Operator'),
+(102, 'Nawung', '2025-12-28', '10:00', 'Supervisor'),
+(103, 'Pria', '2025-12-28', '10:00', 'Kameramen'),
+(104, 'Pria', '2025-12-30', '18:00', 'Supervisor'),
+(105, 'Toto', '2025-12-19', '18:00', 'Supervisor'),
+(106, 'Ifa', '2025-12-28', '10:00', 'Operator'),
+(107, 'Aoki', '2025-12-21', '19:00', 'Operator'),
+(108, 'Aoki', '2025-12-22', '18:00', 'Operator'),
+(109, 'Aoki', '2025-12-30', '18:00', 'Kameramen'),
+(110, 'There', '2025-12-30', '18:00', 'Operator'),
+(111, 'Lisa', '2025-12-29', '18:00', 'Operator'),
+(112, 'Paul', '2025-12-27', '18:00', 'Supervisor'),
+(113, 'Evan', '2025-12-26', '18:00', 'Operator'),
+(114, 'Evan', '2025-12-28', '17:00', 'Kameramen'),
+(115, 'Evan', '2025-12-28', '08:00', 'Supervisor'),
+(116, 'Evan', '2025-12-28', '08:00', 'Operator'),
+(117, 'Lisa', '2025-12-27', '18:00', 'Kameramen'),
+(118, 'Bima', '2025-12-29', '18:00', 'Supervisor'),
+(119, 'Toto', '2025-12-28', '17:00', 'Supervisor'),
+(120, 'Tyas', '2025-12-28', '17:00', 'Operator'),
+(121, 'Rikha', '2025-12-28', '08:00', 'Kameramen');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2026_01`
+--
+
+CREATE TABLE `tugas_2026_01` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2026_01`
+--
+
+INSERT INTO `tugas_2026_01` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Panji', '2026-01-04', '10:00', 'Supervisor'),
+(2, 'Panji', '2026-01-04', '17:00', 'Supervisor'),
+(3, 'Panji', '2026-01-04', '19:00', 'Supervisor'),
+(4, 'Reva', '2026-01-03', '18:00', 'Operator'),
+(5, 'Reva', '2026-01-10', '18:00', 'Kameramen'),
+(6, 'Reva', '2026-01-04', '10:00', 'Kameramen'),
+(7, 'Dhani', '2026-01-03', '18:00', 'Kameramen'),
+(8, 'Dhani', '2026-01-10', '18:00', 'Operator'),
+(9, 'Dhani', '2026-01-04', '10:00', 'Operator'),
+(10, 'Noel', '2026-01-11', '19:00', 'Supervisor'),
+(11, 'Noel', '2026-01-18', '19:00', 'Supervisor'),
+(12, 'Noel', '2026-01-25', '19:00', 'Supervisor'),
+(13, 'Aoki', '2026-01-04', '17:00', 'Kameramen'),
+(14, 'Aoki', '2026-01-12', '18:00', 'Operator'),
+(15, 'Aoki', '2026-01-20', '18:00', 'Operator'),
+(16, 'Ifa', '2026-01-25', '08:00', 'Operator'),
+(17, 'Tyas', '2026-01-06', '18:00', 'Operator'),
+(18, 'Belinda', '2026-01-06', '18:00', 'Supervisor'),
+(19, 'Belinda', '2026-01-08', '18:00', 'Operator'),
+(20, 'Tyas', '2026-01-08', '18:00', 'Kameramen'),
+(21, 'Belinda', '2026-01-13', '18:00', 'Supervisor'),
+(22, 'Tyas', '2026-01-13', '18:00', 'Operator'),
+(23, 'Jeni', '2026-01-04', '08:00', 'Kameramen'),
+(24, 'Jeni', '2026-01-11', '08:00', 'Operator'),
+(25, 'Jeni', '2026-01-18', '08:00', 'Kameramen'),
+(26, 'Vio', '2026-01-17', '18:00', 'Operator'),
+(27, 'Vio', '2026-01-24', '18:00', 'Operator'),
+(28, 'Vio', '2026-01-09', '18:00', 'Operator'),
+(29, 'Kane', '2026-01-18', '08:00', 'Operator'),
+(30, 'Kane', '2026-01-25', '08:00', 'Kameramen'),
+(31, 'Kane', '2026-01-31', '18:00', 'Operator'),
+(32, 'Dewi', '2026-01-14', '18:00', 'Operator'),
+(33, 'Dewi', '2026-01-15', '18:00', 'Supervisor'),
+(34, 'Dewi', '2026-01-19', '18:00', 'Operator'),
+(35, 'Evan', '2026-01-05', '18:00', 'Kameramen'),
+(36, 'Evan', '2026-01-07', '18:00', 'Operator'),
+(37, 'Rikha', '2026-01-04', '08:00', 'Operator'),
+(38, 'Rikha', '2026-01-11', '08:00', 'Kameramen'),
+(39, 'Rikha', '2026-01-18', '08:00', 'Supervisor'),
+(40, 'Evan', '2026-01-09', '18:00', 'Kameramen'),
+(41, 'Bian', '2026-01-31', '18:00', 'Supervisor'),
+(42, 'Bian', '2026-01-25', '08:00', 'Supervisor'),
+(43, 'Bian', '2026-01-07', '18:00', 'Supervisor'),
+(44, 'Aurel', '2026-01-14', '18:00', 'Kameramen'),
+(45, 'Paul', '2026-01-02', '18:00', 'Supervisor'),
+(46, 'Paul', '2026-01-03', '18:00', 'Supervisor'),
+(47, 'Floren', '2026-01-04', '19:00', 'Operator'),
+(48, 'Floren', '2026-01-11', '19:00', 'Kameramen'),
+(49, 'Ifa', '2026-01-12', '18:00', 'Supervisor'),
+(50, 'Aurel', '2026-01-19', '18:00', 'Kameramen'),
+(51, 'Callista', '2026-01-18', '10:00', 'Operator'),
+(52, 'Callista', '2026-01-23', '18:00', 'Kameramen'),
+(53, 'Callista', '2026-01-28', '18:00', 'Operator'),
+(54, 'Pria', '2026-01-10', '18:00', 'Supervisor'),
+(55, 'Stella', '2026-01-18', '10:00', 'Kameramen'),
+(56, 'Stella', '2026-01-06', '18:00', 'Kameramen'),
+(57, 'Stella', '2026-01-23', '18:00', 'Operator'),
+(58, 'Asha', '2026-01-13', '18:00', 'Kameramen'),
+(59, 'Asha', '2026-01-21', '18:00', 'Supervisor'),
+(60, 'Christoforus Tadeus', '2026-01-05', '18:00', 'Supervisor'),
+(61, 'Tita', '2026-01-11', '17:00', 'Operator'),
+(62, 'Tita', '2026-01-18', '17:00', 'Operator'),
+(63, 'Tita', '2026-01-25', '17:00', 'Kameramen'),
+(64, 'Rossa', '2026-01-11', '17:00', 'Supervisor'),
+(65, 'Rossa', '2026-01-18', '17:00', 'Supervisor'),
+(66, 'Rossa', '2026-01-25', '17:00', 'Operator'),
+(67, 'Weka', '2026-01-02', '18:00', 'Operator'),
+(68, 'Weka', '2026-01-05', '18:00', 'Operator'),
+(69, 'Arya', '2026-01-04', '19:00', 'Kameramen'),
+(70, 'Aurel', '2026-01-12', '18:00', 'Kameramen'),
+(71, 'Regio', '2026-01-14', '18:00', 'Supervisor'),
+(72, 'Regio', '2026-01-18', '19:00', 'Operator'),
+(73, 'Regio', '2026-01-22', '18:00', 'Supervisor'),
+(74, 'Regio', '2026-01-27', '18:00', 'Supervisor'),
+(75, 'Florencia', '2026-01-28', '18:00', 'Supervisor'),
+(76, 'Arya', '2026-01-11', '17:00', 'Kameramen'),
+(77, 'Arya', '2026-01-15', '18:00', 'Kameramen'),
+(78, 'Aruna', '2026-01-21', '18:00', 'Kameramen'),
+(79, 'Aruna', '2026-01-26', '18:00', 'Kameramen'),
+(80, 'Aruna', '2026-01-29', '18:00', 'Kameramen'),
+(81, 'Claire', '2026-01-08', '18:00', 'Supervisor'),
+(82, 'Claire', '2026-01-19', '18:00', 'Supervisor'),
+(83, 'Claire', '2026-01-20', '18:00', 'Supervisor'),
+(84, 'Tyas', '2026-01-22', '18:00', 'Kameramen'),
+(85, 'Luciana Tyas', '2026-01-21', '18:00', 'Operator'),
+(86, 'Luciana Tyas', '2026-01-26', '18:00', 'Operator'),
+(87, 'Tyas', '2026-01-18', '19:00', 'Kameramen'),
+(88, 'Aura', '2026-01-11', '19:00', 'Operator'),
+(89, 'Aura', '2026-01-25', '19:00', 'Operator'),
+(90, 'Aura', '2026-01-17', '18:00', 'Kameramen'),
+(91, 'Nadia', '2026-01-27', '18:00', 'Kameramen'),
+(92, 'Nadia', '2026-01-17', '18:00', 'Supervisor'),
+(93, 'There', '2026-01-04', '17:00', 'Operator'),
+(94, 'There', '2026-01-01', '18:00', 'Operator'),
+(95, 'Rosel', '2026-01-18', '17:00', 'Kameramen'),
+(96, 'Rosel', '2026-01-25', '19:00', 'Kameramen'),
+(97, 'Nawung', '2026-01-25', '10:00', 'Kameramen'),
+(98, 'Orel', '2026-01-09', '18:00', 'Supervisor'),
+(99, 'Orel', '2026-01-30', '18:00', 'Kameramen'),
+(100, 'Tyas', '2026-01-01', '18:00', 'Kameramen'),
+(101, 'There', '2026-01-15', '18:00', 'Operator'),
+(102, 'Pria', '2026-01-25', '10:00', 'Supervisor'),
+(103, 'Weka', '2026-01-01', '18:00', 'Supervisor'),
+(104, 'Christoforus Tadeus', '2026-01-27', '18:00', 'Operator'),
+(105, 'Christoforus Tadeus', '2026-01-02', '18:00', 'Kameramen'),
+(106, 'Wima', '2026-01-30', '18:00', 'Operator'),
+(107, 'Lisa', '2026-01-25', '10:00', 'Operator'),
+(108, 'Lisa', '2026-01-30', '18:00', 'Supervisor'),
+(109, 'Lisa', '2026-01-07', '18:00', 'Kameramen'),
+(110, 'Nadia', '2026-01-24', '18:00', 'Kameramen'),
+(111, 'Lisa', '2026-01-24', '18:00', 'Supervisor'),
+(112, 'Luciana Tyas', '2026-01-29', '18:00', 'Operator'),
+(113, 'Kanes', '2026-01-25', '17:00', 'Supervisor'),
+(114, 'Orel', '2026-01-16', '18:00', 'Kameramen'),
+(115, 'Asha', '2026-01-16', '18:00', 'Operator'),
+(116, 'Wima', '2026-01-16', '18:00', 'Supervisor'),
+(117, 'Chris', '2026-01-31', '18:00', 'Kameramen'),
+(118, 'Chris', '2026-01-28', '18:00', 'Kameramen'),
+(119, 'rieanaditya', '2026-01-26', '18:00', 'Supervisor'),
+(120, 'There', '2026-01-23', '18:00', 'Supervisor'),
+(121, 'rieanaditya', '2026-01-29', '18:00', 'Supervisor'),
+(122, 'Deva', '2026-01-20', '18:00', 'Kameramen'),
+(123, 'Naresh', '2026-01-22', '18:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2026_02`
+--
+
+CREATE TABLE `tugas_2026_02` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2026_02`
+--
+
+INSERT INTO `tugas_2026_02` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Reva', '2026-02-11', '18:00', 'Kameramen'),
+(2, 'Dhani', '2026-02-11', '18:00', 'Operator'),
+(3, 'Reva', '2026-02-12', '18:00', 'Operator'),
+(4, 'Dhani', '2026-02-12', '18:00', 'Kameramen'),
+(5, 'Reva', '2026-02-15', '10:00', 'Kameramen'),
+(6, 'Dhani', '2026-02-15', '10:00', 'Operator'),
+(7, 'Dewi', '2026-02-02', '18:00', 'Operator'),
+(8, 'Dewi', '2026-02-04', '18:00', 'Supervisor'),
+(9, 'Vio', '2026-02-07', '18:00', 'Operator'),
+(10, 'Vio', '2026-02-14', '18:00', 'Operator'),
+(11, 'Vio', '2026-02-21', '18:00', 'Operator'),
+(12, 'Lisa', '2026-02-04', '18:00', 'Operator'),
+(13, 'Lisa', '2026-02-09', '18:00', 'Operator'),
+(14, 'Lisa', '2026-02-19', '18:00', 'Operator'),
+(15, 'Jeni', '2026-02-01', '08:00', 'Kameramen'),
+(16, 'Jeni', '2026-02-15', '08:00', 'Kameramen'),
+(17, 'Jeni', '2026-02-08', '08:00', 'Operator'),
+(18, 'Rikha', '2026-02-01', '08:00', 'Operator'),
+(19, 'Rikha', '2026-02-08', '08:00', 'Kameramen'),
+(20, 'Rikha', '2026-02-15', '08:00', 'Operator'),
+(21, 'Orel', '2026-02-13', '18:00', 'Supervisor'),
+(22, 'Chessa', '2026-02-01', '19:00', 'Kameramen'),
+(23, 'Chessa', '2026-02-08', '10:00', 'Operator'),
+(24, 'Chessa', '2026-02-22', '10:00', 'Operator'),
+(25, 'Belinda', '2026-02-05', '18:00', 'Kameramen'),
+(26, 'Belinda', '2026-02-10', '18:00', 'Supervisor'),
+(27, 'Belinda', '2026-02-16', '18:00', 'Supervisor'),
+(28, 'Tyas', '2026-02-05', '18:00', 'Operator'),
+(29, 'Tyas', '2026-02-10', '18:00', 'Kameramen'),
+(30, 'Tyas', '2026-02-16', '18:00', 'Operator'),
+(31, 'Aoki', '2026-02-08', '10:00', 'Kameramen'),
+(32, 'Aoki', '2026-02-22', '10:00', 'Kameramen'),
+(33, 'Noel', '2026-02-01', '19:00', 'Supervisor'),
+(34, 'Noel', '2026-02-08', '19:00', 'Supervisor'),
+(35, 'Noel', '2026-02-22', '19:00', 'Supervisor'),
+(36, 'Paul', '2026-02-05', '18:00', 'Supervisor'),
+(37, 'Aurel', '2026-02-09', '18:00', 'Kameramen'),
+(38, 'Aruna', '2026-02-25', '18:00', 'Kameramen'),
+(39, 'Luciana Tyas', '2026-02-25', '18:00', 'Operator'),
+(40, 'Luciana Tyas', '2026-02-20', '18:00', 'Operator'),
+(41, 'Luciana Tyas', '2026-02-22', '08:00', 'Operator'),
+(42, 'Aruna', '2026-02-20', '18:00', 'Kameramen'),
+(43, 'Aruna', '2026-02-22', '08:00', 'Kameramen'),
+(44, 'Tyas', '2026-02-01', '19:00', 'Operator'),
+(45, 'Aura', '2026-02-10', '18:00', 'Operator'),
+(46, 'Deva', '2026-02-02', '18:00', 'Supervisor'),
+(47, 'Deva', '2026-02-04', '18:00', 'Kameramen'),
+(48, 'Deva', '2026-02-09', '18:00', 'Supervisor'),
+(49, 'Pria', '2026-02-01', '08:00', 'Supervisor'),
+(50, 'Stella', '2026-02-19', '18:00', 'Kameramen'),
+(51, 'Pria', '2026-02-15', '17:00', 'Supervisor'),
+(52, 'There', '2026-02-22', '10:00', 'Supervisor'),
+(53, 'Stella', '2026-02-22', '17:00', 'Kameramen'),
+(54, 'Tita', '2026-02-22', '17:00', 'Supervisor'),
+(55, 'Rossa', '2026-02-22', '17:00', 'Operator'),
+(56, 'Weka', '2026-02-02', '18:00', 'Kameramen'),
+(57, 'Tita', '2026-02-08', '17:00', 'Kameramen'),
+(58, 'Tita', '2026-02-15', '17:00', 'Operator'),
+(59, 'Rossa', '2026-02-08', '17:00', 'Operator'),
+(60, 'Rossa', '2026-02-15', '17:00', 'Kameramen'),
+(61, 'Kane', '2026-02-27', '18:00', 'Operator'),
+(62, 'Kane', '2026-02-24', '18:00', 'Operator'),
+(63, 'Kane', '2026-02-01', '10:00', 'Operator'),
+(64, 'Nadia', '2026-02-19', '18:00', 'Supervisor'),
+(65, 'Aura', '2026-02-17', '18:00', 'Supervisor'),
+(66, 'Bian', '2026-02-27', '18:00', 'Supervisor'),
+(67, 'Bian', '2026-02-01', '10:00', 'Supervisor'),
+(68, 'Nadia', '2026-02-17', '18:00', 'Operator'),
+(69, 'Christoforus Tadeus', '2026-02-03', '18:00', 'Supervisor'),
+(70, 'Christoforus Tadeus', '2026-02-24', '18:00', 'Supervisor'),
+(71, 'Jose', '2026-02-18', '18:00', 'Supervisor'),
+(72, 'Jose', '2026-02-11', '18:00', 'Supervisor'),
+(73, 'Arya', '2026-02-07', '18:00', 'Kameramen'),
+(74, 'Arya', '2026-02-08', '19:00', 'Kameramen'),
+(75, 'Arya', '2026-02-22', '19:00', 'Kameramen'),
+(76, 'Stella', '2026-02-18', '18:00', 'Operator'),
+(77, 'Callista', '2026-02-18', '18:00', 'Kameramen'),
+(78, 'Callista', '2026-02-12', '18:00', 'Supervisor'),
+(79, 'Floren', '2026-02-03', '18:00', 'Operator'),
+(80, 'Aura', '2026-02-23', '18:00', 'Supervisor'),
+(81, 'Nadia', '2026-02-23', '18:00', 'Operator'),
+(82, 'Claire', '2026-02-08', '17:00', 'Supervisor'),
+(83, 'Claire', '2026-02-08', '08:00', 'Supervisor'),
+(84, 'Claire', '2026-02-08', '10:00', 'Supervisor'),
+(85, 'Evan', '2026-02-01', '10:00', 'Kameramen'),
+(86, 'Aura', '2026-02-26', '18:00', 'Operator'),
+(87, 'Asha', '2026-02-03', '18:00', 'Kameramen'),
+(88, 'Asha', '2026-02-15', '19:00', 'Operator'),
+(89, 'Ketrin', '2026-02-21', '18:00', 'Supervisor'),
+(90, 'Jeje', '2026-02-15', '19:00', 'Supervisor'),
+(91, 'There', '2026-02-01', '17:00', 'Operator'),
+(92, 'Kanes', '2026-02-26', '18:00', 'Kameramen'),
+(93, 'Evan', '2026-02-22', '19:00', 'Operator'),
+(94, 'Satrio', '2026-02-06', '18:00', 'Kameramen'),
+(95, 'Satrio', '2026-02-13', '18:00', 'Kameramen'),
+(96, 'Panji', '2026-02-01', '17:00', 'Supervisor'),
+(97, 'Panji', '2026-02-07', '18:00', 'Supervisor'),
+(98, 'Panji', '2026-02-08', '19:00', 'Operator'),
+(99, 'Nawung', '2026-02-15', '10:00', 'Supervisor'),
+(100, 'Naresh', '2026-02-28', '18:00', 'Operator'),
+(101, 'Naresh', '2026-02-23', '18:00', 'Kameramen'),
+(102, 'Naresh', '2026-02-14', '18:00', 'Supervisor'),
+(103, 'Chris', '2026-02-17', '18:00', 'Kameramen'),
+(104, 'Chris', '2026-02-24', '18:00', 'Kameramen'),
+(105, 'Evan', '2026-02-27', '18:00', 'Kameramen'),
+(106, 'Callista', '2026-02-13', '18:00', 'Operator'),
+(107, 'Tyas', '2026-02-15', '19:00', 'Kameramen'),
+(108, 'Tyas', '2026-02-21', '18:00', 'Kameramen'),
+(109, 'Tyas', '2026-02-28', '18:00', 'Kameramen'),
+(110, 'Orel', '2026-02-25', '18:00', 'Supervisor'),
+(111, 'Christoforus Tadeus', '2026-02-06', '18:00', 'Supervisor'),
+(112, 'Ata Surya', '2026-02-06', '18:00', 'Operator'),
+(113, 'Ifa', '2026-02-15', '08:00', 'Supervisor'),
+(114, 'Ifa', '2026-02-28', '18:00', 'Supervisor'),
+(115, 'Deva', '2026-02-16', '18:00', 'Kameramen'),
+(116, 'Rafael', '2026-02-22', '08:00', 'Supervisor'),
+(117, 'Rafael', '2026-02-20', '18:00', 'Supervisor'),
+(118, 'Chessa', '2026-02-14', '18:00', 'Kameramen');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2026_03`
+--
+
+CREATE TABLE `tugas_2026_03` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2026_03`
+--
+
+INSERT INTO `tugas_2026_03` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Jeni', '2026-03-08', '08:00', 'Operator'),
+(2, 'Panji', '2026-03-01', '10:00', 'Kameramen'),
+(3, 'Panji', '2026-03-01', '17:00', 'Supervisor'),
+(4, 'Panji', '2026-03-01', '19:00', 'Operator'),
+(5, 'Dewi', '2026-03-07', '18:00', 'Operator'),
+(6, 'Dewi', '2026-03-14', '18:00', 'Operator'),
+(7, 'Reva', '2026-03-15', '10:00', 'Kameramen'),
+(8, 'Dhani', '2026-03-15', '10:00', 'Operator'),
+(9, 'Aoki', '2026-03-08', '10:00', 'Kameramen'),
+(10, 'Aoki', '2026-03-22', '10:00', 'Kameramen'),
+(11, 'Egi', '2026-03-01', '17:00', 'Operator'),
+(12, 'Chessa', '2026-03-01', '17:00', 'Kameramen'),
+(13, 'Chessa', '2026-03-08', '10:00', 'Operator'),
+(14, 'Chessa', '2026-03-15', '19:00', 'Kameramen'),
+(15, 'Aoki', '2026-03-15', '17:00', 'Operator'),
+(16, 'Egi', '2026-03-15', '19:00', 'Operator'),
+(17, 'Tyas', '2026-03-08', '10:00', 'Supervisor'),
+(18, 'Tyas', '2026-03-15', '17:00', 'Kameramen'),
+(19, 'Chessa', '2026-03-22', '10:00', 'Supervisor'),
+(20, 'Tyas', '2026-03-15', '19:00', 'Supervisor'),
+(21, 'Tyas', '2026-03-22', '10:00', 'Operator'),
+(22, 'Evan', '2026-03-02', '18:00', 'Kameramen'),
+(23, 'Evan', '2026-03-03', '18:00', 'Operator'),
+(24, 'Evan', '2026-03-04', '18:00', 'Kameramen'),
+(25, 'Bian', '2026-03-22', '17:00', 'Supervisor'),
+(26, 'Bian', '2026-03-08', '17:00', 'Supervisor'),
+(27, 'Bian', '2026-03-28', '18:00', 'Operator'),
+(28, 'There', '2026-03-01', '10:00', 'Operator'),
+(29, 'Christoforus Tadeus', '2026-03-24', '18:00', 'Supervisor'),
+(30, 'Belinda', '2026-03-17', '18:00', 'Supervisor'),
+(31, 'Belinda', '2026-03-19', '18:00', 'Kameramen'),
+(32, 'Belinda', '2026-03-23', '18:00', 'Supervisor'),
+(33, 'Tyas', '2026-03-19', '18:00', 'Operator'),
+(34, 'Tyas', '2026-03-23', '18:00', 'Kameramen'),
+(35, 'Dhani', '2026-03-01', '19:00', 'Kameramen'),
+(36, 'Dhani', '2026-03-08', '17:00', 'Operator'),
+(37, 'Stella', '2026-03-17', '18:00', 'Kameramen'),
+(38, 'Stella', '2026-03-15', '17:00', 'Supervisor'),
+(39, 'Tyas', '2026-03-17', '18:00', 'Operator'),
+(40, 'Stella', '2026-03-26', '18:00', 'Operator'),
+(41, 'Callista', '2026-03-26', '18:00', 'Kameramen'),
+(42, 'Rossa', '2026-03-23', '18:00', 'Operator'),
+(43, 'Jeni', '2026-03-01', '08:00', 'Kameramen'),
+(44, 'Jeni', '2026-03-15', '08:00', 'Kameramen'),
+(45, 'Vio', '2026-03-21', '18:00', 'Operator'),
+(46, 'Vio', '2026-03-28', '18:00', 'Supervisor'),
+(47, 'Tita', '2026-03-22', '17:00', 'Operator'),
+(48, 'Vio', '2026-03-14', '18:00', 'Supervisor'),
+(49, 'There', '2026-03-21', '18:00', 'Supervisor'),
+(50, 'Callista', '2026-03-21', '18:00', 'Kameramen'),
+(51, 'Rossa', '2026-03-22', '17:00', 'Kameramen'),
+(52, 'Arya', '2026-03-07', '18:00', 'Kameramen'),
+(53, 'Rikha', '2026-03-01', '08:00', 'Operator'),
+(54, 'Rikha', '2026-03-08', '08:00', 'Kameramen'),
+(55, 'Rikha', '2026-03-15', '08:00', 'Operator'),
+(56, 'Aruna', '2026-03-09', '18:00', 'Kameramen'),
+(57, 'Aruna', '2026-03-18', '18:00', 'Operator'),
+(58, 'Aruna', '2026-03-24', '18:00', 'Kameramen'),
+(59, 'Arya', '2026-03-08', '17:00', 'Kameramen'),
+(60, 'Christoforus Tadeus', '2026-03-05', '18:00', 'Supervisor'),
+(61, 'Luciana Tyas', '2026-03-09', '18:00', 'Operator'),
+(62, 'Luciana Tyas', '2026-03-18', '18:00', 'Supervisor'),
+(63, 'Luciana Tyas', '2026-03-24', '18:00', 'Operator'),
+(64, 'Arya', '2026-03-22', '19:00', 'Kameramen'),
+(65, 'Ifa', '2026-03-08', '08:00', 'Supervisor'),
+(66, 'Ifa', '2026-03-15', '08:00', 'Supervisor'),
+(67, 'Claire', '2026-03-08', '19:00', 'Supervisor'),
+(68, 'Claire', '2026-03-04', '18:00', 'Supervisor'),
+(69, 'Claire', '2026-03-09', '18:00', 'Supervisor'),
+(70, 'Tyas', '2026-03-01', '08:00', 'Supervisor'),
+(71, 'Bian', '2026-03-04', '18:00', 'Operator'),
+(72, 'Noel', '2026-03-01', '19:00', 'Supervisor'),
+(73, 'Ketrin', '2026-03-01', '10:00', 'Supervisor'),
+(74, 'Asha', '2026-03-08', '19:00', 'Kameramen'),
+(75, 'Aurel', '2026-03-18', '18:00', 'Kameramen'),
+(76, 'Asha', '2026-03-11', '18:00', 'Supervisor'),
+(77, 'Dewi', '2026-03-22', '19:00', 'Supervisor'),
+(78, 'Aurel', '2026-03-11', '18:00', 'Kameramen'),
+(79, 'Rossa', '2026-03-11', '18:00', 'Operator'),
+(80, 'Kanes', '2026-03-03', '18:00', 'Kameramen'),
+(81, 'Jose', '2026-03-03', '18:00', 'Supervisor'),
+(82, 'Lisa', '2026-03-02', '18:00', 'Operator'),
+(83, 'Nawung', '2026-03-15', '10:00', 'Supervisor'),
+(84, 'Chris', '2026-03-05', '18:00', 'Operator'),
+(85, 'Chris', '2026-03-07', '18:00', 'Supervisor'),
+(86, 'Kane', '2026-03-05', '18:00', 'Kameramen'),
+(87, 'Kane', '2026-03-16', '18:00', 'Operator'),
+(88, 'Kane', '2026-03-13', '18:00', 'Operator'),
+(89, 'Aura', '2026-03-19', '18:00', 'Supervisor'),
+(90, 'Weka', '2026-03-16', '18:00', 'Supervisor'),
+(91, 'Pria', '2026-03-29', '19:00', 'Supervisor'),
+(92, 'Pria', '2026-03-14', '18:00', 'Kameramen'),
+(93, 'Nadia', '2026-03-30', '18:00', 'Supervisor'),
+(94, 'Nadia', '2026-03-31', '18:00', 'Operator'),
+(95, 'Lisa', '2026-03-30', '18:00', 'Operator'),
+(96, 'Lisa', '2026-03-31', '18:00', 'Supervisor'),
+(97, 'Tyas', '2026-03-22', '19:00', 'Operator'),
+(98, 'Florencia', '2026-03-20', '18:00', 'Supervisor'),
+(99, 'Orel', '2026-03-10', '18:00', 'Operator'),
+(100, 'Aura', '2026-03-27', '18:00', 'Operator'),
+(101, 'Orel', '2026-03-16', '18:00', 'Kameramen'),
+(102, 'Kanes', '2026-03-10', '18:00', 'Supervisor'),
+(103, 'Deva', '2026-03-10', '18:00', 'Kameramen'),
+(104, 'Deva', '2026-03-29', '17:00', 'Operator'),
+(105, 'Deva', '2026-03-22', '08:00', 'Kameramen'),
+(106, 'Alta', '2026-03-20', '18:00', 'Kameramen'),
+(107, 'Ketrin', '2026-03-13', '18:00', 'Kameramen'),
+(108, 'Deva', '2026-03-27', '18:00', 'Supervisor'),
+(109, 'Naresh', '2026-03-25', '18:00', 'Operator'),
+(110, 'Naresh', '2026-03-29', '10:00', 'Operator'),
+(111, 'Naresh', '2026-03-30', '18:00', 'Kameramen'),
+(112, 'Christoforus Tadeus', '2026-03-12', '18:00', 'Supervisor'),
+(113, 'Aura', '2026-03-25', '18:00', 'Supervisor'),
+(114, 'Asha', '2026-03-12', '18:00', 'Operator'),
+(115, 'Paul', '2026-03-12', '18:00', 'Kameramen'),
+(116, 'Rafael', '2026-03-13', '18:00', 'Supervisor'),
+(117, 'Toto', '2026-03-22', '08:00', 'Supervisor'),
+(118, 'Alta', '2026-03-22', '08:00', 'Operator'),
+(119, 'Florencia', '2026-03-25', '18:00', 'Kameramen'),
+(120, 'Jose', '2026-03-20', '18:00', 'Operator'),
+(121, 'Rafael', '2026-03-31', '18:00', 'Kameramen'),
+(122, 'Tyas', '2026-03-27', '18:00', 'Kameramen'),
+(123, 'Tyas', '2026-03-26', '18:00', 'Supervisor');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2026_04`
+--
+
+CREATE TABLE `tugas_2026_04` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2026_04`
+--
+
+INSERT INTO `tugas_2026_04` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Ifa', '2026-04-26', '17:00', 'Operator'),
+(2, 'Ifa', '2026-04-26', '19:00', 'Supervisor'),
+(3, 'Ifa', '2026-04-19', '17:00', 'Operator'),
+(4, 'Panji', '2026-04-12', '10:00', 'Supervisor'),
+(5, 'Panji', '2026-04-12', '17:00', 'Supervisor'),
+(6, 'Panji', '2026-04-12', '19:00', 'Supervisor'),
+(7, 'Dewi', '2026-04-12', '19:00', 'Operator'),
+(8, 'Dewi', '2026-04-19', '17:00', 'Supervisor'),
+(9, 'Chessa', '2026-04-12', '10:00', 'Operator'),
+(10, 'Chessa', '2026-04-26', '17:00', 'Kameramen'),
+(11, 'Aoki', '2026-04-12', '10:00', 'Kameramen'),
+(12, 'Aoki', '2026-04-26', '17:00', 'Supervisor'),
+(13, 'Egi', '2026-04-19', '19:00', 'Kameramen'),
+(14, 'Chessa', '2026-04-19', '19:00', 'Operator'),
+(15, 'Claire', '2026-04-15', '18:00', 'Supervisor'),
+(16, 'Claire', '2026-04-16', '18:00', 'Supervisor'),
+(17, 'Dewi', '2026-04-01', '18:00', 'Operator'),
+(18, 'Dewi', '2026-04-26', '19:00', 'Kameramen'),
+(19, 'There', '2026-04-19', '19:00', 'Supervisor'),
+(20, 'There', '2026-04-12', '17:00', 'Operator'),
+(21, 'Stella', '2026-04-13', '18:00', 'Kameramen'),
+(22, 'Belinda', '2026-04-14', '18:00', 'Supervisor'),
+(23, 'Belinda', '2026-04-21', '18:00', 'Kameramen'),
+(24, 'Tyas', '2026-04-14', '18:00', 'Kameramen'),
+(25, 'Tyas', '2026-04-21', '18:00', 'Operator'),
+(26, 'Tyas', '2026-04-13', '18:00', 'Operator'),
+(27, 'Aruna', '2026-04-15', '18:00', 'Kameramen'),
+(28, 'Aruna', '2026-04-19', '08:00', 'Kameramen'),
+(29, 'Luciana Tyas', '2026-04-15', '18:00', 'Operator'),
+(30, 'Luciana Tyas', '2026-04-19', '08:00', 'Operator'),
+(31, 'Tyas', '2026-04-01', '18:00', 'Kameramen'),
+(32, 'Aurel', '2026-04-27', '18:00', 'Kameramen'),
+(33, 'Deva', '2026-04-12', '19:00', 'Kameramen'),
+(34, 'Deva', '2026-04-13', '18:00', 'Supervisor'),
+(35, 'Deva', '2026-04-14', '18:00', 'Operator'),
+(36, 'Lisa', '2026-04-08', '18:00', 'Operator'),
+(37, 'Lisa', '2026-04-22', '18:00', 'Operator'),
+(38, 'Vio', '2026-04-11', '18:00', 'Supervisor'),
+(39, 'Vio', '2026-04-18', '18:00', 'Operator'),
+(40, 'Pria', '2026-04-25', '18:00', 'Supervisor'),
+(41, 'Nawung', '2026-04-19', '10:00', 'Supervisor'),
+(42, 'Aura', '2026-04-23', '18:00', 'Operator'),
+(43, 'Nawung', '2026-04-26', '10:00', 'Kameramen'),
+(44, 'Asha', '2026-04-08', '18:00', 'Supervisor'),
+(45, 'Botun', '2026-04-08', '18:00', 'Kameramen'),
+(46, 'Botun', '2026-04-09', '18:00', 'Supervisor'),
+(47, 'Asha', '2026-04-16', '18:00', 'Operator'),
+(48, 'Evan', '2026-04-12', '17:00', 'Kameramen'),
+(49, 'Evan', '2026-04-11', '18:00', 'Kameramen'),
+(50, 'Bian', '2026-04-11', '18:00', 'Operator'),
+(51, 'Rossa', '2026-04-27', '18:00', 'Operator'),
+(52, 'Jose', '2026-04-23', '18:00', 'Supervisor'),
+(53, 'Jose', '2026-04-27', '18:00', 'Supervisor'),
+(54, 'Bian', '2026-04-17', '18:00', 'Supervisor'),
+(55, 'Jeni', '2026-04-12', '08:00', 'Operator'),
+(56, 'Rossa', '2026-04-26', '10:00', 'Supervisor'),
+(57, 'Noel', '2026-04-05', '19:00', 'Supervisor'),
+(58, 'Naresh', '2026-04-05', '19:00', 'Operator'),
+(59, 'Tita', '2026-04-26', '10:00', 'Operator'),
+(60, 'Naresh', '2026-04-19', '10:00', 'Kameramen'),
+(61, 'Rossa', '2026-04-19', '10:00', 'Operator'),
+(62, 'Tita', '2026-04-29', '18:00', 'Operator'),
+(63, 'Aura', '2026-04-28', '18:00', 'Operator'),
+(64, 'Rikha', '2026-04-12', '08:00', 'Kameramen'),
+(65, 'Dhani', '2026-04-24', '18:00', 'Supervisor'),
+(66, 'Reva', '2026-04-24', '18:00', 'Operator'),
+(67, 'Dhani', '2026-04-26', '08:00', 'Supervisor'),
+(68, 'Reva', '2026-04-26', '08:00', 'Operator'),
+(69, 'Orel', '2026-04-17', '18:00', 'Kameramen'),
+(70, 'Orel', '2026-04-16', '18:00', 'Kameramen'),
+(71, 'Floren', '2026-04-18', '18:00', 'Kameramen'),
+(72, 'Floren', '2026-04-20', '18:00', 'Operator'),
+(73, 'Floren', '2026-04-23', '18:00', 'Kameramen'),
+(74, 'Kanes', '2026-04-19', '17:00', 'Kameramen'),
+(75, 'Tyas', '2026-04-26', '19:00', 'Operator'),
+(76, 'Christoforus Tadeus', '2026-04-21', '18:00', 'Supervisor'),
+(77, 'Pria', '2026-04-06', '18:00', 'Supervisor'),
+(78, 'Paul', '2026-04-07', '18:00', 'Supervisor'),
+(79, 'Paul', '2026-04-09', '18:00', 'Operator'),
+(80, 'Florencia', '2026-04-29', '18:00', 'Supervisor'),
+(81, 'Florencia', '2026-04-22', '18:00', 'Supervisor'),
+(82, 'Kanes', '2026-04-20', '18:00', 'Kameramen'),
+(83, 'Jeni', '2026-04-25', '18:00', 'Kameramen'),
+(84, 'Rikha', '2026-04-25', '18:00', 'Operator'),
+(85, 'Stella', '2026-04-29', '18:00', 'Kameramen'),
+(86, 'Ketrin', '2026-04-09', '18:00', 'Kameramen'),
+(87, 'Kane', '2026-04-26', '08:00', 'Kameramen'),
+(88, 'Kane', '2026-04-17', '18:00', 'Operator'),
+(89, 'Egi', '2026-04-22', '18:00', 'Kameramen'),
+(90, 'Tyas', '2026-04-07', '18:00', 'Operator'),
+(91, 'Tyas', '2026-04-10', '18:00', 'Operator'),
+(92, 'Christoforus Tadeus', '2026-04-07', '18:00', 'Kameramen'),
+(93, 'Chris', '2026-04-10', '18:00', 'Supervisor'),
+(94, 'Chris', '2026-04-30', '18:00', 'Operator'),
+(95, 'Weka', '2026-04-12', '08:00', 'Supervisor'),
+(96, 'Naresh', '2026-04-28', '18:00', 'Supervisor'),
+(97, 'Noel', '2026-04-30', '18:00', 'Kameramen'),
+(98, 'Naresh', '2026-04-30', '18:00', 'Supervisor'),
+(99, 'Jeni', '2026-04-19', '08:00', 'Supervisor'),
+(100, 'Deva', '2026-04-18', '18:00', 'Supervisor'),
+(101, 'Tyas', '2026-04-28', '18:00', 'Kameramen'),
+(102, 'There', '2026-04-24', '18:00', 'Kameramen');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_2026_05`
+--
+
+CREATE TABLE `tugas_2026_05` (
+  `id` int(11) NOT NULL,
+  `username` varchar(150) DEFAULT NULL,
+  `date` varchar(50) DEFAULT NULL,
+  `time` varchar(50) DEFAULT NULL,
+  `position` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tugas_2026_05`
+--
+
+INSERT INTO `tugas_2026_05` (`id`, `username`, `date`, `time`, `position`) VALUES
+(1, 'Dhani', '2026-05-03', '08:00', 'Supervisor'),
+(2, 'Dhani', '2026-05-03', '10:00', 'Supervisor'),
+(3, 'Reva', '2026-05-03', '08:00', 'Operator'),
+(4, 'Reva', '2026-05-03', '10:00', 'Operator'),
+(5, 'Dhani', '2026-05-03', '17:00', 'Supervisor'),
+(6, 'Reva', '2026-05-03', '17:00', 'Operator'),
+(7, 'Kane', '2026-05-10', '08:00', 'Operator'),
+(8, 'Kane', '2026-05-17', '08:00', 'Operator'),
+(9, 'Bian', '2026-05-10', '08:00', 'Supervisor'),
+(10, 'Bian', '2026-05-17', '08:00', 'Supervisor'),
+(11, 'Vio', '2026-05-23', '18:00', 'Operator'),
+(12, 'Vio', '2026-05-16', '18:00', 'Supervisor'),
+(13, 'Evan', '2026-05-03', '08:00', 'Kameramen'),
+(14, 'Evan', '2026-05-10', '10:00', 'Kameramen'),
+(15, 'Chessa', '2026-05-17', '10:00', 'Kameramen'),
+(16, 'Egi', '2026-05-17', '10:00', 'Operator'),
+(17, 'Chessa', '2026-05-10', '19:00', 'Operator'),
+(18, 'Chessa', '2026-05-24', '10:00', 'Kameramen'),
+(19, 'Chessa', '2026-05-31', '10:00', 'Operator'),
+(20, 'Lisa', '2026-05-11', '18:00', 'Operator'),
+(21, 'Lisa', '2026-05-12', '18:00', 'Operator'),
+(22, 'Stella', '2026-05-12', '18:00', 'Kameramen'),
+(23, 'Tyas', '2026-05-10', '19:00', 'Kameramen'),
+(24, 'Tyas', '2026-05-24', '10:00', 'Operator');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_form`
+--
+
+CREATE TABLE `tugas_form` (
+  `id` int(11) NOT NULL,
+  `judul` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `keterangan` text DEFAULT NULL,
+  `start_date` varchar(50) NOT NULL,
+  `end_date` varchar(50) NOT NULL,
+  `sunday_times` varchar(255) DEFAULT '08:00,10:00,17:00,19:00',
+  `weekday_time` varchar(50) DEFAULT '18:00',
+  `status` varchar(50) DEFAULT 'draft',
+  `created_at` varchar(50) DEFAULT NULL,
+  `published_at` varchar(50) DEFAULT NULL,
+  `expires_at` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_form_audit`
+--
+
+CREATE TABLE `tugas_form_audit` (
+  `id` int(11) NOT NULL,
+  `form_id` int(11) NOT NULL,
+  `slot_id` int(11) NOT NULL,
+  `actor_username` varchar(150) DEFAULT NULL,
+  `actor_role` varchar(50) DEFAULT NULL,
+  `actor_ip` varchar(50) DEFAULT NULL,
+  `actor_route` varchar(255) DEFAULT NULL,
+  `old_operator` varchar(150) DEFAULT NULL,
+  `old_kameramen` varchar(150) DEFAULT NULL,
+  `old_supervisor` varchar(150) DEFAULT NULL,
+  `new_operator` varchar(150) DEFAULT NULL,
+  `new_kameramen` varchar(150) DEFAULT NULL,
+  `new_supervisor` varchar(150) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `created_at` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_form_slot`
+--
+
+CREATE TABLE `tugas_form_slot` (
+  `id` int(11) NOT NULL,
+  `form_id` int(11) NOT NULL,
+  `date` varchar(50) NOT NULL,
+  `time` varchar(50) NOT NULL,
+  `operator_username` varchar(150) DEFAULT NULL,
+  `kameramen_username` varchar(150) DEFAULT NULL,
+  `supervisor_username` varchar(150) DEFAULT NULL,
+  `updated_at` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -128,43 +1755,141 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 ALTER TABLE `anggota`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_anggota_username` (`username`);
+
+--
+-- Indeks untuk tabel `kegiatan`
+--
+ALTER TABLE `kegiatan`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `kegiatan_form`
+--
+ALTER TABLE `kegiatan_form`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_kegiatan_form_slug` (`slug`);
+
+--
+-- Indeks untuk tabel `tentang_crembo_config`
+--
+ALTER TABLE `tentang_crembo_config`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tentang_crembo_media`
+--
+ALTER TABLE `tentang_crembo_media`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_05`
+--
+ALTER TABLE `tugas_2025_05`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_06`
+--
+ALTER TABLE `tugas_2025_06`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_07`
+--
+ALTER TABLE `tugas_2025_07`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_08`
+--
+ALTER TABLE `tugas_2025_08`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_09`
+--
+ALTER TABLE `tugas_2025_09`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_10`
+--
+ALTER TABLE `tugas_2025_10`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_11`
+--
+ALTER TABLE `tugas_2025_11`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_12`
+--
+ALTER TABLE `tugas_2025_12`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_01`
+--
+ALTER TABLE `tugas_2026_01`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_02`
+--
+ALTER TABLE `tugas_2026_02`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_03`
+--
+ALTER TABLE `tugas_2026_03`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_04`
+--
+ALTER TABLE `tugas_2026_04`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_05`
+--
+ALTER TABLE `tugas_2026_05`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_form`
+--
+ALTER TABLE `tugas_form`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_tugas_form_slug` (`slug`);
+
+--
+-- Indeks untuk tabel `tugas_form_audit`
+--
+ALTER TABLE `tugas_form_audit`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_form_slot`
+--
+ALTER TABLE `tugas_form_slot`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_tugas_form_slot` (`form_id`,`date`,`time`);
+
+--
+-- AUTO_INCREMENT untuk tabel yang dibuang
+--
+
+--
+-- AUTO_INCREMENT untuk tabel `tentang_crembo_config`
+--
+ALTER TABLE `tentang_crembo_config`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-\n
---
--- Struktur dari tabel 	entang_crembo_config
---
-
-CREATE TABLE 	entang_crembo_config (
-  id int(11) NOT NULL,
-  description text DEFAULT NULL,
-  utton_text varchar(255) DEFAULT NULL,
-  utton_link varchar(255) DEFAULT NULL,
-  uto_seconds int(11) DEFAULT 5
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel 	entang_crembo_config
---
-
-INSERT INTO 	entang_crembo_config (id, description, utton_text, utton_link, uto_seconds) VALUES
-(1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas.', 'Pelajari Lebih Lanjut', 'profil.html', 5);
-
--- --------------------------------------------------------
-
---
--- Struktur dari tabel 	entang_crembo_media
---
-
-CREATE TABLE 	entang_crembo_media (
-  id varchar(100) NOT NULL,
-  	ype varchar(50) DEFAULT 'image',
-  url text DEFAULT NULL,
-  order_index int(11) DEFAULT 0,
-  is_visible tinyint(1) DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------

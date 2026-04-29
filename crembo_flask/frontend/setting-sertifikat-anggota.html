@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -541,6 +541,7 @@
   </div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const CERT_SETTINGS_KEY = "crembo-member-certificate-settings";
     const DEFAULT_SETTINGS = {
       ketuaName: "Ketua Crembo Media",
@@ -579,9 +580,8 @@
     }
 
     function readSessionRole() {
-      const raw = localStorage.getItem("crembo-login-session");
-      const parsed = raw ? safeParse(raw) : null;
-      const role = parsed && parsed.role ? String(parsed.role) : "admin";
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      const role = serverUser.role || "admin";
       if (role === "super_admin") {
         return "Super Admin";
       }

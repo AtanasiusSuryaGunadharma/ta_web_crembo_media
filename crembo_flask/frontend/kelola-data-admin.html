@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -550,6 +550,7 @@
   </div>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const STORAGE_KEY = "crembo-admin-users";
     const SESSION_KEY = "crembo-login-session";
 
@@ -647,6 +648,11 @@
     }
 
     function readSession() {
+      // Prefer server session injected by Flask
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (serverUser.role) {
+        return serverUser;
+      }
       const raw = localStorage.getItem(SESSION_KEY);
       const parsed = raw ? safeParse(raw) : null;
       return parsed && typeof parsed === "object" ? parsed : {};
