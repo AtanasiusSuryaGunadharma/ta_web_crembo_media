@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -403,6 +403,10 @@
               <input id="fullNameInput" type="text" required>
             </div>
             <div class="field">
+              <label for="usernameInput">Username</label>
+              <input id="usernameInput" type="text" required>
+            </div>
+            <div class="field">
               <label for="emailInput">Email</label>
               <input id="emailInput" type="email" required>
             </div>
@@ -523,6 +527,7 @@
     const mobileSidebarBtn = document.getElementById("mobileSidebarBtn");
     const profileForm = document.getElementById("profileForm");
     const fullNameInput = document.getElementById("fullNameInput");
+    const usernameInput = document.getElementById("usernameInput");
     const emailInput = document.getElementById("emailInput");
     const phoneInput = document.getElementById("phoneInput");
     const addressInput = document.getElementById("addressInput");
@@ -633,6 +638,7 @@
       const parsed = raw ? safeParse(raw) : null;
       const fallbackProfile = {
         fullName: String(serverUser.nama || serverUser.username || session.fullName || session.identifier || "Super Admin"),
+        username: String(serverUser.username || session.identifier || "superadmin"),
         email: String(serverUser.email || "superadmin.crembo@example.com"),
         phone: String(serverUser.telp || "08xx-xxxx-xxxx"),
         address: String(serverUser.alamat || "Alamat belum diisi"),
@@ -643,6 +649,7 @@
       }
       return {
         fullName: String(parsed.fullName || fallbackProfile.fullName),
+        username: String(parsed.username || fallbackProfile.username),
         email: String(parsed.email || fallbackProfile.email),
         phone: String(parsed.phone || fallbackProfile.phone),
         address: String(parsed.address || fallbackProfile.address),
@@ -685,6 +692,7 @@
       if (role === "super_admin") {
         const profile = readSuperAdminProfile();
         fullNameInput.value = profile.fullName;
+        usernameInput.value = profile.username;
         emailInput.value = profile.email;
         phoneInput.value = profile.phone;
         addressInput.value = profile.address;
@@ -701,6 +709,7 @@
       if (currentAdminIndex >= 0) {
         const admin = admins[currentAdminIndex];
         fullNameInput.value = String(admin.fullName || fallbackName);
+        usernameInput.value = String(admin.username || serverUser.username || admin.loginIdentifier || session.identifier || "");
         emailInput.value = String(admin.email || serverUser.email || "admin.crembo@example.com");
         phoneInput.value = String(admin.phone || serverUser.telp || "08xx-xxxx-xxxx");
         addressInput.value = String(admin.address || serverUser.alamat || "Alamat belum diisi");
@@ -708,6 +717,7 @@
         activePermissions = normalizePermissions(admin.permissions || session.adminPermissions || defaultPermissions());
       } else {
         fullNameInput.value = fallbackName;
+        usernameInput.value = String(serverUser.username || session.identifier || "");
         emailInput.value = String(serverUser.email || (session.identifierType === "email" ? session.identifier : "admin.crembo@example.com"));
         phoneInput.value = String(serverUser.telp || "08xx-xxxx-xxxx");
         addressInput.value = String(serverUser.alamat || "Alamat belum diisi");
@@ -723,13 +733,14 @@
 
       const payload = {
         fullName: fullNameInput.value.trim(),
+        username: usernameInput.value.trim(),
         email: emailInput.value.trim(),
         phone: phoneInput.value.trim(),
         address: addressInput.value.trim(),
         birthDate: normalizeDateOnly(birthDateInput.value)
       };
 
-      if (!payload.fullName || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
+      if (!payload.fullName || !payload.username || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
         showNotify("Semua field profil wajib diisi.");
         return;
       }
@@ -751,6 +762,7 @@
           createdAt: currentAdminIndex >= 0 ? String(admins[currentAdminIndex].createdAt || new Date().toISOString()) : new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           fullName: payload.fullName,
+          username: payload.username,
           email: payload.email,
           phone: payload.phone,
           address: payload.address,

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -654,6 +654,10 @@
                 <input id="fullName" type="text" required>
               </div>
               <div class="field">
+                <label for="memberUsername">Username</label>
+                <input id="memberUsername" type="text" required>
+              </div>
+              <div class="field">
                 <label for="memberEmail">Email</label>
                 <input id="memberEmail" type="email" required>
               </div>
@@ -862,6 +866,7 @@
     const memberBadge = document.getElementById("memberBadge");
 
     const fullName = document.getElementById("fullName");
+    const memberUsername = document.getElementById("memberUsername");
     const memberEmail = document.getElementById("memberEmail");
     const memberPhone = document.getElementById("memberPhone");
     const memberAddress = document.getElementById("memberAddress");
@@ -1149,6 +1154,7 @@
       const loginName = readLoginName();
       return {
         fullName: serverUser.nama || loginName,
+        username: serverUser.username || "",
         email: serverUser.email || "anggota.crembo@example.com",
         phone: serverUser.telp || "08xx-xxxx-xxxx",
         address: serverUser.alamat || "Alamat belum diisi",
@@ -1167,6 +1173,7 @@
         const parsed = JSON.parse(raw);
         return {
           fullName: parsed.fullName || serverUser.nama || defaultProfile().fullName,
+          username: parsed.username || serverUser.username || defaultProfile().username,
           email: parsed.email || serverUser.email || defaultProfile().email,
           phone: parsed.phone || serverUser.telp || defaultProfile().phone,
           address: parsed.address || serverUser.alamat || defaultProfile().address,
@@ -1183,6 +1190,7 @@
       memberName.textContent = profile.fullName;
       memberBadge.textContent = profile.role + " Aktif";
       fullName.value = profile.fullName;
+      memberUsername.value = profile.username;
       memberEmail.value = profile.email;
       memberPhone.value = profile.phone;
       memberAddress.value = profile.address;
@@ -1195,6 +1203,7 @@
       const currentProfile = readProfile();
       const payload = {
         fullName: fullName.value.trim(),
+        username: memberUsername.value.trim(),
         email: memberEmail.value.trim(),
         phone: memberPhone.value.trim(),
         address: memberAddress.value.trim(),

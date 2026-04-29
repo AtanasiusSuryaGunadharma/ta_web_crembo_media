@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -524,6 +524,7 @@
                 <thead>
                   <tr>
                     <th>Nama</th>
+                    <th>Username</th>
                     <th>Email</th>
                     <th>No WA</th>
                     <th>Alamat</th>
@@ -548,6 +549,10 @@
               <div>
                 <label class="label" for="memberNameInput">Nama Lengkap</label>
                 <input id="memberNameInput" type="text" required>
+              </div>
+              <div>
+                <label class="label" for="memberUsernameInput">Username</label>
+                <input id="memberUsernameInput" type="text" required>
               </div>
               <div>
                 <label class="label" for="memberEmailInput">Email</label>
@@ -657,6 +662,7 @@
     const memberForm = document.getElementById("memberForm");
     const formTitle = document.getElementById("formTitle");
     const memberNameInput = document.getElementById("memberNameInput");
+    const memberUsernameInput = document.getElementById("memberUsernameInput");
     const memberEmailInput = document.getElementById("memberEmailInput");
     const memberPhoneInput = document.getElementById("memberPhoneInput");
     const memberAddressInput = document.getElementById("memberAddressInput");
@@ -741,9 +747,9 @@
 
     function defaultMembers() {
       return [
-        { id: "m-1", name: "Atanasius Surya Guna", email: "surya@example.com", phone: "081234567890", address: "Jl. Melati No. 12, Yogyakarta", birthDate: "2002-07-10", role: "anggota", status: "Aktif", password: "20020710", note: "Aktif reguler", registeredAt: "2025-08-20T08:00:00.000Z", inactiveUntil: "" },
-        { id: "m-2", name: "Rikha", email: "rikha@example.com", phone: "081222111000", address: "Jl. Cendana No. 5, Sleman", birthDate: "2001-11-08", role: "admin", status: "Aktif", password: "20011108", note: "Admin operasional", registeredAt: "2025-07-10T08:00:00.000Z", inactiveUntil: "" },
-        { id: "m-3", name: "Jeni", email: "jeni@example.com", phone: "081333222111", address: "Jl. Kenanga No. 18, Bantul", birthDate: "2003-03-16", role: "anggota", status: "Nonaktif", password: "20030316", note: "Cuti akademik", registeredAt: "2025-09-02T08:00:00.000Z", inactiveUntil: "2026-05-10" }
+        { id: "m-1", name: "Atanasius Surya Guna", username: "atanasius", email: "surya@example.com", phone: "081234567890", address: "Jl. Melati No. 12, Yogyakarta", birthDate: "2002-07-10", role: "anggota", status: "Aktif", password: "20020710", note: "Aktif reguler", registeredAt: "2025-08-20T08:00:00.000Z", inactiveUntil: "" },
+        { id: "m-2", name: "Rikha", username: "rikha", email: "rikha@example.com", phone: "081222111000", address: "Jl. Cendana No. 5, Sleman", birthDate: "2001-11-08", role: "admin", status: "Aktif", password: "20011108", note: "Admin operasional", registeredAt: "2025-07-10T08:00:00.000Z", inactiveUntil: "" },
+        { id: "m-3", name: "Jeni", username: "jeni", email: "jeni@example.com", phone: "081333222111", address: "Jl. Kenanga No. 18, Bantul", birthDate: "2003-03-16", role: "anggota", status: "Nonaktif", password: "20030316", note: "Cuti akademik", registeredAt: "2025-09-02T08:00:00.000Z", inactiveUntil: "2026-05-10" }
       ];
     }
 
@@ -830,6 +836,7 @@
         return {
           id: makeId("m"),
           name: item,
+          username: "anggota" + index,
           email: "anggota" + index + "@example.com",
           phone: "08xx-xxxx-xxxx",
           address: "Alamat belum diisi",
@@ -849,6 +856,7 @@
       return {
         id: String(item && item.id ? item.id : makeId("m")),
         name: String(item && (item.name || item.fullName) ? (item.name || item.fullName) : "Anggota"),
+        username: String(item && item.username ? item.username : (item && item.email ? item.email : "anggota")),
         email: String(item && item.email ? item.email : "anggota@example.com"),
         phone: String(item && item.phone ? item.phone : "08xx-xxxx-xxxx"),
         address: String(item && item.address ? item.address : "Alamat belum diisi"),
@@ -1020,7 +1028,7 @@
       const statusFilter = filterStatusSelect.value;
 
       return members.filter(function (member) {
-        const matchKeyword = !keyword || [member.name, member.email, member.phone, member.address, member.birthDate, roleLabel(member.role)].join(" ").toLowerCase().includes(keyword);
+        const matchKeyword = !keyword || [member.name, member.username, member.email, member.phone, member.address, member.birthDate, roleLabel(member.role)].join(" ").toLowerCase().includes(keyword);
         const matchRole = roleFilter === "all" || member.role === roleFilter;
         const matchStatus = statusFilter === "all" || member.status === statusFilter;
         return matchKeyword && matchRole && matchStatus;
@@ -1061,6 +1069,7 @@
           : member.status;
         return '<tr>'
           + '<td>' + escapeHtml(member.name) + '</td>'
+          + '<td>' + escapeHtml(member.username || "-") + '</td>'
           + '<td>' + escapeHtml(member.email) + '</td>'
           + '<td>' + escapeHtml(member.phone) + '</td>'
           + '<td>' + escapeHtml(member.address) + '</td>'
@@ -1118,6 +1127,7 @@
         return '<tr>'
           + '<td>' + (index + 1) + '</td>'
           + '<td>' + escapeHtml(member.name || "-") + '</td>'
+          + '<td>' + escapeHtml(member.username || "-") + '</td>'
           + '<td>' + escapeHtml(member.email || "-") + '</td>'
           + '<td>' + escapeHtml(member.phone || "-") + '</td>'
           + '<td>' + escapeHtml(member.address || "-") + '</td>'
@@ -1146,7 +1156,7 @@
         + '<main class="page">'
         + '<h2 style="margin:0 0 8px;">Laporan Data Daftar Anggota</h2>'
         + '<div class="meta"><span>Total data: ' + rows.length + ' anggota</span><span>Dibuat pada: ' + generatedAt + '</span><span>Sumber: Modul Manajemen Data Anggota - Crembo Media</span></div>'
-        + '<table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr></thead><tbody>'
+        + '<table><thead><tr><th>No</th><th>Nama</th><th>Username</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr></thead><tbody>'
         + tableRows
         + '</tbody></table></main></body></html>';
     }
@@ -1176,11 +1186,12 @@
         return;
       }
 
-      const tableHeader = '<tr><th>No</th><th>Nama</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr>';
+      const tableHeader = '<tr><th>No</th><th>Nama</th><th>Username</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr>';
       const tableBody = rows.map(function (member, index) {
         return '<tr>'
           + '<td>' + (index + 1) + '</td>'
           + '<td>' + escapeHtml(member.name || "-") + '</td>'
+          + '<td>' + escapeHtml(member.username || "-") + '</td>'
           + '<td>' + escapeHtml(member.email || "-") + '</td>'
           + '<td>' + escapeHtml(member.phone || "-") + '</td>'
           + '<td>' + escapeHtml(member.address || "-") + '</td>'
@@ -1295,6 +1306,7 @@
       editingId = id;
       formTitle.textContent = "Update Data Anggota";
       memberNameInput.value = member.name;
+      memberUsernameInput.value = member.username || "";
       memberEmailInput.value = member.email;
       memberPhoneInput.value = member.phone;
       memberAddressInput.value = member.address;
@@ -1339,6 +1351,7 @@
       const payload = {
         id: editingId || makeId("m"),
         name: memberNameInput.value.trim(),
+        username: memberUsernameInput.value.trim(),
         email: memberEmailInput.value.trim(),
         phone: memberPhoneInput.value.trim(),
         address: memberAddressInput.value.trim(),
@@ -1353,8 +1366,8 @@
           : new Date().toISOString()
       };
 
-      if (!payload.name || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
-        showNotify("Nama, email, nomor WA, alamat, dan tanggal lahir wajib diisi.");
+      if (!payload.name || !payload.username || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
+        showNotify("Nama, username, email, nomor WA, alamat, dan tanggal lahir wajib diisi.");
         return;
       }
 

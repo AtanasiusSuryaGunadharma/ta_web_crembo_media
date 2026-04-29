@@ -327,41 +327,46 @@ def read_members_for_admin() -> list[dict[str, object]]:
 def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
-    cursor.execute("START TRANSACTION")
-    cursor.execute("DELETE FROM anggota")
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute("DELETE FROM anggota")
 
-    for index, item in enumerate(payload, start=1):
-        birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
-        status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
-        password_value = item.get("password") or ""
-        hashed_password = hash_member_password(str(password_value), birth_date)
-        member_id = item.get("id")
-        if member_id is None or str(member_id).strip() == "":
-            member_id = index
+        for index, item in enumerate(payload, start=1):
+            birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
+            status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
+            password_value = item.get("password") or ""
+            hashed_password = hash_member_password(str(password_value), birth_date)
+            member_id = item.get("id")
+            if member_id is None or str(member_id).strip() == "":
+                member_id = index
 
-        cursor.execute(
-            """
-            INSERT INTO anggota
-            (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                member_id,
-                item.get("name") or item.get("fullName") or "Anggota",
-                item.get("username") or item.get("email") or item.get("phone") or f"anggota-{index}",
-                item.get("phone") or "",
-                hashed_password,
-                normalize_role_value(item.get("role") or "user"),
-                birth_date,
-                item.get("email") or "",
-                item.get("address") or "",
-                status_value,
-            ),
-        )
+            cursor.execute(
+                """
+                INSERT INTO anggota
+                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    member_id,
+                    item.get("name") or item.get("fullName") or "Anggota",
+                    item.get("username") or item.get("email") or item.get("phone") or f"anggota-{index}",
+                    item.get("phone") or "",
+                    hashed_password,
+                    normalize_role_value(item.get("role") or "user"),
+                    birth_date,
+                    item.get("email") or "",
+                    item.get("address") or "",
+                    status_value,
+                ),
+            )
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def login_target_for_role(role: str) -> str:
@@ -471,7 +476,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("index"))
+    return redirect(url_for("login"))
 
 
 @app.route("/dashboard")
@@ -534,6 +539,9 @@ def render_mockup_page(page: str):
     candidate = page
     if not candidate.endswith(".html"):
         candidate = f"{candidate}.html"
+
+    if candidate == "login.html":
+        session.clear()
 
     if template_exists(candidate):
         extra_context = {"current_user": current_user_context()}
