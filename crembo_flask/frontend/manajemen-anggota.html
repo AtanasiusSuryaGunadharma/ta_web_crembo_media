@@ -450,7 +450,7 @@
 
       <div class="side-actions">
         <a href="dashboard.html">Kembali ke Dashboard</a>
-        <a href="home.html">Kembali ke Beranda</a>
+        <a href="/logout" style="color: var(--primary); font-weight: 700;">Keluar / Logout</a>
       </div>
     </aside>
 
@@ -1164,7 +1164,8 @@
         + '<div class="meta"><span>Total data: ' + rows.length + ' anggota</span><span>Dibuat pada: ' + generatedAt + '</span><span>Sumber: Modul Manajemen Data Anggota - Crembo Media</span></div>'
         + '<table><thead><tr><th>No</th><th>Nama</th><th>Username</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr></thead><tbody>'
         + tableRows
-        + '</tbody></table></main></body></html>';
+        + '</tbody></table></main><input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+</body></html>';
     }
 
     function openMemberReportPreview() {
@@ -1212,7 +1213,8 @@
         + tableHeader
         + tableBody
         + '</table>'
-        + '</body></html>';
+        + '<input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+</body></html>';
 
       const blob = new Blob(["\ufeff", excelHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -1457,6 +1459,92 @@
       renderRequests();
     }
 
+    
+    const csvFileInput = document.getElementById("csvFileInput");
+    csvFileInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const text = event.target.result;
+        const lines = text.split("\n");
+        let added = 0;
+        let duplicates = 0;
+        
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          
+          // Basic CSV split by comma (assuming no commas inside quotes)
+          const cols = lines[i].split(",").map(c => c.trim());
+          if (cols.length < 6) continue;
+          
+          const nama = cols[0];
+          const username = cols[1];
+          const email = cols[2];
+          const telp = cols[3];
+          const alamat = cols[4];
+          const tglLahirRaw = cols[5]; // Should be YYYY-MM-DD
+          
+          if (!nama || !username) continue;
+          
+          const isDuplicate = members.some(m => m.username === username || m.email === email || m.phone === telp);
+          if (isDuplicate) {
+            duplicates++;
+            continue;
+          }
+          
+          const newId = makeId("m");
+          const birthDate = normalizeBirthDate(tglLahirRaw);
+          const payload = {
+            id: newId,
+            name: nama,
+            username: username,
+            email: email,
+            phone: telp,
+            address: alamat,
+            birthDate: birthDate,
+            role: "anggota",
+            status: "Aktif",
+            password: defaultPasswordFromBirthDate(birthDate),
+            note: "",
+            inactiveUntil: "",
+            registeredAt: new Date().toISOString()
+          };
+          
+          members.push(payload);
+          added++;
+        }
+        
+        if (added > 0) {
+          saveMembers();
+          renderAll();
+        }
+        
+        showNotify("Import selesai. " + added + " ditambahkan, " + duplicates + " dilewati (duplikat).");
+        e.target.value = ""; // reset
+      };
+      reader.readAsText(file);
+    });
+
+    importCsvBtn.addEventListener("click", function () {
+      csvFileInput.click();
+    });
+
+    downloadCsvTemplateBtn.addEventListener("click", function () {
+      const header = "Nama,Username,Email,Telp,Alamat,Tanggal Lahir\n";
+      const sample = "Budi Santoso,budis,budi@example.com,081234567890,Jl. Merdeka No. 1,2000-01-01\n";
+      const blob = new Blob([header + sample], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "template-import-anggota.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    });
+
     function updateLiveDateTime() {
       const now = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -1508,17 +1596,13 @@
       renderMemberTable();
     });
 
-    importCsvBtn.addEventListener("click", function () {
-      showNotify("UI import CSV siap. Proses impor akan diaktifkan pada tahap berikutnya.");
-    });
+    
 
     importExcelBtn.addEventListener("click", function () {
       showNotify("UI import Excel siap. Proses impor akan diaktifkan pada tahap berikutnya.");
     });
 
-    downloadCsvTemplateBtn.addEventListener("click", function () {
-      showNotify("Tombol template CSV sudah disiapkan (mode tampilan).");
-    });
+    
 
     downloadExcelTemplateBtn.addEventListener("click", function () {
       showNotify("Tombol template Excel sudah disiapkan (mode tampilan).");
@@ -1579,5 +1663,6 @@
     setInterval(updateLiveDateTime, 1000);
   </script>
 <script src="_sidebar-fix.js"></script>
+<input type="file" id="csvFileInput" accept=".csv" style="display:none;">
 </body>
 </html>

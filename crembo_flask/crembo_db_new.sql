@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Apr 2026 pada 13.06
+-- Waktu pembuatan: 29 Apr 2026 pada 14.58
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -50,7 +50,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (3, 'Christoforus Tadeus', 'Christoforus Tadeus', '085894525162', 'scrypt:32768:8:1$fSixa3Z12Exd4P0g$77ceac2f30d86b53d3149988a50272238460b0d29b5648b567fb8571ca8fe811d55ffadb3739dc2ffdc1379439f43f0ab34181ababb6698f465fd9a12332f4ec', 'admin', NULL, NULL, NULL, 'aktif'),
 (4, 'Riean Aditya', 'rieanaditya', '0895336757747', 'scrypt:32768:8:1$8FnTsAy3hjS6C622$32131dc844eb221136fa21134940d2b2452cf1e1e65af209404300ad95c71bb339b4fadb5e902e9b99fbf0304e652c9c50cc64b98d4e461ff28399f4d6ebdb40', 'admin', NULL, NULL, NULL, 'aktif'),
 (5, 'Katherine Ivana Hadi', 'Ketrin', '081386618220', 'scrypt:32768:8:1$kocjdDopnrgca8lt$83958b6ec208ca1facc17f762955dcd7f8285181930e43c16ceb506e11e9f1c0c957e7b0f7c3960a4f88b04ac5916e3cc16d9473455ffba02b9bf927cf9f89a4', 'admin', NULL, NULL, NULL, 'aktif'),
-(6, 'Pria', 'Pria', '081228330226', 'scrypt:32768:8:1$sQDyVveyWaTVR1wJ$f6a03d74eda6bd3c32b00cd7b75a648c6424375e4cc3fffe9d529aaa6c77ccc408218a40589f49acb1c253482d99d3799c64d8fa37421b8976bdd153cbf30a8b', 'admin', NULL, NULL, NULL, 'aktif'),
+(6, 'Pria', 'Pria', '081228330226', 'scrypt:32768:8:1$4nCgWeSwWR7cEYj3$d40e423b6ec59c153bfc0843476c48bcbffdcfe69844e4a9e942320107b0c624c3a68c1cb0a597bdbba85a117cbfbd0b3be743cb18abb77365a621a6f63c7eee', 'admin', '2026-04-29', 'pria@gmail.com', 'Jl Baciro', 'aktif'),
 (7, 'Aurel', 'Aurel', '085878495255', 'scrypt:32768:8:1$WsEELS5C525TKDKr$d70c89e1f0e8c98944a9b9a56e4927f19805d4ed92a319da6f7e6743884392281825a9298587241f07fc4af871e6013771f9a07471d79bff4df7ede78c44b0bd', 'user', NULL, NULL, NULL, 'aktif'),
 (8, 'Dewi', 'Dewi', '087700652865', 'scrypt:32768:8:1$z8mtUa3kB43bDHfP$5f8d2ff4647348ed2fc60b4eeaa8e027c892a1e2500cf4015554a2940367dbfa0d48a9d3c5b121e2ea6472abbdd2ea5e073e0bd7bcfe58b9e1ec62032813e80d', 'admin', NULL, NULL, NULL, 'aktif'),
 (9, 'Febrian', 'Febrian', '081220239158', 'scrypt:32768:8:1$v7BBX2N2uKgzq8gu$245b6a3723e1ddd0d0b3178c685448a8d792bd42d7ebd52d4ba423cfb89a5c9a85612c260f5f396a4e1a0b3cd4901605c6e06537a4f5622d83fb3fccd24f6e4a', 'user', NULL, NULL, NULL, 'aktif'),
@@ -94,7 +94,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (47, 'There', 'There', '+62 878-9855-5370', 'scrypt:32768:8:1$IURMpb4BKozcqzQv$723f337692d6b0d53fb92fe0fe09155c782e20fd28efdde82b965db14ec9bc78672524ea4a751f681dd839f960a1e26a671051c4f37c31eea9338d5261bc7ef8', 'user', '2011-01-30', 'yoshefasabatini@gmail.com', NULL, 'aktif'),
 (48, 'Toto', 'Toto', '+62 858-2013-4705', 'scrypt:32768:8:1$YJlFgQbsb2jXCukn$9d06995e524e5bd8a46383d786634a3a95974229cdaece7ac41411f3489dbec4185e71040493b5c072a7262d2bc724bfa781a8f5861f358ea29ba525b1b9b67d', 'user', NULL, NULL, NULL, 'aktif'),
 (49, 'Tyas', 'Tyas', '+62 889-8582-6095', 'scrypt:32768:8:1$rbhGaMjTfmgzPkVY$6fa412ca61b11f8cb4530b5b25a32cf75e5770e99f0b741405a33ae139fbaa3414d9c9155f987bde4461cd3568f886fecdee0f02c4436e4b8ebaea7958304183', 'user', NULL, NULL, NULL, 'aktif'),
-(50, 'Atanasius Surya', 'Ata Surya', '+62 813-5075-1753', 'scrypt:32768:8:1$s5gFKcBxeFbrwkNf$706b187bf8067913093a44e6f50d6c62bd63060dad321a8341eb99237443e2f9f2cd7afd31f8814abd28128fc8e1d51877149a2bfab49b40bf9b00c2eec700b7', 'user', '2004-05-13', 'atanasiussurya@gmail.com', NULL, 'aktif'),
+(50, 'Atanasius Surya', 'Ata Surya', '+62 813-5075-1753', 'scrypt:32768:8:1$s5gFKcBxeFbrwkNf$706b187bf8067913093a44e6f50d6c62bd63060dad321a8341eb99237443e2f9f2cd7afd31f8814abd28128fc8e1d51877149a2bfab49b40bf9b00c2eec700b7', 'super_admin', '2004-05-13', 'atanasiussurya@gmail.com', NULL, 'aktif'),
 (51, 'Rafael', 'Rafael', '+62 813-9033-3758', 'scrypt:32768:8:1$XTjB22QBETTUwjPH$2a4f5f9da5660c3b8f94f928ea8e76ddebf18f576c1f36a5c526c01dd032081466edf3f2cb14ad766d1dc3820f5f763d18ae13d63bdae711d422759b31339168', 'user', NULL, NULL, NULL, 'aktif'),
 (52, 'Frugal', 'Frugal', '+62 813-9830-7591', 'scrypt:32768:8:1$D03o2WrlrPCX74Bo$72cdb406fc98e86d38df12ce1c8a48663dc428ef7bb713c088fd8bf266b87db957219d003b0f939d6c82dfe5f7d6d3bf652a0a591caf0352b323a636e5505c7b', 'user', NULL, NULL, NULL, 'aktif'),
 (53, 'Daflo', 'Daflo', '+62 821-5766-3661', 'scrypt:32768:8:1$qYu1t0PYcrvx7Ub6$4537820f12b8e4e212f818059949df3b7827aa82ce621327c48f49e0eda76aac09876c6a6ef8ad18d66df1dc31cf24fdaf3f38235e80501b173330c5c5709e70', 'user', NULL, NULL, NULL, 'aktif'),
@@ -116,10 +116,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (72, 'Arya', 'Arya', '081324859094', 'scrypt:32768:8:1$i611QYvOcmtTNXBt$8f443083de045a9d389a51e27a4ca5713296679e91c2203e870245b56d60ab016d1063f8587a14004cfc1cd9ce7e7cc323827bcb7c1300c9ea86a1e05d74a309', 'user', '', 'aryadwika2010@gmail.com', NULL, 'aktif'),
 (73, 'Aoki', 'Aoki', '085743665416', 'scrypt:32768:8:1$uVLwUhPRoRMREi5O$401e7e9b5f793f89952b3845f87ebec60e64faff8655f816ef82541465a7a0e2b82b02aa00602ec61f6a75c939d2e528d671547a507b46c4f4b0629c752103b5', 'user', '', 'gizelleraina2401@gmail.com', NULL, 'aktif'),
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', NULL, 'aktif'),
-(75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', NULL, 'aktif'),
-(1001, 'CREMBO Super Admin', 'superadmin', '081100000001', 'scrypt:32768:8:1$cZu9WLvuky9QUw0C$760f93978da284f79e2bd180a952c9e05d8a3a2817d5417a9fab5717b57b9a3432ae7e38d5219c1eb446a16eeb860e269841dd34f6bc8cc7167d73a7870ed629', 'super_admin', '1990-01-01', 'superadmin@crembo.test', 'Jl. Demo Super Admin 1, Baciro', 'aktif'),
-(1002, 'CREMBO Admin', 'admin.testing', '081100000002', 'scrypt:32768:8:1$ZOyyyHZTDpVeqbY9$00ae9776b7b5af99b1a11ca72d92fe4815f674b3a1d8d1ca2835ead3a19c70318eeff1d9009ff45be5402f73a2381f252cfac656213a23d2df9ffc3738bcdc17', 'admin', '1992-02-02', 'admin@crembo.test', 'Jl. Demo Admin 2, Baciro', 'aktif'),
-(1003, 'CREMBO Anggota', 'anggota.testing', '081100000003', 'scrypt:32768:8:1$8IHkXA7Madie3pc9$407f2f096ab2d21d3caf3c6f20efa1a5e0b4a25995255182b05e443d06e661e5d75710d2704f16a1d1c44fbd4bb1de0a819b2fed5760c405ae9e322b85c7e29a', 'user', '1995-03-03', 'anggota@crembo.test', 'Jl. Demo Anggota 3, Baciro', 'aktif');
+(75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', NULL, 'aktif');
 
 -- --------------------------------------------------------
 

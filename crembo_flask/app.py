@@ -118,6 +118,7 @@ def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "id": row.get("id"),
         "name": row.get("nama") or "Anggota",
         "fullName": row.get("nama") or "Anggota",
+        "username": row.get("username") or "",
         "email": row.get("email") or "",
         "phone": row.get("telp") or "",
         "address": row.get("alamat") or "",
@@ -337,14 +338,20 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
         cursor.execute("START TRANSACTION")
         cursor.execute("DELETE FROM anggota")
 
+        existing_ids = [int(i.get("id")) for i in payload if str(i.get("id")).isdigit()]
+        next_id = max(existing_ids) + 1 if existing_ids else 1
+
         for index, item in enumerate(payload, start=1):
             birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
             status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
             password_value = item.get("password") or ""
             hashed_password = hash_member_password(str(password_value), birth_date)
-            member_id = item.get("id")
-            if member_id is None or str(member_id).strip() == "":
-                member_id = index
+            
+            try:
+                member_id = int(item.get("id"))
+            except (TypeError, ValueError):
+                member_id = next_id
+                next_id += 1
 
             cursor.execute(
                 """

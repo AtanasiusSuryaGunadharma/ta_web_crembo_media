@@ -344,7 +344,11 @@
       .sidebar.show { display: block; }
       .mobile-toggle { display: inline-block; }
     }
-  </style>
+  
+    .pwd-wrapper { position: relative; display: flex; align-items: center; }
+    .pwd-wrapper input { padding-right: 40px; }
+    .pwd-toggle { position: absolute; right: 10px; background: none; border: none; font-size: 0.8rem; cursor: pointer; color: var(--primary); font-weight: 600; padding: 4px; }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_admin-theme.css">
 </head>
@@ -367,7 +371,7 @@
 
       <div class="side-actions">
         <a href="dashboard.html">Kembali ke Dashboard</a>
-        <a href="home.html">Kembali ke Beranda</a>
+        <a href="/logout" style="color: var(--primary); font-weight: 700;">Keluar / Logout</a>
       </div>
     </aside>
 
@@ -452,15 +456,15 @@
             <form id="passwordForm" class="panel-body">
               <div class="field">
                 <label for="currentPasswordInput">Password Saat Ini</label>
-                <input id="currentPasswordInput" type="password" required>
+                <div class="pwd-wrapper"><input id="currentPasswordInput" type="password" required><button type="button" class="pwd-toggle">Tampil</button></div>
               </div>
               <div class="field">
                 <label for="newPasswordInput">Password Baru</label>
-                <input id="newPasswordInput" type="password" minlength="6" required>
+                <div class="pwd-wrapper"><input id="newPasswordInput" type="password" minlength="6" required><button type="button" class="pwd-toggle">Tampil</button></div>
               </div>
               <div class="field">
                 <label for="confirmPasswordInput">Konfirmasi Password Baru</label>
-                <input id="confirmPasswordInput" type="password" minlength="6" required>
+                <div class="pwd-wrapper"><input id="confirmPasswordInput" type="password" minlength="6" required><button type="button" class="pwd-toggle">Tampil</button></div>
               </div>
               <p class="helper">Untuk prototype ini, password tersimpan lokal di browser.</p>
               <div class="btn-row">
@@ -896,5 +900,21 @@
     setInterval(updateLiveDateTime, 1000);
   </script>
 <script src="_sidebar-fix.js"></script>
+
+    <script>
+      document.querySelectorAll('.pwd-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var input = this.previousElementSibling;
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.textContent = 'Sembunyi';
+          } else {
+            input.type = 'password';
+            this.textContent = 'Tampil';
+          }
+        });
+      });
+    </script>
+    
 </body>
 </html>
