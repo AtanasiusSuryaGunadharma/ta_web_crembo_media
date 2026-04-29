@@ -1,0 +1,695 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Profil - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --panel-2: #f5f5f5;
+      --line: #1f1f1f;
+      --muted: #5b5b5b;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --blue: #2f66d8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .headline {
+      width: min(100%, 980px);
+      margin-bottom: 12px;
+    }
+
+    .headline.dashboard-headline-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .headline-copy {
+      min-width: 0;
+    }
+
+    .headline h2 {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .headline p {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.84rem;
+    }
+
+    .headline-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .headline-right .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      text-decoration: none;
+      flex: 0 0 auto;
+    }
+
+    .headline-right .world-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.42);
+    }
+
+    .headline-right .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      max-width: 980px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: var(--panel-2);
+    }
+
+    .panel-head h3 { margin: 0; font-size: 1.05rem; }
+
+    .panel-body {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .label {
+      font-size: 0.82rem;
+      color: #374151;
+      font-weight: 700;
+    }
+
+    .helper {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+    }
+
+    .editor-toolbar {
+      border: 1px solid #d0d0d0;
+      border-bottom: 0;
+      border-radius: 10px 10px 0 0;
+      background: #f7f7f7;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #4b5563;
+    }
+
+    .editor-toolbar span {
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      padding: 3px 6px;
+      background: #fff;
+    }
+
+    .editor-area {
+      border: 1px solid #d0d0d0;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+
+    .attachment-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
+      border-color: #2f66d8;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .files {
+      display: grid;
+      gap: 6px;
+    }
+
+    .file-item {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #f9fafb;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: #374151;
+    }
+
+    .file-item button {
+      border: 1px solid #ef4444;
+      background: #fff;
+      color: #b91c1c;
+      border-radius: 7px;
+      font-size: 0.74rem;
+      padding: 4px 7px;
+      cursor: pointer;
+    }
+
+    .inline {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: nowrap;
+      border: 1px solid #d7dce5;
+      background: linear-gradient(180deg, #fcfdff 0%, #f5f9ff 100%);
+      border-radius: 12px;
+      padding: 12px 12px 11px;
+    }
+
+    .inline input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--blue);
+      flex: 0 0 auto;
+    }
+
+    .inline .label {
+      flex: 1;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      color: #1f2937;
+    }
+
+    .actions {
+      margin-top: 6px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        display: none;
+        position: static;
+        height: auto;
+      }
+      .sidebar.show { display: block; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Form tambah atau edit konten profil</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link active" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="manajemen-profil.html">Kembali ke Daftar Profil</a>
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="headline dashboard-headline-bar">
+        <div class="headline-copy">
+          <h2 id="pageTitle">Tambah Profil Baru</h2>
+          <p id="pageDesc">Buat konten profil baru dengan pengaturan status tampil atau draft.</p>
+        </div>
+        <div class="headline-right">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <article class="panel">
+        <header class="panel-head">
+          <h3>Form Konten Profil</h3>
+        </header>
+
+        <form id="profileForm" class="panel-body">
+          <div class="field">
+            <label class="label" for="titleInput">Judul Profil</label>
+            <input id="titleInput" type="text" placeholder="Contoh: Sejarah STP AMPTA" required>
+            <p class="helper">Slug akan dibuat otomatis dari judul saat disimpan.</p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="contentInput">Konten</label>
+            <div class="editor-toolbar" aria-hidden="true">
+              <span>Normal</span><span>B</span><span>I</span><span>U</span><span>List</span><span>Quote</span><span>Link</span><span>Image</span>
+            </div>
+            <div class="editor-area">
+              <textarea id="contentInput" placeholder="Tulis konten profil di sini..." required></textarea>
+            </div>
+            <p class="helper">Tampilan toolbar hanya simulasi untuk wireframe.</p>
+          </div>
+
+          <div class="field">
+            <label class="label">Lampiran (Opsional)</label>
+            <div class="attachment-row">
+              <input id="attachmentInput" type="file" multiple style="display:none;">
+              <button id="addAttachmentBtn" class="btn primary" type="button">+ Tambah File</button>
+              <span class="helper">Maks 10MB per file. Contoh: gambar, PDF, dokumen office.</span>
+            </div>
+            <div id="fileList" class="files"></div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="orderInput">Urutan Tampilan</label>
+            <input id="orderInput" type="number" value="0" min="0" step="1">
+            <p class="helper">Angka lebih kecil akan tampil lebih atas.</p>
+          </div>
+
+          <div class="field inline">
+            <input id="activeInput" type="checkbox" checked>
+            <label for="activeInput" class="label" style="margin:0;">Aktifkan profil ini (hapus centang untuk simpan sebagai draft)</label>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">Simpan Profil</button>
+            <a class="btn secondary" href="manajemen-profil.html">Batal</a>
+          </div>
+        </form>
+      </article>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const PROFILE_STORAGE_KEY = "crembo-profile-contents";
+
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("id") || "";
+
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const profileForm = document.getElementById("profileForm");
+
+    const titleInput = document.getElementById("titleInput");
+    const contentInput = document.getElementById("contentInput");
+    const attachmentInput = document.getElementById("attachmentInput");
+    const addAttachmentBtn = document.getElementById("addAttachmentBtn");
+    const fileList = document.getElementById("fileList");
+    const orderInput = document.getElementById("orderInput");
+    const activeInput = document.getElementById("activeInput");
+    const notify = document.getElementById("notify");
+    const liveDateTime = document.getElementById("liveDateTime");
+
+    let profileContents = [];
+    let attachmentNames = [];
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2200);
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function slugify(text) {
+      return String(text || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function loadProfiles() {
+      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      profileContents = Array.isArray(parsed) ? parsed : [];
+    }
+
+    function saveProfiles() {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileContents));
+    }
+
+    function renderAttachments() {
+      if (!attachmentNames.length) {
+        fileList.innerHTML = '<p class="helper">Belum ada lampiran.</p>';
+        return;
+      }
+
+      fileList.innerHTML = attachmentNames.map(function (name, index) {
+        return '<div class="file-item">'
+          + '<span>' + name.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>'
+          + '<button type="button" data-remove-index="' + String(index) + '">Hapus</button>'
+          + '</div>';
+      }).join("");
+    }
+
+    function fillEditData() {
+      if (!editId) {
+        return;
+      }
+      const target = profileContents.find(function (item) {
+        return String(item && item.id || "") === editId;
+      });
+      if (!target) {
+        showNotify("Data profil tidak ditemukan. Anda diarahkan ke daftar.");
+        window.setTimeout(function () {
+          window.location.href = "manajemen-profil.html";
+        }, 700);
+        return;
+      }
+
+      pageTitle.textContent = "Edit Profil";
+      pageDesc.textContent = "Perbarui konten profil yang sudah ada. Data sebelumnya sudah dimuat ke form.";
+      titleInput.value = String(target.title || "");
+      contentInput.value = String(target.content || "");
+      orderInput.value = Number.isFinite(Number(target.order)) ? String(Number(target.order)) : "0";
+      activeInput.checked = Boolean(target.isActive);
+      attachmentNames = Array.isArray(target.attachmentNames) ? target.attachmentNames.map(String) : [];
+      renderAttachments();
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    function saveForm(event) {
+      event.preventDefault();
+
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const order = Number(orderInput.value);
+
+      if (!title || !content) {
+        showNotify("Judul dan konten wajib diisi.");
+        return;
+      }
+
+      const payload = {
+        id: editId || makeId("prof"),
+        title: title,
+        slug: slugify(title),
+        content: content,
+        attachmentNames: attachmentNames.slice(),
+        order: Number.isFinite(order) && order >= 0 ? order : 0,
+        isActive: activeInput.checked,
+        updatedAt: new Date().toISOString().slice(0, 10)
+      };
+
+      const existingIndex = profileContents.findIndex(function (item) {
+        return String(item && item.id || "") === payload.id;
+      });
+
+      if (existingIndex >= 0) {
+        profileContents[existingIndex] = payload;
+        showNotify("Profil berhasil diperbarui.");
+      } else {
+        profileContents.push(payload);
+        showNotify("Profil baru berhasil ditambahkan.");
+      }
+
+      saveProfiles();
+      window.setTimeout(function () {
+        window.location.href = "manajemen-profil.html";
+      }, 450);
+    }
+
+    addAttachmentBtn.addEventListener("click", function () {
+      attachmentInput.click();
+    });
+
+    attachmentInput.addEventListener("change", function () {
+      const files = Array.from(attachmentInput.files || []);
+      files.forEach(function (file) {
+        if (file && file.name) {
+          attachmentNames.push(file.name);
+        }
+      });
+      attachmentInput.value = "";
+      renderAttachments();
+    });
+
+    fileList.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-remove-index]");
+      if (!button) {
+        return;
+      }
+      const index = Number(button.getAttribute("data-remove-index"));
+      if (!Number.isFinite(index)) {
+        return;
+      }
+      attachmentNames = attachmentNames.filter(function (_, idx) {
+        return idx !== index;
+      });
+      renderAttachments();
+    });
+
+    profileForm.addEventListener("submit", saveForm);
+
+    loadProfiles();
+    renderAttachments();
+    fillEditData();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

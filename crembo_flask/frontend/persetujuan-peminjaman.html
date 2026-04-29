@@ -1,0 +1,1085 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Persetujuan Peminjaman - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand { border: 1px solid #838383; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 12px; margin-bottom: 16px; }
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255, 255, 255, 0.03); margin-bottom: 10px; overflow: hidden; }
+    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: 0.88rem; padding: 11px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255, 255, 255, 0.02); }
+    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; }
+    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
+
+    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
+    .side-actions a { text-decoration: none; border: 1px solid #8d8d8d; color: #ebebeb; text-align: center; padding: 9px 10px; border-radius: 10px; font-size: 0.82rem; }
+
+    .main { padding: 16px; }
+
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 700;
+      color: #1c1f27;
+      letter-spacing: 0.01em;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .meta-header {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .meta-sub {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 0.86rem;
+    }
+
+    .meta-header .chip {
+      border-color: rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .toolbar, .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 0.84rem; color: #444; }
+    input, select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .btn, .btn-ghost, .btn-danger {
+      border-radius: 9px;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .btn { border: 1px solid #1f2937; background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%); color: #fff; }
+    .btn-ghost { border: 1px solid #9ca3af; background: #fff; color: #1f2937; }
+    .btn-danger { border: 1px solid #7f1d1d; background: #b91c1c; color: #fff; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 8px; margin-top: 10px; }
+    .summary-item { border: 1px solid #c7c7c7; background: #fafafa; padding: 10px; }
+    .summary-item p { margin: 0; font-size: 0.8rem; color: #565656; }
+    .summary-item strong { display: block; margin-top: 4px; font-size: 1.15rem; }
+
+    .table-scroll { border: 1px solid #c5c5c5; overflow: auto; background: #fff; }
+    .table-scroll table { min-width: 1200px; width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td { border: 1px solid #cbcbcb; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #efefef; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
+
+    .status-pill { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 0.74rem; border: 1px solid #c4c4c4; background: #f6f6f6; }
+    .status-pill.pending { border-color: #d4b06b; background: #fff8ea; color: #7a5a1f; }
+    .status-pill.approved { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
+    .status-pill.rejected { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
+    .status-pill.cancelled { border-color: #b0b0b0; background: #f4f4f4; color: #525252; }
+
+    .empty-note { margin: 10px 0 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: 0.86rem; color: #616161; }
+
+    @media (max-width: 1080px) {
+      .toolbar-grid { grid-template-columns: 1fr 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+    }
+    @media (max-width: 620px) {
+      .toolbar-grid, .summary-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Modul inventaris admin/super admin</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Ringkasan <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="dashboard.html">Dashboard Utama</a>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
+          <a class="menu-link active" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
+          <a class="menu-link" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header dashboard waktu berjalan">
+        <h1>Persetujuan Peminjaman</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="meta-header">
+        <div>
+          <h2 class="meta-title">Persetujuan Peminjaman Barang</h2>
+          <p class="meta-sub">Proses persetujuan/penolakan permintaan peminjaman dan sinkronisasi status inventaris.</p>
+        </div>
+        <span class="chip">Filter: Semua</span>
+      </header>
+
+      <section class="toolbar" aria-label="Filter persetujuan peminjaman">
+        <div class="toolbar-grid">
+          <div class="field">
+            <label for="searchInput">Cari pengajuan</label>
+            <input id="searchInput" type="search" placeholder="Kode, peminjam, barang, keperluan...">
+          </div>
+          <div class="field">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter">
+              <option value="all">Semua Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Disetujui">Disetujui</option>
+              <option value="Ditolak">Ditolak</option>
+              <option value="Dibatalkan">Dibatalkan</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fromDate">Tanggal pinjam dari</label>
+            <input id="fromDate" type="date">
+          </div>
+          <div class="field">
+            <label for="toDate">Tanggal pinjam sampai</label>
+            <input id="toDate" type="date">
+          </div>
+          <div class="field" style="display:flex; gap:8px;">
+            <button id="downloadExcelBtn" class="btn-ghost" type="button">Download Excel</button>
+            <button id="downloadPdfBtn" class="btn-ghost" type="button">Download PDF</button>
+          </div>
+        </div>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Kode</th>
+                <th>Peminjam</th>
+                <th>Barang</th>
+                <th>Jumlah</th>
+                <th>Tanggal Pinjam</th>
+                <th>Target Kembali</th>
+                <th>Keperluan</th>
+                <th>Status</th>
+                <th>Diproses Oleh</th>
+                <th>Diproses Pada</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p id="emptyState" class="empty-note" hidden>Tidak ada data sesuai filter.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const INVENTORY_KEY = "crembo-inventaris-barang";
+    const REQUEST_KEY = "crembo-peminjaman-requests";
+    const REQUEST_SEED_KEY = "crembo-peminjaman-seed-version";
+    const REQUEST_SEED_VERSION = "v5";
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const fromDate = document.getElementById("fromDate");
+    const toDate = document.getElementById("toDate");
+    const summaryGrid = document.getElementById("summaryGrid");
+    const rows = document.getElementById("rows");
+    const emptyState = document.getElementById("emptyState");
+    const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const liveDateTime = document.getElementById("liveDateTime");
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function readInventory() {
+      try {
+        const raw = localStorage.getItem(INVENTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveInventory(items) {
+      localStorage.setItem(INVENTORY_KEY, JSON.stringify(items));
+    }
+
+    function resetInventoryForTesting(items) {
+      return items.map(function (item) {
+        const totalUnit = Math.max(1, Number(item.totalUnit || 1));
+        const canBorrow = item.canBorrow !== false;
+        return Object.assign({}, item, {
+          availableUnit: totalUnit,
+          borrowedUnit: 0,
+          status: canBorrow ? "Tersedia" : item.status,
+          updatedAt: new Date().toISOString()
+        });
+      });
+    }
+
+    function resetProcessedRequest(item) {
+      const cleaned = Object.assign({}, item);
+      if (cleaned.status === "Disetujui" || cleaned.status === "Sedang Dipinjam") {
+        cleaned.status = "Pending";
+        cleaned.adminNote = "";
+        cleaned.approvedBy = "";
+        cleaned.approvedAt = "";
+        cleaned.pickup = null;
+        cleaned.returnInfo = null;
+      }
+      return cleaned;
+    }
+
+    function normalizeRequest(item, index) {
+      const quantity = Math.max(1, Number(item && item.quantity ? item.quantity : 1));
+      return {
+        id: String(item && item.id ? item.id : "req-" + (index + 1)),
+        code: String(item && item.code ? item.code : ("REQ-" + String(index + 1).padStart(4, "0"))).trim().toUpperCase(),
+        borrowerName: String(item && item.borrowerName ? item.borrowerName : "Anggota").trim(),
+        borrowerPhone: String(item && item.borrowerPhone ? item.borrowerPhone : "").trim(),
+        itemId: String(item && item.itemId ? item.itemId : "").trim(),
+        itemCode: String(item && item.itemCode ? item.itemCode : "-").trim(),
+        itemName: String(item && item.itemName ? item.itemName : "-").trim(),
+        quantity: quantity,
+        purpose: String(item && item.purpose ? item.purpose : "Kegiatan pelayanan").trim(),
+        borrowDate: String(item && item.borrowDate ? item.borrowDate : new Date().toISOString().slice(0, 10)),
+        expectedReturnDate: String(item && item.expectedReturnDate ? item.expectedReturnDate : new Date().toISOString().slice(0, 10)),
+        status: String(item && item.status ? item.status : "Pending").trim(),
+        adminNote: String(item && item.adminNote ? item.adminNote : "").trim(),
+        approvedBy: String(item && item.approvedBy ? item.approvedBy : "").trim(),
+        approvedAt: String(item && item.approvedAt ? item.approvedAt : "").trim(),
+        pickup: item && item.pickup ? item.pickup : null,
+        returnInfo: item && item.returnInfo ? item.returnInfo : null,
+        createdAt: String(item && item.createdAt ? item.createdAt : new Date().toISOString())
+      };
+    }
+
+    function uniqueRequestCode(seedCode, index) {
+      return String(seedCode || ("REQ-" + String(index + 1).padStart(4, "0"))).toUpperCase();
+    }
+
+    function seedRequestsIfNeeded() {
+      if (localStorage.getItem(REQUEST_SEED_KEY) === REQUEST_SEED_VERSION) {
+        return;
+      }
+      const inventory = readInventory();
+      const first = inventory[0] || {};
+      const second = inventory[1] || {};
+      const now = Date.now();
+      const day = 24 * 60 * 60 * 1000;
+      const seed = [
+        normalizeRequest({
+          id: "req-seed-001",
+          code: "REQ-0001",
+          borrowerName: "Budi Santoso",
+          borrowerPhone: "081234567890",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Dokumentasi kegiatan OMK",
+          borrowDate: new Date().toISOString().slice(0, 10),
+          expectedReturnDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 1),
+        normalizeRequest({
+          id: "req-seed-002",
+          code: "REQ-0002",
+          borrowerName: "Maria Yosephin",
+          borrowerPhone: "081122334455",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 2,
+          purpose: "Latihan koor lingkungan",
+          borrowDate: new Date().toISOString().slice(0, 10),
+          expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 2),
+        normalizeRequest({
+          id: "req-seed-003",
+          code: "REQ-0003",
+          borrowerName: "Anton Prasetyo",
+          borrowerPhone: "081355667788",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Liputan Misa Harian",
+          borrowDate: new Date(now - day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 3),
+        normalizeRequest({
+          id: "req-seed-004",
+          code: "REQ-0004",
+          borrowerName: "Clara Wijaya",
+          borrowerPhone: "081266778899",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Pendampingan acara kategorial",
+          borrowDate: new Date(now - 2 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + day).toISOString().slice(0, 10),
+          status: "Ditolak",
+          approvedBy: "Admin Inventaris",
+          approvedAt: new Date(now - 2 * day + 2 * 60 * 60 * 1000).toISOString(),
+          adminNote: "Jadwal bentrok dan barang sudah dipesan unit lain."
+        }, 4),
+        normalizeRequest({
+          id: "req-seed-005",
+          code: "REQ-0005",
+          borrowerName: "Dimas Kurnia",
+          borrowerPhone: "081344455566",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Dokumentasi latihan paduan suara",
+          borrowDate: new Date(now - 3 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 5),
+        normalizeRequest({
+          id: "req-seed-006",
+          code: "REQ-0006",
+          borrowerName: "Erika Lestari",
+          borrowerPhone: "081377788899",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Pelatihan operator baru",
+          borrowDate: new Date(now - 7 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now - 3 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 6),
+        normalizeRequest({
+          id: "req-seed-007",
+          code: "REQ-0007",
+          borrowerName: "Fajar Setiawan",
+          borrowerPhone: "081299900011",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Acara karang taruna",
+          borrowDate: new Date(now + day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 3 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 7),
+        normalizeRequest({
+          id: "req-seed-008",
+          code: "REQ-0008",
+          borrowerName: "Gita Anjani",
+          borrowerPhone: "081233344455",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Kegiatan dokumentasi Paskah",
+          borrowDate: new Date(now + 2 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 4 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 8)
+        ,normalizeRequest({
+          id: "req-seed-009",
+          code: "REQ-0009",
+          borrowerName: "Hendri Gunawan",
+          borrowerPhone: "081255566677",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Perekaman video pembinaan",
+          borrowDate: new Date(now + 5 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 7 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 9),
+        normalizeRequest({
+          id: "req-seed-010",
+          code: "REQ-0010",
+          borrowerName: "Irene Natalia",
+          borrowerPhone: "081299988877",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Kegiatan live streaming komunitas",
+          borrowDate: new Date(now + 1 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 3 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 10),
+        normalizeRequest({
+          id: "req-seed-011",
+          code: "REQ-0011",
+          borrowerName: "Joko Wiratama",
+          borrowerPhone: "081233322211",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Dokumentasi acara kategorial",
+          borrowDate: new Date(now + 2 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 5 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 11),
+        normalizeRequest({
+          id: "req-seed-012",
+          code: "REQ-0012",
+          borrowerName: "Lukas Pradana",
+          borrowerPhone: "081322244466",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Pelayanan OMK",
+          borrowDate: new Date(now + 3 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 6 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 12),
+        normalizeRequest({
+          id: "req-seed-013",
+          code: "REQ-0013",
+          borrowerName: "Maya Salsabila",
+          borrowerPhone: "081388877766",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Kegiatan sekolah minggu",
+          borrowDate: new Date(now + 4 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 7 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 13),
+        normalizeRequest({
+          id: "req-seed-014",
+          code: "REQ-0014",
+          borrowerName: "Nando Firmansyah",
+          borrowerPhone: "081366655544",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Penguatan tim multimedia",
+          borrowDate: new Date(now + 5 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 8 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 14),
+        normalizeRequest({
+          id: "req-seed-015",
+          code: "REQ-0015",
+          borrowerName: "Olivia Tanjung",
+          borrowerPhone: "081377799900",
+          itemId: first.id || "",
+          itemCode: first.code || "CAM-001",
+          itemName: first.name || "Kamera",
+          quantity: 1,
+          purpose: "Kegiatan lingkungan wilayah",
+          borrowDate: new Date(now + 6 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 9 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 15),
+        normalizeRequest({
+          id: "req-seed-016",
+          code: "REQ-0016",
+          borrowerName: "Prasetya Hadi",
+          borrowerPhone: "081388811122",
+          itemId: second.id || "",
+          itemCode: second.code || "AUD-004",
+          itemName: second.name || "Wireless Microphone Set",
+          quantity: 1,
+          purpose: "Misa khusus keluarga muda",
+          borrowDate: new Date(now + 7 * day).toISOString().slice(0, 10),
+          expectedReturnDate: new Date(now + 10 * day).toISOString().slice(0, 10),
+          status: "Pending"
+        }, 16)
+      ];
+      let existing = [];
+      try {
+        const rawExisting = localStorage.getItem(REQUEST_KEY);
+        const parsedExisting = rawExisting ? JSON.parse(rawExisting) : [];
+        existing = Array.isArray(parsedExisting) ? parsedExisting.map(normalizeRequest) : [];
+      } catch (error) {
+        existing = [];
+      }
+
+      const byCode = {};
+      seed.concat(existing).forEach(function (entry, index) {
+        const normalized = normalizeRequest(entry, index);
+        const codeKey = uniqueRequestCode(normalized.code, index);
+        byCode[codeKey] = normalized;
+      });
+
+      const mergedRequests = Object.keys(byCode).map(function (key) { return resetProcessedRequest(byCode[key]); });
+      localStorage.setItem(REQUEST_KEY, JSON.stringify(mergedRequests));
+      saveInventory(resetInventoryForTesting(inventory));
+      localStorage.setItem(REQUEST_SEED_KEY, REQUEST_SEED_VERSION);
+    }
+
+    function readRequests() {
+      seedRequestsIfNeeded();
+      try {
+        const raw = localStorage.getItem(REQUEST_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+        return parsed.map(normalizeRequest);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveRequests(list) {
+      localStorage.setItem(REQUEST_KEY, JSON.stringify(list.map(normalizeRequest)));
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value || "");
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
+    }
+
+    function getStatusClass(status) {
+      if (status === "Disetujui") {
+        return "approved";
+      }
+      if (status === "Ditolak") {
+        return "rejected";
+      }
+      if (status === "Dibatalkan") {
+        return "cancelled";
+      }
+      return "pending";
+    }
+
+    function filteredRequests() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedStatus = statusFilter.value;
+      const start = fromDate.value;
+      const end = toDate.value;
+
+      return readRequests().filter(function (item) {
+        const text = [item.code, item.borrowerName, item.itemCode, item.itemName, item.purpose].join(" ").toLowerCase();
+        const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
+        const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
+        const matchesStart = !start || item.borrowDate >= start;
+        const matchesEnd = !end || item.borrowDate <= end;
+        return matchesKeyword && matchesStatus && matchesStart && matchesEnd;
+      }).sort(function (a, b) {
+        return new Date(b.createdAt || "1970-01-01").getTime() - new Date(a.createdAt || "1970-01-01").getTime();
+      });
+    }
+
+    function renderSummary(list) {
+      const pending = list.filter(function (item) { return item.status === "Pending"; }).length;
+      const approved = list.filter(function (item) { return item.status === "Disetujui"; }).length;
+      const rejected = list.filter(function (item) { return item.status === "Ditolak"; }).length;
+      const cancelled = list.filter(function (item) { return item.status === "Dibatalkan"; }).length;
+
+      summaryGrid.innerHTML =
+        '<article class="summary-item"><p>Total Pengajuan</p><strong>' + list.length + '</strong></article>' +
+        '<article class="summary-item"><p>Menunggu Persetujuan</p><strong>' + pending + '</strong></article>' +
+        '<article class="summary-item"><p>Disetujui</p><strong>' + approved + '</strong></article>' +
+        '<article class="summary-item"><p>Ditolak / Dibatalkan</p><strong>' + (rejected + cancelled) + '</strong></article>';
+    }
+
+    function renderTable() {
+      const list = filteredRequests();
+      renderSummary(list);
+      if (!list.length) {
+        rows.innerHTML = "";
+        emptyState.hidden = false;
+        return;
+      }
+      emptyState.hidden = true;
+      rows.innerHTML = list.map(function (item) {
+        let actionHtml = '<button class="btn-ghost" type="button" data-detail-id="' + escapeHtml(item.id) + '">Detail</button>';
+        if (item.status === "Pending") {
+          actionHtml += ' <button class="btn" type="button" data-approve-id="' + escapeHtml(item.id) + '">Setujui</button>';
+          actionHtml += ' <button class="btn-danger" type="button" data-reject-id="' + escapeHtml(item.id) + '">Tolak</button>';
+          actionHtml += ' <button class="btn-ghost" type="button" data-cancel-id="' + escapeHtml(item.id) + '">Batalkan</button>';
+        }
+        if (item.status === "Disetujui") {
+          actionHtml += ' <button class="btn-ghost" type="button" data-cancel-id="' + escapeHtml(item.id) + '">Batalkan</button>';
+        }
+
+        return '<tr>' +
+          '<td>' + escapeHtml(item.code) + '</td>' +
+          '<td>' + escapeHtml(item.borrowerName) + '<br><small>' + escapeHtml(item.borrowerPhone || '-') + '</small></td>' +
+          '<td>' + escapeHtml(item.itemName) + '<br><small>' + escapeHtml(item.itemCode) + '</small></td>' +
+          '<td>' + item.quantity + '</td>' +
+          '<td>' + escapeHtml(item.borrowDate) + '</td>' +
+          '<td>' + escapeHtml(item.expectedReturnDate) + '</td>' +
+          '<td>' + escapeHtml(item.purpose) + '</td>' +
+          '<td><span class="status-pill ' + getStatusClass(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
+          '<td>' + escapeHtml(item.approvedBy || '-') + '</td>' +
+          '<td>' + escapeHtml(formatDateTime(item.approvedAt)) + '</td>' +
+          '<td>' + actionHtml + '</td>' +
+        '</tr>';
+      }).join("");
+    }
+
+    function updateInventoryOnApprove(req) {
+      const inventory = readInventory();
+      const index = inventory.findIndex(function (item) {
+        return item.id === req.itemId || item.code === req.itemCode;
+      });
+      if (index === -1) {
+        return { ok: false, message: "Barang tidak ditemukan di inventaris." };
+      }
+
+      const item = Object.assign({}, inventory[index]);
+      const available = Number(item.availableUnit || 0);
+      const total = Math.max(1, Number(item.totalUnit || 1));
+      const quantity = Math.max(1, Number(req.quantity || 1));
+
+      if (!item.canBorrow) {
+        return { ok: false, message: "Barang tidak dapat dipinjam." };
+      }
+      if (String(item.status || "").toLowerCase() === "dipinjam" || available <= 0) {
+        return { ok: false, message: "Barang sedang penuh dipinjam atau stok tersedia habis." };
+      }
+      if (available < quantity) {
+        return { ok: false, message: "Unit tersedia tidak mencukupi." };
+      }
+
+      item.availableUnit = available - quantity;
+      item.status = "Dipinjam";
+      item.updatedAt = new Date().toISOString();
+      item.borrowedUnit = total - item.availableUnit;
+      inventory[index] = item;
+      saveInventory(inventory);
+      return { ok: true };
+    }
+
+    function rollbackInventoryOnCancel(req) {
+      const inventory = readInventory();
+      const index = inventory.findIndex(function (item) {
+        return item.id === req.itemId || item.code === req.itemCode;
+      });
+      if (index === -1) {
+        return;
+      }
+
+      const item = Object.assign({}, inventory[index]);
+      const total = Math.max(1, Number(item.totalUnit || 1));
+      const available = Math.max(0, Number(item.availableUnit || 0));
+      const quantity = Math.max(1, Number(req.quantity || 1));
+
+      item.availableUnit = Math.min(total, available + quantity);
+      item.borrowedUnit = total - item.availableUnit;
+      item.status = item.availableUnit > 0 ? "Tersedia" : "Dipinjam";
+      item.updatedAt = new Date().toISOString();
+
+      inventory[index] = item;
+      saveInventory(inventory);
+    }
+
+    function approveRequest(id) {
+      const list = readRequests();
+      const index = list.findIndex(function (item) { return item.id === id; });
+      if (index === -1) {
+        return;
+      }
+      const req = list[index];
+      if (req.status !== "Pending") {
+        window.alert("Hanya pengajuan berstatus Pending yang bisa disetujui.");
+        return;
+      }
+
+      const inventoryResult = updateInventoryOnApprove(req);
+      if (!inventoryResult.ok) {
+        window.alert(inventoryResult.message);
+        return;
+      }
+
+      const approvalNote = window.prompt("Catatan persetujuan (opsional):", "") || "";
+
+      req.status = "Disetujui";
+      req.approvedBy = "Admin Inventaris";
+      req.approvedAt = new Date().toISOString();
+      req.adminNote = approvalNote.trim();
+      list[index] = req;
+      saveRequests(list);
+      renderTable();
+    }
+
+    function rejectRequest(id) {
+      const list = readRequests();
+      const index = list.findIndex(function (item) { return item.id === id; });
+      if (index === -1) {
+        return;
+      }
+      const req = list[index];
+      if (req.status !== "Pending") {
+        window.alert("Permintaan ini tidak bisa ditolak karena status sudah diproses.");
+        return;
+      }
+      const note = window.prompt("Alasan penolakan:", "Data peminjaman belum lengkap");
+      if (note === null) {
+        return;
+      }
+      req.status = "Ditolak";
+      req.approvedBy = "Admin Inventaris";
+      req.approvedAt = new Date().toISOString();
+      req.adminNote = note.trim();
+      list[index] = req;
+      saveRequests(list);
+      renderTable();
+    }
+
+    function cancelRequest(id) {
+      const list = readRequests();
+      const index = list.findIndex(function (item) { return item.id === id; });
+      if (index === -1) {
+        return;
+      }
+
+      const req = list[index];
+      if (req.status !== "Pending" && req.status !== "Disetujui") {
+        window.alert("Pembatalan hanya bisa untuk status Pending atau Disetujui.");
+        return;
+      }
+
+      const reason = window.prompt("Alasan pembatalan:", "Pengajuan dibatalkan setelah konfirmasi anggota");
+      if (reason === null) {
+        return;
+      }
+      if (!String(reason).trim()) {
+        window.alert("Alasan pembatalan wajib diisi.");
+        return;
+      }
+
+      if (req.status === "Disetujui") {
+        rollbackInventoryOnCancel(req);
+      }
+
+      req.status = "Dibatalkan";
+      req.approvedBy = "Admin Inventaris";
+      req.approvedAt = new Date().toISOString();
+      req.adminNote = String(reason).trim();
+      list[index] = req;
+      saveRequests(list);
+      renderTable();
+    }
+
+    function showDetail(id) {
+      const item = readRequests().find(function (entry) { return entry.id === id; });
+      if (!item) {
+        return;
+      }
+      window.alert(
+        "Kode: " + item.code + "\n" +
+        "Peminjam: " + item.borrowerName + "\n" +
+        "Barang: " + item.itemName + " (" + item.itemCode + ")\n" +
+        "Jumlah: " + item.quantity + "\n" +
+        "Tanggal Pinjam: " + item.borrowDate + "\n" +
+        "Target Kembali: " + item.expectedReturnDate + "\n" +
+        "Keperluan: " + item.purpose + "\n" +
+        "Status: " + item.status + "\n" +
+        "Catatan Admin: " + (item.adminNote || "-")
+      );
+    }
+
+    function downloadExcel() {
+      const list = filteredRequests();
+      let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body>';
+      html += '<h3>Laporan Persetujuan Peminjaman Barang</h3>';
+      html += '<table border="1" cellspacing="0" cellpadding="6">';
+      html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Jumlah</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Keperluan</th><th>Status</th><th>Diproses Oleh</th><th>Diproses Pada</th><th>Catatan</th></tr>';
+      if (!list.length) {
+        html += '<tr><td colspan="11">Tidak ada data sesuai filter.</td></tr>';
+      } else {
+        list.forEach(function (item) {
+          html += '<tr>' +
+            '<td>' + escapeHtml(item.code) + '</td>' +
+            '<td>' + escapeHtml(item.borrowerName) + '</td>' +
+            '<td>' + escapeHtml(item.itemName) + ' (' + escapeHtml(item.itemCode) + ')</td>' +
+            '<td>' + item.quantity + '</td>' +
+            '<td>' + escapeHtml(item.borrowDate) + '</td>' +
+            '<td>' + escapeHtml(item.expectedReturnDate) + '</td>' +
+            '<td>' + escapeHtml(item.purpose) + '</td>' +
+            '<td>' + escapeHtml(item.status) + '</td>' +
+            '<td>' + escapeHtml(item.approvedBy || '-') + '</td>' +
+            '<td>' + escapeHtml(formatDateTime(item.approvedAt)) + '</td>' +
+            '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
+          '</tr>';
+        });
+      }
+      html += '</table></body></html>';
+
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'laporan-persetujuan-peminjaman.xls';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadPdf() {
+      const list = filteredRequests();
+      const popup = window.open('', '_blank', 'width=1120,height=800');
+      if (!popup) {
+        return;
+      }
+
+      const bodyRows = list.length
+        ? list.map(function (item) {
+            return '<tr>' +
+              '<td>' + escapeHtml(item.code) + '</td>' +
+              '<td>' + escapeHtml(item.borrowerName) + '</td>' +
+              '<td>' + escapeHtml(item.itemName) + '</td>' +
+              '<td>' + item.quantity + '</td>' +
+              '<td>' + escapeHtml(item.borrowDate) + '</td>' +
+              '<td>' + escapeHtml(item.expectedReturnDate) + '</td>' +
+              '<td>' + escapeHtml(item.status) + '</td>' +
+              '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
+            '</tr>';
+          }).join('')
+        : '<tr><td colspan="8">Tidak ada data sesuai filter.</td></tr>';
+
+      popup.document.write(
+        '<!doctype html><html><head><meta charset="utf-8"><title>Laporan Persetujuan Peminjaman</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h2{margin:0 0 8px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:6px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f2f2}</style>' +
+        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body><h2>Laporan Persetujuan Peminjaman Barang</h2>' +
+        '<table><thead><tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Status</th><th>Catatan</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
+        '</body></html>'
+      );
+      popup.document.close();
+      popup.focus();
+      popup.print();
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    rows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+      const detailId = target.getAttribute("data-detail-id") || "";
+      if (detailId) {
+        showDetail(detailId);
+        return;
+      }
+      const approveId = target.getAttribute("data-approve-id") || "";
+      if (approveId) {
+        approveRequest(approveId);
+        return;
+      }
+      const rejectId = target.getAttribute("data-reject-id") || "";
+      if (rejectId) {
+        rejectRequest(rejectId);
+        return;
+      }
+      const cancelId = target.getAttribute("data-cancel-id") || "";
+      if (cancelId) {
+        cancelRequest(cancelId);
+      }
+    });
+
+    searchInput.addEventListener("input", renderTable);
+    statusFilter.addEventListener("change", renderTable);
+    fromDate.addEventListener("change", renderTable);
+    toDate.addEventListener("change", renderTable);
+    downloadExcelBtn.addEventListener("click", downloadExcel);
+    downloadPdfBtn.addEventListener("click", downloadPdf);
+
+    renderTable();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

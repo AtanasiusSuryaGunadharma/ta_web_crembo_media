@@ -1,0 +1,694 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manajemen Profil - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --panel-2: #f5f5f5;
+      --line: #1f1f1f;
+      --muted: #5b5b5b;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --blue: #2f66d8;
+      --danger: #d72626;
+      --ok-bg: #d6f3e0;
+      --ok-text: #10623d;
+      --draft-bg: #efe8d5;
+      --draft-text: #7a5a11;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #ededed;
+      color: #0d0d0d;
+      border: 1px solid #0d0d0d;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: none;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-group.open .group-items { display: block; }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .headline {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .headline h2 { margin: 0; font-size: clamp(1.2rem, 2.1vw, 1.9rem); }
+    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
+
+    .meta-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #6b7280;
+      background: #fff;
+      color: #374151;
+      text-decoration: none;
+    }
+
+    .toolbar {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .toolbar-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
+      border-color: #2f66d8;
+    }
+
+    .btn.warn {
+      background: #fff;
+      color: var(--danger);
+      border-color: #ef4444;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 8px;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid #d2d2d2;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.3;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .pill.active {
+      background: var(--ok-bg);
+      color: var(--ok-text);
+    }
+
+    .pill.draft {
+      background: var(--draft-bg);
+      color: var(--draft-text);
+    }
+
+    .meta {
+      color: #4b5563;
+      font-size: 0.84rem;
+      margin: 0;
+    }
+
+    .excerpt {
+      margin: 0;
+      color: #1f2937;
+      font-size: 0.88rem;
+      min-height: 48px;
+    }
+
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #4b5563;
+      font-size: 0.82rem;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .empty {
+      border: 1px dashed #9ca3af;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #4b5563;
+      padding: 20px;
+      text-align: center;
+      grid-column: 1 / -1;
+      font-size: 0.9rem;
+    }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1140px) {
+      .cards { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        display: none;
+        position: static;
+        height: auto;
+      }
+      .sidebar.show { display: block; }
+      .cards { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Manajemen konten profil informasi & publikasi</p>
+        <span id="roleBadge" class="role-chip">Role: -</span>
+      </div>
+
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link active" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="headline">
+        <div>
+          <h2>Manajemen Profil</h2>
+          <p>Kelola daftar konten profil seperti sejarah, struktur organisasi, dan visi misi.</p>
+        </div>
+        <div class="meta-badges">
+          <span id="liveDateTime" class="chip">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="Filter dan aksi manajemen profil">
+        <div class="toolbar-top">
+          <strong>Daftar Profil Informasi</strong>
+          <a class="btn primary" href="form-profil.html">+ Tambah Profil Baru</a>
+        </div>
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Cari judul atau slug...">
+          <select id="statusFilter">
+            <option value="all">Semua Status</option>
+            <option value="active">Aktif</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </section>
+
+      <section id="cards" class="cards" aria-label="Daftar kartu profil"></section>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const PROFILE_STORAGE_KEY = "crembo-profile-contents";
+
+    const params = new URLSearchParams(window.location.search);
+    const storedSessionRaw = localStorage.getItem("crembo-login-session");
+    let storedRole = "";
+
+    if (storedSessionRaw) {
+      try {
+        const sessionObj = JSON.parse(storedSessionRaw);
+        storedRole = sessionObj && sessionObj.role ? sessionObj.role : "";
+      } catch (error) {
+        storedRole = "";
+      }
+    }
+
+    const role = params.get("role") || storedRole || "admin";
+    const roleBadge = document.getElementById("roleBadge");
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const cards = document.getElementById("cards");
+    const notify = document.getElementById("notify");
+
+    let profileContents = [];
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2000);
+    }
+
+    function formatRole(value) {
+      return value === "super_admin" ? "Super Admin" : "Admin";
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function slugify(text) {
+      return String(text || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function defaultProfiles() {
+      return [
+        {
+          id: "prof-1",
+          title: "Sejarah STP AMPTA",
+          slug: "sejarah-stp-ampta",
+          content: "Sejarah singkat yayasan, perkembangan lembaga, dan kontribusi untuk pendidikan pariwisata.",
+          attachmentNames: [],
+          order: 0,
+          isActive: true,
+          updatedAt: "2026-03-27"
+        },
+        {
+          id: "prof-2",
+          title: "Struktur Organisasi STP AMPTA",
+          slug: "struktur-organisasi-stp-ampta",
+          content: "Profil struktur pengelolaan institusi, pembagian tugas, dan koordinasi unit kerja.",
+          attachmentNames: [],
+          order: 1,
+          isActive: true,
+          updatedAt: "2026-03-27"
+        },
+        {
+          id: "prof-3",
+          title: "Visi Misi STP AMPTA",
+          slug: "visi-misi-stp-ampta",
+          content: "Visi jangka panjang institusi, misi pengembangan kompetensi, dan arah strategis layanan.",
+          attachmentNames: [],
+          order: 2,
+          isActive: true,
+          updatedAt: "2026-03-27"
+        }
+      ];
+    }
+
+    function normalizeItem(item) {
+      return {
+        id: String(item && item.id ? item.id : makeId("prof")),
+        title: String(item && item.title ? item.title : "Profil Tanpa Judul"),
+        slug: String(item && item.slug ? item.slug : slugify(item && item.title ? item.title : "profil")),
+        content: String(item && item.content ? item.content : ""),
+        attachmentNames: Array.isArray(item && item.attachmentNames) ? item.attachmentNames.map(String) : [],
+        order: Number.isFinite(Number(item && item.order)) ? Number(item.order) : 0,
+        isActive: Boolean(item && item.isActive),
+        updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString().slice(0, 10))
+      };
+    }
+
+    function loadProfiles() {
+      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      if (Array.isArray(parsed) && parsed.length) {
+        profileContents = parsed.map(normalizeItem);
+        return;
+      }
+      profileContents = defaultProfiles();
+      saveProfiles();
+    }
+
+    function saveProfiles() {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileContents));
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "-";
+      }
+      const d = new Date(value + "T00:00:00");
+      if (Number.isNaN(d.getTime())) {
+        return value;
+      }
+      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function getFilteredProfiles() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+
+      return profileContents
+        .slice()
+        .sort(function (a, b) {
+          if (a.order !== b.order) {
+            return a.order - b.order;
+          }
+          return String(b.updatedAt).localeCompare(String(a.updatedAt));
+        })
+        .filter(function (item) {
+          const matchKeyword = !keyword || [item.title, item.slug, item.content].join(" ").toLowerCase().includes(keyword);
+          const matchStatus = status === "all"
+            || (status === "active" && item.isActive)
+            || (status === "draft" && !item.isActive);
+          return matchKeyword && matchStatus;
+        });
+    }
+
+    function renderCards() {
+      const items = getFilteredProfiles();
+      if (!items.length) {
+        cards.innerHTML = '<div class="empty">Belum ada konten profil yang cocok dengan filter saat ini.</div>';
+        return;
+      }
+
+      cards.innerHTML = items.map(function (item) {
+        const statusClass = item.isActive ? "active" : "draft";
+        const statusLabel = item.isActive ? "Aktif" : "Draft";
+        const excerpt = item.content.length > 110 ? item.content.slice(0, 110) + "..." : item.content || "-";
+        return '<article class="card">'
+          + '<div class="card-head">'
+          + '<h3>' + escapeHtml(item.title) + '</h3>'
+          + '<span class="pill ' + statusClass + '">' + statusLabel + '</span>'
+          + '</div>'
+          + '<p class="meta">Slug: ' + escapeHtml(item.slug) + '</p>'
+          + '<p class="excerpt">' + escapeHtml(excerpt) + '</p>'
+          + '<div class="card-foot">'
+          + '<span>Lampiran: ' + String(item.attachmentNames.length) + '</span>'
+          + '<span>Urutan: ' + String(item.order) + '</span>'
+          + '<span>Update: ' + escapeHtml(formatDate(item.updatedAt)) + '</span>'
+          + '</div>'
+          + '<div class="card-actions">'
+          + '<a class="btn" href="form-profil.html?id=' + encodeURIComponent(item.id) + '">Edit</a>'
+          + '<button class="btn warn" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '">Hapus</button>'
+          + '</div>'
+          + '</article>';
+      }).join("");
+    }
+
+    function removeProfile(id) {
+      const target = profileContents.find(function (item) { return item.id === id; });
+      if (!target) {
+        return;
+      }
+      const ok = window.confirm('Hapus profil "' + target.title + '"?');
+      if (!ok) {
+        return;
+      }
+      profileContents = profileContents.filter(function (item) { return item.id !== id; });
+      saveProfiles();
+      renderCards();
+      showNotify("Profil berhasil dihapus.");
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    roleBadge.textContent = "Role: " + formatRole(role);
+    loadProfiles();
+    renderCards();
+
+    searchInput.addEventListener("input", renderCards);
+    statusFilter.addEventListener("change", renderCards);
+
+    cards.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-action='delete']");
+      if (!button) {
+        return;
+      }
+      removeProfile(button.getAttribute("data-id") || "");
+    });
+
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const marker = button.querySelector("span");
+        marker.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

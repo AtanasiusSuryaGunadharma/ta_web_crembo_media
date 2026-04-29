@@ -1,0 +1,932 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Berita - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --muted: #5b5b5b;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .container {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form-headline {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .form-headline-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .form-headline h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .form-headline p {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.84rem;
+    }
+
+    .form-headline-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .panel {
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      padding: 9px 10px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 260px;
+      resize: vertical;
+    }
+
+    .helper {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .editor-toolbar {
+      border: 1px solid #d0d0d0;
+      border-bottom: 0;
+      border-radius: 10px 10px 0 0;
+      background: #f7f7f7;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #4b5563;
+    }
+
+    .editor-toolbar span {
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      padding: 3px 6px;
+      background: #fff;
+    }
+
+    .editor-area {
+      border: 1px solid #d0d0d0;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+
+    .category-checks {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .check-item {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 7px 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: #f9fafb;
+      font-size: 0.84rem;
+    }
+
+    .check-item input {
+      width: auto;
+      margin: 0;
+    }
+
+    .upload-box {
+      border: 2px dashed #93c5fd;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      text-align: center;
+      padding: 16px;
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .thumb-preview {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 8px;
+      background: #f8fafc;
+      display: grid;
+      gap: 6px;
+      max-width: 320px;
+    }
+
+    .thumb-preview img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+    }
+
+    .attachments {
+      display: grid;
+      gap: 8px;
+    }
+
+    .attachment-item {
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      background: #f9fafb;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: #374151;
+    }
+
+    .attachment-item button {
+      border: 1px solid #ef4444;
+      background: #fff;
+      color: #b91c1c;
+      border-radius: 7px;
+      font-size: 0.74rem;
+      padding: 4px 7px;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 9px 13px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
+      border-color: #2f66d8;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .category-checks { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .category-checks { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Kelola pengumuman, kategori, dan publikasi berita</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link active" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="form-headline" aria-label="Header halaman form berita">
+        <div class="form-headline-copy">
+          <h1 id="pageTitle">Tambah Berita Baru</h1>
+          <p id="pageDesc">Lengkapi judul, kategori, tanggal, thumbnail, isi, status, dan lampiran (opsional).</p>
+        </div>
+        <div class="form-headline-actions">
+          <a class="btn ghost" href="kelola-berita.html">Kembali</a>
+          <span id="liveDateTime" class="chip">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="container">
+
+        <article class="panel">
+          <form id="newsForm" style="display:grid;gap:10px;">
+        <div class="field">
+          <label class="label" for="titleInput">Judul Berita</label>
+          <input id="titleInput" type="text" placeholder="Masukkan judul berita" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="slugInput">Slug</label>
+          <input id="slugInput" type="text" placeholder="Auto-generated dari judul">
+          <p class="helper">Kosongkan jika ingin slug dibuat otomatis.</p>
+        </div>
+
+        <div class="field">
+          <label class="label">Kategori</label>
+          <div id="categoryChecks" class="category-checks"></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="dateInput">Tanggal Publikasi</label>
+          <input id="dateInput" type="date" required>
+        </div>
+
+        <div class="field">
+          <label class="label">Thumbnail (Gambar Cover)</label>
+          <input id="thumbnailInput" type="file" accept="image/*" style="display:none;">
+          <div id="thumbnailDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload thumbnail">
+            <strong>Klik untuk upload thumbnail</strong>
+            <span>Format gambar JPG, PNG, WEBP</span>
+          </div>
+          <div id="thumbnailPreview" class="thumb-preview" style="display:none;"></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="contentInput">Konten Berita</label>
+          <div class="editor-toolbar" aria-hidden="true">
+            <span>Normal</span><span>B</span><span>I</span><span>U</span><span>List</span><span>Quote</span><span>Link</span><span>Image</span>
+          </div>
+          <div class="editor-area">
+            <textarea id="contentInput" placeholder="Tulis konten berita di sini..." required></textarea>
+          </div>
+          <p class="helper">Toolbar hanya simulasi pada wireframe ini.</p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="statusInput">Status</label>
+          <select id="statusInput" required>
+            <option value="draft">Draft</option>
+            <option value="published">Publikasi</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Lampiran (Opsional, bisa lebih dari 1)</label>
+          <input id="attachmentInput" type="file" multiple style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.png,.jpg,.jpeg,.webp">
+          <div id="attachmentDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload lampiran">
+            <strong>Klik untuk upload lampiran</strong>
+            <span>PDF, DOC, DOCX, XLS, XLSX, ZIP, gambar, dll.</span>
+          </div>
+          <div id="attachmentList" class="attachments"></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" type="submit">Simpan Berita</button>
+          <a class="btn ghost" href="kelola-berita.html">Batal</a>
+        </div>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const ANNOUNCEMENT_STORAGE_KEY = "crembo-announcements";
+    const CATEGORY_STORAGE_KEY = "crembo-announcement-categories";
+
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("id") || "";
+
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const newsForm = document.getElementById("newsForm");
+
+    const titleInput = document.getElementById("titleInput");
+    const slugInput = document.getElementById("slugInput");
+    const dateInput = document.getElementById("dateInput");
+    const contentInput = document.getElementById("contentInput");
+    const statusInput = document.getElementById("statusInput");
+
+    const categoryChecks = document.getElementById("categoryChecks");
+
+    const thumbnailInput = document.getElementById("thumbnailInput");
+    const thumbnailDrop = document.getElementById("thumbnailDrop");
+    const thumbnailPreview = document.getElementById("thumbnailPreview");
+
+    const attachmentInput = document.getElementById("attachmentInput");
+    const attachmentDrop = document.getElementById("attachmentDrop");
+    const attachmentList = document.getElementById("attachmentList");
+    const liveDateTime = document.getElementById("liveDateTime");
+
+    const notify = document.getElementById("notify");
+
+    let categories = [];
+    let announcements = [];
+    let currentThumbnail = { name: "", dataUrl: "" };
+    let currentAttachments = [];
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2300);
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function slugify(text) {
+      return String(text || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function normalizeCategory(item, index) {
+      if (typeof item === "string") {
+        return { id: "cat-" + index, name: item, slug: slugify(item), description: "", order: index };
+      }
+      return {
+        id: String(item && item.id ? item.id : makeId("cat")),
+        name: String(item && (item.name || item.label) ? (item.name || item.label) : "Kategori"),
+        slug: String(item && item.slug ? item.slug : slugify(item && (item.name || item.label) ? (item.name || item.label) : "kategori")),
+        description: String(item && item.description ? item.description : ""),
+        order: Number.isFinite(Number(item && item.order)) ? Number(item.order) : index
+      };
+    }
+
+    function normalizeAttachment(att) {
+      if (typeof att === "string") {
+        return { id: makeId("att"), name: att, type: "", dataUrl: "" };
+      }
+      return {
+        id: String(att && att.id ? att.id : makeId("att")),
+        name: String(att && att.name ? att.name : "lampiran"),
+        type: String(att && att.type ? att.type : ""),
+        dataUrl: String(att && att.dataUrl ? att.dataUrl : "")
+      };
+    }
+
+    function normalizeAnnouncement(item, index) {
+      const categoriesList = Array.isArray(item && item.categories)
+        ? item.categories.map(String)
+        : [String(item && item.category ? item.category : "Umum")];
+
+      let status = String(item && item.status ? item.status : "published").toLowerCase();
+      if (status !== "draft") {
+        status = "published";
+      }
+
+      const content = String(item && (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : ""))
+        ? (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : ""))
+        : (item && item.summary ? item.summary : ""));
+
+      return {
+        id: String(item && item.id ? item.id : "berita-" + (index + 1)),
+        title: String(item && item.title ? item.title : "Judul Berita"),
+        slug: String(item && item.slug ? item.slug : slugify(item && item.title ? item.title : "judul-berita")),
+        categories: categoriesList,
+        author: String(item && item.author ? item.author : "Super Admin"),
+        status: status,
+        date: String(item && item.date ? item.date : new Date().toISOString().slice(0, 10)),
+        thumbnailName: String(item && item.thumbnailName ? item.thumbnailName : ""),
+        thumbnailDataUrl: String(item && item.thumbnailDataUrl ? item.thumbnailDataUrl : ""),
+        content: content,
+        summary: String(item && item.summary ? item.summary : content.slice(0, 180)),
+        attachments: Array.isArray(item && item.attachments) ? item.attachments.map(normalizeAttachment) : [],
+        updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString().slice(0, 10))
+      };
+    }
+
+    function defaultCategories() {
+      return [
+        { id: "cat-umum", name: "Umum", slug: "umum", description: "Berita umum dan pengumuman penting", order: 0 },
+        { id: "cat-akademik", name: "Akademik", slug: "akademik", description: "Berita terkait kegiatan akademik", order: 1 },
+        { id: "cat-prestasi", name: "Prestasi", slug: "prestasi", description: "Pencapaian dan prestasi", order: 2 }
+      ];
+    }
+
+    function loadCategories() {
+      const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      categories = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeCategory) : defaultCategories();
+      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+    }
+
+    function loadAnnouncements() {
+      const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      announcements = Array.isArray(parsed) ? parsed.map(normalizeAnnouncement) : [];
+      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+    }
+
+    function saveAnnouncements() {
+      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+    }
+
+    function readAsDataUrl(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || "")); };
+        reader.onerror = function () { reject(new Error("Gagal membaca file")); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderCategoryChecks() {
+      categoryChecks.innerHTML = categories
+        .slice()
+        .sort(function (a, b) { return a.order - b.order; })
+        .map(function (cat) {
+          return '<label class="check-item"><input type="checkbox" value="' + cat.name.replace(/"/g, "&quot;") + '"><span>' + cat.name + '</span></label>';
+        }).join("");
+    }
+
+    function renderThumbnail() {
+      if (!currentThumbnail.name && !currentThumbnail.dataUrl) {
+        thumbnailPreview.style.display = "none";
+        thumbnailPreview.innerHTML = "";
+        return;
+      }
+      thumbnailPreview.style.display = "grid";
+      const img = currentThumbnail.dataUrl
+        ? '<img src="' + currentThumbnail.dataUrl + '" alt="Thumbnail berita">'
+        : '<img alt="Thumbnail berita" src="" style="display:none;">';
+      thumbnailPreview.innerHTML = img + '<strong>' + currentThumbnail.name + '</strong>';
+    }
+
+    function renderAttachments() {
+      if (!currentAttachments.length) {
+        attachmentList.innerHTML = '<p class="helper">Belum ada lampiran.</p>';
+        return;
+      }
+
+      attachmentList.innerHTML = currentAttachments.map(function (att, index) {
+        const tag = att.type && att.type.indexOf("pdf") >= 0 ? "PDF" : "FILE";
+        return '<div class="attachment-item">'
+          + '<span>[' + tag + '] ' + att.name + '</span>'
+          + '<button type="button" data-remove-index="' + String(index) + '">Hapus</button>'
+          + '</div>';
+      }).join("");
+    }
+
+    function selectedCategories() {
+      return Array.from(categoryChecks.querySelectorAll('input[type="checkbox"]:checked')).map(function (el) {
+        return el.value;
+      });
+    }
+
+    function fillEditData() {
+      if (!editId) {
+        dateInput.value = new Date().toISOString().slice(0, 10);
+        return;
+      }
+
+      const target = announcements.find(function (item) { return item.id === editId; });
+      if (!target) {
+        showNotify("Data berita tidak ditemukan.");
+        window.setTimeout(function () {
+          window.location.href = "kelola-berita.html";
+        }, 700);
+        return;
+      }
+
+      pageTitle.textContent = "Edit Pengumuman";
+      pageDesc.textContent = "Data sebelumnya dimuat otomatis. Silakan update sesuai kebutuhan.";
+
+      titleInput.value = target.title;
+      slugInput.value = target.slug;
+      dateInput.value = target.date;
+      contentInput.value = target.content;
+      statusInput.value = target.status;
+      currentThumbnail = {
+        name: target.thumbnailName || "",
+        dataUrl: target.thumbnailDataUrl || ""
+      };
+      currentAttachments = target.attachments.slice();
+
+      const set = new Set(target.categories.map(String));
+      categoryChecks.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
+        box.checked = set.has(box.value);
+      });
+
+      renderThumbnail();
+      renderAttachments();
+    }
+
+    async function handleThumbnailChange(files) {
+      if (!files || !files.length) {
+        return;
+      }
+      const file = files[0];
+      const dataUrl = await readAsDataUrl(file);
+      currentThumbnail = {
+        name: file.name,
+        dataUrl: dataUrl
+      };
+      renderThumbnail();
+    }
+
+    async function handleAttachmentAdd(files) {
+      if (!files || !files.length) {
+        return;
+      }
+
+      for (const file of files) {
+        let dataUrl = "";
+        try {
+          dataUrl = await readAsDataUrl(file);
+        } catch (error) {
+          dataUrl = "";
+        }
+        currentAttachments.push({
+          id: makeId("att"),
+          name: file.name,
+          type: file.type || "",
+          dataUrl: dataUrl
+        });
+      }
+
+      renderAttachments();
+    }
+
+    function buildSummary(content) {
+      const text = content.replace(/\s+/g, " ").trim();
+      return text.length > 180 ? text.slice(0, 180) + "..." : text;
+    }
+
+    async function saveNews(event) {
+      event.preventDefault();
+
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const categoriesSelected = selectedCategories();
+
+      if (!title || !content) {
+        showNotify("Judul dan konten wajib diisi.");
+        return;
+      }
+
+      if (!categoriesSelected.length) {
+        showNotify("Pilih minimal 1 kategori.");
+        return;
+      }
+
+      const payload = {
+        id: editId || makeId("berita"),
+        title: title,
+        slug: slugInput.value.trim() || slugify(title),
+        categories: categoriesSelected,
+        category: categoriesSelected[0],
+        author: "Super Admin",
+        status: statusInput.value === "draft" ? "draft" : "published",
+        date: dateInput.value || new Date().toISOString().slice(0, 10),
+        thumbnailName: currentThumbnail.name || "",
+        thumbnailDataUrl: currentThumbnail.dataUrl || "",
+        content: content,
+        summary: buildSummary(content),
+        attachments: currentAttachments.slice(),
+        updatedAt: new Date().toISOString().slice(0, 10)
+      };
+
+      const existingIndex = announcements.findIndex(function (item) { return item.id === payload.id; });
+      if (existingIndex >= 0) {
+        announcements[existingIndex] = payload;
+        showNotify("Pengumuman berhasil diperbarui.");
+      } else {
+        announcements.push(payload);
+        showNotify("Pengumuman berhasil ditambahkan.");
+      }
+
+      saveAnnouncements();
+      window.setTimeout(function () {
+        window.location.href = "kelola-berita.html";
+      }, 500);
+    }
+
+    thumbnailDrop.addEventListener("click", function () {
+      thumbnailInput.click();
+    });
+
+    thumbnailDrop.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        thumbnailInput.click();
+      }
+    });
+
+    thumbnailInput.addEventListener("change", function () {
+      handleThumbnailChange(Array.from(thumbnailInput.files || [])).then(function () {
+        thumbnailInput.value = "";
+      });
+    });
+
+    attachmentDrop.addEventListener("click", function () {
+      attachmentInput.click();
+    });
+
+    attachmentDrop.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        attachmentInput.click();
+      }
+    });
+
+    attachmentInput.addEventListener("change", function () {
+      handleAttachmentAdd(Array.from(attachmentInput.files || [])).then(function () {
+        attachmentInput.value = "";
+      });
+    });
+
+    attachmentList.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-remove-index]");
+      if (!button) {
+        return;
+      }
+      const index = Number(button.getAttribute("data-remove-index"));
+      if (!Number.isFinite(index)) {
+        return;
+      }
+      currentAttachments = currentAttachments.filter(function (_, idx) { return idx !== index; });
+      renderAttachments();
+    });
+
+    newsForm.addEventListener("submit", saveNews);
+
+    loadCategories();
+    loadAnnouncements();
+    renderCategoryChecks();
+    renderAttachments();
+    fillEditData();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

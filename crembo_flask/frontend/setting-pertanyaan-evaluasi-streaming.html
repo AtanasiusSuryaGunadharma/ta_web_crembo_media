@@ -1,0 +1,917 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setting Pertanyaan Evaluasi - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 700;
+      color: #1c1f27;
+      letter-spacing: 0.01em;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #6b7280;
+      background: #ffffff;
+      color: #374151;
+      text-decoration: none;
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .meta-header {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .meta-sub {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.86rem;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .btn,
+    .btn-soft,
+    .btn-danger {
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #1f2937;
+      background: #111827;
+      color: #fff;
+    }
+
+    .btn-soft {
+      background: #fff;
+      color: #111827;
+      border-color: #9ca3af;
+    }
+
+    .btn-danger {
+      background: #7f1d1d;
+      border-color: #7f1d1d;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .question-item {
+      border: 1px solid #cbcbcb;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fcfcfc;
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .question-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .question-title {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.3;
+    }
+
+    .question-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.82rem;
+      color: #4b5563;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .status {
+      border: 1px solid #b9b9b9;
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 9px;
+      font-size: 0.84rem;
+      color: #4b5563;
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .preview-item {
+      border: 1px solid #cbcbcb;
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .preview-item h4 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .preview-note {
+      margin: 0;
+      font-size: 0.81rem;
+      color: #6b7280;
+    }
+
+    .preview-options {
+      display: grid;
+      gap: 6px;
+      font-size: 0.86rem;
+    }
+
+    .preview-form-wrap {
+      border: 1px solid var(--line-soft);
+      background: #fafafa;
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .preview-form-title {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #505050;
+    }
+
+    .dynamic-question-list {
+      border: 1px solid var(--line-soft);
+      background: #fafafa;
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .dynamic-question-item {
+      border: 1px solid #cfcfcf;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .dynamic-question-item h4 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .dynamic-help {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #616161;
+    }
+
+    .dynamic-options {
+      display: grid;
+      gap: 6px;
+      font-size: 0.88rem;
+    }
+
+    .dynamic-options label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-note {
+      margin: 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .row-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .question-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .question-actions {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .question-actions {
+        justify-content: flex-start;
+      }
+
+      .question-actions .btn-soft,
+      .question-actions .btn-danger {
+        min-width: 78px;
+      }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Atur pertanyaan form evaluasi</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Tugas Streaming <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
+          <a class="menu-link" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
+          <a class="menu-link" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
+          <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
+          <a class="menu-link" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
+          <a class="menu-link active" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header setting pertanyaan evaluasi">
+        <h1>Setting Pertanyaan Evaluasi</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="meta-header">
+        <h2 class="meta-title">Atur pertanyaan form evaluasi</h2>
+        <p class="meta-sub">Buat form evaluasi fleksibel: tambah, edit, urutkan, dan hapus pertanyaan seperti pola Google Form.</p>
+      </section>
+
+      <section class="panel" aria-label="Builder pertanyaan evaluasi">
+        <header class="panel-head">
+          <h2>Builder Pertanyaan</h2>
+          <div>
+            <button id="addQuestionBtn" class="btn" type="button">Tambah Pertanyaan</button>
+          </div>
+        </header>
+        <div class="panel-body">
+          <div id="questionList" class="question-list"></div>
+          <p id="questionListEmpty" class="empty-note" hidden>Belum ada pertanyaan. Klik "Tambah Pertanyaan" untuk mulai menyusun form.</p>
+
+          <div class="question-actions">
+            <button id="saveConfigBtn" class="btn" type="button">Simpan Konfigurasi</button>
+            <button id="resetDefaultBtn" class="btn-soft" type="button">Reset ke Default</button>
+          </div>
+          <p id="statusMessage" class="status">Perubahan belum disimpan.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Preview pertanyaan evaluasi">
+        <header class="panel-head">
+          <h2>Preview Form</h2>
+        </header>
+        <div class="panel-body" id="previewList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const QUESTION_CONFIG_KEY = "crembo-evaluasi-question-config";
+    const DEFAULT_QUESTION_CONFIG = [
+      {
+        id: "kesan-pelayanan",
+        label: "Apa kesan umum pelayanan streaming pada misa ini?",
+        type: "single_choice",
+        required: true,
+        helpText: "Pilih satu penilaian umum.",
+        options: ["Sangat Baik", "Baik", "Cukup", "Perlu Pendampingan"]
+      },
+      {
+        id: "hal-terbaik",
+        label: "Bagian mana yang sudah paling baik?",
+        type: "long_text",
+        required: false,
+        helpText: "Contoh: alur kamera, audio, koordinasi.",
+        options: []
+      }
+    ];
+
+    const questionList = document.getElementById("questionList");
+    const questionListEmpty = document.getElementById("questionListEmpty");
+    const previewList = document.getElementById("previewList");
+    const addQuestionBtn = document.getElementById("addQuestionBtn");
+    const saveConfigBtn = document.getElementById("saveConfigBtn");
+    const resetDefaultBtn = document.getElementById("resetDefaultBtn");
+    const statusMessage = document.getElementById("statusMessage");
+    const liveDateTime = document.getElementById("liveDateTime");
+
+    let draftQuestions = [];
+
+    function slugifyText(text) {
+      return String(text || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .slice(0, 40);
+    }
+
+    function normalizeType(type) {
+      const allowed = ["short_text", "long_text", "single_choice", "multi_choice"];
+      return allowed.indexOf(type) !== -1 ? type : "short_text";
+    }
+
+    function normalizeOptions(options) {
+      if (!Array.isArray(options)) {
+        return [];
+      }
+      const uniq = [];
+      options.forEach(function (item) {
+        const clean = String(item || "").trim();
+        if (!clean) {
+          return;
+        }
+        if (uniq.indexOf(clean) === -1) {
+          uniq.push(clean);
+        }
+      });
+      return uniq;
+    }
+
+    function sanitizeQuestions(items) {
+      if (!Array.isArray(items)) {
+        return [];
+      }
+      return items.map(function (item, index) {
+        const label = String(item && item.label ? item.label : "").trim();
+        const id = slugifyText(item && item.id ? item.id : label) || ("q-" + (index + 1));
+        const type = normalizeType(item && item.type);
+        const options = (type === "single_choice" || type === "multi_choice")
+          ? normalizeOptions(item && item.options)
+          : [];
+        return {
+          id: id,
+          label: label || ("Pertanyaan " + (index + 1)),
+          type: type,
+          required: !!(item && item.required),
+          helpText: String(item && item.helpText ? item.helpText : "").trim(),
+          options: options
+        };
+      });
+    }
+
+    function readQuestions() {
+      try {
+        const raw = localStorage.getItem(QUESTION_CONFIG_KEY);
+        if (!raw) {
+          return sanitizeQuestions(DEFAULT_QUESTION_CONFIG);
+        }
+        const parsed = JSON.parse(raw);
+        const sanitized = sanitizeQuestions(parsed);
+        return sanitized.length ? sanitized : sanitizeQuestions(DEFAULT_QUESTION_CONFIG);
+      } catch (err) {
+        return sanitizeQuestions(DEFAULT_QUESTION_CONFIG);
+      }
+    }
+
+    function saveQuestions(items) {
+      localStorage.setItem(QUESTION_CONFIG_KEY, JSON.stringify(items));
+    }
+
+    function renderStatus(text, tone) {
+      statusMessage.textContent = text;
+      if (tone === "ok") {
+        statusMessage.style.background = "#eef8ef";
+        statusMessage.style.borderColor = "#93c79a";
+        statusMessage.style.color = "#1e5a28";
+        return;
+      }
+      if (tone === "warn") {
+        statusMessage.style.background = "#fff8ea";
+        statusMessage.style.borderColor = "#d9b66d";
+        statusMessage.style.color = "#6b4d18";
+        return;
+      }
+      statusMessage.style.background = "#f8f8f8";
+      statusMessage.style.borderColor = "#b9b9b9";
+      statusMessage.style.color = "#4b5563";
+    }
+
+    function createQuestionItem() {
+      return {
+        id: "q-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+        label: "Pertanyaan baru",
+        type: "short_text",
+        required: false,
+        helpText: "",
+        options: []
+      };
+    }
+
+    function renderQuestionBuilder() {
+      questionList.innerHTML = "";
+
+      if (!draftQuestions.length) {
+        questionListEmpty.hidden = false;
+      } else {
+        questionListEmpty.hidden = true;
+      }
+
+      draftQuestions.forEach(function (question, index) {
+        const card = document.createElement("article");
+        card.className = "question-item";
+        card.innerHTML =
+          '<div class="question-head">' +
+            '<h3 class="question-title">Pertanyaan ' + (index + 1) + '</h3>' +
+            '<div class="question-actions">' +
+              '<button class="btn-soft" type="button" data-action="up" data-index="' + index + '">Naik</button>' +
+              '<button class="btn-soft" type="button" data-action="down" data-index="' + index + '">Turun</button>' +
+              '<button class="btn-danger" type="button" data-action="remove" data-index="' + index + '">Hapus</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Teks Pertanyaan</label>' +
+            '<input type="text" data-field="label" data-index="' + index + '" value="' + escapeHtml(question.label) + '">' +
+          '</div>' +
+          '<div class="row-2">' +
+            '<div class="field">' +
+              '<label>Tipe Jawaban</label>' +
+              '<select data-field="type" data-index="' + index + '">' +
+                '<option value="short_text"' + (question.type === "short_text" ? " selected" : "") + '>Teks Singkat</option>' +
+                '<option value="long_text"' + (question.type === "long_text" ? " selected" : "") + '>Paragraf</option>' +
+                '<option value="single_choice"' + (question.type === "single_choice" ? " selected" : "") + '>Pilihan Tunggal</option>' +
+                '<option value="multi_choice"' + (question.type === "multi_choice" ? " selected" : "") + '>Pilihan Jamak</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>Wajib Diisi</label>' +
+              '<select data-field="required" data-index="' + index + '">' +
+                '<option value="false"' + (!question.required ? " selected" : "") + '>Tidak</option>' +
+                '<option value="true"' + (question.required ? " selected" : "") + '>Ya</option>' +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Catatan Bantuan (opsional)</label>' +
+            '<input type="text" data-field="helpText" data-index="' + index + '" value="' + escapeHtml(question.helpText || "") + '">' +
+          '</div>' +
+          '<div class="field"' + ((question.type === "single_choice" || question.type === "multi_choice") ? "" : " style=\"display:none\"") + '>' +
+            '<label>Opsi Pilihan (satu baris satu opsi)</label>' +
+            '<textarea data-field="options" data-index="' + index + '" placeholder="Contoh:\nSangat Baik\nBaik\nCukup\nPerlu Pendampingan">' + escapeHtml(question.options.join("\n")) + '</textarea>' +
+          '</div>';
+
+        questionList.appendChild(card);
+      });
+    }
+
+    function renderPreview() {
+      previewList.innerHTML = "";
+
+      if (!draftQuestions.length) {
+        previewList.innerHTML = '<p class="empty-note">Belum ada pertanyaan untuk dipreview.</p>';
+        return;
+      }
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "preview-form-wrap";
+      wrapper.innerHTML =
+        '<p class="preview-form-title">Pertanyaan Tambahan (Dinamis)</p>' +
+        '<div class="dynamic-question-list" id="previewDynamicQuestionList"></div>';
+
+      previewList.appendChild(wrapper);
+      const previewDynamicQuestionList = wrapper.querySelector("#previewDynamicQuestionList");
+
+      draftQuestions.forEach(function (question, index) {
+        const item = document.createElement("article");
+        item.className = "dynamic-question-item";
+
+        let inputMarkup = '<input type="text" placeholder="Isi jawaban...">';
+        if (question.type === "long_text") {
+          inputMarkup = '<textarea placeholder="Tulis jawaban..."></textarea>';
+        }
+        if (question.type === "single_choice") {
+          inputMarkup =
+            '<select><option value="">Pilih jawaban</option>' +
+            question.options.map(function (opt) {
+              return '<option>' + escapeHtml(opt) + '</option>';
+            }).join("") +
+            '</select>';
+        }
+        if (question.type === "multi_choice") {
+          inputMarkup = '<div class="dynamic-options">' +
+            question.options.map(function (opt) {
+              return '<label><input type="checkbox"> ' + escapeHtml(opt) + '</label>';
+            }).join("") +
+            '</div>';
+        }
+
+        item.innerHTML =
+          '<h4>' + (index + 1) + '. ' + escapeHtml(question.label) + (question.required ? ' *' : '') + '</h4>' +
+          (question.helpText ? '<p class="dynamic-help">' + escapeHtml(question.helpText) + '</p>' : '') +
+          inputMarkup;
+
+        previewDynamicQuestionList.appendChild(item);
+      });
+    }
+
+    function refreshAll() {
+      renderQuestionBuilder();
+      renderPreview();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function updateLiveDateTime() {
+      if (!liveDateTime) {
+        return;
+      }
+
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    addQuestionBtn.addEventListener("click", function () {
+      draftQuestions.push(createQuestionItem());
+      refreshAll();
+      renderStatus("Pertanyaan baru ditambahkan. Jangan lupa simpan konfigurasi.", "warn");
+    });
+
+    questionList.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const action = target.getAttribute("data-action") || "";
+      const index = Number(target.getAttribute("data-index") || "-1");
+      if (Number.isNaN(index) || index < 0 || index >= draftQuestions.length) {
+        return;
+      }
+
+      if (action === "remove") {
+        draftQuestions.splice(index, 1);
+      }
+      if (action === "up" && index > 0) {
+        const temp = draftQuestions[index - 1];
+        draftQuestions[index - 1] = draftQuestions[index];
+        draftQuestions[index] = temp;
+      }
+      if (action === "down" && index < draftQuestions.length - 1) {
+        const temp = draftQuestions[index + 1];
+        draftQuestions[index + 1] = draftQuestions[index];
+        draftQuestions[index] = temp;
+      }
+
+      refreshAll();
+      renderStatus("Urutan/daftar pertanyaan diperbarui. Simpan untuk menerapkan.", "warn");
+    });
+
+    questionList.addEventListener("input", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement)) {
+        return;
+      }
+
+      const field = target.getAttribute("data-field") || "";
+      const index = Number(target.getAttribute("data-index") || "-1");
+      if (Number.isNaN(index) || index < 0 || index >= draftQuestions.length) {
+        return;
+      }
+
+      if (field === "label") {
+        draftQuestions[index].label = target.value;
+      }
+      if (field === "helpText") {
+        draftQuestions[index].helpText = target.value;
+      }
+      if (field === "type") {
+        draftQuestions[index].type = normalizeType(target.value);
+        if (draftQuestions[index].type !== "single_choice" && draftQuestions[index].type !== "multi_choice") {
+          draftQuestions[index].options = [];
+        }
+        refreshAll();
+        renderStatus("Tipe pertanyaan diubah. Simpan untuk menerapkan.", "warn");
+        return;
+      }
+      if (field === "required") {
+        draftQuestions[index].required = target.value === "true";
+      }
+      if (field === "options") {
+        draftQuestions[index].options = target.value
+          .split("\n")
+          .map(function (line) { return line.trim(); })
+          .filter(function (line) { return !!line; });
+      }
+
+      renderPreview();
+      renderStatus("Draft pertanyaan berubah. Simpan untuk menerapkan.", "warn");
+    });
+
+    saveConfigBtn.addEventListener("click", function () {
+      const sanitized = sanitizeQuestions(draftQuestions);
+      if (!sanitized.length) {
+        renderStatus("Minimal harus ada satu pertanyaan sebelum disimpan.", "warn");
+        return;
+      }
+
+      const invalidChoice = sanitized.find(function (item) {
+        const isChoice = item.type === "single_choice" || item.type === "multi_choice";
+        return isChoice && item.options.length === 0;
+      });
+      if (invalidChoice) {
+        renderStatus("Pertanyaan pilihan wajib punya minimal satu opsi: " + invalidChoice.label, "warn");
+        return;
+      }
+
+      saveQuestions(sanitized);
+      draftQuestions = readQuestions();
+      refreshAll();
+      renderStatus("Konfigurasi pertanyaan berhasil disimpan. Form evaluasi dan hasil evaluasi akan menyesuaikan otomatis.", "ok");
+    });
+
+    resetDefaultBtn.addEventListener("click", function () {
+      const ok = window.confirm("Reset pertanyaan ke default?");
+      if (!ok) {
+        return;
+      }
+      draftQuestions = sanitizeQuestions(DEFAULT_QUESTION_CONFIG);
+      saveQuestions(draftQuestions);
+      refreshAll();
+      renderStatus("Konfigurasi sudah direset ke default.", "ok");
+    });
+
+    draftQuestions = readQuestions();
+    refreshAll();
+    renderStatus("Edit pertanyaan sesuai kebutuhan, lalu klik Simpan Konfigurasi.", "neutral");
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

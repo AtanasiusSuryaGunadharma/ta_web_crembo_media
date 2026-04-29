@@ -1,0 +1,1496 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Penukaran Jadwal Tugas Anggota - Crembo</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --blue-1: #202020;
+      --blue-2: #2d2d2d;
+      --blue-3: #141414;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .layout { min-height: 100vh; display: grid; grid-template-columns: 292px 1fr; }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--blue-1) 0%, var(--blue-2) 52%, var(--blue-3) 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 25;
+    }
+
+    .sidebar-backdrop.show { display: block; }
+
+    .sidebar > * { margin-bottom: 12px; }
+    .sidebar > *:last-child { margin-bottom: 0; }
+
+    .brand {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .brand strong { font-size: 1rem; }
+    .brand small { font-size: 0.79rem; color: #dbe7ff; }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text { min-width: 0; display: grid; gap: 2px; }
+    .account-text strong { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .account-text small { color: #d8e4ff; font-size: 0.76rem; }
+
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-items {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-group.open .menu-items { display: block; }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .menu-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.55);
+      font-weight: 700;
+    }
+
+    .side-bottom { margin-top: 16px; display: grid; gap: 8px; }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 20px;
+    }
+
+    .dashboard-headline-bar {
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+    }
+
+    .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--soft-shadow);
+      margin-bottom: 14px;
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 700;
+      color: #fff;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .quick-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .quick-chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 5px 11px;
+      font-size: 0.74rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    .home-globe {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #9ca3af;
+      background: #fff;
+      text-decoration: none;
+      color: #374151;
+    }
+
+    .home-globe svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .content { padding: 0; display: grid; gap: 14px; }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 { margin: 0; font-size: 1.05rem; }
+    .panel-body { padding: 12px; }
+    .helper { margin: 0 0 10px; color: var(--muted); font-size: 0.84rem; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .grid-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field { display: grid; gap: 5px; }
+
+    label {
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea,
+    button { font: inherit; }
+
+    input,
+    select,
+    textarea {
+      border: 1px solid #c8d2df;
+      border-radius: 9px;
+      background: #fff;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+    }
+
+    textarea { min-height: 72px; resize: vertical; }
+
+    .combo-source { display: none; }
+
+    .slot-combo {
+      position: relative;
+      width: 100%;
+    }
+
+    .slot-trigger {
+      width: 100%;
+      text-align: left;
+      border: 1px solid #c8d2df;
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.84rem;
+      color: #111827;
+    }
+
+    .slot-trigger::after {
+      content: "▾";
+      float: right;
+      color: #5c5c5c;
+      font-size: 0.76rem;
+      margin-top: 2px;
+    }
+
+    .slot-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      border: 1px solid #a7a7a7;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+      z-index: 40;
+      display: none;
+    }
+
+    .slot-panel.show {
+      display: block;
+    }
+
+    .slot-search-box {
+      padding: 7px;
+      border-bottom: 1px solid #dddddd;
+      background: #f7f7f7;
+    }
+
+    .slot-search-input {
+      width: 100%;
+      border: 1px solid #b9b9b9;
+      border-radius: 6px;
+      padding: 6px 7px;
+      font-size: 0.82rem;
+    }
+
+    .slot-options {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .slot-option {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid #f0f0f0;
+      border-radius: 0;
+      background: #fff;
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .slot-option:hover,
+    .slot-option.active {
+      background: #ebebeb;
+    }
+
+    .slot-empty {
+      margin: 0;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #e5e9f2;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.73rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: #f8fafc;
+    }
+
+    .status-ok {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #166534;
+      border: 1px solid #8bdb9f;
+      background: #ebf9ef;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-warn {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #8a6d00;
+      border: 1px solid #f0d978;
+      background: #fff9df;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-danger {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #991b1b;
+      border: 1px solid #f4b0b0;
+      background: #fff1f1;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 7px 11px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.ghost {
+      border: 1px solid #aeb9c8;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    .btn.danger {
+      background: #b91c1c;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .quick-chip { display: inline-block; width: 100%; }
+      .filters,
+      .grid-form { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .main { padding: 12px; }
+      .content { gap: 12px; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Request penukaran jadwal tugas anggota</small>
+      </div>
+
+      <div class="account">
+        <div class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Atanasius Surya Guna</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Tugas Streaming <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link" href="jadwal-tugas-misa-anggota.html">Jadwal Streaming</a>
+          <a class="menu-link" href="request-tugas-anggota.html">Request Tugas Anggota</a>
+          <a class="menu-link" href="pembatalan-tugas-anggota.html">Pembatalan Tugas (maks H-3)</a>
+          <a class="menu-link active" href="penukaran-jadwal-tugas-anggota.html">Penukaran Jadwal Tugas</a>
+          <a class="menu-link" href="riwayat-tugas-saya.html">Riwayat Tugas Saya</a>
+          <a class="menu-link" href="evaluasi-streaming-anggota.html">Form Evaluasi Streaming</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header penukaran jadwal tugas anggota">
+        <button id="mobileMenuBtn" class="mobile-toggle" type="button">Menu</button>
+        <h1>Penukaran Jadwal Tugas</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Dashboard Anggota Crembo Media</h2>
+          <p class="subhead">Atur tukeran jadwal atau minta teman menjadi pengganti secara terstruktur.</p>
+        </div>
+        <div class="quick-filter" aria-label="Ringkasan penukaran jadwal">
+          <span class="quick-chip"><strong>Modul:</strong> Penukaran</span>
+          <span class="quick-chip"><strong>Mode:</strong> Tukeran/Pengganti</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="panel">
+          <header class="panel-head">
+            <h2>Ajukan Penukaran ke Teman</h2>
+          </header>
+          <div class="panel-body">
+            <p class="helper">Anda hanya bisa ajukan penukaran untuk jadwal yang sudah terdaftar atas nama Anda.</p>
+            
+            <!-- Mode Selection -->
+            <div style="margin-bottom:14px;padding:10px;background:#f8fafc;border-radius:9px;border:1px solid var(--line);">
+              <label style="display:block;font-size:0.73rem;text-transform:uppercase;letter-spacing:0.03em;color:#64748b;font-weight:700;margin-bottom:8px;">Tipe Penukaran</label>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;font-weight:500;">
+                  <input type="radio" id="modeSwap" name="swapMode" value="tukeran" checked style="cursor:pointer;">
+                  <span>Tukeran (saya & teman sama-sama punya jadwal)</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;font-weight:500;">
+                  <input type="radio" id="modeSubstitute" name="swapMode" value="menggantikan" style="cursor:pointer;">
+                  <span>Menggantikan (teman sukarela membantu saya)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Tukeran Mode Form -->
+            <div id="tukeranForm" style="display:block;">
+              <div class="grid-form">
+                <div class="field">
+                  <label for="myTaskSelect">Jadwal Saya</label>
+                  <select id="myTaskSelect" class="combo-source"></select>
+                  <div id="myTaskCombo" class="slot-combo">
+                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih jadwal saya --</button>
+                    <div class="slot-panel">
+                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari jadwal saya..."></div>
+                      <div class="slot-options"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="swapSlotSelect">Pilih Jadwal Tukar (Tanggal & Jam)</label>
+                  <select id="swapSlotSelect" class="combo-source">
+                    <option value="">-- pilih jadwal tukar --</option>
+                  </select>
+                  <div id="swapSlotCombo" class="slot-combo">
+                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih jadwal tukar --</button>
+                    <div class="slot-panel">
+                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari tanggal/jam jadwal tukar..."></div>
+                      <div class="slot-options"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="grid-form">
+                <div class="field">
+                  <label for="targetFriendSelect">Teman Tujuan (Role Ditampilkan)</label>
+                  <select id="targetFriendSelect" class="combo-source">
+                    <option value="">-- Pilih slot dulu --</option>
+                  </select>
+                  <div id="friendTargetCombo" class="slot-combo">
+                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih slot dulu --</button>
+                    <div class="slot-panel">
+                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari teman tujuan..."></div>
+                      <div class="slot-options"></div>
+                    </div>
+                  </div>
+                  <small style="color:var(--muted);font-size:0.73rem;margin-top:4px;">Pilihan teman akan menyesuaikan slot tanggal/jam yang dipilih</small>
+                </div>
+              </div>
+              <div class="field">
+                <label for="swapReason">Alasan Penukaran</label>
+                <textarea id="swapReason" placeholder="Contoh: bentrok jadwal kuliah atau kerja..."></textarea>
+              </div>
+            </div>
+
+            <!-- Menggantikan Mode Form -->
+            <div id="substitutForm" style="display:none;">
+              <div class="grid-form">
+                <div class="field">
+                  <label for="myTaskSelectSub">Jadwal Saya</label>
+                  <select id="myTaskSelectSub" class="combo-source"></select>
+                  <div id="myTaskSubCombo" class="slot-combo">
+                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih jadwal saya --</button>
+                    <div class="slot-panel">
+                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari jadwal saya..."></div>
+                      <div class="slot-options"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="targetFriendSelectSub">Teman Pengganti</label>
+                  <select id="targetFriendSelectSub" class="combo-source">
+                    <option value="">-- Pilih Teman --</option>
+                    <option value="Rikha">Rikha</option>
+                    <option value="Jeni">Jeni</option>
+                    <option value="Tyas">Tyas</option>
+                    <option value="Lisa">Lisa</option>
+                    <option value="Evan">Evan</option>
+                  </select>
+                  <div id="targetFriendSubCombo" class="slot-combo">
+                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih teman --</button>
+                    <div class="slot-panel">
+                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari teman pengganti..."></div>
+                      <div class="slot-options"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="swapReasonSub">Alasan Meminta Pengganti</label>
+                <textarea id="swapReasonSub" placeholder="Contoh: sakit, ada acara keluarga, dll..."></textarea>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="submitSwapBtn" class="btn" type="button">Kirim Request</button>
+              <button id="resetSwapBtn" class="btn ghost" type="button">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="panel-head">
+            <h2>Filter Jadwal Terdaftar</h2>
+          </header>
+          <div class="panel-body">
+            <div class="filters">
+              <div class="field">
+                <label for="swapSearch">Search</label>
+                <input id="swapSearch" type="search" placeholder="Cari jadwal, role, nama teman, status...">
+              </div>
+              <div class="field">
+                <label for="swapMonthFilter">Bulan</label>
+                <select id="swapMonthFilter">
+                  <option value="all">Semua Bulan</option>
+                  <option value="0">Januari</option>
+                  <option value="1">Februari</option>
+                  <option value="2">Maret</option>
+                  <option value="3">April</option>
+                  <option value="4">Mei</option>
+                  <option value="5">Juni</option>
+                  <option value="6">Juli</option>
+                  <option value="7">Agustus</option>
+                  <option value="8">September</option>
+                  <option value="9">Oktober</option>
+                  <option value="10">November</option>
+                  <option value="11">Desember</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="swapYearFilter">Tahun</label>
+                <select id="swapYearFilter"></select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="panel-head">
+            <h2>Request Masuk dari Teman</h2>
+          </header>
+          <div class="panel-body table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Teman</th>
+                  <th>Role</th>
+                  <th>Tipe</th>
+                  <th>Jadwal</th>
+                  <th>Alasan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="incomingRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="panel-head">
+            <h2>Request Keluar Saya</h2>
+          </header>
+          <div class="panel-body table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jadwal Saya & Role</th>
+                  <th>Dikirim Ke</th>
+                  <th>Tipe</th>
+                  <th>Alasan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="outgoingRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const TASKS_KEY = "crembo-member-registered-tasks";
+    const SWAP_IN_KEY = "crembo-member-swap-incoming";
+    const SWAP_OUT_KEY = "crembo-member-swap-outgoing";
+
+    // Mode and Form Elements
+    const modeSwapRadio = document.getElementById("modeSwap");
+    const modeSubstituteRadio = document.getElementById("modeSubstitute");
+    const tukeranForm = document.getElementById("tukeranForm");
+    const substitutForm = document.getElementById("substitutForm");
+
+    // Tukeran form elements
+    const myTaskSelect = document.getElementById("myTaskSelect");
+    const targetFriendSelect = document.getElementById("targetFriendSelect");
+    const myTaskCombo = document.getElementById("myTaskCombo");
+    const friendTargetCombo = document.getElementById("friendTargetCombo");
+    const swapSlotSelect = document.getElementById("swapSlotSelect");
+    const swapSlotCombo = document.getElementById("swapSlotCombo");
+    const swapReason = document.getElementById("swapReason");
+
+    // Menggantikan form elements
+    const myTaskSelectSub = document.getElementById("myTaskSelectSub");
+    const targetFriendSelectSub = document.getElementById("targetFriendSelectSub");
+    const myTaskSubCombo = document.getElementById("myTaskSubCombo");
+    const targetFriendSubCombo = document.getElementById("targetFriendSubCombo");
+    const swapReasonSub = document.getElementById("swapReasonSub");
+
+    // Common elements
+    const submitSwapBtn = document.getElementById("submitSwapBtn");
+    const resetSwapBtn = document.getElementById("resetSwapBtn");
+    const incomingRows = document.getElementById("incomingRows");
+    const outgoingRows = document.getElementById("outgoingRows");
+    const swapSearch = document.getElementById("swapSearch");
+    const swapMonthFilter = document.getElementById("swapMonthFilter");
+    const swapYearFilter = document.getElementById("swapYearFilter");
+    const memberName = document.getElementById("memberName");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    const FRIEND_SCHEDULES = {
+      "Rikha": [
+        { id: "rikha-1", title: "Misa Harian", date: "2026-04-15", time: "18:00", role: "Sound Engineer" },
+        { id: "rikha-2", title: "Misa Mingguan", date: "2026-04-20", time: "09:00", role: "Operator Kamera" }
+      ],
+      "Jeni": [
+        { id: "jeni-1", title: "Misa Harian", date: "2026-04-14", time: "17:00", role: "Operator Kamera" },
+        { id: "jeni-2", title: "Misa Mingguan", date: "2026-04-21", time: "08:00", role: "Sound Engineer" }
+      ],
+      "Tyas": [
+        { id: "tyas-1", title: "Misa Harian", date: "2026-04-16", time: "17:00", role: "Producer" }
+      ],
+      "Lisa": [
+        { id: "lisa-1", title: "Misa Mingguan", date: "2026-04-19", time: "08:00", role: "Operator Kamera" }
+      ],
+      "Evan": [
+        { id: "evan-1", title: "Misa Harian", date: "2026-04-17", time: "18:00", role: "Sound Engineer" }
+      ]
+    };
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function readTasks() {
+      return safeParse(localStorage.getItem(TASKS_KEY), []);
+    }
+
+    function seedIfEmpty() {
+      if (!localStorage.getItem(SWAP_IN_KEY)) {
+        const incoming = [
+          { 
+            id: "in-1", 
+            fromName: "Rikha", 
+            taskLabel: "Misa Harian - Senin, 14 Apr 2026 17:00", 
+            role: "Operator Kamera",
+            friendRole: "Operator Kamera",
+            reason: "Tukeran dengan jadwal saya", 
+            status: "Menunggu", 
+            date: "2026-04-14",
+            type: "tukeran"
+          },
+          { 
+            id: "in-2", 
+            fromName: "Jeni", 
+            taskLabel: "Misa Mingguan - Minggu, 19 Apr 2026 08:00", 
+            role: "Sound Engineer",
+            reason: "Acara keluarga", 
+            status: "Menunggu", 
+            date: "2026-04-19",
+            type: "menggantikan"
+          }
+        ];
+        localStorage.setItem(SWAP_IN_KEY, JSON.stringify(incoming));
+      }
+      if (!localStorage.getItem(SWAP_OUT_KEY)) {
+        const outgoing = [
+          { 
+            id: "out-1", 
+            toName: "Tyas", 
+            taskLabel: "Misa Harian - Rabu, 16 Apr 2026 17:00", 
+            role: "Operator Kamera",
+            reason: "Ujian kampus", 
+            status: "Menunggu", 
+            date: "2026-04-16",
+            type: "tukeran"
+          }
+        ];
+        localStorage.setItem(SWAP_OUT_KEY, JSON.stringify(outgoing));
+      }
+    }
+
+    function readIncoming() {
+      return safeParse(localStorage.getItem(SWAP_IN_KEY), []).map(function (item) {
+        return {
+          type: item.type || "menggantikan",
+          role: item.role || item.friendRole || "-",
+          ...item
+        };
+      });
+    }
+
+    function readOutgoing() {
+      return safeParse(localStorage.getItem(SWAP_OUT_KEY), []).map(function (item) {
+        return {
+          type: item.type || "menggantikan",
+          role: item.role || "-",
+          ...item
+        };
+      });
+    }
+
+    function saveIncoming(items) {
+      localStorage.setItem(SWAP_IN_KEY, JSON.stringify(items));
+    }
+
+    function saveOutgoing(items) {
+      localStorage.setItem(SWAP_OUT_KEY, JSON.stringify(items));
+    }
+
+    function setYearFilterOptions() {
+      const nowYear = new Date().getFullYear();
+      swapYearFilter.innerHTML = '<option value="all">Semua Tahun</option>';
+      for (let year = nowYear - 2; year <= nowYear + 2; year += 1) {
+        const option = document.createElement("option");
+        option.value = String(year);
+        option.textContent = String(year);
+        swapYearFilter.appendChild(option);
+      }
+    }
+
+    function getRegisteredTasksForSwap() {
+      return readTasks().filter(function (item) {
+        return item.status === "Terdaftar";
+      });
+    }
+
+    function renderTaskSelects() {
+      const tasks = getRegisteredTasksForSwap();
+      if (!tasks.length) {
+        myTaskSelect.innerHTML = '<option value="">Belum ada jadwal terdaftar</option>';
+        myTaskSelectSub.innerHTML = '<option value="">Belum ada jadwal terdaftar</option>';
+        refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
+        refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
+        return;
+      }
+      const html = tasks.map(function (item) {
+        const label = item.title + " - " + item.date + " " + item.time + " (" + item.role + ")";
+        return '<option value="' + item.id + '">' + label + '</option>';
+      }).join("");
+      myTaskSelect.innerHTML = html;
+      myTaskSelectSub.innerHTML = html;
+      refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
+      refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
+    }
+
+    function closeAllComboPanels(exceptCombo) {
+      document.querySelectorAll(".slot-combo").forEach(function (comboEl) {
+        if (exceptCombo && comboEl === exceptCombo) {
+          return;
+        }
+        const panel = comboEl.querySelector(".slot-panel");
+        const trigger = comboEl.querySelector(".slot-trigger");
+        if (panel) {
+          panel.classList.remove("show");
+        }
+        if (trigger) {
+          trigger.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    function setComboTriggerText(selectEl, comboEl, fallbackText) {
+      const trigger = comboEl.querySelector(".slot-trigger");
+      const selected = selectEl.options[selectEl.selectedIndex];
+      trigger.textContent = selected && selected.value ? selected.textContent : fallbackText;
+    }
+
+    function renderComboOptions(selectEl, comboEl, query, fallbackText) {
+      const optionsWrap = comboEl.querySelector(".slot-options");
+      const normalizedQuery = (query || "").trim().toLowerCase();
+      const allOptions = Array.from(selectEl.options || []);
+      const filtered = allOptions.filter(function (opt) {
+        return !normalizedQuery || opt.textContent.toLowerCase().indexOf(normalizedQuery) !== -1;
+      });
+
+      if (!filtered.length) {
+        optionsWrap.innerHTML = '<p class="slot-empty">Data tidak ditemukan.</p>';
+        return;
+      }
+
+      const selectedValue = selectEl.value;
+      optionsWrap.innerHTML = filtered.map(function (opt) {
+        const activeClass = opt.value === selectedValue ? " active" : "";
+        return '<button class="slot-option' + activeClass + '" type="button" data-value="' + escapeHtml(opt.value) + '">' + escapeHtml(opt.textContent) + '</button>';
+      }).join("");
+
+      optionsWrap.querySelectorAll(".slot-option").forEach(function (buttonEl) {
+        buttonEl.addEventListener("click", function () {
+          const previousValue = selectEl.value;
+          selectEl.value = buttonEl.getAttribute("data-value") || "";
+          setComboTriggerText(selectEl, comboEl, fallbackText);
+          if (previousValue !== selectEl.value) {
+            selectEl.dispatchEvent(new Event("change"));
+          }
+          closeAllComboPanels();
+        });
+      });
+    }
+
+    function refreshComboFromSelect(selectEl, comboEl, fallbackText) {
+      if (!comboEl) {
+        return;
+      }
+      const searchInput = comboEl.querySelector(".slot-search-input");
+      setComboTriggerText(selectEl, comboEl, fallbackText);
+      renderComboOptions(selectEl, comboEl, searchInput ? searchInput.value : "", fallbackText);
+    }
+
+    function initCombo(selectEl, comboEl, fallbackText) {
+      const trigger = comboEl.querySelector(".slot-trigger");
+      const panel = comboEl.querySelector(".slot-panel");
+      const searchInput = comboEl.querySelector(".slot-search-input");
+
+      trigger.addEventListener("click", function () {
+        const shouldOpen = !panel.classList.contains("show");
+        closeAllComboPanels(comboEl);
+        if (shouldOpen) {
+          panel.classList.add("show");
+          trigger.setAttribute("aria-expanded", "true");
+          renderComboOptions(selectEl, comboEl, searchInput.value, fallbackText);
+          searchInput.focus();
+        } else {
+          panel.classList.remove("show");
+          trigger.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      searchInput.addEventListener("input", function () {
+        renderComboOptions(selectEl, comboEl, searchInput.value, fallbackText);
+      });
+    }
+
+    function getAllFriendScheduleSlots() {
+      return Object.keys(FRIEND_SCHEDULES).reduce(function (acc, friendName) {
+        const rows = FRIEND_SCHEDULES[friendName].map(function (sched) {
+          return {
+            ...sched,
+            friendName: friendName,
+            slotLabel: sched.date + " " + sched.time + " - " + sched.title
+          };
+        });
+        return acc.concat(rows);
+      }, []);
+    }
+
+    function renderSwapSlotOptions() {
+      const uniqueLabels = Array.from(new Set(getAllFriendScheduleSlots().map(function (item) {
+        return item.slotLabel;
+      })));
+      swapSlotSelect.innerHTML = '<option value="">-- pilih jadwal tukar --</option>' + uniqueLabels.map(function (label) {
+        return '<option value="' + label + '">' + label + '</option>';
+      }).join("");
+      refreshComboFromSelect(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
+    }
+
+    function updateFriendsBySelectedSlot() {
+      const selectedSlot = (swapSlotSelect.value || "").trim();
+      const matchingSlots = getAllFriendScheduleSlots().filter(function (item) {
+        return item.slotLabel === selectedSlot;
+      });
+
+      if (!matchingSlots.length) {
+        targetFriendSelect.innerHTML = '<option value="">-- Pilih slot dulu --</option>';
+        refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
+        return;
+      }
+
+      const optionsHtml = matchingSlots.map(function (item) {
+        return '<option value="' + item.id + '">' + item.friendName + ' (' + item.role + ')</option>';
+      }).join("");
+      targetFriendSelect.innerHTML = '<option value="">-- Pilih Teman --</option>' + optionsHtml;
+      refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
+    }
+
+    function passesFilter(dateText, searchableText) {
+      const search = swapSearch.value.trim().toLowerCase();
+      const month = swapMonthFilter.value;
+      const year = swapYearFilter.value;
+      const dateObj = new Date(dateText + "T00:00:00");
+      if (Number.isNaN(dateObj.getTime())) {
+        return false;
+      }
+      const okSearch = !search || searchableText.toLowerCase().includes(search);
+      const okMonth = month === "all" || String(dateObj.getMonth()) === month;
+      const okYear = year === "all" || String(dateObj.getFullYear()) === year;
+      return okSearch && okMonth && okYear;
+    }
+
+    function statusBadge(status) {
+      if (status === "Disetujui") {
+        return '<span class="status-ok">Disetujui</span>';
+      }
+      if (status === "Ditolak") {
+        return '<span class="status-danger">Ditolak</span>';
+      }
+      if (status === "Dibatalkan") {
+        return '<span class="status-danger">Dibatalkan</span>';
+      }
+      return '<span class="status-warn">Menunggu</span>';
+    }
+
+    function typeBadge(type) {
+      if (type === "tukeran") {
+        return '<span class="status-ok" style="background:#e0f2fe;border-color:#0284c7;color:#0c4a6e;">Tukeran</span>';
+      }
+      return '<span class="status-warn" style="background:#fef3c7;border-color:#fbbf24;color:#78350f;">Menggantikan</span>';
+    }
+
+    function renderSwapTables() {
+      const incoming = readIncoming().filter(function (item) {
+        return passesFilter(item.date, [item.fromName, item.taskLabel, item.reason, item.status, item.role].join(" "));
+      });
+      const outgoing = readOutgoing().filter(function (item) {
+        return passesFilter(item.date, [item.toName, item.taskLabel, item.reason, item.status, item.role].join(" "));
+      });
+
+      incomingRows.innerHTML = incoming.length
+        ? incoming.map(function (item) {
+            const actions = item.status === "Menunggu"
+              ? '<button class="btn" type="button" data-action="accept" data-id="' + item.id + '">Terima</button> <button class="btn danger" type="button" data-action="reject" data-id="' + item.id + '">Tolak</button>'
+              : '-';
+            return '<tr>'
+              + '<td>' + item.fromName + '</td>'
+              + '<td>' + (item.role || '-') + '</td>'
+              + '<td>' + typeBadge(item.type) + '</td>'
+              + '<td>' + item.taskLabel + '</td>'
+              + '<td>' + item.reason + '</td>'
+              + '<td>' + statusBadge(item.status) + '</td>'
+              + '<td>' + actions + '</td>'
+              + '</tr>';
+          }).join("")
+        : '<tr><td colspan="7">Tidak ada request masuk sesuai filter.</td></tr>';
+
+      outgoingRows.innerHTML = outgoing.length
+        ? outgoing.map(function (item) {
+            const roleText = item.role ? ' (' + item.role + ')' : '';
+            const actions = item.status === "Menunggu"
+              ? '<button class="btn danger" type="button" data-action="cancel" data-id="' + item.id + '">Batalkan</button>'
+              : '-';
+            return '<tr>'
+              + '<td>' + item.taskLabel + roleText + '</td>'
+              + '<td>' + item.toName + '</td>'
+              + '<td>' + typeBadge(item.type) + '</td>'
+              + '<td>' + item.reason + '</td>'
+              + '<td>' + statusBadge(item.status) + '</td>'
+              + '<td>' + actions + '</td>'
+              + '</tr>';
+          }).join("")
+        : '<tr><td colspan="6">Tidak ada request keluar sesuai filter.</td></tr>';
+    }
+
+    function submitSwapRequest() {
+      const mode = document.querySelector("input[name='swapMode']:checked").value;
+
+      if (mode === "tukeran") {
+        submitTukeran();
+      } else {
+        submitMenggantikan();
+      }
+    }
+
+    function submitTukeran() {
+      const taskId = myTaskSelect.value;
+      const selectedFriendSlotId = targetFriendSelect.value;
+      const selectedSlot = (swapSlotSelect.value || "").trim();
+      const reason = swapReason.value.trim();
+      const task = getRegisteredTasksForSwap().find(function (item) { return item.id === taskId; });
+      const selectedFriendSlot = getAllFriendScheduleSlots().find(function (item) {
+        return item.id === selectedFriendSlotId;
+      });
+      const hasPendingSameDate = readOutgoing().some(function (item) {
+        return item.status === "Menunggu" && item.type === "tukeran" && item.date === (task ? task.date : "");
+      });
+
+      if (!task) {
+        window.alert("Pilih jadwal Anda yang valid.");
+        return;
+      }
+      if (!selectedSlot) {
+        window.alert("Pilih slot jadwal tukar (tanggal dan jam).");
+        return;
+      }
+      if (!selectedFriendSlotId || !selectedFriendSlot) {
+        window.alert("Pilih teman tujuan.");
+        return;
+      }
+      if (!reason) {
+        window.alert("Alasan penukaran wajib diisi.");
+        return;
+      }
+      if (hasPendingSameDate) {
+        window.alert("Anda sudah punya request tukeran aktif di tanggal ini. Batalkan request sebelumnya terlebih dahulu.");
+        return;
+      }
+
+      const outItems = readOutgoing();
+      outItems.unshift({
+        id: "out-" + Date.now(),
+        toName: selectedFriendSlot.friendName,
+        taskLabel: task.title + " - " + task.date + " " + task.time,
+        role: task.role,
+        friendRole: selectedFriendSlot.role,
+        friendTaskLabel: selectedFriendSlot.title + " - " + selectedFriendSlot.date + " " + selectedFriendSlot.time,
+        reason: reason,
+        status: "Menunggu",
+        date: task.date,
+        type: "tukeran"
+      });
+      saveOutgoing(outItems);
+      
+      swapReason.value = "";
+      myTaskSelect.selectedIndex = 0;
+      refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
+      swapSlotSelect.value = "";
+      refreshComboFromSelect(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
+      targetFriendSelect.innerHTML = '<option value="">-- Pilih slot dulu --</option>';
+      refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
+      renderTaskSelects();
+      renderSwapTables();
+      window.alert("Request penukaran berhasil dikirim.");
+    }
+
+    function submitMenggantikan() {
+      const taskId = myTaskSelectSub.value;
+      const friendName = targetFriendSelectSub.value;
+      const reason = swapReasonSub.value.trim();
+      const task = getRegisteredTasksForSwap().find(function (item) { return item.id === taskId; });
+
+      if (!task) {
+        window.alert("Pilih jadwal Anda yang valid.");
+        return;
+      }
+      if (!friendName) {
+        window.alert("Pilih teman pengganti.");
+        return;
+      }
+      if (!reason) {
+        window.alert("Alasan wajib diisi.");
+        return;
+      }
+
+      const outItems = readOutgoing();
+      outItems.unshift({
+        id: "out-" + Date.now(),
+        toName: friendName,
+        taskLabel: task.title + " - " + task.date + " " + task.time,
+        role: task.role,
+        reason: reason,
+        status: "Menunggu",
+        date: task.date,
+        type: "menggantikan"
+      });
+      saveOutgoing(outItems);
+      
+      swapReasonSub.value = "";
+      myTaskSelectSub.selectedIndex = 0;
+      refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
+      targetFriendSelectSub.selectedIndex = 0;
+      refreshComboFromSelect(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
+      renderTaskSelects();
+      renderSwapTables();
+      window.alert("Request pengganti berhasil dikirim.");
+    }
+
+    function handleIncomingAction(action, id) {
+      const items = readIncoming();
+      const target = items.find(function (item) { return item.id === id; });
+      if (!target || target.status !== "Menunggu") {
+        return;
+      }
+      target.status = action === "accept" ? "Disetujui" : "Ditolak";
+      saveIncoming(items);
+      renderSwapTables();
+    }
+
+    function handleOutgoingAction(action, id) {
+      if (action !== "cancel") return;
+      
+      const items = readOutgoing();
+      const target = items.find(function (item) { return item.id === id; });
+      if (!target || target.status !== "Menunggu") {
+        return;
+      }
+      
+      if (window.confirm("Batalkan request ini?")) {
+        target.status = "Dibatalkan";
+        saveOutgoing(items);
+        renderSwapTables();
+      }
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    const sessionRaw = localStorage.getItem("crembo-login-session");
+    if (sessionRaw) {
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (session.fullName) {
+          memberName.textContent = session.fullName;
+        } else if (session.identifier) {
+          memberName.textContent = session.identifier;
+        }
+      } catch (error) {
+      }
+    }
+
+    document.querySelectorAll(".menu-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const mark = button.querySelector("span");
+        mark.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    mobileMenuBtn.addEventListener("click", function () {
+      setSidebarOpen(!sidebar.classList.contains("show"));
+    });
+
+    sidebarBackdrop.addEventListener("click", function () {
+      setSidebarOpen(false);
+    });
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 1080px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+
+    // Mode switching
+    modeSwapRadio.addEventListener("change", function () {
+      if (this.checked) {
+        tukeranForm.style.display = "block";
+        substitutForm.style.display = "none";
+      }
+    });
+
+    modeSubstituteRadio.addEventListener("change", function () {
+      if (this.checked) {
+        tukeranForm.style.display = "none";
+        substitutForm.style.display = "block";
+      }
+    });
+
+    submitSwapBtn.addEventListener("click", submitSwapRequest);
+    resetSwapBtn.addEventListener("click", function () {
+      const mode = document.querySelector("input[name='swapMode']:checked").value;
+      if (mode === "tukeran") {
+        swapReason.value = "";
+        myTaskSelect.selectedIndex = 0;
+        refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
+        swapSlotSelect.value = "";
+        refreshComboFromSelect(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
+        targetFriendSelect.innerHTML = '<option value="">-- Pilih slot dulu --</option>';
+        refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
+      } else {
+        swapReasonSub.value = "";
+        myTaskSelectSub.selectedIndex = 0;
+        refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
+        targetFriendSelectSub.selectedIndex = 0;
+        refreshComboFromSelect(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
+      }
+    });
+
+    incomingRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+      const action = target.getAttribute("data-action");
+      const id = target.getAttribute("data-id");
+      if (!action || !id) {
+        return;
+      }
+      handleIncomingAction(action, id);
+    });
+
+    outgoingRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+      const action = target.getAttribute("data-action");
+      const id = target.getAttribute("data-id");
+      if (!action || !id) {
+        return;
+      }
+      handleOutgoingAction(action, id);
+    });
+
+    swapSearch.addEventListener("input", renderSwapTables);
+    swapMonthFilter.addEventListener("change", renderSwapTables);
+    swapYearFilter.addEventListener("change", renderSwapTables);
+    swapSlotSelect.addEventListener("change", updateFriendsBySelectedSlot);
+
+    initCombo(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
+    initCombo(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
+    initCombo(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
+    initCombo(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
+    initCombo(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
+
+    document.addEventListener("click", function (event) {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+      const insideCombo = event.target.closest(".slot-combo");
+      if (!insideCombo) {
+        closeAllComboPanels();
+      }
+    });
+
+    seedIfEmpty();
+    setYearFilterOptions();
+    const now = new Date();
+    swapMonthFilter.value = String(now.getMonth());
+    swapYearFilter.value = String(now.getFullYear());
+    renderSwapSlotOptions();
+    renderTaskSelects();
+    refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
+    refreshComboFromSelect(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
+    refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
+    renderSwapTables();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

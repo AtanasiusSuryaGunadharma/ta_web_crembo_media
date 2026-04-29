@@ -1,0 +1,660 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kelola Embed Google Maps - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --ok: #116d3f;
+      --warn: #9b5b00;
+      --danger: #b42323;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    main .dashboard-headline-bar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    main .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+
+    main .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: clamp(0.82rem, 1.6vw, 0.98rem);
+      font-weight: 700;
+    }
+
+    main .head-meta #liveDateTime {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    main .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    main .world-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    main .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    main .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    main .topbar::before,
+    main .headline::before {
+      display: none !important;
+      content: none !important;
+    }
+
+    main .headline {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    main .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    main .role-chip {
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .status {
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border: 1px solid #b7b7b7;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      display: none;
+    }
+
+    .status.show { display: block; }
+
+    .status.ok {
+      border-color: #a9d6b9;
+      background: #eef8ef;
+      color: var(--ok);
+    }
+
+    .status.warn {
+      border-color: #e3c188;
+      background: #fff8ea;
+      color: var(--warn);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 0.84rem;
+      color: #515151;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%);
+      border-color: #295fc2;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .btn.warn {
+      background: #fff;
+      color: var(--danger);
+      border-color: #ef4444;
+      font-weight: 700;
+    }
+
+    .form-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .info-box {
+      margin-top: 12px;
+      border: 1px solid #d4d4d4;
+      border-radius: 10px;
+      background: #fafafa;
+      padding: 10px 12px;
+      font-size: 0.84rem;
+      color: #505050;
+    }
+
+    .info-box strong {
+      display: block;
+      color: #2c2c2c;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .main { padding: 10px; }
+      .dashboard-headline-bar,
+      .topbar,
+      .panel-head,
+      .panel-body { padding: 10px; }
+
+      .form-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions .btn {
+        width: 100%;
+      }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar kelola konten utama website">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Modul kelola embed Google Maps</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Konten Utama Website <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="kelola-carousel-home.html">Kelola Carousel Home</a>
+          <a class="menu-link" href="kelola-tentang-crembo.html">Kelola Konten Tentang Crembo</a>
+          <a class="menu-link" href="kelola-embed-youtube.html">Kelola Embed YouTube</a>
+          <a class="menu-link active" href="kelola-embed-google-maps.html">Kelola Embed Google Maps</a>
+          <a class="menu-link" href="kelola-embed-instagram.html">Kelola Embed Instagram</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Lihat Home</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header kelola embed gmaps waktu berjalan">
+        <h1>Kelola Embed Google Maps</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Lihat Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Kelola Link Google Maps Lokasi</h2>
+          <p class="subhead">Admin dan Super Admin dapat mengelola embed Google Maps yang ditampilkan di section home.</p>
+        </div>
+        <span id="roleChip" class="role-chip">Role: -</span>
+      </header>
+
+      <section class="panel" aria-label="Form kelola embed google maps">
+        <header class="panel-head">
+          <h2>Atur Link Google Maps</h2>
+        </header>
+        <div class="panel-body">
+          <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
+
+          <form id="mapsForm">
+            <div class="form-grid">
+              <div class="field full">
+                <label for="mapsUrl">URL Embed Google Maps</label>
+                <input id="mapsUrl" type="text" required placeholder="https://www.google.com/maps/embed?pb=... atau iframe src attribute">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button id="submitBtn" class="btn primary" type="submit">Simpan Link Maps</button>
+              <button id="resetFormBtn" class="btn ghost" type="button">Reset Form</button>
+              <button id="deleteLinkBtn" class="btn warn" type="button">Hapus Link Aktif</button>
+            </div>
+          </form>
+
+          <div class="info-box">
+            <strong>Cara mendapatkan embed link:</strong>
+            1. Buka Google Maps<br>
+            2. Cari lokasi yang diinginkan<br>
+            3. Klik tombol "Share" (Bagikan)<br>
+            4. Pilih tab "Embed a map" (Sematkan peta)<br>
+            5. Salin link iframe src dari kolom kode embed
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Status link google maps">
+        <header class="panel-head">
+          <h2>Status Link Google Maps Saat Ini</h2>
+        </header>
+        <div class="panel-body">
+          <div id="statusDisplay" style="padding: 12px; border: 1px solid #d1d1d1; border-radius: 8px; background: #fafafa; font-size: 0.85rem;">
+            <strong id="statusLabel">Status:</strong>
+            <p id="statusText" style="margin: 6px 0 0; color: #5b5b5b;">Belum ada link yang disimpan</p>
+            <p id="linkDisplay" style="margin: 6px 0 0; word-break: break-all; font-family: monospace; font-size: 0.8rem; color: #2c2c2c; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "crembo-home-google-maps-link";
+
+    const roleChip = document.getElementById("roleChip");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const mapsForm = document.getElementById("mapsForm");
+    const mapsUrl = document.getElementById("mapsUrl");
+    const submitBtn = document.getElementById("submitBtn");
+    const resetFormBtn = document.getElementById("resetFormBtn");
+    const deleteLinkBtn = document.getElementById("deleteLinkBtn");
+    const statusMessage = document.getElementById("statusMessage");
+    const statusDisplay = document.getElementById("statusDisplay");
+    const statusLabel = document.getElementById("statusLabel");
+    const statusText = document.getElementById("statusText");
+    const linkDisplay = document.getElementById("linkDisplay");
+
+    function getCurrentRole() {
+      const params = new URLSearchParams(window.location.search);
+      const roleFromQuery = params.get("role");
+
+      let roleFromStorage = "";
+      const storedSessionRaw = localStorage.getItem("crembo-login-session");
+      if (storedSessionRaw) {
+        try {
+          const sessionObj = JSON.parse(storedSessionRaw);
+          roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
+        } catch (error) {
+          roleFromStorage = "";
+        }
+      }
+
+      return roleFromQuery || roleFromStorage || "admin";
+    }
+
+    function formatRole(role) {
+      if (role === "super_admin") {
+        return "Super Admin";
+      }
+      if (role === "admin") {
+        return "Admin";
+      }
+      return "Anggota";
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function readMapsLink() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? String(raw) : "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function writeMapsLink(url) {
+      localStorage.setItem(STORAGE_KEY, String(url));
+    }
+
+    function removeMapsLink() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function setStatus(text, kind) {
+      statusMessage.textContent = text;
+      statusMessage.className = "status show " + (kind || "ok");
+    }
+
+    function clearStatus() {
+      statusMessage.className = "status";
+      statusMessage.textContent = "";
+    }
+
+    function resetForm() {
+      mapsForm.reset();
+      clearStatus();
+    }
+
+    function updateDisplay() {
+      const url = readMapsLink();
+      if (url) {
+        statusLabel.textContent = "Status: ✓ Link tersimpan";
+        statusText.textContent = "Link Google Maps telah disimpan dan siap ditampilkan di halaman home.";
+        linkDisplay.textContent = url;
+        linkDisplay.style.display = "block";
+      } else {
+        statusLabel.textContent = "Status: -";
+        statusText.textContent = "Belum ada link yang disimpan";
+        linkDisplay.style.display = "none";
+      }
+    }
+
+    function saveMapsLink(event) {
+      event.preventDefault();
+
+      const url = mapsUrl.value.trim();
+
+      if (!url) {
+        setStatus("URL atau iframe link wajib diisi.", "warn");
+        return;
+      }
+
+      if (!url.includes("google.com/maps") && !url.includes("gstatic.com")) {
+        setStatus("⚠ Pastikan URL/link dari Google Maps", "warn");
+        return;
+      }
+
+      writeMapsLink(url);
+      updateDisplay();
+      resetForm();
+      setStatus("Link Google Maps berhasil disimpan.", "ok");
+    }
+
+    function deleteMapsLink() {
+      const currentLink = readMapsLink();
+      if (!currentLink) {
+        setStatus("Belum ada link aktif yang dapat dihapus.", "warn");
+        return;
+      }
+
+      const confirmed = window.confirm("Hapus link Google Maps yang sedang aktif?");
+      if (!confirmed) {
+        return;
+      }
+
+      removeMapsLink();
+      mapsUrl.value = "";
+      updateDisplay();
+      setStatus("Link Google Maps aktif berhasil dihapus.", "ok");
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    roleChip.textContent = "Role: " + formatRole(getCurrentRole());
+
+    // Load existing data
+    const existingUrl = readMapsLink();
+    if (existingUrl) {
+      mapsUrl.value = existingUrl;
+    }
+    updateDisplay();
+
+    mapsForm.addEventListener("submit", saveMapsLink);
+    resetFormBtn.addEventListener("click", resetForm);
+    deleteLinkBtn.addEventListener("click", deleteMapsLink);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

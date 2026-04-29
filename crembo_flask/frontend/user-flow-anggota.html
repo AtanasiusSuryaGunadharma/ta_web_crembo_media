@@ -1,0 +1,319 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Flow Anggota - Crembo Media</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #4b5563;
+      --line: #d1d5db;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at 10% 12%, #fee2e2 0%, transparent 30%),
+        radial-gradient(circle at 88% 20%, #dbeafe 0%, transparent 33%),
+        linear-gradient(150deg, #fff7ed 0%, #f8fafc 100%);
+    }
+
+    .wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero {
+      border: 1px solid #fdba74;
+      border-radius: 16px;
+      background: linear-gradient(130deg, #fff7ed 0%, #eff6ff 100%);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.6vw, 1.9rem);
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid #fdba74;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #fff;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #9a3412;
+    }
+
+    .flow-switch {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .flow-switch a {
+      text-decoration: none;
+      border: 1px solid #fdba74;
+      background: #ffffff;
+      color: #9a3412;
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .flow-switch a.active {
+      background: #ea580c;
+      border-color: #ea580c;
+      color: #ffffff;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .lane-head {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      background: linear-gradient(180deg, #fff8f1 0%, #f8fbff 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lane-head h2 { margin: 0; font-size: 0.95rem; }
+    .lane-head small { color: var(--muted); font-size: 0.76rem; font-weight: 600; }
+
+    .flow {
+      padding: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    .node {
+      flex: 1 1 220px;
+      min-width: 200px;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .node strong { font-size: 0.85rem; color: #9a3412; }
+    .node p { margin: 0; font-size: 0.77rem; color: #374151; line-height: 1.4; }
+    .node a { color: #1d4ed8; text-decoration: none; font-size: 0.75rem; font-weight: 700; }
+
+    .arrow {
+      align-self: center;
+      color: #c2410c;
+      font-weight: 900;
+      font-size: 1.03rem;
+    }
+
+    .checklist {
+      border: 1px solid #fecaca;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #fff7ed 0%, #fef2f2 100%);
+      padding: 12px;
+      color: #7f1d1d;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .arrow { display: none; }
+      .node { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>User Flow Pengujian - Anggota</h1>
+      <p>Flow pengujian sisi anggota dengan fokus pada dashboard anggota (sidebar + header), tugas, monitoring kewajiban, peminjaman, form pendaftaran, notifikasi, dan log diri sendiri. Setiap lane dipakai sebagai task scenario, jadi tester tinggal mengikuti input dummy dan aksi yang tertulis di tiap node.</p>
+      <div class="legend">
+        <span class="pill">Role: Anggota</span>
+        <span class="pill">Cakupan Log: Diri Sendiri Saja</span>
+        <span class="pill">Mode Uji: Fungsionalitas End User</span>
+      </div>
+      <div class="flow-switch" aria-label="Navigasi antar user flow">
+        <a href="user-flow-super-admin.html">Flow Super Admin</a>
+        <a href="user-flow-admin.html">Flow Admin</a>
+        <a class="active" href="user-flow-anggota.html">Flow Anggota</a>
+      </div>
+    </header>
+
+    <section class="lane uf-identity-lane">
+      <div class="lane-head">
+        <h2>Identitas Penguji</h2>
+        <small>Wajib diisi sebelum menilai flow</small>
+      </div>
+      <div class="flow" style="display:block; padding-bottom:12px;">
+        <div class="uf-grid">
+          <input id="testerFullName" type="text" placeholder="Nama lengkap penguji" required>
+          <input id="testerOrg" type="text" placeholder="Instansi / Kelas / Unit">
+          <select id="testerDevice" required>
+            <option value="" selected disabled>Pilih device yang digunakan</option>
+            <option value="PC/Laptop">PC/Laptop</option>
+            <option value="Handphone">Handphone</option>
+          </select>
+          <select id="testerBrowser" required>
+            <option value="" selected disabled>Pilih browser yang digunakan</option>
+            <option value="Google Chrome">Google Chrome</option>
+            <option value="Microsoft Edge">Microsoft Edge</option>
+            <option value="Mozilla Firefox">Mozilla Firefox</option>
+            <option value="Safari">Safari</option>
+            <option value="Opera">Opera</option>
+            <option value="Brave">Brave</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+          <input id="testerEmail" type="email" placeholder="Email penguji (opsional)">
+          <input id="testerPhone" type="text" placeholder="No HP penguji (opsional)">
+        </div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>1) Masuk Sistem Anggota</h2><small>Start flow</small></div>
+      <div class="flow">
+        <div class="node"><strong>Beranda Publik</strong><p>Silakan buka home.html terlebih dahulu, lalu klik Login di kanan atas untuk memulai pengujian anggota.</p><a target="_blank" rel="noopener noreferrer" href="home.html">home.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Login Anggota</strong><p>Setelah berada di halaman login, masukkan username dan password, lalu pilih akun Anggota untuk masuk ke dashboard.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Dashboard Anggota</strong><p>Setelah login, periksa dashboard anggota dan pastikan sidebar serta header notifikasi tampil dengan benar.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>2) Profil, Sertifikat, dan Log Pribadi</h2><small>Identitas anggota</small></div>
+      <div class="flow">
+        <div class="node"><strong>Profil Anggota</strong><p>Dari dashboard anggota, buka profil untuk melihat atau memperbarui data pribadi sebelum melanjutkan ke fitur lain.</p><a target="_blank" rel="noopener noreferrer" href="profil-anggota.html">profil-anggota.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Sertifikat Anggota</strong><p>Setelah profil dicek, lanjutkan ke sertifikat untuk mengunduh sertifikat keanggotaan.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Log Aktivitas Saya</strong><p>Setelah profil dan sertifikat diperiksa, buka log aktivitas pribadi untuk menguji filter dan search hanya pada data sendiri.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>3) Flow Tugas Streaming Anggota</h2><small>Request sampai evaluasi</small></div>
+      <div class="flow">
+        <div class="node"><strong>Lihat Jadwal Tugas</strong><p>Setelah masuk sistem, buka jadwal tugas untuk melihat alur tugas misa biasa atau besar yang tersedia.</p><a target="_blank" rel="noopener noreferrer" href="jadwal-tugas-misa-anggota.html">jadwal-tugas-misa-anggota.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Request Tugas</strong><p>Setelah jadwal dibuka, ajukan request tugas untuk mengambil jadwal yang masih tersedia.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Pembatalan / Tukar Jadwal</strong><p>Jika ada perubahan dari request sebelumnya, buka pembatalan-tugas-anggota.html untuk uji pembatalan, lalu cek penukaran-jadwal-tugas-anggota.html untuk memastikan proses tukar jadwal berjalan normal.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Riwayat Tugas + Evaluasi</strong><p>Setelah perubahan jadwal selesai, buka riwayat-tugas-saya.html untuk validasi histori tugas terbaru, lalu lanjut ke evaluasi-streaming-anggota.html untuk mengisi evaluasi berdasarkan tugas yang sudah dijalankan.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>4) Monitoring Kewajiban Tugas</h2><small>Kontrol kepatuhan pribadi</small></div>
+      <div class="flow">
+        <div class="node"><strong>Monitoring Kewajiban</strong><p>Setelah alur tugas, buka monitoring kewajiban untuk memantau status kewajiban tugas anggota.</p><a target="_blank" rel="noopener noreferrer" href="monitoring-kewajiban-tugas-anggota.html">monitoring-kewajiban-tugas-anggota.html</a></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>5) Flow Peminjaman Barang</h2><small>Dari ajukan sampai kembali</small></div>
+      <div class="flow">
+        <div class="node"><strong>Pengajuan Peminjaman</strong><p>Setelah monitoring kewajiban, lanjutkan ke pengajuan peminjaman barang untuk mengajukan barang yang dibutuhkan.</p><a target="_blank" rel="noopener noreferrer" href="pengajuan-peminjaman-barang-anggota.html">pengajuan-peminjaman-barang-anggota.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Input Pengambilan</strong><p>Setelah pengajuan dibuat, lanjutkan ke input pengambilan untuk mengonfirmasi barang yang sudah disetujui.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Input Pengembalian</strong><p>Setelah pengambilan, lanjutkan ke input pengembalian untuk menutup transaksi peminjaman barang.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Riwayat Peminjaman</strong><p>Setelah pengembalian selesai, buka riwayat peminjaman untuk melihat histori transaksi pribadi secara lengkap.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>5A) Kerusakan Barang</h2><small>Laporan dan riwayat</small></div>
+      <div class="flow">
+        <div class="node"><strong>Form Kerusakan Barang</strong><p>Setelah alur peminjaman, buka form kerusakan barang anggota untuk mencoba alur pelaporan kerusakan barang dari sisi anggota.</p><a target="_blank" rel="noopener noreferrer" href="form-kerusakan-barang-anggota.html">form-kerusakan-barang-anggota.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Riwayat Kerusakan</strong><p>Setelah submit, buka riwayat-form-kerusakan-barang-anggota.html untuk melihat histori laporan kerusakan yang sudah dikirim.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>6) Form Pendaftaran Kegiatan + Notifikasi</h2><small>Partisipasi kegiatan</small></div>
+      <div class="flow">
+        <div class="node"><strong>Daftar Form Kegiatan</strong><p>Setelah alur barang, buka daftar form kegiatan untuk melihat form pendaftaran yang tersedia.</p><a target="_blank" rel="noopener noreferrer" href="isi-form-pendaftaran.html">isi-form-pendaftaran.html</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Isi Form Detail</strong><p>Mulai dari form-pendaftaran.html untuk isi data inti pendaftaran, lalu lanjut ke form-pendaftaran-detail.html untuk melengkapi data tambahan dan pastikan submit berhasil.</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Notifikasi di Header</strong><p>Setelah pendaftaran kegiatan, buka dashboard anggota untuk mengecek notifikasi di header beserta filter dan search-nya.</p></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div class="lane-head"><h2>7) Selesai Pengujian Anggota</h2><small>Exit</small></div>
+      <div class="flow">
+        <div class="node"><strong>Kembali ke Home</strong><p>Setelah seluruh alur anggota selesai, validasi transisi kembali ke beranda untuk menutup sesi pengujian.</p><a target="_blank" rel="noopener noreferrer" href="home.html?session=active">home.html?session=active</a></div>
+        <div class="arrow">&rarr;</div>
+        <div class="node"><strong>Logout</strong><p>Setelah kembali ke home, logout untuk mengakhiri sesi pengujian role anggota.</p></div>
+      </div>
+    </section>
+
+    <section id="ufQuestionnaire" class="lane" data-flow-slug="anggota">
+      <div class="lane-head">
+        <h2>8) Form Kuesioner Pengujian</h2>
+        <small>Kartu pertanyaan muncul di setiap kotak flow, submit ada di bawah</small>
+      </div>
+      <form id="ufForm" class="uf-form" autocomplete="off">
+        <div class="uf-submit-row">
+          <button id="ufSubmitBtn" class="uf-btn" type="submit">Submit Hasil Pengujian</button>
+        </div>
+        <div id="ufSubmitInfo" class="uf-submit-info">Silakan isi kuesioner berdasarkan hasil pengujian Anda.</div>
+      </form>
+    </section>
+
+    <aside class="checklist">
+      <strong>Checklist Uji Cepat Anggota:</strong><br>
+      1. Dashboard anggota tampil lengkap dengan sidebar dan header.<br>
+      2. Alur tugas streaming berjalan dari request hingga evaluasi.<br>
+      3. Alur peminjaman anggota lengkap sampai riwayat.<br>
+      4. Log aktivitas hanya menampilkan data milik anggota sendiri.
+    </aside>
+  </div>
+  <script src="user-flow-submit.js"></script>
+</body>
+</html>
+
+

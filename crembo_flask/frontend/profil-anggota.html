@@ -1,0 +1,1500 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profil Anggota - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --blue-1: #202020;
+      --blue-2: #2d2d2d;
+      --blue-3: #141414;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 292px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--blue-1) 0%, var(--blue-2) 52%, var(--blue-3) 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      display: block;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 25;
+    }
+
+    .sidebar-backdrop.show { display: block; }
+
+    .sidebar > * { margin-bottom: 12px; }
+    .sidebar > *:last-child { margin-bottom: 0; }
+
+    .brand {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .brand strong { font-size: 1rem; letter-spacing: 0.01em; }
+    .brand small { font-size: 0.79rem; color: #dbe7ff; }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text { min-width: 0; display: grid; gap: 2px; }
+    .account-text strong { font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+    .account-text small { color: #d8e4ff; font-size: 0.76rem; }
+
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-toggle:hover { background: rgba(255, 255, 255, 0.1); }
+
+    .menu-items {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-group.open .menu-items { display: block; }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .menu-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.55);
+      font-weight: 700;
+    }
+
+    .side-bottom { margin-top: 16px; display: grid; gap: 8px; }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .side-action:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .main {
+      padding: 20px;
+      min-width: 0;
+    }
+
+    .dashboard-headline-bar {
+      background: linear-gradient(135deg, var(--primary-deeper), var(--primary));
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+    }
+
+    .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--primary-deeper), var(--primary));
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--soft-shadow);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .topbar::before { display: none; content: none; }
+
+    .mobile-toggle {
+      display: none;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    .mobile-toggle:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 700;
+      color: #fff;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .quick-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 5px 11px;
+      font-size: 0.74rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    .chip strong { color: var(--accent-gold-light); }
+
+    .home-globe {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #9ca3af;
+      background: #fff;
+      text-decoration: none;
+      color: #374151;
+    }
+
+    .home-globe:hover { background: #eef2f7; }
+
+    .content {
+      padding: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--soft-shadow);
+      background:
+        radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.95) 0%, rgba(247, 250, 255, 0.88) 44%, rgba(236, 241, 249, 0.9) 100%);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .hero-card h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .hero-card p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .member-badge {
+      display: inline-block;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-head p {
+      margin: 5px 0 0;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .panel-body {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.82rem;
+      color: #4b5563;
+      font-weight: 600;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid #cfd8e5;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.9rem;
+      padding: 10px;
+      color: #111827;
+      font-family: inherit;
+    }
+
+    .field textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .field-help {
+      margin: 0;
+      font-size: 0.76rem;
+      color: #6b7280;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .btn:hover { filter: brightness(1.05); }
+
+    .btn.secondary {
+      background: #fff;
+      border: 1px solid #cfd8e5;
+      color: #334155;
+    }
+
+    .inline-status {
+      border: 1px solid #c8d7f1;
+      background: #f4f8ff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.84rem;
+      color: #2c3e5f;
+    }
+
+    .request-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .status-top {
+      padding: 15px;
+      border-bottom: 1px solid #e5eaf3;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border: 1px solid #bbf7d0;
+      background: #ecfdf3;
+      color: #166534;
+    }
+
+    .status-pill.pending {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+    }
+
+    .status-grid {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(170px, 1fr));
+    }
+
+    .status-box {
+      border: 1px solid #dce4f1;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+
+    .status-box strong {
+      display: block;
+      font-size: 0.78rem;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .status-box span {
+      font-size: 0.92rem;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: 0 8px 18px rgba(17, 24, 39, 0.18);
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .grid-2,
+      .status-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 860px) {
+      .main { padding: 14px; }
+      .sidebar {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .dashboard-headline-bar > div:first-child { width: 100%; min-width: 0; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .chip { display: inline-block; width: 100%; }
+    }
+
+    @media (max-width: 520px) {
+      .main { padding: 12px; }
+      .dashboard-headline-bar { padding: 12px 14px; }
+      .topbar { padding: 12px 14px; }
+      .panel-head, .chart-head { padding: 12px 14px; }
+      .notify { right: 12px; left: 12px; bottom: 12px; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Pengaturan akun dan keanggotaan dalam satu halaman</small>
+      </div>
+
+      <div class="account">
+        <div class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Atanasius Surya Guna</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Ringkasan <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link" href="dashboard-anggota.html?role=anggota">Dashboard Utama</a>
+          <a class="menu-link active" href="profil-anggota.html">Profil Saya</a>
+          <a class="menu-link" href="sertifikat-anggota.html">Unduh Sertifikat Anggota</a>
+          <a class="menu-link" href="log-aktivitas.html?role=anggota">Log Aktivitas Saya</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header dashboard waktu berjalan">
+        <button id="mobileMenuBtn" class="mobile-toggle" type="button">Menu</button>
+        <h1>Profil Anggota</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Dashboard Anggota Crembo Media</h2>
+          <p class="subhead">Pengaturan profil, password, dan status keanggotaan tampil dalam satu halaman.</p>
+        </div>
+        <div class="quick-filter" aria-label="Ringkasan cepat anggota">
+          <span class="chip"><strong>Status:</strong> Aktif</span>
+          <span class="chip"><strong>Modul:</strong> Profil Anggota</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="hero-card" aria-label="Ringkasan profil anggota">
+          <div>
+            <h2>Satu Halaman Pengaturan Profil Anggota</h2>
+            <p>Ubah profil diri, ganti password, ajukan status nonaktif, dan cek status keanggotaan dalam satu tempat.</p>
+          </div>
+          <span id="memberBadge" class="member-badge">Anggota Multimedia Aktif</span>
+        </section>
+
+        <div class="grid-2">
+          <section class="panel" aria-label="Form ubah profil">
+            <header class="panel-head">
+              <h3>Ubah Profil Diri</h3>
+              <p>Data ini ditampilkan pada akun anggota saat login.</p>
+            </header>
+            <form id="profileForm" class="panel-body">
+              <div class="field">
+                <label for="fullName">Nama Lengkap</label>
+                <input id="fullName" type="text" required>
+              </div>
+              <div class="field">
+                <label for="memberEmail">Email</label>
+                <input id="memberEmail" type="email" required>
+              </div>
+              <div class="field">
+                <label for="memberPhone">Nomor WhatsApp</label>
+                <input id="memberPhone" type="tel" placeholder="08xx-xxxx-xxxx" required>
+              </div>
+              <div class="field">
+                <label for="memberAddress">Alamat</label>
+                <textarea id="memberAddress" placeholder="Alamat lengkap anggota..." required></textarea>
+              </div>
+              <div class="field">
+                <label for="memberBirthDate">Tanggal Lahir</label>
+                <input id="memberBirthDate" type="date" required>
+              </div>
+              <div class="field">
+                <label for="memberRole">Role Utama</label>
+                <select id="memberRole" disabled aria-readonly="true">
+                  <option>Anggota Multimedia</option>
+                  <option>Operator</option>
+                  <option>Kameramen</option>
+                  <option>Supervisor</option>
+                  <option>Fotografer</option>
+                </select>
+                <p class="field-help">Role hanya dapat diubah oleh admin.</p>
+              </div>
+              <div class="btn-row">
+                <button class="btn" type="submit">Simpan Profil</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel" aria-label="Form ganti password">
+            <header class="panel-head">
+              <h3>Ganti Password</h3>
+              <p>Password minimal 6 karakter dan gunakan kombinasi yang aman.</p>
+            </header>
+            <form id="passwordForm" class="panel-body">
+              <div class="field">
+                <label for="currentPassword">Password Saat Ini</label>
+                <input id="currentPassword" type="password" required>
+              </div>
+              <div class="field">
+                <label for="newPassword">Password Baru</label>
+                <input id="newPassword" type="password" minlength="6" required>
+              </div>
+              <div class="field">
+                <label for="confirmPassword">Konfirmasi Password Baru</label>
+                <input id="confirmPassword" type="password" minlength="6" required>
+              </div>
+              <p class="field-help">Setelah berhasil diubah, gunakan password baru untuk login berikutnya.</p>
+              <div class="btn-row">
+                <button class="btn secondary" type="reset">Reset</button>
+                <button class="btn" type="submit">Perbarui Password</button>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <div class="grid-2">
+          <section class="panel" aria-label="Ajukan status nonaktif">
+            <header class="panel-head">
+              <h3>Ajukan Status Nonaktif</h3>
+              <p>Ajukan jika Anda perlu jeda pelayanan dalam periode tertentu.</p>
+            </header>
+            <form id="inactiveRequestForm" class="panel-body">
+              <div class="field">
+                <label for="inactiveType">Jenis Nonaktif</label>
+                <select id="inactiveType" required>
+                  <option value="permanent">Nonaktif Selamanya</option>
+                  <option value="temporary">Nonaktif Berjangka</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="inactiveReason">Alasan Pengajuan</label>
+                <select id="inactiveReason" required>
+                  <option value="">Pilih alasan</option>
+                  <option>Fokus Akademik</option>
+                  <option>Kesibukan Pekerjaan</option>
+                  <option>Kesehatan</option>
+                  <option>Alasan Keluarga</option>
+                  <option>Lainnya</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="inactiveDate">Tanggal Mulai Nonaktif</label>
+                <input id="inactiveDate" type="date" required>
+              </div>
+              <div id="returnDateField" class="field hidden">
+                <label for="inactiveReturnDate">Tanggal Aktif Kembali</label>
+                <input id="inactiveReturnDate" type="date">
+              </div>
+              <div class="field">
+                <label for="inactiveNote">Catatan Tambahan</label>
+                <textarea id="inactiveNote" placeholder="Jelaskan kebutuhan Anda secara singkat..."></textarea>
+              </div>
+              <div class="field">
+                <label for="inactiveEvidence">Bukti Pendukung (Gambar/PDF/Word)</label>
+                <input id="inactiveEvidence" type="file" accept="image/*,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <p id="inactiveEvidenceInfo" class="field-help">Upload bukti pendukung agar alasan pengajuan lebih kredibel.</p>
+              </div>
+              <div class="btn-row">
+                <button id="submitInactiveBtn" class="btn" type="submit">Kirim Pengajuan</button>
+              </div>
+              <div id="pendingRequestInfo" class="inline-status hidden"></div>
+              <div id="pendingRequestActions" class="request-actions hidden">
+                <button id="editRequestBtn" class="btn secondary" type="button">Edit Pengajuan</button>
+                <button id="cancelRequestBtn" class="btn secondary" type="button">Batalkan Pengajuan</button>
+              </div>
+              <div id="activeAgainActions" class="request-actions hidden">
+                <button id="reactivateNowBtn" class="btn secondary" type="button">Aktifkan Kembali Sekarang</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="status-card" aria-label="Status keanggotaan">
+            <div class="status-top">
+              <div>
+                <h3 style="margin:0;font-size:1rem;">Status Keanggotaan Saya</h3>
+                <p style="margin:5px 0 0;font-size:0.82rem;color:#64748b;">Status ini diperbarui berdasarkan keputusan admin.</p>
+              </div>
+              <span id="statusPill" class="status-pill">Aktif</span>
+            </div>
+            <div class="status-grid">
+              <div class="status-box">
+                <strong>Status Saat Ini</strong>
+                <span id="statusCurrent">Aktif</span>
+              </div>
+              <div class="status-box">
+                <strong>Pengajuan Terakhir</strong>
+                <span id="statusRequestDate">-</span>
+              </div>
+              <div class="status-box">
+                <strong>Efektif Mulai</strong>
+                <span id="statusEffectiveDate">-</span>
+              </div>
+            </div>
+            <div style="padding:0 14px 14px;">
+              <div id="statusSummary" class="inline-status">Tidak ada pengajuan nonaktif. Status Anda aktif untuk pelayanan.</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const PROFILE_STORAGE_KEY = "crembo-member-profile";
+    const MEMBER_STORAGE_KEY = "crembo-members";
+    const INACTIVE_REQUEST_STORAGE_KEY = "crembo-member-inactive-request";
+    const STATUS_REQUEST_STORAGE_KEY = "crembo-member-status-requests";
+
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
+
+    menuGroups.forEach(function (group) {
+      const btn = group.querySelector(".menu-toggle");
+      btn.addEventListener("click", function () {
+        const isOpen = group.classList.toggle("open");
+        if (isOpen) {
+          menuGroups.forEach(function (otherGroup) {
+            if (otherGroup !== group) {
+              otherGroup.classList.remove("open");
+              const otherMark = otherGroup.querySelector(".menu-toggle span");
+              if (otherMark) {
+                otherMark.textContent = "+";
+              }
+            }
+          });
+        }
+        const mark = btn.querySelector("span");
+        if (mark) {
+          mark.textContent = group.classList.contains("open") ? "-" : "+";
+        }
+      });
+    });
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    mobileMenuBtn.addEventListener("click", function () {
+      setSidebarOpen(!sidebar.classList.contains("show"));
+    });
+
+    sidebarBackdrop.addEventListener("click", function () {
+      setSidebarOpen(false);
+    });
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 1080px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+
+    const memberName = document.getElementById("memberName");
+    const memberBadge = document.getElementById("memberBadge");
+
+    const fullName = document.getElementById("fullName");
+    const memberEmail = document.getElementById("memberEmail");
+    const memberPhone = document.getElementById("memberPhone");
+    const memberAddress = document.getElementById("memberAddress");
+    const memberBirthDate = document.getElementById("memberBirthDate");
+    const memberRole = document.getElementById("memberRole");
+    const profileForm = document.getElementById("profileForm");
+
+    const passwordForm = document.getElementById("passwordForm");
+    const currentPassword = document.getElementById("currentPassword");
+    const newPassword = document.getElementById("newPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+
+    const inactiveRequestForm = document.getElementById("inactiveRequestForm");
+    const inactiveType = document.getElementById("inactiveType");
+    const inactiveReason = document.getElementById("inactiveReason");
+    const inactiveDate = document.getElementById("inactiveDate");
+    const inactiveReturnDate = document.getElementById("inactiveReturnDate");
+    const returnDateField = document.getElementById("returnDateField");
+    const inactiveNote = document.getElementById("inactiveNote");
+    const inactiveEvidence = document.getElementById("inactiveEvidence");
+    const inactiveEvidenceInfo = document.getElementById("inactiveEvidenceInfo");
+    const submitInactiveBtn = document.getElementById("submitInactiveBtn");
+    const pendingRequestInfo = document.getElementById("pendingRequestInfo");
+    const pendingRequestActions = document.getElementById("pendingRequestActions");
+    const editRequestBtn = document.getElementById("editRequestBtn");
+    const cancelRequestBtn = document.getElementById("cancelRequestBtn");
+    const activeAgainActions = document.getElementById("activeAgainActions");
+    const reactivateNowBtn = document.getElementById("reactivateNowBtn");
+
+    const statusPill = document.getElementById("statusPill");
+    const statusCurrent = document.getElementById("statusCurrent");
+    const statusRequestDate = document.getElementById("statusRequestDate");
+    const statusEffectiveDate = document.getElementById("statusEffectiveDate");
+    const statusSummary = document.getElementById("statusSummary");
+
+    const notify = document.getElementById("notify");
+    let editingRequestId = "";
+    let draftEvidence = { name: "", type: "", dataUrl: "" };
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2000);
+    }
+
+    function readLoginName() {
+      const sessionRaw = localStorage.getItem("crembo-login-session");
+      if (!sessionRaw) {
+        return "Atanasius Surya Guna";
+      }
+      try {
+        const session = JSON.parse(sessionRaw);
+        return session.fullName || session.identifier || "Atanasius Surya Guna";
+      } catch (error) {
+        return "Atanasius Surya Guna";
+      }
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function readSession() {
+      const raw = localStorage.getItem("crembo-login-session");
+      const parsed = raw ? safeParse(raw) : null;
+      return parsed && typeof parsed === "object" ? parsed : {};
+    }
+
+    function readMembers() {
+      const raw = localStorage.getItem(MEMBER_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    }
+
+    function saveMembers(list) {
+      localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function normalizeDateOnly(value) {
+      const raw = String(value || "").trim();
+      if (!raw) {
+        return "";
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+        return raw;
+      }
+      const parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime())) {
+        return "";
+      }
+      const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, "0");
+      const date = String(parsed.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + date;
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          resolve(String(reader.result || ""));
+        };
+        reader.onerror = function () {
+          reject(new Error("Gagal membaca file bukti."));
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function updateEvidenceInfo() {
+      if (draftEvidence && draftEvidence.name) {
+        inactiveEvidenceInfo.textContent = "Bukti terpilih: " + draftEvidence.name;
+      } else {
+        inactiveEvidenceInfo.textContent = "Upload bukti pendukung agar alasan pengajuan lebih kredibel.";
+      }
+    }
+
+    function readRequests() {
+      const raw = localStorage.getItem(STATUS_REQUEST_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    }
+
+    function saveRequests(list) {
+      localStorage.setItem(STATUS_REQUEST_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function currentMemberIdentity() {
+      const profile = readProfile();
+      const session = readSession();
+      const members = readMembers();
+      const sessionId = String(session.memberId || "");
+      const profileName = String(profile.fullName || "").trim().toLowerCase();
+
+      const matched = members.find(function (item) {
+        const itemName = String(item && (item.name || item.fullName) ? (item.name || item.fullName) : "").trim().toLowerCase();
+        return (sessionId && String(item && item.id ? item.id : "") === sessionId) || (profileName && itemName === profileName);
+      }) || null;
+
+      return {
+        memberId: matched ? String(matched.id || "") : String(session.memberId || ""),
+        memberName: matched ? String(matched.name || matched.fullName || profile.fullName || "Anggota") : String(profile.fullName || "Anggota")
+      };
+    }
+
+    function findLatestOwnRequest() {
+      const identity = currentMemberIdentity();
+      const profile = readProfile();
+      const ownName = String(identity.memberName || profile.fullName || "").trim().toLowerCase();
+      const ownId = String(identity.memberId || "");
+
+      return readRequests()
+        .filter(function (req) {
+          const reqName = String(req && req.memberName ? req.memberName : "").trim().toLowerCase();
+          const reqId = String(req && req.memberId ? req.memberId : "");
+          return (ownId && reqId === ownId) || (ownName && reqName === ownName);
+        })
+        .sort(function (a, b) {
+          const aTime = new Date((a && a.updatedAt) || (a && a.submittedDate) || "1970-01-01").getTime();
+          const bTime = new Date((b && b.updatedAt) || (b && b.submittedDate) || "1970-01-01").getTime();
+          return bTime - aTime;
+        })[0] || null;
+    }
+
+    function findLatestApprovedNonaktifRequest() {
+      const identity = currentMemberIdentity();
+      const ownId = String(identity.memberId || "");
+      const ownName = String(identity.memberName || "").trim().toLowerCase();
+
+      return readRequests()
+        .filter(function (req) {
+          const reqType = String(req && req.requestType ? req.requestType : "").toLowerCase();
+          const reqStatus = String(req && req.status ? req.status : "").toLowerCase();
+          const reqId = String(req && req.memberId ? req.memberId : "");
+          const reqName = String(req && req.memberName ? req.memberName : "").trim().toLowerCase();
+          const sameMember = (ownId && reqId === ownId) || (ownName && reqName === ownName);
+          return sameMember && reqType.includes("nonaktif") && reqStatus === "disetujui";
+        })
+        .sort(function (a, b) {
+          const aTime = new Date((a && a.updatedAt) || (a && a.submittedDate) || "1970-01-01").getTime();
+          const bTime = new Date((b && b.updatedAt) || (b && b.submittedDate) || "1970-01-01").getTime();
+          return bTime - aTime;
+        })[0] || null;
+    }
+
+    function isPending(request) {
+      return String(request && request.status ? request.status : "").toLowerCase().includes("menunggu");
+    }
+
+    function syncAutoReactivate() {
+      const today = normalizeDateOnly(new Date().toISOString());
+      const identity = currentMemberIdentity();
+      if (!identity.memberId) {
+        return;
+      }
+
+      const members = readMembers();
+      let changed = false;
+      members.forEach(function (item) {
+        if (String(item && item.id ? item.id : "") !== identity.memberId) {
+          return;
+        }
+        const inactiveUntil = normalizeDateOnly(item && item.inactiveUntil ? item.inactiveUntil : "");
+        if (String(item && item.status ? item.status : "") === "Nonaktif" && inactiveUntil && inactiveUntil <= today) {
+          item.status = "Aktif";
+          item.inactiveUntil = "";
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        saveMembers(members);
+      }
+    }
+
+    function refreshRequestActionState() {
+      const latest = findLatestOwnRequest();
+      const identity = currentMemberIdentity();
+      const targetMember = readMembers().find(function (item) {
+        return String(item && item.id ? item.id : "") === String(identity.memberId || "");
+      }) || null;
+
+      if (latest && isPending(latest)) {
+        pendingRequestInfo.textContent = "Pengajuan pending: " + (latest.inactiveType === "temporary" ? "Nonaktif Berjangka" : "Nonaktif Selamanya") + " mulai " + formatDate(latest.effectiveDate) + (latest.reactivateDate ? " sampai " + formatDate(latest.reactivateDate) : "") + ". " + (latest.evidenceName ? ("Bukti: " + latest.evidenceName) : "Bukti: belum diunggah.");
+        pendingRequestInfo.classList.remove("hidden");
+        pendingRequestActions.classList.remove("hidden");
+      } else {
+        pendingRequestInfo.classList.add("hidden");
+        pendingRequestActions.classList.add("hidden");
+      }
+
+      const approvedNonaktif = findLatestApprovedNonaktifRequest();
+      if (targetMember && String(targetMember.status || "") === "Nonaktif" && approvedNonaktif) {
+        activeAgainActions.classList.remove("hidden");
+      } else {
+        activeAgainActions.classList.add("hidden");
+      }
+    }
+
+    function resetInactiveForm() {
+      editingRequestId = "";
+      inactiveRequestForm.reset();
+      inactiveType.value = "permanent";
+      returnDateField.classList.add("hidden");
+      inactiveReturnDate.required = false;
+      submitInactiveBtn.textContent = "Kirim Pengajuan";
+      draftEvidence = { name: "", type: "", dataUrl: "" };
+      updateEvidenceInfo();
+    }
+
+    function updateInactiveTypeUI() {
+      const temporary = inactiveType.value === "temporary";
+      returnDateField.classList.toggle("hidden", !temporary);
+      inactiveReturnDate.required = temporary;
+      if (!temporary) {
+        inactiveReturnDate.value = "";
+      }
+    }
+
+    function defaultProfile() {
+      const loginName = readLoginName();
+      return {
+        fullName: loginName,
+        email: "anggota.crembo@example.com",
+        phone: "08xx-xxxx-xxxx",
+        address: "Alamat belum diisi",
+        birthDate: "",
+        role: "Anggota Multimedia"
+      };
+    }
+
+    function readProfile() {
+      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (!raw) {
+        return defaultProfile();
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          fullName: parsed.fullName || defaultProfile().fullName,
+          email: parsed.email || defaultProfile().email,
+          phone: parsed.phone || defaultProfile().phone,
+          address: parsed.address || defaultProfile().address,
+          birthDate: parsed.birthDate || defaultProfile().birthDate,
+          role: parsed.role || defaultProfile().role
+        };
+      } catch (error) {
+        return defaultProfile();
+      }
+    }
+
+    function renderProfile() {
+      const profile = readProfile();
+      memberName.textContent = profile.fullName;
+      memberBadge.textContent = profile.role + " Aktif";
+      fullName.value = profile.fullName;
+      memberEmail.value = profile.email;
+      memberPhone.value = profile.phone;
+      memberAddress.value = profile.address;
+      memberBirthDate.value = profile.birthDate;
+      memberRole.value = profile.role;
+    }
+
+    function saveProfile(event) {
+      event.preventDefault();
+      const currentProfile = readProfile();
+      const payload = {
+        fullName: fullName.value.trim(),
+        email: memberEmail.value.trim(),
+        phone: memberPhone.value.trim(),
+        address: memberAddress.value.trim(),
+        birthDate: memberBirthDate.value,
+        role: currentProfile.role
+      };
+
+      if (!payload.birthDate) {
+        showNotify("Tanggal lahir wajib diisi.");
+        return;
+      }
+
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
+      renderProfile();
+      showNotify("Profil anggota berhasil diperbarui.");
+    }
+
+    function submitPassword(event) {
+      event.preventDefault();
+      if (newPassword.value.length < 6) {
+        showNotify("Password baru minimal 6 karakter.");
+        return;
+      }
+      if (newPassword.value !== confirmPassword.value) {
+        showNotify("Konfirmasi password tidak cocok.");
+        return;
+      }
+      currentPassword.value = "";
+      newPassword.value = "";
+      confirmPassword.value = "";
+      showNotify("Password berhasil diperbarui.");
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "-";
+      }
+      const date = new Date(value + "T00:00:00");
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+      return date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+    }
+
+    function readInactiveRequest() {
+      const latest = findLatestOwnRequest();
+      if (latest) {
+        return latest;
+      }
+      const raw = localStorage.getItem(INACTIVE_REQUEST_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      return parsed && typeof parsed === "object" ? parsed : null;
+    }
+
+    function renderMembershipStatus() {
+      syncAutoReactivate();
+      const request = readInactiveRequest();
+      const identity = currentMemberIdentity();
+      const targetMember = readMembers().find(function (item) {
+        return String(item && item.id ? item.id : "") === String(identity.memberId || "");
+      }) || null;
+
+      if (targetMember) {
+        memberBadge.textContent = "Anggota Multimedia " + String(targetMember.status || "Aktif");
+      }
+
+      if (!request) {
+        statusPill.textContent = "Aktif";
+        statusPill.classList.remove("pending");
+        statusCurrent.textContent = "Aktif";
+        statusRequestDate.textContent = "-";
+        statusEffectiveDate.textContent = "-";
+        statusSummary.textContent = "Tidak ada pengajuan nonaktif. Status Anda aktif untuk pelayanan.";
+        refreshRequestActionState();
+        return;
+      }
+
+      statusPill.textContent = request.status || "Menunggu Review Admin";
+      statusPill.classList.toggle("pending", isPending(request));
+      statusCurrent.textContent = targetMember ? (targetMember.status || "Aktif") : (request.status || "Menunggu Review Admin");
+      statusRequestDate.textContent = formatDate(request.submittedDate);
+      statusEffectiveDate.textContent = formatDate(request.effectiveDate) + (request.reactivateDate ? " s/d " + formatDate(request.reactivateDate) : "");
+      statusSummary.textContent = "Pengajuan " + (request.inactiveType === "temporary" ? "nonaktif berjangka" : "nonaktif selamanya") + " dengan alasan '" + (request.reason || "-") + "' berstatus " + (request.status || "Menunggu Review Admin") + ".";
+      refreshRequestActionState();
+    }
+
+    async function submitInactiveRequest(event) {
+      event.preventDefault();
+      const currentProfile = readProfile();
+      const identity = currentMemberIdentity();
+      const mode = inactiveType.value === "temporary" ? "temporary" : "permanent";
+      const startDate = normalizeDateOnly(inactiveDate.value);
+      const returnDate = normalizeDateOnly(inactiveReturnDate.value);
+
+      if (mode === "temporary") {
+        if (!returnDate) {
+          showNotify("Tanggal aktif kembali wajib diisi untuk nonaktif berjangka.");
+          return;
+        }
+        if (returnDate < startDate) {
+          showNotify("Tanggal aktif kembali harus sesudah tanggal mulai nonaktif.");
+          return;
+        }
+      }
+
+      const payload = {
+        id: editingRequestId || ("req-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8)),
+        memberId: identity.memberId,
+        memberName: identity.memberName || currentProfile.fullName,
+        requestType: "Nonaktif",
+        inactiveType: mode,
+        reason: inactiveReason.value,
+        effectiveDate: startDate,
+        reactivateDate: mode === "temporary" ? returnDate : "",
+        note: inactiveNote.value.trim(),
+        evidenceName: draftEvidence.name || "",
+        evidenceType: draftEvidence.type || "",
+        evidenceDataUrl: draftEvidence.dataUrl || "",
+        status: "Menunggu Review Admin",
+        submittedDate: new Date().toISOString().slice(0, 10),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (!payload.reason || !payload.effectiveDate) {
+        showNotify("Jenis, alasan, dan tanggal mulai nonaktif wajib diisi.");
+        return;
+      }
+
+      const requestList = readRequests();
+      const existingPendingForMember = requestList.find(function (item) {
+        if (!isPending(item)) {
+          return false;
+        }
+        const sameId = identity.memberId && String(item && item.memberId ? item.memberId : "") === String(identity.memberId);
+        const sameName = String(item && item.memberName ? item.memberName : "").trim().toLowerCase() === String(identity.memberName || "").trim().toLowerCase();
+        return sameId || sameName;
+      });
+
+      if (!editingRequestId && existingPendingForMember) {
+        payload.id = String(existingPendingForMember.id || payload.id);
+      }
+
+      const existingIndex = requestList.findIndex(function (item) { return String(item && item.id ? item.id : "") === String(payload.id); });
+      if (existingIndex >= 0) {
+        const existing = requestList[existingIndex];
+        if (!isPending(existing)) {
+          showNotify("Pengajuan yang sudah diproses admin tidak bisa diubah.");
+          return;
+        }
+        if (!payload.evidenceDataUrl) {
+          payload.evidenceName = String(existing.evidenceName || "");
+          payload.evidenceType = String(existing.evidenceType || "");
+          payload.evidenceDataUrl = String(existing.evidenceDataUrl || "");
+        }
+        requestList[existingIndex] = Object.assign({}, existing, payload);
+      } else {
+        requestList.push(payload);
+      }
+
+      if (!payload.evidenceDataUrl) {
+        showNotify("Bukti pendukung wajib diupload (gambar/PDF/Word).");
+        return;
+      }
+
+      localStorage.setItem(INACTIVE_REQUEST_STORAGE_KEY, JSON.stringify(payload));
+      saveRequests(requestList);
+      renderMembershipStatus();
+      resetInactiveForm();
+      showNotify(existingIndex >= 0 ? "Pengajuan nonaktif berhasil diperbarui." : "Pengajuan status nonaktif berhasil dikirim.");
+    }
+
+    function editPendingRequest() {
+      const latest = findLatestOwnRequest();
+      if (!latest || !isPending(latest)) {
+        showNotify("Tidak ada pengajuan pending yang bisa diedit.");
+        return;
+      }
+      editingRequestId = String(latest.id || "");
+      inactiveType.value = latest.inactiveType === "temporary" ? "temporary" : "permanent";
+      updateInactiveTypeUI();
+      inactiveReason.value = latest.reason || "";
+      inactiveDate.value = normalizeDateOnly(latest.effectiveDate);
+      inactiveReturnDate.value = normalizeDateOnly(latest.reactivateDate);
+      inactiveNote.value = latest.note || "";
+      draftEvidence = {
+        name: String(latest.evidenceName || ""),
+        type: String(latest.evidenceType || ""),
+        dataUrl: String(latest.evidenceDataUrl || "")
+      };
+      inactiveEvidence.value = "";
+      updateEvidenceInfo();
+      submitInactiveBtn.textContent = "Simpan Perubahan Pengajuan";
+      showNotify("Form pengajuan dimuat untuk diedit.");
+    }
+
+    function cancelPendingRequest() {
+      const latest = findLatestOwnRequest();
+      if (!latest || !isPending(latest)) {
+        showNotify("Tidak ada pengajuan pending yang bisa dibatalkan.");
+        return;
+      }
+
+      if (!window.confirm("Batalkan pengajuan nonaktif yang masih pending?")) {
+        return;
+      }
+
+      const list = readRequests().filter(function (item) {
+        return String(item && item.id ? item.id : "") !== String(latest.id || "");
+      });
+      saveRequests(list);
+
+      const inactiveRaw = readInactiveRequest();
+      if (inactiveRaw && String(inactiveRaw.id || "") === String(latest.id || "")) {
+        localStorage.removeItem(INACTIVE_REQUEST_STORAGE_KEY);
+      }
+
+      resetInactiveForm();
+      renderMembershipStatus();
+      showNotify("Pengajuan nonaktif berhasil dibatalkan.");
+    }
+
+    function reactivateNowByMember() {
+      const identity = currentMemberIdentity();
+      if (!identity.memberId) {
+        showNotify("Data anggota tidak ditemukan.");
+        return;
+      }
+
+      if (!window.confirm("Aktifkan kembali akun sekarang?")) {
+        return;
+      }
+
+      const members = readMembers();
+      const member = members.find(function (item) {
+        return String(item && item.id ? item.id : "") === String(identity.memberId);
+      });
+      if (!member) {
+        showNotify("Data anggota tidak ditemukan.");
+        return;
+      }
+
+      member.status = "Aktif";
+      member.inactiveUntil = "";
+      saveMembers(members);
+
+      const approvedReq = findLatestApprovedNonaktifRequest();
+      if (approvedReq) {
+        const all = readRequests();
+        const idx = all.findIndex(function (item) {
+          return String(item && item.id ? item.id : "") === String(approvedReq.id || "");
+        });
+        if (idx >= 0) {
+          all[idx] = Object.assign({}, all[idx], {
+            status: "Diaktifkan Kembali oleh Anggota",
+            updatedAt: new Date().toISOString(),
+            memberReactivatedAt: new Date().toISOString()
+          });
+          saveRequests(all);
+          localStorage.setItem(INACTIVE_REQUEST_STORAGE_KEY, JSON.stringify(all[idx]));
+        }
+      }
+
+      renderMembershipStatus();
+      showNotify("Akun berhasil diaktifkan kembali.");
+    }
+
+    const liveDateTime = document.getElementById("liveDateTime");
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    profileForm.addEventListener("submit", saveProfile);
+    passwordForm.addEventListener("submit", submitPassword);
+    inactiveRequestForm.addEventListener("submit", submitInactiveRequest);
+    inactiveEvidence.addEventListener("change", function () {
+      const file = inactiveEvidence.files && inactiveEvidence.files[0];
+      if (!file) {
+        draftEvidence = { name: "", type: "", dataUrl: "" };
+        updateEvidenceInfo();
+        return;
+      }
+      readFileAsDataUrl(file).then(function (dataUrl) {
+        draftEvidence = {
+          name: String(file.name || "bukti"),
+          type: String(file.type || "application/octet-stream"),
+          dataUrl: dataUrl
+        };
+        updateEvidenceInfo();
+      }).catch(function () {
+        draftEvidence = { name: "", type: "", dataUrl: "" };
+        inactiveEvidence.value = "";
+        updateEvidenceInfo();
+        showNotify("Gagal membaca file bukti.");
+      });
+    });
+    inactiveType.addEventListener("change", updateInactiveTypeUI);
+    editRequestBtn.addEventListener("click", editPendingRequest);
+    cancelRequestBtn.addEventListener("click", cancelPendingRequest);
+    reactivateNowBtn.addEventListener("click", reactivateNowByMember);
+
+    renderProfile();
+    updateInactiveTypeUI();
+    resetInactiveForm();
+    renderMembershipStatus();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

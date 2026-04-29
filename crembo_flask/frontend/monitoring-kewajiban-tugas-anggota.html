@@ -1,0 +1,1177 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitoring Kewajiban Tugas - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --blue-1: #202020;
+      --blue-2: #2d2d2d;
+      --blue-3: #141414;
+      --green: #16a34a;
+      --yellow: #f59e0b;
+      --blue: #2563eb;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 292px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--blue-1) 0%, var(--blue-2) 52%, var(--blue-3) 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      display: block;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 25;
+    }
+
+    .sidebar-backdrop.show { display: block; }
+
+    .sidebar > * {
+      margin-bottom: 12px;
+    }
+
+    .sidebar > *:last-child {
+      margin-bottom: 0;
+    }
+
+    .brand {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .brand strong {
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .brand small {
+      font-size: 0.79rem;
+      color: #dbe7ff;
+    }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .account-text strong {
+      font-size: 0.85rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .account-text small {
+      color: #d8e4ff;
+      font-size: 0.76rem;
+    }
+
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .menu-items {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-group.open .menu-items {
+      display: block;
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .menu-link.active {
+      background: #fff7d8;
+      border-color: #fbbf24;
+      color: #78350f;
+      font-weight: 700;
+    }
+
+    .side-bottom {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .side-action:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 20px;
+    }
+
+    .dashboard-headline-bar {
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+    }
+
+    .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--soft-shadow);
+      margin-bottom: 14px;
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 700;
+      color: #fff;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .quick-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .quick-chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 5px 11px;
+      font-size: 0.74rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    .home-globe {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #9ca3af;
+      background: #fff;
+      text-decoration: none;
+      color: #374151;
+    }
+
+    .home-globe:hover {
+      background: #eef2f7;
+    }
+
+    .home-globe svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .content {
+      padding: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid #d2dceb;
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, #f6f9ff 0%, #ffffff 100%);
+      padding: 14px;
+      box-shadow: var(--soft-shadow);
+      border-left: 4px solid var(--blue);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .stat:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(27, 43, 94, 0.18); }
+    .stat.yellow { border-left-color: var(--yellow); }
+    .stat.green { border-left-color: var(--green); }
+    .stat.blue { border-left-color: var(--blue); }
+
+    .stat:nth-child(1) { background: linear-gradient(145deg, #eef2ff 0%, #ffffff 88%); }
+    .stat:nth-child(2) { background: linear-gradient(145deg, #fff7ed 0%, #ffffff 88%); }
+    .stat:nth-child(3) { background: linear-gradient(145deg, #ecfdf5 0%, #ffffff 88%); }
+    .stat:nth-child(4) { background: linear-gradient(145deg, #eff6ff 0%, #ffffff 88%); }
+
+    .stat p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.79rem;
+    }
+
+    .stat h2 {
+      margin: 8px 0 0;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .filter-bar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: #fafbfc;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .search-box {
+      border: 1px solid #b8b8b8;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      width: 200px;
+      font-family: inherit;
+    }
+
+    .select-input {
+      border: 1px solid #b8b8b8;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .table-wrap {
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      min-width: 720px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #e5e9f2;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.73rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: #f8fafc;
+      font-weight: 700;
+    }
+
+    .status-ok {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #166534;
+      border: 1px solid #8bdb9f;
+      background: #ebf9ef;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-warn {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #8a6d00;
+      border: 1px solid #f0d978;
+      background: #fff9df;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-danger {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #991b1b;
+      border: 1px solid #f4b0b0;
+      background: #fff1f1;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e9f2;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #2563eb);
+      border-radius: 999px;
+      transition: width 200ms ease;
+    }
+
+    .progress-fill.good {
+      background: linear-gradient(90deg, #4ade80, #16a34a);
+    }
+
+    .progress-fill.warn {
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .progress-fill.low {
+      background: linear-gradient(90deg, #fca5a5, #ef4444);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--muted);
+    }
+
+    .empty-state h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .empty-state p {
+      margin: 0;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .quick-chip { display: inline-block; width: 100%; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .filter-bar { flex-direction: column; gap: 8px; }
+      .search-box { width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      .main { padding: 12px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .filter-group { flex-direction: column; align-items: flex-start; }
+      .select-input { width: 100%; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Monitoring kewajiban tugas personal anggota</small>
+      </div>
+
+      <div class="account">
+        <div class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Atanasius Surya Guna</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Monitoring Kewajiban Tugas <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link active" href="monitoring-kewajiban-tugas-anggota.html">Monitoring Kewajiban Tugas</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header monitoring kewajiban tugas anggota">
+        <button id="mobileMenuBtn" class="mobile-toggle" type="button">Menu</button>
+        <h1>Monitoring Kewajiban Tugas</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Dashboard Anggota Crembo Media</h2>
+          <p class="subhead">Pantau progress kewajiban tugas bulanan, kekurangan, dan capaian personal secara real-time.</p>
+        </div>
+        <div class="quick-filter" aria-label="Ringkasan monitoring tugas anggota">
+          <span class="quick-chip"><strong>Modul:</strong> Monitoring</span>
+          <span class="quick-chip"><strong>Status:</strong> Aktif</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="stats-grid" aria-label="Ringkasan kewajiban tugas">
+          <article class="stat blue">
+            <p>Progress Tugas Bulan Ini</p>
+            <h2 id="progressValue">8</h2>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressBar" style="width: 73%;"></div>
+            </div>
+            <small style="color: #64748b; font-size: 0.74rem;">dari 11 target tugas</small>
+          </article>
+
+          <article class="stat yellow">
+            <p>Kekurangan Tugas</p>
+            <h2 id="shortageValue">3</h2>
+            <small style="color: #64748b; font-size: 0.74rem;">bulan lalu belum terpenuhi</small>
+          </article>
+
+          <article class="stat green">
+            <p>Target Tugas Bulan Depan</p>
+            <h2 id="nextMonthTargetValue">12</h2>
+            <small style="color: #64748b; font-size: 0.74rem;">Mei 2026</small>
+          </article>
+
+          <article class="stat">
+            <p>Total Tugas Selesai</p>
+            <h2 id="totalCompletedValue">42</h2>
+            <small style="color: #64748b; font-size: 0.74rem;">sepanjang tahun</small>
+          </article>
+        </section>
+
+        <section class="panel" aria-label="Progress tugas bulan berjalan">
+          <header class="panel-head">
+            <h2>Progress Tugas Bulan Berjalan</h2>
+          </header>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label>Cari:</label>
+              <input type="text" id="progressSearchBox" class="search-box" placeholder="Cari judul tugas...">
+            </div>
+            <div class="filter-group">
+              <label>Urut:</label>
+              <select id="progressSortSelect" class="select-input">
+                <option value="date-desc">Tanggal Terbaru</option>
+                <option value="date-asc">Tanggal Lama</option>
+                <option value="status">Status (A-Z)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Judul Tugas</th>
+                  <th>Jumlah</th>
+                  <th>Jadwal</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Progres</th>
+                </tr>
+              </thead>
+              <tbody id="progressTableRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Kekurangan tugas">
+          <header class="panel-head">
+            <h2>Kekurangan Tugas</h2>
+          </header>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label>Bulan:</label>
+              <select id="shortageMonthSelect" class="select-input">
+                <option value="">Semua</option>
+                <option value="01">Januari</option>
+                <option value="02">Februari</option>
+                <option value="03">Maret</option>
+                <option value="04">April</option>
+                <option value="05">Mei</option>
+                <option value="06">Juni</option>
+                <option value="07">Juli</option>
+                <option value="08">Agustus</option>
+                <option value="09">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Tahun:</label>
+              <select id="shortageYearSelect" class="select-input">
+                <option value="">Semua</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bulan/Tahun</th>
+                  <th>Kekurangan Minimal</th>
+                </tr>
+              </thead>
+              <tbody id="shortageTableRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Statistik tugas personal">
+          <header class="panel-head">
+            <h2>Statistik Tugas Personal</h2>
+          </header>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label>Bulan:</label>
+              <select id="statsMonthSelect" class="select-input">
+                <option value="">Semua</option>
+                <option value="01">Januari</option>
+                <option value="02">Februari</option>
+                <option value="03">Maret</option>
+                <option value="04" selected>April</option>
+                <option value="05">Mei</option>
+                <option value="06">Juni</option>
+                <option value="07">Juli</option>
+                <option value="08">Agustus</option>
+                <option value="09">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Tahun:</label>
+              <select id="statsYearSelect" class="select-input">
+                <option value="">Semua</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bulan/Tahun</th>
+                  <th>Target Tugas</th>
+                  <th>Tugas Selesai</th>
+                  <th>Kekurangan</th>
+                  <th>% Hasil</th>
+                </tr>
+              </thead>
+              <tbody id="statsTableRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
+    menuGroups.forEach(function (group) {
+      const btn = group.querySelector(".menu-toggle");
+      btn.addEventListener("click", function () {
+        group.classList.toggle("open");
+        const mark = btn.querySelector("span");
+        mark.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    mobileMenuBtn.addEventListener("click", function () {
+      setSidebarOpen(!sidebar.classList.contains("show"));
+    });
+
+    sidebarBackdrop.addEventListener("click", function () {
+      setSidebarOpen(false);
+    });
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 1080px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+
+    const sessionRaw = localStorage.getItem("crembo-login-session");
+    const memberName = document.getElementById("memberName");
+    if (sessionRaw) {
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (session.fullName) {
+          memberName.textContent = session.fullName;
+        } else if (session.identifier) {
+          memberName.textContent = session.identifier;
+        }
+      } catch (error) {
+      }
+    }
+
+    const liveDateTime = document.getElementById("liveDateTime");
+    const progressValue = document.getElementById("progressValue");
+    const progressBar = document.getElementById("progressBar");
+    const shortageValue = document.getElementById("shortageValue");
+    const nextMonthTargetValue = document.getElementById("nextMonthTargetValue");
+    const totalCompletedValue = document.getElementById("totalCompletedValue");
+
+    const progressSearchBox = document.getElementById("progressSearchBox");
+    const progressSortSelect = document.getElementById("progressSortSelect");
+    const progressTableRows = document.getElementById("progressTableRows");
+
+    const shortageMonthSelect = document.getElementById("shortageMonthSelect");
+    const shortageYearSelect = document.getElementById("shortageYearSelect");
+    const shortageTableRows = document.getElementById("shortageTableRows");
+
+    const statsMonthSelect = document.getElementById("statsMonthSelect");
+    const statsYearSelect = document.getElementById("statsYearSelect");
+    const statsTableRows = document.getElementById("statsTableRows");
+
+    const PROGRESS_STORAGE_KEY = "crembo-monitoring-progress";
+    const SHORTAGE_STORAGE_KEY = "crembo-monitoring-shortage";
+    const STATS_STORAGE_KEY = "crembo-monitoring-stats";
+
+    let progressFilterSearch = "";
+    let progressFilterSort = "date-desc";
+    let shortageFilterMonth = "";
+    let shortageFilterYear = "2026";
+    let statsFilterMonth = "04";
+    let statsFilterYear = "2026";
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function seedProgressIfEmpty() {
+      if (localStorage.getItem(PROGRESS_STORAGE_KEY)) {
+        return;
+      }
+      const demo = [
+        { id: "prog-1", title: "Misa Mingguan", date: "2026-04-05", role: "Operator", status: "Selesai", progress: 100 },
+        { id: "prog-2", title: "Misa Mingguan", date: "2026-04-13", role: "Kameramen", status: "Selesai", progress: 100 },
+        { id: "prog-3", title: "Misa Harian", date: "2026-04-08", role: "Operator", status: "Selesai", progress: 100 },
+        { id: "prog-4", title: "Misa Harian", date: "2026-04-10", role: "Kameramen", status: "Selesai", progress: 100 },
+        { id: "prog-5", title: "Misa Harian", date: "2026-04-12", role: "Supervisor", status: "Selesai", progress: 100 },
+        { id: "prog-6", title: "Misa Besar", date: "2026-04-17", role: "Supervisor", status: "Terjadwal", progress: 0 }
+      ];
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(demo));
+    }
+
+    function seedShortageIfEmpty() {
+      if (localStorage.getItem(SHORTAGE_STORAGE_KEY)) {
+        return;
+      }
+      const demo = [
+        { id: "short-1", month: "2026-04", monthText: "April 2026", shortage: 3 },
+        { id: "short-2", month: "2026-03", monthText: "Maret 2026", shortage: 3 },
+        { id: "short-3", month: "2026-02", monthText: "Februari 2026", shortage: 0 },
+        { id: "short-4", month: "2026-01", monthText: "Januari 2026", shortage: 1 }
+      ];
+      localStorage.setItem(SHORTAGE_STORAGE_KEY, JSON.stringify(demo));
+    }
+
+    function seedStatsIfEmpty() {
+      if (localStorage.getItem(STATS_STORAGE_KEY)) {
+        return;
+      }
+      const demo = [
+        { month: "2026-01", target: 10, completed: 9, monthText: "Januari 2026" },
+        { month: "2026-02", target: 10, completed: 10, monthText: "Februari 2026" },
+        { month: "2026-03", target: 11, completed: 8, monthText: "Maret 2026" },
+        { month: "2026-04", target: 11, completed: 8, monthText: "April 2026" },
+        { month: "2026-05", target: 12, completed: 0, monthText: "Mei 2026" }
+      ];
+      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(demo));
+    }
+
+    function readProgress() {
+      return safeParse(localStorage.getItem(PROGRESS_STORAGE_KEY), []);
+    }
+
+    function readShortage() {
+      return safeParse(localStorage.getItem(SHORTAGE_STORAGE_KEY), []);
+    }
+
+    function readStats() {
+      return safeParse(localStorage.getItem(STATS_STORAGE_KEY), []);
+    }
+
+    function renderProgressTable() {
+      let items = readProgress().filter(function (item) {
+        return item.title === "Misa Mingguan" || item.title === "Misa Harian" || item.title === "Misa Besar";
+      });
+
+      if (progressFilterSearch) {
+        items = items.filter(function (item) {
+          return item.title.toLowerCase().includes(progressFilterSearch.toLowerCase());
+        });
+      }
+
+      items.sort(function (a, b) {
+        if (progressFilterSort === "date-desc") {
+          return new Date(b.date) - new Date(a.date);
+        }
+        if (progressFilterSort === "date-asc") {
+          return new Date(a.date) - new Date(b.date);
+        }
+        if (progressFilterSort === "status") {
+          return a.status.localeCompare(b.status);
+        }
+        return 0;
+      });
+
+      if (!items.length) {
+        progressTableRows.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Tidak ada data tugas.</td></tr>';
+        return;
+      }
+
+      // Group items by title to handle multiple instances
+      var grouped = items.reduce(function (acc, item) {
+        var existing = acc.find(function (g) { return g.title === item.title; });
+        if (existing) {
+          existing.dates.push(item.date);
+          existing.statuses.push(item.status);
+          existing.progresses.push(item.progress);
+          existing.roles.push(item.role);
+        } else {
+          acc.push({
+            title: item.title,
+            dates: [item.date],
+            statuses: [item.status],
+            progresses: [item.progress],
+            roles: [item.role]
+          });
+        }
+        return acc;
+      }, []);
+
+      progressTableRows.innerHTML = grouped.map(function (group) {
+        const count = group.dates.length;
+        const displayDate = group.dates.join(", ");
+        const displayRole = group.roles ? group.roles.join(", ") : "-";
+        const statusHtml = group.statuses.every(function (s) { return s === "Selesai"; })
+          ? '<span class="status-ok">Selesai</span>'
+          : '<span class="status-warn">Terjadwal</span>';
+        const avgProgress = Math.round(group.progresses.reduce(function (a, b) { return a + b; }, 0) / group.progresses.length);
+        const progressClass = avgProgress >= 80 ? "good" : (avgProgress >= 60 ? "warn" : "low");
+
+        return '<tr>'
+          + '<td>' + group.title + '</td>'
+          + '<td>' + count + '</td>'
+          + '<td>' + displayDate + '</td>'
+          + '<td>' + displayRole + '</td>'
+          + '<td>' + statusHtml + '</td>'
+          + '<td>'
+          + '<div style="display: flex; align-items: center; gap: 8px;">'
+          + '<div class="progress-bar" style="flex: 1; min-width: 60px;">'
+          + '<div class="progress-fill ' + progressClass + '" style="width: ' + avgProgress + '%;"></div>'
+          + '</div>'
+          + '<span style="font-size: 0.8rem; font-weight: 700; min-width: 35px;">' + avgProgress + '%</span>'
+          + '</div>'
+          + '</td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    function renderShortageTable() {
+      let items = readShortage();
+
+      if (shortageFilterMonth) {
+        items = items.filter(function (item) {
+          const itemMonth = item.month ? item.month.substring(5, 7) : "";
+          return itemMonth === shortageFilterMonth;
+        });
+      }
+
+      if (shortageFilterYear) {
+        items = items.filter(function (item) {
+          const itemYear = item.month ? item.month.substring(0, 4) : "";
+          return itemYear === shortageFilterYear;
+        });
+      }
+
+      if (!items.length) {
+        shortageTableRows.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 20px;">Tidak ada data.</td></tr>';
+        return;
+      }
+
+      shortageTableRows.innerHTML = items.map(function (item) {
+        const displayMonth = item.monthText || item.month || "";
+        const shortageText = item.shortage > 0
+          ? '<span class="status-danger">' + item.shortage + ' tugas</span>'
+          : '<span class="status-ok">Terpenuhi</span>';
+
+        return '<tr>'
+          + '<td>' + displayMonth + '</td>'
+          + '<td>' + shortageText + '</td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    function renderStatsTable() {
+      let items = readStats();
+
+      if (statsFilterMonth) {
+        items = items.filter(function (item) {
+          return item.month.substring(5, 7) === statsFilterMonth;
+        });
+      }
+
+      if (statsFilterYear) {
+        items = items.filter(function (item) {
+          return item.month.substring(0, 4) === statsFilterYear;
+        });
+      }
+
+      if (!items.length) {
+        statsTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Tidak ada data statistik.</td></tr>';
+        return;
+      }
+
+      statsTableRows.innerHTML = items.map(function (item) {
+        const shortage = Math.max(0, item.target - item.completed);
+        const percentage = item.target > 0 ? Math.round((item.completed / item.target) * 100) : 0;
+        const percentageHtml = percentage >= 80
+          ? '<span class="status-ok">' + percentage + '%</span>'
+          : percentage >= 60
+            ? '<span class="status-warn">' + percentage + '%</span>'
+            : '<span class="status-danger">' + percentage + '%</span>';
+
+        return '<tr>'
+          + '<td>' + item.monthText + '</td>'
+          + '<td>' + item.target + '</td>'
+          + '<td>' + item.completed + '</td>'
+          + '<td>' + shortage + '</td>'
+          + '<td>' + percentageHtml + '</td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    function updateOverallStats() {
+      const progress = readProgress();
+      const completed = progress.filter(function (item) { return item.status === "Selesai"; }).length;
+      const total = progress.length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      progressValue.textContent = String(completed);
+      progressBar.style.width = percentage + "%";
+      progressBar.className = "progress-fill " + (percentage >= 80 ? "good" : (percentage >= 60 ? "warn" : "low"));
+
+      const shortage = readShortage();
+      shortageValue.textContent = String(shortage.length);
+
+      const stats = readStats();
+      const totalCompleted = stats.reduce(function (sum, item) {
+        return sum + item.completed;
+      }, 0);
+      totalCompletedValue.textContent = String(totalCompleted);
+    }
+
+    seedProgressIfEmpty();
+    seedShortageIfEmpty();
+    seedStatsIfEmpty();
+
+    updateOverallStats();
+    renderProgressTable();
+    renderShortageTable();
+    renderStatsTable();
+
+    progressSearchBox.addEventListener("input", function (event) {
+      progressFilterSearch = event.target.value;
+      renderProgressTable();
+    });
+
+    progressSortSelect.addEventListener("change", function (event) {
+      progressFilterSort = event.target.value;
+      renderProgressTable();
+    });
+
+    shortageMonthSelect.addEventListener("change", function (event) {
+      shortageFilterMonth = event.target.value;
+      renderShortageTable();
+    });
+
+    shortageYearSelect.addEventListener("change", function (event) {
+      shortageFilterYear = event.target.value;
+      renderShortageTable();
+    });
+
+    statsMonthSelect.addEventListener("change", function (event) {
+      statsFilterMonth = event.target.value;
+      renderStatsTable();
+    });
+
+    statsYearSelect.addEventListener("change", function (event) {
+      statsFilterYear = event.target.value;
+      renderStatsTable();
+    });
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

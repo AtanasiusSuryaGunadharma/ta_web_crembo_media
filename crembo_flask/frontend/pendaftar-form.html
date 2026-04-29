@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Pendaftar Form - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .meta-header {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.6rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .meta-badges {
+      display: inline-flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link svg { width: 18px; height: 18px; }
+
+    .headline {
+      border: 1px solid #d6d8de;
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .headline h2 { margin: 0; font-size: clamp(1.18rem, 2vw, 1.6rem); }
+    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
+
+    .headline > div:first-child { min-width: 0; flex: 1; }
+
+    .headline .btn.ghost { margin-left: auto; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary-card {
+      border: 1px solid #d6d8de;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .summary-card span {
+      color: #6b7280;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .summary-card strong {
+      font-size: 1.4rem;
+      color: #111827;
+    }
+
+    .toolbar {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr 0.8fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
+      border-color: #2f66d8;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: auto;
+    }
+
+    .table-wrap table {
+      min-width: 1080px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      min-width: 980px;
+    }
+
+    th, td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #efefef; font-size: 0.75rem; text-transform: uppercase; }
+
+    .empty {
+      text-align: center;
+      color: #4b5563;
+      padding: 22px;
+      border: 1px dashed #9ca3af;
+      border-radius: 12px;
+      background: #f8fafc;
+      margin-top: 10px;
+    }
+
+    .answer-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 5px;
+      font-size: 0.79rem;
+      color: #374151;
+    }
+
+    .answer-list strong {
+      color: #111827;
+    }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .filters { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      .sidebar, .meta-header, .toolbar, .notify { display: none !important; }
+      .layout { display: block; }
+      .main { padding: 0; }
+      .headline { border: 1px solid #000; }
+      .table-wrap { box-shadow: none; border: 1px solid #000; }
+      table { min-width: 0; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Kelola data pendaftar form</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link active" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="manajemen-form-pendaftaran.html">Kembali ke Manajemen Form</a>
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="meta-header" aria-label="Header dashboard waktu berjalan">
+        <h1 class="meta-title">Data Pendaftar Form</h1>
+        <div class="meta-badges">
+          <span id="liveDateTime" class="chip">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="headline">
+        <div>
+          <h2 id="pageTitle">Data Pendaftar Form</h2>
+          <p id="pageDesc">Daftar data diri pendaftar dan jawaban form.</p>
+        </div>
+        <a class="btn ghost" href="manajemen-form-pendaftaran.html">Kembali</a>
+      </section>
+
+      <section class="toolbar" aria-label="Filter dan aksi data pendaftar">
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Cari identitas pendaftar atau jawaban...">
+          <select id="roleFilter">
+            <option value="all">Semua Role</option>
+            <option value="public">Public</option>
+            <option value="internal">Internal</option>
+          </select>
+          <select id="sortFilter">
+            <option value="newest">Terbaru</option>
+            <option value="oldest">Terlama</option>
+            <option value="identity-asc">Identitas A-Z</option>
+            <option value="identity-desc">Identitas Z-A</option>
+          </select>
+          <div class="toolbar-actions">
+            <button id="downloadExcelBtn" class="btn primary" type="button">Download Excel</button>
+            <button id="downloadPdfBtn" class="btn" type="button">Download PDF</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="Ringkasan pendaftar">
+        <article class="summary-card">
+          <span>Total Submit</span>
+          <strong id="summaryTotal">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>Public</span>
+          <strong id="summaryPublic">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>Internal</span>
+          <strong id="summaryInternal">0</strong>
+        </article>
+      </section>
+
+      <section class="table-wrap" aria-label="Tabel data pendaftar">
+        <table id="submissionTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Waktu Submit</th>
+              <th>Identitas</th>
+              <th>Role</th>
+              <th>Data Jawaban</th>
+            </tr>
+          </thead>
+          <tbody id="submissionRows"></tbody>
+        </table>
+      </section>
+
+      <div id="emptyState" class="empty" style="display:none;">Belum ada data pendaftar untuk form ini.</div>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const FORM_STORAGE_KEY = "crembo-registration-forms";
+    const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
+
+    const params = new URLSearchParams(window.location.search);
+    const formId = params.get("formId") || "";
+
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const searchInput = document.getElementById("searchInput");
+    const roleFilter = document.getElementById("roleFilter");
+    const sortFilter = document.getElementById("sortFilter");
+    const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const submissionRows = document.getElementById("submissionRows");
+    const submissionTable = document.getElementById("submissionTable");
+    const emptyState = document.getElementById("emptyState");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const notify = document.getElementById("notify");
+    const summaryTotal = document.getElementById("summaryTotal");
+    const summaryPublic = document.getElementById("summaryPublic");
+    const summaryInternal = document.getElementById("summaryInternal");
+
+    let currentForm = null;
+    let allSubmissions = [];
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2200);
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatDateTime(value) {
+      if (!value) {
+        return "-";
+      }
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+      return day + "/" + month + "/" + year + " " + hour + ":" + minute;
+    }
+
+    function loadData() {
+      const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
+      const parsedForms = rawForms ? safeParse(rawForms) : null;
+      const forms = Array.isArray(parsedForms) ? parsedForms : [];
+      currentForm = forms.find(function (item) { return item && item.id === formId; }) || null;
+
+      const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+      const parsedSubmissions = rawSubmissions ? safeParse(rawSubmissions) : null;
+      allSubmissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+    }
+
+    function submissionToSearchText(item) {
+      const identity = item && item.submitter && item.submitter.identifier ? item.submitter.identifier : "";
+      const answers = Array.isArray(item && item.answers)
+        ? item.answers.map(function (ans) {
+            const value = Array.isArray(ans && ans.value) ? ans.value.join(", ") : String(ans && ans.value ? ans.value : "");
+            return (ans && ans.label ? ans.label : "") + " " + value;
+          }).join(" ")
+        : "";
+      return (identity + " " + answers).toLowerCase();
+    }
+
+    function filteredSubmissions() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedRole = roleFilter.value;
+      const sortMode = sortFilter.value;
+      const rows = allSubmissions
+        .filter(function (item) {
+          return item && item.formId === formId;
+        })
+        .filter(function (item) {
+          if (selectedRole !== "all" && (item.submitter && item.submitter.role ? item.submitter.role : "public") !== selectedRole) {
+            return false;
+          }
+          return true;
+        });
+
+      rows.sort(function (a, b) {
+        if (sortMode === "oldest") {
+          return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+        }
+        if (sortMode === "identity-asc" || sortMode === "identity-desc") {
+          const left = String(a && a.submitter && a.submitter.identifier ? a.submitter.identifier : "");
+          const right = String(b && b.submitter && b.submitter.identifier ? b.submitter.identifier : "");
+          const result = left.localeCompare(right);
+          return sortMode === "identity-asc" ? result : result * -1;
+        }
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      });
+
+      if (!keyword) {
+        return rows;
+      }
+
+      return rows.filter(function (item) {
+        return submissionToSearchText(item).indexOf(keyword) >= 0;
+      });
+    }
+
+    function renderSummary(list) {
+      const total = list.length;
+      const publicCount = list.filter(function (item) {
+        return (item.submitter && item.submitter.role ? item.submitter.role : "public") === "public";
+      }).length;
+      const internalCount = list.filter(function (item) {
+        return (item.submitter && item.submitter.role ? item.submitter.role : "public") === "internal";
+      }).length;
+
+      summaryTotal.textContent = String(total);
+      summaryPublic.textContent = String(publicCount);
+      summaryInternal.textContent = String(internalCount);
+    }
+
+    function renderRows() {
+      if (!currentForm) {
+        pageTitle.textContent = "Form tidak ditemukan";
+        pageDesc.textContent = "Data form tidak tersedia atau sudah dihapus.";
+        submissionRows.innerHTML = "";
+        emptyState.style.display = "block";
+        downloadExcelBtn.disabled = true;
+        downloadPdfBtn.disabled = true;
+        return;
+      }
+
+      pageTitle.textContent = "Data Pendaftar: " + currentForm.title;
+      pageDesc.textContent = "Total pendaftar: " + String(allSubmissions.filter(function (s) { return s && s.formId === formId; }).length);
+
+      const list = filteredSubmissions();
+      renderSummary(list);
+      if (!list.length) {
+        submissionRows.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+      submissionRows.innerHTML = list.map(function (item, index) {
+        const identity = item && item.submitter && item.submitter.identifier ? item.submitter.identifier : "public";
+        const role = item && item.submitter && item.submitter.role ? item.submitter.role : "public";
+
+        const answersHtml = Array.isArray(item && item.answers) && item.answers.length
+          ? '<ul class="answer-list">' + item.answers.map(function (ans) {
+              const value = Array.isArray(ans && ans.value) ? ans.value.join(", ") : String(ans && ans.value ? ans.value : "-");
+              return '<li><strong>' + escapeHtml(ans && ans.label ? ans.label : "Pertanyaan") + ':</strong> ' + escapeHtml(value) + '</li>';
+            }).join("") + '</ul>'
+          : "-";
+
+        return "<tr>"
+          + "<td>" + String(index + 1) + "</td>"
+          + "<td>" + escapeHtml(formatDateTime(item && item.submittedAt ? item.submittedAt : "")) + "</td>"
+          + "<td>" + escapeHtml(identity) + "</td>"
+          + "<td>" + escapeHtml(role) + "</td>"
+          + "<td>" + answersHtml + "</td>"
+          + "</tr>";
+      }).join("");
+    }
+
+    function exportExcel() {
+      if (!currentForm) {
+        return;
+      }
+      const filename = "pendaftar-" + currentForm.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".xls";
+
+      const html = "<html><head><meta charset='utf-8'></head><body>"
+        + "<h2>Data Pendaftar: " + escapeHtml(currentForm.title) + "</h2>"
+        + submissionTable.outerHTML
+        + "</body></html>";
+
+      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showNotify("File Excel berhasil diunduh.");
+    }
+
+    function exportPdf() {
+      if (!currentForm) {
+        return;
+      }
+      window.print();
+      showNotify("Gunakan Save as PDF pada dialog print untuk mengunduh PDF.");
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    searchInput.addEventListener("input", renderRows);
+    roleFilter.addEventListener("change", renderRows);
+    sortFilter.addEventListener("change", renderRows);
+    downloadExcelBtn.addEventListener("click", exportExcel);
+    downloadPdfBtn.addEventListener("click", exportPdf);
+
+    loadData();
+    renderRows();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+  <script src="_sidebar-fix.js"></script>
+</body>
+</html>

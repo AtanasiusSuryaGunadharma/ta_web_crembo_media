@@ -1,0 +1,824 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pembatalan Tugas Anggota - Crembo</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --blue-1: #202020;
+      --blue-2: #2d2d2d;
+      --blue-3: #141414;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 292px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--blue-1) 0%, var(--blue-2) 52%, var(--blue-3) 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 25;
+    }
+
+    .sidebar-backdrop.show { display: block; }
+
+    .sidebar > * { margin-bottom: 12px; }
+    .sidebar > *:last-child { margin-bottom: 0; }
+
+    .brand {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .brand strong { font-size: 1rem; }
+    .brand small { font-size: 0.79rem; color: #dbe7ff; }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text { min-width: 0; display: grid; gap: 2px; }
+    .account-text strong { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .account-text small { color: #d8e4ff; font-size: 0.76rem; }
+
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-items {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-group.open .menu-items { display: block; }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .menu-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.55);
+      font-weight: 700;
+    }
+
+    .side-bottom { margin-top: 16px; display: grid; gap: 8px; }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 20px;
+    }
+
+    .dashboard-headline-bar {
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--soft-shadow);
+      margin-bottom: 14px;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 700;
+      color: #fff;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .quick-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .quick-chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 5px 11px;
+      font-size: 0.74rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    .home-globe {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #9ca3af;
+      background: #fff;
+      text-decoration: none;
+      color: #374151;
+    }
+
+    .home-globe svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .content {
+      padding: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 { margin: 0; font-size: 1.05rem; }
+
+    .panel-body { padding: 12px; }
+
+    .helper { margin: 0 0 10px; color: var(--muted); font-size: 0.84rem; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .field { display: grid; gap: 5px; }
+
+    label {
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    button { font: inherit; }
+
+    input,
+    select {
+      border: 1px solid #c8d2df;
+      border-radius: 9px;
+      background: #fff;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      min-width: 900px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #e5e9f2;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.73rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: #f8fafc;
+    }
+
+    .status-ok {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #166534;
+      border: 1px solid #8bdb9f;
+      background: #ebf9ef;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-warn {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #8a6d00;
+      border: 1px solid #f0d978;
+      background: #fff9df;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-danger {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #991b1b;
+      border: 1px solid #f4b0b0;
+      background: #fff1f1;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 7px 11px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.ghost {
+      border: 1px solid #aeb9c8;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    .btn.danger {
+      background: #b91c1c;
+    }
+
+    .btn[disabled] {
+      background: #d1d5db;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .quick-chip { display: inline-block; width: 100%; }
+      .filters { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .main { padding: 12px; }
+      .content { gap: 12px; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Pembatalan tugas terdaftar anggota</small>
+      </div>
+
+      <div class="account">
+        <div class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Atanasius Surya Guna</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Tugas Streaming <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link" href="jadwal-tugas-misa-anggota.html">Jadwal Streaming</a>
+          <a class="menu-link" href="request-tugas-anggota.html">Request Tugas Anggota</a>
+          <a class="menu-link active" href="pembatalan-tugas-anggota.html">Pembatalan Tugas (maks H-3)</a>
+          <a class="menu-link" href="penukaran-jadwal-tugas-anggota.html">Penukaran Jadwal Tugas</a>
+          <a class="menu-link" href="riwayat-tugas-saya.html">Riwayat Tugas Saya</a>
+          <a class="menu-link" href="evaluasi-streaming-anggota.html">Form Evaluasi Streaming</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header pembatalan tugas anggota">
+        <button id="mobileMenuBtn" class="mobile-toggle" type="button">Menu</button>
+        <h1>Pembatalan Tugas Anggota</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Dashboard Anggota Crembo Media</h2>
+          <p class="subhead">Batalkan tugas terdaftar sesuai aturan H-3 dan lihat riwayat pembatalan Anda.</p>
+        </div>
+        <div class="quick-filter" aria-label="Ringkasan pembatalan tugas anggota">
+          <span class="quick-chip"><strong>Modul:</strong> Pembatalan</span>
+          <span class="quick-chip"><strong>Aturan:</strong> Maks H-3</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="panel">
+          <header class="panel-head">
+            <h2>Daftar Tugas Terdaftar</h2>
+            <a class="btn ghost" href="request-tugas-anggota.html">Buka Request Tugas</a>
+          </header>
+          <div class="panel-body">
+            <p class="helper">Pilih tugas yang ingin dibatalkan. Pembatalan dibatasi maksimal H-3 sebelum tanggal tugas.</p>
+
+            <div class="filters">
+              <div class="field">
+                <label for="taskSearch">Search</label>
+                <input id="taskSearch" type="search" placeholder="Cari jadwal, role, atau status...">
+              </div>
+              <div class="field">
+                <label for="taskMonthFilter">Bulan</label>
+                <select id="taskMonthFilter">
+                  <option value="all">Semua Bulan</option>
+                  <option value="0">Januari</option>
+                  <option value="1">Februari</option>
+                  <option value="2">Maret</option>
+                  <option value="3">April</option>
+                  <option value="4">Mei</option>
+                  <option value="5">Juni</option>
+                  <option value="6">Juli</option>
+                  <option value="7">Agustus</option>
+                  <option value="8">September</option>
+                  <option value="9">Oktober</option>
+                  <option value="10">November</option>
+                  <option value="11">Desember</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="taskYearFilter">Tahun</label>
+                <select id="taskYearFilter"></select>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Jadwal</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Aturan H-3</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="taskRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <header class="panel-head">
+            <h2>Riwayat Pembatalan</h2>
+          </header>
+          <div class="panel-body table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jadwal</th>
+                  <th>Role</th>
+                  <th>Waktu Batal</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="cancelRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const TASKS_KEY = "crembo-member-registered-tasks";
+    const taskRows = document.getElementById("taskRows");
+    const cancelRows = document.getElementById("cancelRows");
+    const taskSearch = document.getElementById("taskSearch");
+    const taskMonthFilter = document.getElementById("taskMonthFilter");
+    const taskYearFilter = document.getElementById("taskYearFilter");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const memberName = document.getElementById("memberName");
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function seedTasksIfEmpty() {
+      const existing = localStorage.getItem(TASKS_KEY);
+      if (existing) {
+        return;
+      }
+      const demo = [
+        { id: "tsk-1", title: "Misa Harian - Senin", date: "2026-04-14", time: "17:00", role: "Operator", status: "Terdaftar" },
+        { id: "tsk-2", title: "Misa Harian - Rabu", date: "2026-04-16", time: "17:00", role: "Kameramen", status: "Terdaftar" },
+        { id: "tsk-3", title: "Misa Mingguan - Minggu", date: "2026-04-19", time: "08:00", role: "Supervisor", status: "Terdaftar" },
+        { id: "tsk-4", title: "Misa Besar - Kamis Putih", date: "2026-04-02", time: "18:00", role: "Kameramen", status: "Dibatalkan", canceledAt: "2026-03-29T08:30:00" }
+      ];
+      localStorage.setItem(TASKS_KEY, JSON.stringify(demo));
+    }
+
+    function readTasks() {
+      return safeParse(localStorage.getItem(TASKS_KEY), []);
+    }
+
+    function saveTasks(items) {
+      localStorage.setItem(TASKS_KEY, JSON.stringify(items));
+    }
+
+    function formatDateTime(dateText, timeText) {
+      const date = new Date(dateText + "T00:00:00");
+      if (Number.isNaN(date.getTime())) {
+        return dateText + " " + timeText;
+      }
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      return dayNames[date.getDay()] + ", " + String(date.getDate()).padStart(2, "0") + " " + monthNames[date.getMonth()] + " " + date.getFullYear() + " " + timeText;
+    }
+
+    function canCancelByH3(item) {
+      const now = new Date();
+      const target = new Date(item.date + "T" + item.time + ":00");
+      if (Number.isNaN(target.getTime())) {
+        return false;
+      }
+      const diffMs = target.getTime() - now.getTime();
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+      return diffDays >= 3;
+    }
+
+    function getFilteredTasks() {
+      const search = taskSearch.value.trim().toLowerCase();
+      const month = taskMonthFilter.value;
+      const year = taskYearFilter.value;
+      return readTasks().filter(function (item) {
+        const dateObj = new Date(item.date + "T00:00:00");
+        if (Number.isNaN(dateObj.getTime())) {
+          return false;
+        }
+        const text = [item.title, item.role, item.status, item.date, item.time].join(" ").toLowerCase();
+        const matchSearch = !search || text.includes(search);
+        const matchMonth = month === "all" || String(dateObj.getMonth()) === month;
+        const matchYear = year === "all" || String(dateObj.getFullYear()) === year;
+        return matchSearch && matchMonth && matchYear;
+      });
+    }
+
+    function renderTaskRows() {
+      const rows = getFilteredTasks();
+      const active = rows.filter(function (item) { return item.status !== "Dibatalkan"; });
+      if (!active.length) {
+        taskRows.innerHTML = '<tr><td colspan="5">Tidak ada tugas aktif sesuai filter.</td></tr>';
+      } else {
+        taskRows.innerHTML = active.map(function (item) {
+          const h3Allowed = canCancelByH3(item);
+          const ruleBadge = h3Allowed
+            ? '<span class="status-ok">Bisa Dibatalkan</span>'
+            : '<span class="status-warn">Lewat Batas H-3</span>';
+          const button = h3Allowed
+            ? '<button class="btn danger" type="button" data-action="cancel" data-id="' + item.id + '">Batalkan</button>'
+            : '<button class="btn" type="button" disabled>Tidak Bisa</button>';
+          return '<tr>'
+            + '<td>' + item.title + ' - ' + formatDateTime(item.date, item.time) + '</td>'
+            + '<td>' + item.role + '</td>'
+            + '<td><span class="status-ok">' + item.status + '</span></td>'
+            + '<td>' + ruleBadge + '</td>'
+            + '<td>' + button + '</td>'
+            + '</tr>';
+        }).join("");
+      }
+
+      const canceled = rows.filter(function (item) { return item.status === "Dibatalkan"; });
+      cancelRows.innerHTML = canceled.length
+        ? canceled.map(function (item) {
+            const canceledAt = item.canceledAt ? new Date(item.canceledAt).toLocaleString("id-ID") : "-";
+            return '<tr>'
+              + '<td>' + item.title + ' - ' + formatDateTime(item.date, item.time) + '</td>'
+              + '<td>' + item.role + '</td>'
+              + '<td>' + canceledAt + '</td>'
+              + '<td><span class="status-danger">Dibatalkan</span></td>'
+              + '</tr>';
+          }).join("")
+        : '<tr><td colspan="4">Belum ada riwayat pembatalan sesuai filter.</td></tr>';
+    }
+
+    function setYearFilterOptions() {
+      const nowYear = new Date().getFullYear();
+      taskYearFilter.innerHTML = '<option value="all">Semua Tahun</option>';
+      for (let year = nowYear - 2; year <= nowYear + 2; year += 1) {
+        const option = document.createElement("option");
+        option.value = String(year);
+        option.textContent = String(year);
+        taskYearFilter.appendChild(option);
+      }
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    const sessionRaw = localStorage.getItem("crembo-login-session");
+    if (sessionRaw) {
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (session.fullName) {
+          memberName.textContent = session.fullName;
+        } else if (session.identifier) {
+          memberName.textContent = session.identifier;
+        }
+      } catch (error) {
+      }
+    }
+
+    document.querySelectorAll(".menu-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const mark = button.querySelector("span");
+        mark.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    taskRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+      if (target.getAttribute("data-action") !== "cancel") {
+        return;
+      }
+      const taskId = target.getAttribute("data-id");
+      const tasks = readTasks();
+      const item = tasks.find(function (task) { return task.id === taskId; });
+      if (!item) {
+        return;
+      }
+      const ok = window.confirm("Batalkan tugas " + item.title + " pada " + formatDateTime(item.date, item.time) + "?");
+      if (!ok) {
+        return;
+      }
+      item.status = "Dibatalkan";
+      item.canceledAt = new Date().toISOString();
+      saveTasks(tasks);
+      renderTaskRows();
+      window.alert("Tugas berhasil dibatalkan.");
+    });
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    mobileMenuBtn.addEventListener("click", function () {
+      setSidebarOpen(!sidebar.classList.contains("show"));
+    });
+
+    sidebarBackdrop.addEventListener("click", function () {
+      setSidebarOpen(false);
+    });
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 1080px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+
+    taskSearch.addEventListener("input", renderTaskRows);
+    taskMonthFilter.addEventListener("change", renderTaskRows);
+    taskYearFilter.addEventListener("change", renderTaskRows);
+
+    seedTasksIfEmpty();
+    setYearFilterOptions();
+    const now = new Date();
+    taskMonthFilter.value = String(now.getMonth());
+    taskYearFilter.value = String(now.getFullYear());
+    renderTaskRows();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

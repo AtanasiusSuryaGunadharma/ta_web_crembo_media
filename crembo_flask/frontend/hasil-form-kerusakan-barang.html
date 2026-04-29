@@ -1,0 +1,931 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hasil Form Kerusakan Barang - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 700;
+      color: #1c1f27;
+      letter-spacing: 0.01em;
+    }
+
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .meta-header {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .meta-sub {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 0.86rem;
+    }
+
+    .meta-header .chip {
+      border-color: rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .toolbar,
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .field { display: grid; gap: 6px; }
+
+    .field label {
+      font-size: 0.85rem;
+      color: #4b4b4b;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .btn,
+    .btn-ghost {
+      border-radius: 9px;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      border: 1px solid #9ca3af;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    .summary-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 8px;
+    }
+
+    .summary-item {
+      border: 1px solid #bdbdbd;
+      background: #fafafa;
+      padding: 10px;
+    }
+
+    .summary-item p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #575757;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.15rem;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .panel-head h2 { margin: 0; font-size: 1rem; }
+
+    .table-scroll {
+      border: 1px solid #c5c5c5;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .table-scroll table {
+      min-width: 1220px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #efefef;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .status-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 0.74rem;
+      border: 1px solid #c4c4c4;
+      background: #f6f6f6;
+    }
+
+    .status-pill.waiting { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
+    .status-pill.process { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
+    .status-pill.done { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
+
+    .empty-note {
+      margin: 10px 0 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.42);
+    }
+
+    .modal[hidden] { display: none; }
+
+    .dialog {
+      width: min(860px, 95vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .dialog-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #d0d0d0;
+      background: #f6f6f6;
+    }
+
+    .dialog-head h3 { margin: 0; font-size: 1rem; }
+
+    .dialog-body {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .detail-item {
+      border: 1px solid #d7d7d7;
+      background: #fcfcfc;
+      border-radius: 9px;
+      padding: 8px;
+      font-size: 0.84rem;
+      color: #1f2937;
+    }
+
+    .detail-item strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #111827;
+    }
+
+    .detail-photo {
+      width: min(360px, 100%);
+      border-radius: 10px;
+      border: 1px solid #bdbdbd;
+      object-fit: cover;
+      background: #efefef;
+    }
+
+    @media (max-width: 1080px) {
+      .toolbar-grid { grid-template-columns: 1fr 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+    }
+
+    @media (max-width: 620px) {
+      .toolbar-grid,
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Monitoring laporan kerusakan barang</p>
+      </div>
+
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link active" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
+          <a class="menu-link" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
+          <a class="menu-link" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar">
+        <h1>Hasil Form Kerusakan Barang</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="meta-header">
+        <div>
+          <h2 class="meta-title">Hasil Form Kerusakan Barang</h2>
+          <p class="meta-sub">Pantau laporan kerusakan, ubah status tindak lanjut, dan unduh rekap laporan.</p>
+        </div>
+        <span id="activeFilterChip" class="chip">Filter: Semua</span>
+      </header>
+
+      <section class="toolbar" aria-label="Filter hasil form kerusakan barang">
+        <div class="toolbar-grid">
+          <div class="field">
+            <label for="searchInput">Cari laporan</label>
+            <input id="searchInput" type="search" placeholder="Cari kode, barang, pelapor, kronologi...">
+          </div>
+
+          <div class="field">
+            <label for="statusFilter">Status Tindak Lanjut</label>
+            <select id="statusFilter">
+              <option value="all">Semua Status</option>
+              <option value="Menunggu">Menunggu</option>
+              <option value="Diproses">Diproses</option>
+              <option value="Selesai">Selesai</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="severityFilter">Tingkat Kerusakan</label>
+            <select id="severityFilter">
+              <option value="all">Semua Tingkat</option>
+              <option value="Ringan">Ringan</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Berat">Berat</option>
+              <option value="Hilang">Hilang</option>
+            </select>
+          </div>
+
+          <div class="result-actions">
+            <button id="downloadExcelBtn" class="btn-ghost" type="button">Download Excel</button>
+            <button id="downloadPdfBtn" class="btn" type="button">Download PDF</button>
+          </div>
+        </div>
+
+        <div id="summaryGrid" class="summary-grid"></div>
+      </section>
+
+      <section class="panel" aria-label="Tabel hasil form kerusakan barang">
+        <div class="panel-head">
+          <h2>Daftar Laporan Kerusakan</h2>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tanggal Lapor</th>
+                <th>Kode Barang</th>
+                <th>Nama Barang</th>
+                <th>Pelapor</th>
+                <th>Tingkat Kerusakan</th>
+                <th>Status Tindak Lanjut</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p id="emptyNote" class="empty-note" hidden>Tidak ada data laporan yang cocok dengan filter.</p>
+      </section>
+    </main>
+  </div>
+
+  <section id="detailModal" class="modal" hidden aria-label="Detail laporan kerusakan" aria-modal="true" role="dialog">
+    <article class="dialog">
+      <header class="dialog-head">
+        <h3>Detail Laporan Kerusakan</h3>
+        <button id="closeDetailBtn" class="btn-ghost" type="button">Tutup</button>
+      </header>
+      <div id="detailBody" class="dialog-body"></div>
+    </article>
+  </section>
+
+  <script>
+    const SUBMISSION_KEY = "crembo-kerusakan-form-submissions";
+    const SESSION_KEY = "crembo-login-session";
+    const DEFAULT_SUBMISSIONS = [
+      {
+        id: "krk-2026-04-12-001",
+        submittedAt: "2026-04-12T09:20:00.000Z",
+        memberName: "Atanasius Surya Guna",
+        memberId: "anggota-001",
+        itemCode: "CAM-001",
+        itemName: "Kamera Sony A6400",
+        severity: "Berat",
+        incidentDate: "2026-04-12",
+        location: "Ruang Kontrol Streaming",
+        chronology: "Layar sempat berkedip lalu kamera tidak bisa dinyalakan saat persiapan misa.",
+        photo: "",
+        adminStatus: "Menunggu"
+      },
+      {
+        id: "krk-2026-04-11-002",
+        submittedAt: "2026-04-11T14:05:00.000Z",
+        memberName: "Sinta Lestari",
+        memberId: "anggota-002",
+        itemCode: "AUD-004",
+        itemName: "Wireless Microphone Set",
+        severity: "Ringan",
+        incidentDate: "2026-04-11",
+        location: "Gudang Audio",
+        chronology: "Salah satu receiver ditemukan longgar pada bagian slot baterai.",
+        photo: "",
+        adminStatus: "Diproses"
+      },
+      {
+        id: "krk-2026-04-10-003",
+        submittedAt: "2026-04-10T20:40:00.000Z",
+        memberName: "Rafael Pratama",
+        memberId: "anggota-003",
+        itemCode: "CAB-015",
+        itemName: "Kabel HDMI 10m",
+        severity: "Hilang",
+        incidentDate: "2026-04-10",
+        location: "Rak Kabel",
+        chronology: "Satu kabel tidak ditemukan setelah pengecekan inventaris selesai.",
+        photo: "",
+        adminStatus: "Selesai"
+      }
+    ];
+
+    let currentSubmissions = JSON.parse(JSON.stringify(DEFAULT_SUBMISSIONS));
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const severityFilter = document.getElementById("severityFilter");
+    const rows = document.getElementById("rows");
+    const emptyNote = document.getElementById("emptyNote");
+    const summaryGrid = document.getElementById("summaryGrid");
+    const activeFilterChip = document.getElementById("activeFilterChip");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+
+    const detailModal = document.getElementById("detailModal");
+    const detailBody = document.getElementById("detailBody");
+    const closeDetailBtn = document.getElementById("closeDetailBtn");
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed == null ? fallback : parsed;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function readSubmissions() {
+      return currentSubmissions.map(function (item, index) {
+        const status = String(item && item.adminStatus ? item.adminStatus : "Menunggu");
+        return {
+          id: String(item && item.id ? item.id : ("krk-" + (index + 1))),
+          submittedAt: String(item && item.submittedAt ? item.submittedAt : new Date().toISOString()),
+          memberName: String(item && item.memberName ? item.memberName : "Anggota"),
+          memberId: String(item && item.memberId ? item.memberId : ""),
+          itemCode: String(item && item.itemCode ? item.itemCode : "-"),
+          itemName: String(item && item.itemName ? item.itemName : "-"),
+          severity: String(item && item.severity ? item.severity : "Ringan"),
+          incidentDate: String(item && item.incidentDate ? item.incidentDate : ""),
+          location: String(item && item.location ? item.location : "-"),
+          chronology: String(item && item.chronology ? item.chronology : "-"),
+          photo: String(item && item.photo ? item.photo : ""),
+          adminStatus: ["Menunggu", "Diproses", "Selesai"].indexOf(status) !== -1 ? status : "Menunggu"
+        };
+      });
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value || "");
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
+    }
+
+    function statusClass(status) {
+      if (status === "Selesai") return "done";
+      if (status === "Diproses") return "process";
+      return "waiting";
+    }
+
+    function filteredItems() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+      const severity = severityFilter.value;
+
+      return readSubmissions().filter(function (item) {
+        const text = [
+          item.id,
+          item.itemCode,
+          item.itemName,
+          item.memberName,
+          item.chronology,
+          item.location
+        ].join(" ").toLowerCase();
+
+        const matchKeyword = !keyword || text.indexOf(keyword) !== -1;
+        const matchStatus = status === "all" || item.adminStatus === status;
+        const matchSeverity = severity === "all" || item.severity === severity;
+
+        return matchKeyword && matchStatus && matchSeverity;
+      }).sort(function (a, b) {
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      });
+    }
+
+    function renderSummary(items) {
+      const total = items.length;
+      const waiting = items.filter(function (item) { return item.adminStatus === "Menunggu"; }).length;
+      const process = items.filter(function (item) { return item.adminStatus === "Diproses"; }).length;
+      const done = items.filter(function (item) { return item.adminStatus === "Selesai"; }).length;
+
+      summaryGrid.innerHTML =
+        '<article class="summary-item"><p>Total Laporan</p><strong>' + total + '</strong></article>' +
+        '<article class="summary-item"><p>Menunggu</p><strong>' + waiting + '</strong></article>' +
+        '<article class="summary-item"><p>Diproses</p><strong>' + process + '</strong></article>' +
+        '<article class="summary-item"><p>Selesai</p><strong>' + done + '</strong></article>';
+
+      activeFilterChip.textContent = "Filter: " + (statusFilter.value === "all" ? "Semua" : statusFilter.value);
+    }
+
+    function renderTable() {
+      const list = filteredItems();
+      renderSummary(list);
+
+      if (!list.length) {
+        rows.innerHTML = "";
+        emptyNote.hidden = false;
+        return;
+      }
+
+      emptyNote.hidden = true;
+      rows.innerHTML = list.map(function (item) {
+        return '<tr>' +
+          '<td>' + escapeHtml(item.id) + '</td>' +
+          '<td>' + escapeHtml(formatDateTime(item.submittedAt)) + '</td>' +
+          '<td>' + escapeHtml(item.itemCode) + '</td>' +
+          '<td>' + escapeHtml(item.itemName) + '</td>' +
+          '<td>' + escapeHtml(item.memberName) + '</td>' +
+          '<td>' + escapeHtml(item.severity) + '</td>' +
+          '<td><select data-status-id="' + escapeHtml(item.id) + '">' +
+            '<option value="Menunggu"' + (item.adminStatus === "Menunggu" ? " selected" : "") + '>Menunggu</option>' +
+            '<option value="Diproses"' + (item.adminStatus === "Diproses" ? " selected" : "") + '>Diproses</option>' +
+            '<option value="Selesai"' + (item.adminStatus === "Selesai" ? " selected" : "") + '>Selesai</option>' +
+          '</select>' +
+          '<div style="margin-top:4px;"><span class="status-pill ' + statusClass(item.adminStatus) + '">' + escapeHtml(item.adminStatus) + '</span></div></td>' +
+          '<td><button class="btn-ghost" type="button" data-detail-id="' + escapeHtml(item.id) + '">Detail</button></td>' +
+        '</tr>';
+      }).join("");
+    }
+
+    function openDetail(itemId) {
+      const item = readSubmissions().find(function (entry) {
+        return entry.id === itemId;
+      });
+      if (!item) {
+        return;
+      }
+
+      const photoHtml = item.photo
+        ? '<div class="detail-item"><strong>Foto Bukti</strong><img class="detail-photo" src="' + escapeHtml(item.photo) + '" alt="Foto bukti"></div>'
+        : '<div class="detail-item"><strong>Foto Bukti</strong>-</div>';
+
+      detailBody.innerHTML =
+        '<div class="detail-item"><strong>ID Laporan</strong>' + escapeHtml(item.id) + '</div>' +
+        '<div class="detail-item"><strong>Tanggal Lapor</strong>' + escapeHtml(formatDateTime(item.submittedAt)) + '</div>' +
+        '<div class="detail-item"><strong>Pelapor</strong>' + escapeHtml(item.memberName) + '</div>' +
+        '<div class="detail-item"><strong>Barang</strong>' + escapeHtml(item.itemCode) + ' - ' + escapeHtml(item.itemName) + '</div>' +
+        '<div class="detail-item"><strong>Tingkat Kerusakan</strong>' + escapeHtml(item.severity) + '</div>' +
+        '<div class="detail-item"><strong>Tanggal Kejadian</strong>' + escapeHtml(item.incidentDate || "-") + '</div>' +
+        '<div class="detail-item"><strong>Lokasi</strong>' + escapeHtml(item.location || "-") + '</div>' +
+        '<div class="detail-item"><strong>Kronologi</strong>' + escapeHtml(item.chronology || "-") + '</div>' +
+        photoHtml;
+      detailModal.hidden = false;
+    }
+
+    function closeDetail() {
+      detailModal.hidden = true;
+      detailBody.innerHTML = "";
+    }
+
+    function updateStatus(itemId, nextStatus) {
+      currentSubmissions = readSubmissions().map(function (item) {
+        if (item.id === itemId) {
+          return Object.assign({}, item, { adminStatus: nextStatus });
+        }
+        return item;
+      });
+      renderTable();
+    }
+
+    function exportExcel() {
+      const list = filteredItems();
+      let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body>';
+      html += "<h3>Rekap Form Kerusakan Barang</h3>";
+      html += "<table border='1' cellspacing='0' cellpadding='6'>";
+      html += "<tr><th>ID</th><th>Tanggal Lapor</th><th>Kode Barang</th><th>Nama Barang</th><th>Pelapor</th><th>Tingkat</th><th>Status</th><th>Tanggal Kejadian</th><th>Lokasi</th><th>Kronologi</th></tr>";
+
+      if (list.length) {
+        list.forEach(function (item) {
+          html += "<tr>" +
+            "<td>" + escapeHtml(item.id) + "</td>" +
+            "<td>" + escapeHtml(formatDateTime(item.submittedAt)) + "</td>" +
+            "<td>" + escapeHtml(item.itemCode) + "</td>" +
+            "<td>" + escapeHtml(item.itemName) + "</td>" +
+            "<td>" + escapeHtml(item.memberName) + "</td>" +
+            "<td>" + escapeHtml(item.severity) + "</td>" +
+            "<td>" + escapeHtml(item.adminStatus) + "</td>" +
+            "<td>" + escapeHtml(item.incidentDate || "-") + "</td>" +
+            "<td>" + escapeHtml(item.location || "-") + "</td>" +
+            "<td>" + escapeHtml(item.chronology || "-") + "</td>" +
+          "</tr>";
+        });
+      } else {
+        html += "<tr><td colspan='10'>Tidak ada data sesuai filter.</td></tr>";
+      }
+
+      html += '</table></body></html>';
+
+      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rekap-form-kerusakan-barang.xls";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportPdf() {
+      const list = filteredItems();
+      const popup = window.open("", "_blank", "width=1120,height=800");
+      if (!popup) {
+        return;
+      }
+
+      const bodyRows = list.length
+        ? list.map(function (item) {
+            return "<tr>" +
+              "<td>" + escapeHtml(item.id) + "</td>" +
+              "<td>" + escapeHtml(formatDateTime(item.submittedAt)) + "</td>" +
+              "<td>" + escapeHtml(item.itemCode) + "</td>" +
+              "<td>" + escapeHtml(item.itemName) + "</td>" +
+              "<td>" + escapeHtml(item.memberName) + "</td>" +
+              "<td>" + escapeHtml(item.severity) + "</td>" +
+              "<td>" + escapeHtml(item.adminStatus) + "</td>" +
+            "</tr>";
+          }).join("")
+        : "<tr><td colspan='7'>Tidak ada data sesuai filter.</td></tr>";
+
+      popup.document.write(
+        '<!doctype html><html><head><meta charset="utf-8"><title>Rekap Form Kerusakan Barang</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h2{margin:0 0 8px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:6px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f2f2}@media print{body{padding:0}}</style>' +
+        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
+        '<link rel="stylesheet" href="_admin-theme.css">' +
+        '</head><body>' +
+        '<h2>Rekap Form Kerusakan Barang</h2>' +
+        '<table><thead><tr><th>ID</th><th>Tanggal Lapor</th><th>Kode Barang</th><th>Nama Barang</th><th>Pelapor</th><th>Tingkat</th><th>Status</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
+        '</body></html>'
+      );
+      popup.document.close();
+      popup.focus();
+      popup.print();
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    function guardAdmin() {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) {
+        window.location.href = "login.html";
+        return false;
+      }
+      const parsed = safeParse(raw, {});
+      const role = String(parsed.role || "").toLowerCase();
+      if (role !== "admin" && role !== "super_admin") {
+        window.alert("Halaman ini khusus admin/super admin.");
+        window.location.href = "dashboard.html";
+        return false;
+      }
+      return true;
+    }
+
+    searchInput.addEventListener("input", renderTable);
+    statusFilter.addEventListener("change", renderTable);
+    severityFilter.addEventListener("change", renderTable);
+
+    rows.addEventListener("change", function (event) {
+      const itemId = event.target.getAttribute("data-status-id");
+      if (!itemId) {
+        return;
+      }
+      updateStatus(itemId, event.target.value);
+    });
+
+    rows.addEventListener("click", function (event) {
+      const id = event.target.getAttribute("data-detail-id");
+      if (id) {
+        openDetail(id);
+      }
+    });
+
+    closeDetailBtn.addEventListener("click", closeDetail);
+    detailModal.addEventListener("click", function (event) {
+      if (event.target === detailModal) {
+        closeDetail();
+      }
+    });
+
+    downloadExcelBtn.addEventListener("click", exportExcel);
+    downloadPdfBtn.addEventListener("click", exportPdf);
+
+    if (guardAdmin()) {
+      renderTable();
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    }
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

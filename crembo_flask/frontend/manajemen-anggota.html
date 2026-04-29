@@ -1,0 +1,1538 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manajemen Anggota - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --panel-2: #f5f5f5;
+      --line: #1f1f1f;
+      --muted: #5b5b5b;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #ededed;
+      color: #0d0d0d;
+      border: 1px solid #0d0d0d;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: none;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-group.open .group-items { display: block; }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .headline {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .headline h2 { margin: 0; font-size: clamp(1.2rem, 2.1vw, 1.9rem); }
+    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #6b7280;
+      background: #fff;
+      color: #374151;
+      text-decoration: none;
+    }
+
+    .meta-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat p { margin: 0; font-size: 0.75rem; color: #616161; text-transform: uppercase; }
+    .stat h3 { margin: 8px 0 0; font-size: 1.3rem; }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: var(--panel-2);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h3 { margin: 0; font-size: 0.98rem; }
+
+    .panel-body { padding: 12px; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .bulk-tools {
+      border: 1px solid #d4d4d4;
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .bulk-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.86rem;
+    }
+
+    .bulk-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    th, td {
+      border: 1px solid #cbcbcb;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #efefef; font-size: 0.75rem; text-transform: uppercase; }
+
+    .status {
+      display: inline-block;
+      border: 1px solid #2b2b2b;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 0.7rem;
+      background: #fafafa;
+      white-space: nowrap;
+    }
+
+    .status.nonaktif {
+      border-color: #b91c1c;
+      color: #b91c1c;
+      background: #fef2f2;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 7px 10px;
+      font-size: 0.76rem;
+      cursor: pointer;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .btn.warn {
+      background: #fff;
+      color: #b91c1c;
+      border-color: #ef4444;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 9px;
+    }
+
+    .label {
+      font-size: 0.79rem;
+      color: #374151;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: inline-block;
+    }
+
+    .helper {
+      font-size: 0.76rem;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .request-list {
+      display: grid;
+      gap: 8px;
+      max-height: 250px;
+      overflow: auto;
+    }
+
+    .request-tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .request-card {
+      border: 1px solid #c7ccd8;
+      border-radius: 11px;
+      background: #fbfdff;
+      padding: 9px;
+      display: grid;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+
+    .request-card strong { font-size: 0.84rem; }
+
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1150px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        display: none;
+        position: static;
+        height: auto;
+      }
+      .sidebar.show { display: block; }
+      .mobile-toggle { display: inline-block; }
+      .filters { grid-template-columns: 1fr; }
+      .request-tools { grid-template-columns: 1fr; }
+      .bulk-actions { display: grid; grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Halaman khusus manajemen data anggota dan status keanggotaan</p>
+        <span id="roleBadge" class="role-chip">Role: -</span>
+      </div>
+
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Keanggotaan <span>-</span></button>
+        <div class="group-items" id="anggotaMenu"></div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="headline">
+        <div>
+          <button id="mobileSidebarBtn" class="mobile-toggle" type="button">Menu</button>
+          <h2>Manajemen Data Anggota</h2>
+          <p>Tambah, ubah, atur role, dan hapus anggota. Permintaan status aktif/nonaktif diproses di halaman yang sama.</p>
+        </div>
+        <div class="meta-badges">
+          <span id="liveDateTime" class="chip">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="stats" aria-label="Metrik anggota">
+        <article class="stat"><p>Total Anggota</p><h3 id="totalMemberCount">0</h3></article>
+        <article class="stat"><p>Status Aktif</p><h3 id="activeMemberCount">0</h3></article>
+        <article class="stat"><p>Status Nonaktif</p><h3 id="inactiveMemberCount">0</h3></article>
+        <article class="stat"><p>Permintaan Pending</p><h3 id="pendingRequestCount">0</h3></article>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel">
+          <header class="panel-head">
+            <h3>Daftar Anggota & Status</h3>
+            <div class="inline-actions">
+              <button id="previewMemberReportBtn" class="btn ghost" type="button">Preview PDF</button>
+              <button id="downloadMemberExcelBtn" class="btn ghost" type="button">Download Excel</button>
+              <button id="newMemberBtn" class="btn" type="button">+ Tambah Anggota</button>
+            </div>
+          </header>
+          <div class="panel-body">
+            <div class="filters">
+              <input id="searchMemberInput" type="search" placeholder="Cari nama, email, role...">
+              <select id="filterRoleSelect">
+                <option value="all">Semua Role</option>
+              </select>
+              <select id="filterStatusSelect">
+                <option value="all">Semua Status</option>
+                <option value="Aktif">Aktif</option>
+                <option value="Nonaktif">Nonaktif</option>
+              </select>
+              <button id="resetFilterBtn" class="btn ghost" type="button">Reset</button>
+            </div>
+
+            <div class="bulk-tools" aria-label="Import data anggota dan download template">
+              <div class="bulk-head">
+                <strong>Import Data Massal Anggota</strong>
+                <span class="status">Mode Tampilan</span>
+              </div>
+              <p class="helper">Siapkan data anggota lewat file CSV atau Excel, lalu unduh template agar format kolom tetap konsisten (nama, email, WA, alamat, tanggal lahir, role, status).</p>
+              <div class="bulk-actions">
+                <button id="importCsvBtn" class="btn ghost" type="button">Import CSV</button>
+                <button id="importExcelBtn" class="btn ghost" type="button">Import Excel</button>
+                <button id="downloadCsvTemplateBtn" class="btn" type="button">Download Template CSV</button>
+                <button id="downloadExcelTemplateBtn" class="btn" type="button">Download Template Excel</button>
+              </div>
+            </div>
+
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>No WA</th>
+                    <th>Alamat</th>
+                    <th>Tanggal Lahir</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="memberTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <div style="display:grid;gap:12px;">
+          <article class="panel">
+            <header class="panel-head">
+              <h3 id="formTitle">Tambah Anggota Baru</h3>
+            </header>
+            <form id="memberForm" class="panel-body form-grid">
+              <div>
+                <label class="label" for="memberNameInput">Nama Lengkap</label>
+                <input id="memberNameInput" type="text" required>
+              </div>
+              <div>
+                <label class="label" for="memberEmailInput">Email</label>
+                <input id="memberEmailInput" type="email" required>
+              </div>
+              <div>
+                <label class="label" for="memberPhoneInput">No WhatsApp</label>
+                <input id="memberPhoneInput" type="tel" required>
+              </div>
+              <div>
+                <label class="label" for="memberAddressInput">Alamat</label>
+                <textarea id="memberAddressInput" placeholder="Alamat anggota..." required></textarea>
+              </div>
+              <div>
+                <label class="label" for="memberBirthDateInput">Tanggal Lahir</label>
+                <input id="memberBirthDateInput" type="date" required>
+              </div>
+              <div>
+                <label class="label" for="memberRoleInput">Role</label>
+                <select id="memberRoleInput">
+                  <option value="anggota">Anggota</option>
+                  <option value="admin">Admin</option>
+                  <option value="super_admin">Super Admin</option>
+                </select>
+              </div>
+              <div>
+                <label class="label" for="memberStatusInput">Status Keanggotaan</label>
+                <select id="memberStatusInput">
+                  <option>Aktif</option>
+                  <option>Nonaktif</option>
+                </select>
+              </div>
+              <p class="helper">Reset password anggota akan menggunakan tanggal lahir dari data ini.</p>
+              <div class="inline-actions">
+                <button class="btn" type="submit">Simpan Data</button>
+                <button id="cancelEditBtn" class="btn ghost" type="button">Batal</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel">
+            <header class="panel-head">
+              <h3>Permintaan Status Aktif / Nonaktif</h3>
+            </header>
+            <div class="panel-body">
+              <div class="request-tools">
+                <input id="requestSearchInput" type="search" placeholder="Cari nama/alasan/status...">
+                <select id="requestSortSelect">
+                  <option value="newest">Urutkan: Terbaru ke Terlama</option>
+                  <option value="oldest">Urutkan: Terlama ke Terbaru</option>
+                </select>
+              </div>
+              <div id="requestList" class="request-list"></div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const MEMBER_STORAGE_KEY = "crembo-members";
+    const ACTIVE_MEMBER_STORAGE_KEY = "crembo-active-members";
+    const STATUS_REQUEST_STORAGE_KEY = "crembo-member-status-requests";
+    const LEGACY_SINGLE_REQUEST_KEY = "crembo-member-inactive-request";
+
+    const params = new URLSearchParams(window.location.search);
+    const storedSessionRaw = localStorage.getItem("crembo-login-session");
+    let storedRole = "";
+
+    if (storedSessionRaw) {
+      try {
+        const sessionObj = JSON.parse(storedSessionRaw);
+        storedRole = sessionObj && sessionObj.role ? sessionObj.role : "";
+      } catch (error) {
+        storedRole = "";
+      }
+    }
+
+    const role = params.get("role") || storedRole || "admin";
+
+    const roleBadge = document.getElementById("roleBadge");
+    const anggotaMenu = document.getElementById("anggotaMenu");
+    const sidebar = document.getElementById("sidebar");
+    const mobileSidebarBtn = document.getElementById("mobileSidebarBtn");
+
+    const totalMemberCount = document.getElementById("totalMemberCount");
+    const activeMemberCount = document.getElementById("activeMemberCount");
+    const inactiveMemberCount = document.getElementById("inactiveMemberCount");
+    const pendingRequestCount = document.getElementById("pendingRequestCount");
+
+    const searchMemberInput = document.getElementById("searchMemberInput");
+    const filterRoleSelect = document.getElementById("filterRoleSelect");
+    const filterStatusSelect = document.getElementById("filterStatusSelect");
+    const resetFilterBtn = document.getElementById("resetFilterBtn");
+
+    const memberTableBody = document.getElementById("memberTableBody");
+    const requestList = document.getElementById("requestList");
+    const requestSearchInput = document.getElementById("requestSearchInput");
+    const requestSortSelect = document.getElementById("requestSortSelect");
+
+    const memberForm = document.getElementById("memberForm");
+    const formTitle = document.getElementById("formTitle");
+    const memberNameInput = document.getElementById("memberNameInput");
+    const memberEmailInput = document.getElementById("memberEmailInput");
+    const memberPhoneInput = document.getElementById("memberPhoneInput");
+    const memberAddressInput = document.getElementById("memberAddressInput");
+    const memberBirthDateInput = document.getElementById("memberBirthDateInput");
+    const memberRoleInput = document.getElementById("memberRoleInput");
+    const memberStatusInput = document.getElementById("memberStatusInput");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const newMemberBtn = document.getElementById("newMemberBtn");
+    const importCsvBtn = document.getElementById("importCsvBtn");
+    const importExcelBtn = document.getElementById("importExcelBtn");
+    const downloadCsvTemplateBtn = document.getElementById("downloadCsvTemplateBtn");
+    const downloadExcelTemplateBtn = document.getElementById("downloadExcelTemplateBtn");
+    const previewMemberReportBtn = document.getElementById("previewMemberReportBtn");
+    const downloadMemberExcelBtn = document.getElementById("downloadMemberExcelBtn");
+
+    const notify = document.getElementById("notify");
+
+    let members = [];
+    let requests = [];
+    let editingId = "";
+
+    function roleLabel(roleValue) {
+      if (roleValue === "super_admin") {
+        return "Super Admin";
+      }
+      if (roleValue === "admin") {
+        return "Admin";
+      }
+      return "Anggota";
+    }
+
+    function normalizeRole(roleValue) {
+      const raw = String(roleValue || "").toLowerCase();
+      if (raw === "super_admin" || raw === "super admin") {
+        return "super_admin";
+      }
+      if (raw === "admin") {
+        return "admin";
+      }
+      return "anggota";
+    }
+
+    function showNotify(message) {
+      notify.textContent = message;
+      notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function () {
+        notify.classList.remove("show");
+      }, 2000);
+    }
+
+    function formatRole(value) {
+      return value === "super_admin" ? "Super Admin" : "Admin";
+    }
+
+    function renderSidebarMenu(currentRole) {
+      const list = [
+        { label: "Data Anggota", href: "manajemen-anggota.html", active: true },
+        { label: "Setting Sertifikat Anggota", href: "setting-sertifikat-anggota.html", active: false }
+      ];
+
+      if (currentRole === "super_admin") {
+        list.push({ label: "Kelola Data Admin", href: "kelola-data-admin.html", active: false });
+      }
+
+      anggotaMenu.innerHTML = list.map(function (item) {
+        return '<a class="menu-link' + (item.active ? " active" : "") + '" href="' + item.href + '">' + item.label + '</a>';
+      }).join("");
+    }
+
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function defaultMembers() {
+      return [
+        { id: "m-1", name: "Atanasius Surya Guna", email: "surya@example.com", phone: "081234567890", address: "Jl. Melati No. 12, Yogyakarta", birthDate: "2002-07-10", role: "anggota", status: "Aktif", password: "20020710", note: "Aktif reguler", registeredAt: "2025-08-20T08:00:00.000Z", inactiveUntil: "" },
+        { id: "m-2", name: "Rikha", email: "rikha@example.com", phone: "081222111000", address: "Jl. Cendana No. 5, Sleman", birthDate: "2001-11-08", role: "admin", status: "Aktif", password: "20011108", note: "Admin operasional", registeredAt: "2025-07-10T08:00:00.000Z", inactiveUntil: "" },
+        { id: "m-3", name: "Jeni", email: "jeni@example.com", phone: "081333222111", address: "Jl. Kenanga No. 18, Bantul", birthDate: "2003-03-16", role: "anggota", status: "Nonaktif", password: "20030316", note: "Cuti akademik", registeredAt: "2025-09-02T08:00:00.000Z", inactiveUntil: "2026-05-10" }
+      ];
+    }
+
+    function normalizeBirthDate(value) {
+      const raw = String(value || "").trim();
+      if (!raw) {
+        return "";
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+        return raw;
+      }
+      const parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime())) {
+        return "";
+      }
+      const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, "0");
+      const date = String(parsed.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + date;
+    }
+
+    function defaultPasswordFromBirthDate(birthDate) {
+      return String(birthDate || "").replace(/-/g, "");
+    }
+
+    function normalizeRegisteredAt(value) {
+      const raw = String(value || "").trim();
+      if (!raw) {
+        return new Date().toISOString();
+      }
+      const parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime())) {
+        return new Date().toISOString();
+      }
+      return parsed.toISOString();
+    }
+
+    function defaultRequests() {
+      return [
+        {
+          id: "req-1",
+          memberId: "m-3",
+          memberName: "Jeni",
+          requestType: "Aktif",
+          reason: "Siap kembali bertugas rutin.",
+          note: "Bisa mulai pelayanan pekan depan.",
+          effectiveDate: "2026-04-02",
+          reactivateDate: "",
+          inactiveType: "permanent",
+          submittedDate: "2026-03-24",
+          status: "Menunggu Review Admin"
+        },
+        {
+          id: "req-2",
+          memberId: "m-1",
+          memberName: "Atanasius Surya Guna",
+          requestType: "Nonaktif",
+          reason: "Fokus akademik UTS.",
+          note: "Mohon nonaktif sementara 1 bulan.",
+          effectiveDate: "2026-04-05",
+          reactivateDate: "2026-05-05",
+          inactiveType: "temporary",
+          submittedDate: "2026-03-22",
+          status: "Disetujui"
+        },
+        {
+          id: "req-3",
+          memberId: "m-4",
+          memberName: "Raffa",
+          requestType: "Nonaktif",
+          reason: "Kegiatan keluarga.",
+          note: "Tidak bisa bertugas di pekan suci.",
+          effectiveDate: "2026-04-01",
+          reactivateDate: "",
+          inactiveType: "permanent",
+          submittedDate: "2026-03-25",
+          status: "Menunggu Review Admin"
+        }
+      ];
+    }
+
+    function normalizeMember(item, index) {
+      if (typeof item === "string") {
+        return {
+          id: makeId("m"),
+          name: item,
+          email: "anggota" + index + "@example.com",
+          phone: "08xx-xxxx-xxxx",
+          address: "Alamat belum diisi",
+          birthDate: "",
+          role: "anggota",
+          status: "Aktif",
+          password: "",
+          note: "",
+          registeredAt: new Date().toISOString(),
+          inactiveUntil: ""
+        };
+      }
+
+      const normalizedBirthDate = normalizeBirthDate(item && (item.birthDate || item.tanggalLahir));
+      const fallbackPassword = normalizedBirthDate ? defaultPasswordFromBirthDate(normalizedBirthDate) : "";
+
+      return {
+        id: String(item && item.id ? item.id : makeId("m")),
+        name: String(item && (item.name || item.fullName) ? (item.name || item.fullName) : "Anggota"),
+        email: String(item && item.email ? item.email : "anggota@example.com"),
+        phone: String(item && item.phone ? item.phone : "08xx-xxxx-xxxx"),
+        address: String(item && item.address ? item.address : "Alamat belum diisi"),
+        birthDate: normalizedBirthDate,
+        role: normalizeRole(item && item.role),
+        status: String(item && item.status ? item.status : "Aktif"),
+        password: String(item && item.password ? item.password : fallbackPassword),
+        note: String(item && item.note ? item.note : ""),
+        registeredAt: normalizeRegisteredAt(item && (item.registeredAt || item.createdAt)),
+        inactiveUntil: normalizeBirthDate(item && item.inactiveUntil)
+      };
+    }
+
+    function normalizeRequest(item) {
+      return {
+        id: String(item && item.id ? item.id : makeId("req")),
+        memberId: String(item && item.memberId ? item.memberId : ""),
+        memberName: String(item && item.memberName ? item.memberName : "Anggota"),
+        requestType: String(item && item.requestType ? item.requestType : "Nonaktif"),
+        reason: String(item && item.reason ? item.reason : "-"),
+        note: String(item && item.note ? item.note : ""),
+        effectiveDate: normalizeBirthDate(item && item.effectiveDate),
+        reactivateDate: normalizeBirthDate(item && item.reactivateDate),
+        inactiveType: String(item && item.inactiveType ? item.inactiveType : (item && item.reactivateDate ? "temporary" : "permanent")),
+        submittedDate: normalizeBirthDate(item && item.submittedDate),
+        status: String(item && item.status ? item.status : "Menunggu Review Admin"),
+        updatedAt: String(item && item.updatedAt ? item.updatedAt : ""),
+        evidenceName: String(item && item.evidenceName ? item.evidenceName : ""),
+        evidenceType: String(item && item.evidenceType ? item.evidenceType : ""),
+        evidenceDataUrl: String(item && item.evidenceDataUrl ? item.evidenceDataUrl : "")
+      };
+    }
+
+    function triggerDownload(dataUrl, filename) {
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = filename || "bukti-pendukung";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function openEvidence(requestId) {
+      const req = requests.find(function (item) { return item.id === requestId; });
+      if (!req || !req.evidenceDataUrl) {
+        showNotify("Bukti tidak ditemukan.");
+        return;
+      }
+
+      const type = String(req.evidenceType || "").toLowerCase();
+      const filename = req.evidenceName || "bukti-pendukung";
+      const isImageOrPdf = type.startsWith("image/") || type === "application/pdf";
+
+      if (isImageOrPdf) {
+        window.open(req.evidenceDataUrl, "_blank", "noopener");
+        return;
+      }
+
+      triggerDownload(req.evidenceDataUrl, filename);
+    }
+
+    function applyAutoReactivateMembers() {
+      const today = normalizeBirthDate(new Date().toISOString());
+      let changed = false;
+      members.forEach(function (member) {
+        const until = normalizeBirthDate(member && member.inactiveUntil ? member.inactiveUntil : "");
+        if (member.status === "Nonaktif" && until && until <= today) {
+          member.status = "Aktif";
+          member.inactiveUntil = "";
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveMembers();
+      }
+    }
+
+    function loadMembers() {
+      const membersRaw = localStorage.getItem(MEMBER_STORAGE_KEY);
+      const parsedMembers = membersRaw ? safeParse(membersRaw) : null;
+      if (Array.isArray(parsedMembers) && parsedMembers.length > 0) {
+        members = parsedMembers.map(normalizeMember);
+        return;
+      }
+
+      const activeRaw = localStorage.getItem(ACTIVE_MEMBER_STORAGE_KEY);
+      const parsedActive = activeRaw ? safeParse(activeRaw) : null;
+      if (Array.isArray(parsedActive) && parsedActive.length > 0) {
+        members = parsedActive.map(normalizeMember);
+        return;
+      }
+
+      members = defaultMembers();
+    }
+
+    function syncActiveMembers() {
+      const activeNames = members
+        .filter(function (member) { return member.status === "Aktif"; })
+        .map(function (member) { return member.name; });
+      localStorage.setItem(ACTIVE_MEMBER_STORAGE_KEY, JSON.stringify(activeNames));
+    }
+
+    function saveMembers() {
+      localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(members));
+      syncActiveMembers();
+    }
+
+    function loadRequests() {
+      const raw = localStorage.getItem(STATUS_REQUEST_STORAGE_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      requests = Array.isArray(parsed) ? parsed.map(normalizeRequest) : [];
+
+      if (!requests.length) {
+        requests = defaultRequests().map(normalizeRequest);
+      }
+
+      // Migrasi dari key lama single request anggota
+      const legacyRaw = localStorage.getItem(LEGACY_SINGLE_REQUEST_KEY);
+      const legacy = legacyRaw ? safeParse(legacyRaw) : null;
+      if (legacy && !requests.some(function (item) { return item && item.legacySource; })) {
+        requests.push({
+          id: makeId("req"),
+          memberId: "",
+          memberName: "Anggota",
+          requestType: "Nonaktif",
+          reason: legacy.reason || "-",
+          note: legacy.note || "",
+          effectiveDate: legacy.effectiveDate || "",
+          reactivateDate: "",
+          inactiveType: "permanent",
+          submittedDate: legacy.submittedDate || "",
+          status: legacy.status || "Menunggu Review Admin",
+          legacySource: true
+        });
+      }
+    }
+
+    function saveRequests() {
+      localStorage.setItem(STATUS_REQUEST_STORAGE_KEY, JSON.stringify(requests));
+    }
+
+    function renderRoleFilter() {
+      const roles = Array.from(new Set(members.map(function (member) { return member.role; }))).sort();
+      const currentValue = filterRoleSelect.value;
+      filterRoleSelect.innerHTML = '<option value="all">Semua Role</option>'
+        + roles.map(function (roleItem) {
+          return '<option value="' + roleItem.replace(/"/g, "&quot;") + '">' + roleLabel(roleItem) + '</option>';
+        }).join("");
+      if (roles.includes(currentValue)) {
+        filterRoleSelect.value = currentValue;
+      }
+    }
+
+    function filteredMembers() {
+      const keyword = searchMemberInput.value.trim().toLowerCase();
+      const roleFilter = filterRoleSelect.value;
+      const statusFilter = filterStatusSelect.value;
+
+      return members.filter(function (member) {
+        const matchKeyword = !keyword || [member.name, member.email, member.phone, member.address, member.birthDate, roleLabel(member.role)].join(" ").toLowerCase().includes(keyword);
+        const matchRole = roleFilter === "all" || member.role === roleFilter;
+        const matchStatus = statusFilter === "all" || member.status === statusFilter;
+        return matchKeyword && matchRole && matchStatus;
+      });
+    }
+
+    function renderStats() {
+      const active = members.filter(function (member) { return member.status === "Aktif"; }).length;
+      const inactive = members.filter(function (member) { return member.status === "Nonaktif"; }).length;
+      const pending = requests.filter(function (req) { return (req.status || "").toLowerCase().includes("menunggu"); }).length;
+
+      totalMemberCount.textContent = String(members.length);
+      activeMemberCount.textContent = String(active);
+      inactiveMemberCount.textContent = String(inactive);
+      pendingRequestCount.textContent = String(pending);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function renderMemberTable() {
+      const rows = filteredMembers();
+      if (!rows.length) {
+        memberTableBody.innerHTML = '<tr><td colspan="8">Tidak ada data anggota yang cocok.</td></tr>';
+        return;
+      }
+
+      memberTableBody.innerHTML = rows.map(function (member) {
+        const statusClass = member.status === "Nonaktif" ? "status nonaktif" : "status";
+        const statusText = member.status === "Nonaktif" && member.inactiveUntil
+          ? (member.status + " s/d " + formatDate(member.inactiveUntil))
+          : member.status;
+        return '<tr>'
+          + '<td>' + escapeHtml(member.name) + '</td>'
+          + '<td>' + escapeHtml(member.email) + '</td>'
+          + '<td>' + escapeHtml(member.phone) + '</td>'
+          + '<td>' + escapeHtml(member.address) + '</td>'
+          + '<td>' + escapeHtml(formatDate(member.birthDate)) + '</td>'
+          + '<td>' + escapeHtml(roleLabel(member.role)) + '</td>'
+          + '<td><span class="' + statusClass + '">' + escapeHtml(statusText) + '</span></td>'
+          + '<td><div class="inline-actions">'
+          + '<button class="btn ghost" type="button" data-action="edit" data-id="' + member.id + '">Edit</button>'
+          + '<button class="btn ghost" type="button" data-action="reset-password" data-id="' + member.id + '">Reset Password</button>'
+          + '<button class="btn warn" type="button" data-action="delete" data-id="' + member.id + '">Hapus</button>'
+          + '</div></td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "-";
+      }
+      const d = new Date(value + "T00:00:00");
+      if (Number.isNaN(d.getTime())) {
+        return value;
+      }
+      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    function formatDateTime(value) {
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function memberStatusLabel(member) {
+      if (!member) {
+        return "-";
+      }
+      if (member.status === "Nonaktif" && member.inactiveUntil) {
+        return member.status + " s/d " + formatDate(member.inactiveUntil);
+      }
+      return member.status || "-";
+    }
+
+    function buildMemberReportHtml(rows) {
+      const generatedAt = formatDateTime(new Date());
+      const tableRows = rows.map(function (member, index) {
+        return '<tr>'
+          + '<td>' + (index + 1) + '</td>'
+          + '<td>' + escapeHtml(member.name || "-") + '</td>'
+          + '<td>' + escapeHtml(member.email || "-") + '</td>'
+          + '<td>' + escapeHtml(member.phone || "-") + '</td>'
+          + '<td>' + escapeHtml(member.address || "-") + '</td>'
+          + '<td>' + escapeHtml(formatDate(member.birthDate)) + '</td>'
+          + '<td>' + escapeHtml(roleLabel(member.role)) + '</td>'
+          + '<td>' + escapeHtml(memberStatusLabel(member)) + '</td>'
+          + '</tr>';
+      }).join("");
+
+      return '<!doctype html>'
+        + '<html lang="id"><head><meta charset="utf-8"><title>Laporan Data Anggota</title>'
+        + '<style>'
+        + 'body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;margin:0;color:#111;background:#f3f4f6;}'
+        + '.toolbar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:#111;color:#f9fafb;z-index:3;}'
+        + '.toolbar h1{margin:0;font-size:0.95rem;}'
+        + '.toolbar .actions{display:flex;gap:8px;}'
+        + '.toolbar button{border:1px solid #cbd5e1;background:#fff;color:#111827;border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer;font-size:0.78rem;}'
+        + '.page{max-width:1100px;margin:14px auto;background:#fff;border:1px solid #d1d5db;border-radius:12px;padding:16px;}'
+        + '.meta{display:grid;gap:4px;margin-bottom:12px;font-size:0.82rem;color:#374151;}'
+        + 'table{width:100%;border-collapse:collapse;font-size:0.8rem;}'
+        + 'th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;vertical-align:top;}'
+        + 'th{background:#f3f4f6;text-transform:uppercase;font-size:0.72rem;}'
+        + '@media print{.toolbar{display:none;}body{background:#fff;} .page{margin:0;max-width:none;border:0;border-radius:0;padding:0;}}'
+        + '</style></head><body>'
+        + '<div class="toolbar"><h1>Preview Laporan Data Anggota</h1><div class="actions"><button onclick="window.print()">Download PDF</button><button onclick="window.close()">Tutup</button></div></div>'
+        + '<main class="page">'
+        + '<h2 style="margin:0 0 8px;">Laporan Data Daftar Anggota</h2>'
+        + '<div class="meta"><span>Total data: ' + rows.length + ' anggota</span><span>Dibuat pada: ' + generatedAt + '</span><span>Sumber: Modul Manajemen Data Anggota - Crembo Media</span></div>'
+        + '<table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr></thead><tbody>'
+        + tableRows
+        + '</tbody></table></main></body></html>';
+    }
+
+    function openMemberReportPreview() {
+      const rows = filteredMembers();
+      if (!rows.length) {
+        showNotify("Tidak ada data anggota untuk dibuat laporan.");
+        return;
+      }
+
+      const newTab = window.open("", "_blank");
+      if (!newTab) {
+        showNotify("Popup diblokir browser. Izinkan popup untuk preview PDF.");
+        return;
+      }
+
+      newTab.document.open();
+      newTab.document.write(buildMemberReportHtml(rows));
+      newTab.document.close();
+    }
+
+    function downloadMemberExcel() {
+      const rows = filteredMembers();
+      if (!rows.length) {
+        showNotify("Tidak ada data anggota untuk diunduh.");
+        return;
+      }
+
+      const tableHeader = '<tr><th>No</th><th>Nama</th><th>Email</th><th>No WA</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr>';
+      const tableBody = rows.map(function (member, index) {
+        return '<tr>'
+          + '<td>' + (index + 1) + '</td>'
+          + '<td>' + escapeHtml(member.name || "-") + '</td>'
+          + '<td>' + escapeHtml(member.email || "-") + '</td>'
+          + '<td>' + escapeHtml(member.phone || "-") + '</td>'
+          + '<td>' + escapeHtml(member.address || "-") + '</td>'
+          + '<td>' + escapeHtml(formatDate(member.birthDate)) + '</td>'
+          + '<td>' + escapeHtml(roleLabel(member.role)) + '</td>'
+          + '<td>' + escapeHtml(memberStatusLabel(member)) + '</td>'
+          + '</tr>';
+      }).join("");
+
+      const excelHtml = '<html><head><meta charset="utf-8"></head><body>'
+        + '<table border="1">'
+        + tableHeader
+        + tableBody
+        + '</table>'
+        + '</body></html>';
+
+      const blob = new Blob(["\ufeff", excelHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const now = new Date();
+      const fileName = "laporan-data-anggota-"
+        + now.getFullYear()
+        + String(now.getMonth() + 1).padStart(2, "0")
+        + String(now.getDate()).padStart(2, "0")
+        + ".xls";
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showNotify("Laporan Excel berhasil diunduh.");
+    }
+
+    function renderRequests() {
+      const keyword = requestSearchInput.value.trim().toLowerCase();
+      const sortMode = requestSortSelect.value;
+
+      const filtered = requests.filter(function (req) {
+        if (!keyword) {
+          return true;
+        }
+        const source = [
+          req.memberName,
+          req.requestType,
+          req.reason,
+          req.note,
+          req.evidenceName,
+          req.status,
+          req.inactiveType === "temporary" ? "berjangka" : "selamanya"
+        ].join(" ").toLowerCase();
+        return source.includes(keyword);
+      });
+
+      const sorted = filtered.slice().sort(function (a, b) {
+        const aTime = new Date((a && a.updatedAt) || (a && a.submittedDate) || "1970-01-01").getTime();
+        const bTime = new Date((b && b.updatedAt) || (b && b.submittedDate) || "1970-01-01").getTime();
+        return sortMode === "oldest" ? (aTime - bTime) : (bTime - aTime);
+      });
+
+      if (!sorted.length) {
+        requestList.innerHTML = '<div class="request-card">Belum ada permintaan status dari anggota.</div>';
+        return;
+      }
+
+      requestList.innerHTML = sorted
+        .map(function (req) {
+          const isPending = String(req.status || "").toLowerCase().includes("menunggu");
+          const actions = isPending
+            ? '<div class="inline-actions">'
+                + '<button class="btn" type="button" data-req-action="approve" data-req-id="' + req.id + '">Setujui</button>'
+                + '<button class="btn warn" type="button" data-req-action="reject" data-req-id="' + req.id + '">Tolak</button>'
+              + '</div>'
+            : '';
+
+          const evidenceAction = req.evidenceDataUrl
+            ? '<div class="inline-actions"><button class="btn ghost" type="button" data-req-evidence="open" data-req-id="' + req.id + '">Lihat Bukti: ' + escapeHtml(req.evidenceName || "Berkas") + '</button></div>'
+            : '<span>Bukti: -</span>';
+
+          return '<article class="request-card">'
+            + '<strong>' + escapeHtml(req.memberName || "Anggota") + ' - ' + escapeHtml(req.requestType || "Permintaan") + '</strong>'
+            + '<span>Status: <b>' + escapeHtml(req.status || "-") + '</b></span>'
+            + (String(req.requestType || "").toLowerCase().includes("nonaktif")
+                ? '<span>Jenis Nonaktif: ' + escapeHtml(req.inactiveType === "temporary" ? "Berjangka" : "Selamanya") + '</span>'
+                : '')
+            + '<span>Tanggal Pengajuan: ' + escapeHtml(formatDate(req.submittedDate)) + '</span>'
+            + '<span>Efektif Mulai: ' + escapeHtml(formatDate(req.effectiveDate)) + '</span>'
+            + (req.reactivateDate ? '<span>Aktif Kembali: ' + escapeHtml(formatDate(req.reactivateDate)) + '</span>' : '')
+            + '<span>Alasan: ' + escapeHtml(req.reason || "-") + '</span>'
+            + (req.note ? '<span>Catatan: ' + escapeHtml(req.note) + '</span>' : '')
+            + evidenceAction
+            + actions
+            + '</article>';
+        }).join("");
+    }
+
+    function resetForm() {
+      editingId = "";
+      formTitle.textContent = "Tambah Anggota Baru";
+      memberForm.reset();
+      memberRoleInput.value = "anggota";
+      memberStatusInput.value = "Aktif";
+      memberAddressInput.value = "";
+    }
+
+    function openEdit(id) {
+      const member = members.find(function (item) { return item.id === id; });
+      if (!member) {
+        return;
+      }
+      editingId = id;
+      formTitle.textContent = "Update Data Anggota";
+      memberNameInput.value = member.name;
+      memberEmailInput.value = member.email;
+      memberPhoneInput.value = member.phone;
+      memberAddressInput.value = member.address;
+      memberBirthDateInput.value = member.birthDate || "";
+      memberRoleInput.value = member.role;
+      memberStatusInput.value = member.status;
+      memberNameInput.focus();
+    }
+
+    function resetMemberPassword(id) {
+      const target = members.find(function (item) { return item.id === id; });
+      if (!target) {
+        return;
+      }
+      if (!target.birthDate) {
+        showNotify("Tanggal lahir anggota belum diisi. Tidak bisa reset password.");
+        return;
+      }
+      target.password = defaultPasswordFromBirthDate(target.birthDate);
+      saveMembers();
+      showNotify("Password " + target.name + " direset ke tanggal lahir.");
+    }
+
+    function deleteMember(id) {
+      const target = members.find(function (item) { return item.id === id; });
+      if (!target) {
+        return;
+      }
+      const ok = window.confirm("Hapus anggota \"" + target.name + "\"?");
+      if (!ok) {
+        return;
+      }
+      members = members.filter(function (item) { return item.id !== id; });
+      saveMembers();
+      renderAll();
+      showNotify("Data anggota berhasil dihapus.");
+    }
+
+    function upsertMember(event) {
+      event.preventDefault();
+      const existingIndex = members.findIndex(function (member) { return member.id === editingId; });
+      const payload = {
+        id: editingId || makeId("m"),
+        name: memberNameInput.value.trim(),
+        email: memberEmailInput.value.trim(),
+        phone: memberPhoneInput.value.trim(),
+        address: memberAddressInput.value.trim(),
+        birthDate: normalizeBirthDate(memberBirthDateInput.value),
+        role: normalizeRole(memberRoleInput.value),
+        status: memberStatusInput.value,
+        password: "",
+        note: "",
+        inactiveUntil: existingIndex >= 0 ? normalizeBirthDate(members[existingIndex].inactiveUntil) : "",
+        registeredAt: existingIndex >= 0
+          ? normalizeRegisteredAt(members[existingIndex].registeredAt || members[existingIndex].createdAt)
+          : new Date().toISOString()
+      };
+
+      if (!payload.name || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
+        showNotify("Nama, email, nomor WA, alamat, dan tanggal lahir wajib diisi.");
+        return;
+      }
+
+      payload.password = defaultPasswordFromBirthDate(payload.birthDate);
+
+      if (role !== "super_admin" && payload.role === "super_admin") {
+        showNotify("Hanya super admin yang dapat menetapkan role Super Admin.");
+        return;
+      }
+
+      const editIndex = members.findIndex(function (member) { return member.id === payload.id; });
+      if (editIndex >= 0) {
+        if (role !== "super_admin" && members[editIndex].role === "super_admin") {
+          showNotify("Admin tidak dapat mengubah data akun Super Admin.");
+          return;
+        }
+        payload.password = members[editIndex].password || defaultPasswordFromBirthDate(payload.birthDate);
+        payload.registeredAt = normalizeRegisteredAt(members[editIndex].registeredAt || payload.registeredAt);
+        payload.inactiveUntil = normalizeBirthDate(members[editIndex].inactiveUntil);
+        members[editIndex] = payload;
+        showNotify("Data anggota berhasil diperbarui.");
+      } else {
+        members.push(payload);
+        showNotify("Anggota baru berhasil ditambahkan.");
+      }
+
+      saveMembers();
+      resetForm();
+      renderAll();
+    }
+
+    function applyRequestAction(requestId, action) {
+      const req = requests.find(function (item) { return item.id === requestId; });
+      if (!req) {
+        return;
+      }
+
+      if (action === "approve") {
+        req.status = "Disetujui";
+        req.updatedAt = new Date().toISOString();
+        const targetMember = members.find(function (item) {
+          return (req.memberId && item.id === req.memberId) || item.name === req.memberName;
+        });
+        if (targetMember) {
+          if (String(req.requestType || "").toLowerCase().includes("nonaktif")) {
+            targetMember.status = "Nonaktif";
+            targetMember.inactiveUntil = req.inactiveType === "temporary" ? normalizeBirthDate(req.reactivateDate) : "";
+          } else {
+            targetMember.status = "Aktif";
+            targetMember.inactiveUntil = "";
+          }
+        }
+        saveMembers();
+        showNotify("Permintaan status disetujui.");
+      } else if (action === "reject") {
+        req.status = "Ditolak";
+        req.updatedAt = new Date().toISOString();
+        showNotify("Permintaan status ditolak.");
+      }
+
+      saveRequests();
+      renderAll();
+    }
+
+    function renderAll() {
+      applyAutoReactivateMembers();
+      renderRoleFilter();
+      renderStats();
+      renderMemberTable();
+      renderRequests();
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    roleBadge.textContent = "Role: " + formatRole(role);
+    renderSidebarMenu(role);
+
+    if (role !== "super_admin") {
+      const superOption = memberRoleInput.querySelector('option[value="super_admin"]');
+      if (superOption) {
+        superOption.remove();
+      }
+    }
+
+    loadMembers();
+    loadRequests();
+    saveMembers();
+    saveRequests();
+    resetForm();
+    renderAll();
+
+    memberForm.addEventListener("submit", upsertMember);
+    cancelEditBtn.addEventListener("click", resetForm);
+    newMemberBtn.addEventListener("click", function () {
+      resetForm();
+      memberNameInput.focus();
+    });
+
+    searchMemberInput.addEventListener("input", renderMemberTable);
+    filterRoleSelect.addEventListener("change", renderMemberTable);
+    filterStatusSelect.addEventListener("change", renderMemberTable);
+    requestSearchInput.addEventListener("input", renderRequests);
+    requestSortSelect.addEventListener("change", renderRequests);
+
+    resetFilterBtn.addEventListener("click", function () {
+      searchMemberInput.value = "";
+      filterRoleSelect.value = "all";
+      filterStatusSelect.value = "all";
+      renderMemberTable();
+    });
+
+    importCsvBtn.addEventListener("click", function () {
+      showNotify("UI import CSV siap. Proses impor akan diaktifkan pada tahap berikutnya.");
+    });
+
+    importExcelBtn.addEventListener("click", function () {
+      showNotify("UI import Excel siap. Proses impor akan diaktifkan pada tahap berikutnya.");
+    });
+
+    downloadCsvTemplateBtn.addEventListener("click", function () {
+      showNotify("Tombol template CSV sudah disiapkan (mode tampilan).");
+    });
+
+    downloadExcelTemplateBtn.addEventListener("click", function () {
+      showNotify("Tombol template Excel sudah disiapkan (mode tampilan).");
+    });
+
+    previewMemberReportBtn.addEventListener("click", openMemberReportPreview);
+    downloadMemberExcelBtn.addEventListener("click", downloadMemberExcel);
+
+    memberTableBody.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) {
+        return;
+      }
+
+      const action = button.getAttribute("data-action");
+      const id = button.getAttribute("data-id") || "";
+
+      if (action === "edit") {
+        openEdit(id);
+      } else if (action === "reset-password") {
+        resetMemberPassword(id);
+      } else if (action === "delete") {
+        deleteMember(id);
+      }
+    });
+
+    requestList.addEventListener("click", function (event) {
+      const evidenceButton = event.target.closest("button[data-req-evidence]");
+      if (evidenceButton) {
+        const requestId = evidenceButton.getAttribute("data-req-id") || "";
+        openEvidence(requestId);
+        return;
+      }
+
+      const button = event.target.closest("button[data-req-action]");
+      if (!button) {
+        return;
+      }
+      const action = button.getAttribute("data-req-action") || "";
+      const requestId = button.getAttribute("data-req-id") || "";
+      applyRequestAction(requestId, action);
+    });
+
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const marker = button.querySelector("span");
+        marker.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    mobileSidebarBtn.addEventListener("click", function () {
+      sidebar.classList.toggle("show");
+    });
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

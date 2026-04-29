@@ -1,0 +1,1080 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kelola Embed YouTube - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --ok: #116d3f;
+      --warn: #9b5b00;
+      --danger: #b42323;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    main .dashboard-headline-bar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    main .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+
+    main .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: clamp(0.82rem, 1.6vw, 0.98rem);
+      font-weight: 700;
+    }
+
+    main .head-meta #liveDateTime {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    main .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    main .world-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    main .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    main .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    main .topbar::before,
+    main .headline::before {
+      display: none !important;
+      content: none !important;
+    }
+
+    main .headline {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    main .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    main .role-chip {
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .status {
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border: 1px solid #b7b7b7;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      display: none;
+    }
+
+    .status.show { display: block; }
+
+    .status.ok {
+      border-color: #a9d6b9;
+      background: #eef8ef;
+      color: var(--ok);
+    }
+
+    .status.warn {
+      border-color: #e3c188;
+      background: #fff8ea;
+      color: var(--warn);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 0.84rem;
+      color: #515151;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid #bdbdbd;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.86rem;
+      font-family: inherit;
+      background: #fff;
+    }
+
+    .check-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.85rem;
+      width: fit-content;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      accent-color: #295fc2;
+    }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%);
+      border-color: #295fc2;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .btn.warn {
+      background: #fff;
+      color: var(--danger);
+      border-color: #ef4444;
+      font-weight: 700;
+    }
+
+    .form-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid #cdcdcd;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #d1d1d1;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f1f1;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #b8b8b8;
+      border-radius: 6px;
+      background: #f8f8f8;
+      cursor: grab;
+      user-select: none;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    .state-pill {
+      display: inline-block;
+      border: 1px solid #b5b5b5;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.74rem;
+      background: #f7f7f7;
+      white-space: nowrap;
+    }
+
+    .state-pill.active {
+      border-color: #99c8ab;
+      background: #eef8ef;
+      color: var(--ok);
+      font-weight: 700;
+    }
+
+    tr.dragging {
+      opacity: 0.5;
+    }
+
+    tr.drop-target td {
+      background: #edf3ff;
+    }
+
+    .action-stack {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .empty-note {
+      margin: 8px 0 0;
+      border: 1px dashed #adadad;
+      background: #fbfbfb;
+      padding: 10px;
+      font-size: 0.86rem;
+      color: #616161;
+    }
+
+    .url-preview {
+      margin-top: 6px;
+      padding: 8px;
+      border: 1px solid #d4d4d4;
+      border-radius: 8px;
+      background: #f9f9f9;
+      font-size: 0.8rem;
+      color: #505050;
+      word-break: break-all;
+    }
+
+    .video-thumbnail {
+      display: block;
+      width: 100%;
+      max-width: 160px;
+      height: auto;
+      border-radius: 8px;
+      background: #000;
+      border: 1px solid #d1d1d1;
+    }
+
+    .preview-cell {
+      text-align: center;
+      padding: 6px !important;
+    }
+
+    .preview-placeholder {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      height: 68px;
+      border-radius: 6px;
+      background: #1a1a1a;
+      color: #999;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .main { padding: 10px; }
+      .dashboard-headline-bar,
+      .topbar,
+      .panel-head,
+      .panel-body { padding: 10px; }
+
+      .form-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions .btn {
+        width: 100%;
+      }
+
+      .table-wrap {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+      }
+
+      table {
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: grid;
+        gap: 10px;
+      }
+
+      tr {
+        display: block;
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      td {
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: 8px;
+        border: 0;
+        border-bottom: 1px dashed #d6d6d6;
+        padding: 8px 10px;
+      }
+
+      td:last-child {
+        border-bottom: 0;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #4f4f4f;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+
+      .action-stack {
+        width: 100%;
+      }
+
+      .action-stack .btn {
+        flex: 1 1 120px;
+      }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar kelola konten utama website">
+      <div class="brand">
+        <h1>Crembo Media Panel</h1>
+        <p>Modul kelola embed YouTube</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Konten Utama Website <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="kelola-carousel-home.html">Kelola Carousel Home</a>
+          <a class="menu-link" href="kelola-tentang-crembo.html">Kelola Konten Tentang Crembo</a>
+          <a class="menu-link active" href="kelola-embed-youtube.html">Kelola Embed YouTube</a>
+          <a class="menu-link" href="kelola-embed-google-maps.html">Kelola Embed Google Maps</a>
+          <a class="menu-link" href="kelola-embed-instagram.html">Kelola Embed Instagram</a>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Lihat Home</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header kelola embed youtube waktu berjalan">
+        <h1>Kelola Embed YouTube</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Lihat Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Kelola Video YouTube Section Home</h2>
+          <p class="subhead">Admin dan Super Admin dapat menambah, edit, dan hapus video embed YouTube di section home.</p>
+        </div>
+        <span id="roleChip" class="role-chip">Role: -</span>
+      </header>
+
+      <section class="panel" aria-label="Form kelola embed youtube">
+        <header class="panel-head">
+          <h2 id="formTitle">Tambah Video YouTube Baru</h2>
+        </header>
+        <div class="panel-body">
+          <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
+
+          <form id="youtubeForm">
+            <input id="videoId" type="hidden">
+
+            <div class="form-grid">
+              <div class="field full">
+                <label for="videoTitle">Judul Video</label>
+                <input id="videoTitle" type="text" required placeholder="Contoh: Embed YouTube Crembo Media">
+              </div>
+
+              <div class="field full">
+                <label for="videoUrl">URL YouTube atau Embed Link</label>
+                <input id="videoUrl" type="text" required placeholder="https://www.youtube.com/watch?v=... atau https://www.youtube.com/embed/...">
+                <div class="url-preview" id="urlPreview" style="display: none;"></div>
+              </div>
+
+              <div class="field">
+                <label for="videoOrder">Urutan Tampil</label>
+                <input id="videoOrder" type="number" min="0" step="1" value="0">
+              </div>
+
+              <div class="field">
+                <label for="isActive">Status</label>
+                <label class="check-row"><input id="isActive" type="checkbox" checked> Aktifkan video ini</label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button id="submitBtn" class="btn primary" type="submit">Simpan Video</button>
+              <button id="cancelEditBtn" class="btn ghost" type="button" hidden>Batal Edit</button>
+              <button id="resetFormBtn" class="btn ghost" type="button">Reset Form</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Daftar video youtube">
+        <header class="panel-head">
+          <h2>Daftar Video YouTube Home</h2>
+        </header>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Preview</th>
+                  <th>Urut</th>
+                  <th>Judul</th>
+                  <th>URL</th>
+                  <th>Urutan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="videoRows"></tbody>
+            </table>
+          </div>
+          <p id="emptyState" class="empty-note" hidden>Belum ada video tersimpan.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "crembo-home-youtube-videos";
+    const DEFAULT_VIDEOS = [];
+
+    const roleChip = document.getElementById("roleChip");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const formTitle = document.getElementById("formTitle");
+    const youtubeForm = document.getElementById("youtubeForm");
+    const videoId = document.getElementById("videoId");
+    const videoTitle = document.getElementById("videoTitle");
+    const videoUrl = document.getElementById("videoUrl");
+    const videoOrder = document.getElementById("videoOrder");
+    const isActive = document.getElementById("isActive");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const resetFormBtn = document.getElementById("resetFormBtn");
+    const statusMessage = document.getElementById("statusMessage");
+    const videoRows = document.getElementById("videoRows");
+    const emptyState = document.getElementById("emptyState");
+    const urlPreview = document.getElementById("urlPreview");
+
+    let draggingVideoId = "";
+
+    function extractYouTubeVideoId(url) {
+      if (!url) return "";
+      
+      // Format: https://www.youtube.com/watch?v=VIDEO_ID
+      const match1 = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/)([^&\/?\s]+)/);
+      if (match1) return match1[1];
+      
+      // Format: https://youtu.be/VIDEO_ID
+      const match2 = url.match(/youtu\.be\/([^?&\s]+)/);
+      if (match2) return match2[1];
+      
+      return "";
+    }
+
+    function getYouTubeThumbnail(videoId) {
+      if (!videoId) return "";
+      return "https://img.youtube.com/vi/" + encodeURIComponent(videoId) + "/0.jpg";
+    }
+
+    function getCurrentRole() {
+      const params = new URLSearchParams(window.location.search);
+      const roleFromQuery = params.get("role");
+
+      let roleFromStorage = "";
+      const storedSessionRaw = localStorage.getItem("crembo-login-session");
+      if (storedSessionRaw) {
+        try {
+          const sessionObj = JSON.parse(storedSessionRaw);
+          roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
+        } catch (error) {
+          roleFromStorage = "";
+        }
+      }
+
+      return roleFromQuery || roleFromStorage || "admin";
+    }
+
+    function formatRole(role) {
+      if (role === "super_admin") {
+        return "Super Admin";
+      }
+      if (role === "admin") {
+        return "Admin";
+      }
+      return "Anggota";
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function normalizeVideo(item) {
+      return {
+        id: item && item.id ? String(item.id) : "video-" + Date.now(),
+        title: item && item.title ? String(item.title) : "",
+        url: item && item.url ? String(item.url) : "",
+        order: Number(item && item.order ? item.order : 0),
+        active: item && item.active !== false
+      };
+    }
+
+    function readVideos() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return DEFAULT_VIDEOS.slice();
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || !parsed.length) {
+          return DEFAULT_VIDEOS.slice();
+        }
+
+        return parsed.map(normalizeVideo);
+      } catch (error) {
+        return DEFAULT_VIDEOS.slice();
+      }
+    }
+
+    function writeVideos(videos) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+    }
+
+    function sortVideos(videos) {
+      return videos.slice().sort(function (a, b) {
+        if (a.order === b.order) {
+          return a.title.localeCompare(b.title, "id", { sensitivity: "base" });
+        }
+        return a.order - b.order;
+      });
+    }
+
+    function setStatus(text, kind) {
+      statusMessage.textContent = text;
+      statusMessage.className = "status show " + (kind || "ok");
+    }
+
+    function clearStatus() {
+      statusMessage.className = "status";
+      statusMessage.textContent = "";
+    }
+
+    function resetForm() {
+      youtubeForm.reset();
+      videoId.value = "";
+      formTitle.textContent = "Tambah Video YouTube Baru";
+      submitBtn.textContent = "Simpan Video";
+      cancelEditBtn.hidden = true;
+      videoOrder.value = "0";
+      isActive.checked = true;
+      urlPreview.style.display = "none";
+      urlPreview.textContent = "";
+      clearStatus();
+    }
+
+    function renderRows() {
+      const videos = sortVideos(readVideos());
+      videoRows.innerHTML = "";
+
+      if (!videos.length) {
+        emptyState.hidden = false;
+        return;
+      }
+
+      emptyState.hidden = true;
+
+      videos.forEach(function (video) {
+        const tr = document.createElement("tr");
+        tr.setAttribute("draggable", "true");
+        tr.setAttribute("data-video-id", video.id);
+
+        const videoId = extractYouTubeVideoId(video.url);
+        const thumbnailUrl = getYouTubeThumbnail(videoId);
+        const previewHtml = videoId ? '<img src="' + thumbnailUrl + '" alt="' + escapeHtml(video.title || "Video") + '" class="video-thumbnail">' : '<div class="preview-placeholder">No Preview</div>';
+
+        tr.innerHTML =
+          '<td data-label="Preview" class="preview-cell">' + previewHtml + '</td>' +
+          '<td data-label="Urut"><span class="drag-handle" title="Drag untuk ubah urutan">::</span></td>' +
+          '<td data-label="Judul"><strong>' + escapeHtml(video.title || "-") + '</strong></td>' +
+          '<td data-label="URL"><a href="' + escapeHtml(video.url || "#") + '" target="_blank" rel="noopener">' + escapeHtml((video.url || "-").substring(0, 50)) + '</a></td>' +
+          '<td data-label="Urutan">' + escapeHtml(String(video.order)) + '</td>' +
+          '<td data-label="Status"><span class="state-pill' + (video.active ? ' active' : '') + '">' + (video.active ? 'Aktif' : 'Nonaktif') + '</span></td>' +
+          '<td data-label="Aksi"><div class="action-stack">' +
+            '<button class="btn ghost" type="button" data-edit-id="' + escapeHtml(video.id) + '">Edit</button>' +
+            '<button class="btn warn" type="button" data-delete-id="' + escapeHtml(video.id) + '">Hapus</button>' +
+          '</div></td>';
+
+        tr.addEventListener("dragstart", function () {
+          draggingVideoId = video.id;
+          tr.classList.add("dragging");
+        });
+
+        tr.addEventListener("dragend", function () {
+          draggingVideoId = "";
+          tr.classList.remove("dragging");
+          videoRows.querySelectorAll("tr").forEach(function (row) {
+            row.classList.remove("drop-target");
+          });
+        });
+
+        tr.addEventListener("dragover", function (event) {
+          event.preventDefault();
+          if (!draggingVideoId || draggingVideoId === video.id) {
+            return;
+          }
+          tr.classList.add("drop-target");
+        });
+
+        tr.addEventListener("dragleave", function () {
+          tr.classList.remove("drop-target");
+        });
+
+        tr.addEventListener("drop", function (event) {
+          event.preventDefault();
+          tr.classList.remove("drop-target");
+          if (!draggingVideoId || draggingVideoId === video.id) {
+            return;
+          }
+          reorderVideos(draggingVideoId, video.id);
+        });
+
+        videoRows.appendChild(tr);
+      });
+    }
+
+    function reorderVideos(sourceId, targetId) {
+      const videos = sortVideos(readVideos());
+      const sourceIndex = videos.findIndex(function (item) { return item.id === sourceId; });
+      const targetIndex = videos.findIndex(function (item) { return item.id === targetId; });
+
+      if (sourceIndex < 0 || targetIndex < 0) {
+        return;
+      }
+
+      const moved = videos.splice(sourceIndex, 1)[0];
+      videos.splice(targetIndex, 0, moved);
+
+      videos.forEach(function (item, index) {
+        item.order = index + 1;
+      });
+
+      writeVideos(videos);
+      renderRows();
+      setStatus("Urutan video berhasil diperbarui dengan drag and drop.", "ok");
+    }
+
+    function saveVideo(event) {
+      event.preventDefault();
+
+      const title = videoTitle.value.trim();
+      const url = videoUrl.value.trim();
+
+      if (!title) {
+        setStatus("Judul video wajib diisi.", "warn");
+        return;
+      }
+
+      if (!url) {
+        setStatus("URL YouTube wajib diisi.", "warn");
+        return;
+      }
+
+      const id = videoId.value || ("video-" + Date.now());
+      const payload = normalizeVideo({
+        id: id,
+        title: title,
+        url: url,
+        order: Number(videoOrder.value || 0),
+        active: isActive.checked
+      });
+
+      const videos = readVideos();
+      const idx = videos.findIndex(function (item) {
+        return item.id === id;
+      });
+
+      if (idx >= 0) {
+        videos[idx] = payload;
+        setStatus("Video berhasil diupdate.", "ok");
+      } else {
+        videos.push(payload);
+        setStatus("Video berhasil ditambahkan.", "ok");
+      }
+
+      writeVideos(videos);
+      renderRows();
+      resetForm();
+    }
+
+    function editVideo(id) {
+      const videos = readVideos();
+      const item = videos.find(function (video) {
+        return video.id === id;
+      });
+
+      if (!item) {
+        return;
+      }
+
+      videoId.value = item.id;
+      videoTitle.value = item.title;
+      videoUrl.value = item.url;
+      videoOrder.value = String(item.order);
+      isActive.checked = !!item.active;
+      showUrlPreview(item.url);
+
+      formTitle.textContent = "Edit Video YouTube";
+      submitBtn.textContent = "Update Video";
+      cancelEditBtn.hidden = false;
+      setStatus("Mode edit aktif. Ubah data video lalu klik Update Video.", "warn");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteVideo(id) {
+      const ok = window.confirm("Hapus video ini? Tindakan ini tidak dapat dibatalkan.");
+      if (!ok) {
+        return;
+      }
+
+      const videos = readVideos().filter(function (item) {
+        return item.id !== id;
+      });
+      writeVideos(videos);
+      renderRows();
+      resetForm();
+      setStatus("Video berhasil dihapus.", "ok");
+    }
+
+    function showUrlPreview(url) {
+      if (!url) {
+        urlPreview.style.display = "none";
+        urlPreview.innerHTML = "";
+        return;
+      }
+
+      const videoId = extractYouTubeVideoId(url);
+      const isValidYouTube = url.includes("youtube.com") || url.includes("youtu.be");
+
+      if (isValidYouTube && videoId) {
+        const thumbnailUrl = getYouTubeThumbnail(videoId);
+        urlPreview.innerHTML = '<img src="' + thumbnailUrl + '" alt="Preview" class="video-thumbnail" style="max-width: 100%; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">' +
+          '<div style="color: #116d3f; font-weight: 600;">✓ URL YouTube valid</div>';
+        urlPreview.style.color = "#116d3f";
+      } else if (isValidYouTube) {
+        urlPreview.innerHTML = '<div style="color: #9b5b00; font-weight: 600;">⚠ Format URL tidak terkenali</div>';
+        urlPreview.style.color = "#9b5b00";
+      } else {
+        urlPreview.innerHTML = '<div style="color: #9b5b00; font-weight: 600;">⚠ Pastikan URL dari YouTube</div>';
+        urlPreview.style.color = "#9b5b00";
+      }
+
+      urlPreview.style.display = "block";
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    roleChip.textContent = "Role: " + formatRole(getCurrentRole());
+
+    youtubeForm.addEventListener("submit", saveVideo);
+    resetFormBtn.addEventListener("click", resetForm);
+    cancelEditBtn.addEventListener("click", resetForm);
+    videoUrl.addEventListener("input", function () {
+      showUrlPreview(videoUrl.value.trim());
+    });
+
+    videoRows.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const editId = target.getAttribute("data-edit-id");
+      if (editId) {
+        editVideo(editId);
+        return;
+      }
+
+      const deleteId = target.getAttribute("data-delete-id");
+      if (deleteId) {
+        deleteVideo(deleteId);
+      }
+    });
+
+    renderRows();
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>

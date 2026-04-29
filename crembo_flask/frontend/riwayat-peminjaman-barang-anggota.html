@@ -1,0 +1,914 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Riwayat Peminjaman Barang - Crembo Media</title>
+  <style>
+    :root {
+      --bg: #edf1f8;
+      --surface: #ffffff;
+      --line: #d8dee9;
+      --ink: #111827;
+      --muted: #5b6473;
+      --blue-1: #202020;
+      --blue-2: #2d2d2d;
+      --blue-3: #141414;
+      --green: #5b5b5b;
+      --yellow: #7a7a7a;
+      --radius: 14px;
+      --soft-shadow: 0 8px 24px rgba(27, 43, 94, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 292px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--blue-1) 0%, var(--blue-2) 52%, var(--blue-3) 100%);
+      color: #f8fbff;
+      padding: 14px 12px 16px;
+      display: block;
+      border-right: 1px solid #26408f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 25;
+    }
+
+    .sidebar-backdrop.show { display: block; }
+
+    .sidebar > * {
+      margin-bottom: 12px;
+    }
+
+    .sidebar > *:last-child {
+      margin-bottom: 0;
+    }
+
+    .brand {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .brand strong {
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .brand small {
+      font-size: 0.79rem;
+      color: #dbe7ff;
+    }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .account-text {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .account-text strong {
+      font-size: 0.85rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .account-text small {
+      color: #d8e4ff;
+      font-size: 0.76rem;
+    }
+
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f8fbff;
+      padding: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.83rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .menu-items {
+      display: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-group.open .menu-items {
+      display: block;
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border-radius: 9px;
+      padding: 7px 9px;
+      font-size: 0.79rem;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .menu-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.55);
+      font-weight: 700;
+    }
+
+    .side-bottom {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-action {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #f8fbff;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .side-action:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 20px;
+    }
+
+    .dashboard-headline-bar {
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .dashboard-headline-bar h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .head-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .topbar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--blue-3), var(--blue-2));
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--soft-shadow);
+      margin-bottom: 14px;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 700;
+      color: #fff;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    .subhead {
+      margin: 3px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .quick-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .quick-chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 5px 11px;
+      font-size: 0.74rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .home-globe {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #9ca3af;
+      background: #fff;
+      text-decoration: none;
+      color: #374151;
+    }
+
+    .home-globe:hover {
+      background: #eef2f7;
+    }
+
+    .home-globe svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .content {
+      padding: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid #d8dee9;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      padding: 10px 16px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab-btn.active {
+      color: #111827;
+      border-bottom-color: #1f2937;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .table-wrap {
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      min-width: 720px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #e5e9f2;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.73rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: #f8fafc;
+      font-weight: 700;
+    }
+
+    .status-ok {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #166534;
+      border: 1px solid #8bdb9f;
+      background: #ebf9ef;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-warn {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #8a6d00;
+      border: 1px solid #f0d978;
+      background: #fff9df;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .status-danger {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #991b1b;
+      border: 1px solid #f4b0b0;
+      background: #fff1f1;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .detail-card {
+      border: 1px solid #dbe2ef;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: #fafbfc;
+    }
+
+    .detail-card h3 {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+
+    .detail-item {
+      color: #5b6473;
+    }
+
+    .detail-item strong {
+      color: #1f2937;
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .evidence-box {
+      border: 1px solid #dbe2ef;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+      font-size: 0.82rem;
+      color: #374151;
+    }
+
+    .evidence-box strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+      color: #1f2937;
+    }
+
+    .evidence-box img {
+      width: 100%;
+      max-width: 220px;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #dbe2ef;
+      margin-top: 8px;
+      background: #f8fafc;
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .quick-chip { width: 100%; }
+      .detail-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      #status .table-wrap { overflow-x: visible; }
+      #status table { min-width: 0; }
+      #status thead { display: none; }
+      #status tbody { display: grid; gap: 10px; }
+      #status tbody tr {
+        display: block;
+        border: 1px solid #dbe2ef;
+        border-radius: 12px;
+        background: #fff;
+        padding: 10px;
+      }
+      #status tbody td {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 8px;
+        border-bottom: 1px dashed #e5e9f2;
+        padding: 8px 0;
+      }
+      #status tbody td:last-child { border-bottom: 0; padding-bottom: 0; }
+      #status tbody td::before {
+        content: attr(data-label);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #64748b;
+        font-weight: 700;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main { padding: 12px; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
+      <div class="brand">
+        <strong>CREMBO - Portal Anggota</strong>
+        <small>Menu anggota disusun dari list fungsionalitas sistem</small>
+      </div>
+
+      <div class="account">
+        <div class="avatar">AG</div>
+        <div class="account-text">
+          <strong id="memberName">Atanasius Surya Guna</strong>
+          <small>Role: Anggota Multimedia</small>
+        </div>
+      </div>
+
+      <div class="menu-group open">
+        <button class="menu-toggle" type="button">Peminjaman Barang <span>-</span></button>
+        <div class="menu-items">
+          <a class="menu-link" href="pengajuan-peminjaman-barang-anggota.html">Pengajuan Peminjaman</a>
+          <a class="menu-link" href="input-pengambilan-barang-anggota.html">Input Pengambilan Barang</a>
+          <a class="menu-link" href="input-pengembalian-barang-anggota.html">Input Pengembalian Barang</a>
+          <a class="menu-link active" href="riwayat-peminjaman-barang-anggota.html">Riwayat Peminjaman Saya</a>
+          <a class="menu-link" href="form-kerusakan-barang-anggota.html">Form Kerusakan Barang</a>
+          <a class="menu-link" href="riwayat-form-kerusakan-barang-anggota.html">Riwayat Form Kerusakan</a>
+        </div>
+      </div>
+
+      <div class="side-bottom">
+        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="login.html">Keluar</a>
+      </div>
+    </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main class="main">
+      <header class="dashboard-headline-bar">
+        <button id="mobileMenuBtn" class="mobile-toggle" type="button">Menu</button>
+        <h1>Riwayat Peminjaman Barang</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="home-globe" href="dashboard-anggota.html" title="Kembali ke Dashboard">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <header class="topbar">
+        <div>
+          <h2 class="headline">Dashboard Anggota Crembo Media</h2>
+          <p class="subhead">Pantau status pengajuan dan riwayat lengkap peminjaman barang Anda.</p>
+        </div>
+        <div class="quick-filter" aria-label="Ringkasan riwayat peminjaman barang">
+          <span class="quick-chip"><strong>Modul:</strong> Peminjaman Barang</span>
+          <span class="quick-chip"><strong>Status:</strong> Monitoring</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="status">Status Pengajuan</button>
+          <button class="tab-btn" data-tab="riwayat">Riwayat Lengkap</button>
+        </div>
+
+        <div id="status" class="tab-content active">
+          <div class="panel">
+            <header class="panel-head">
+              <h2>Daftar Pengajuan Peminjaman</h2>
+            </header>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Barang</th>
+                    <th>Periode</th>
+                    <th>Tujuan</th>
+                    <th>Status</th>
+                    <th>Tanggal Pengajuan</th>
+                  </tr>
+                </thead>
+                <tbody id="statusTableRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="riwayat" class="tab-content">
+          <div class="panel">
+            <header class="panel-head">
+              <h2>Riwayat Peminjaman Lengkap</h2>
+            </header>
+
+            <div style="padding: 12px;" id="riwayatContainer"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
+    menuGroups.forEach(function (group) {
+      const btn = group.querySelector(".menu-toggle");
+      btn.addEventListener("click", function () {
+        group.classList.toggle("open");
+        const mark = btn.querySelector("span");
+        mark.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    mobileMenuBtn.addEventListener("click", function () {
+      setSidebarOpen(!sidebar.classList.contains("show"));
+    });
+
+    sidebarBackdrop.addEventListener("click", function () {
+      setSidebarOpen(false);
+    });
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 1080px)").matches) {
+          setSidebarOpen(false);
+        }
+      });
+    });
+
+    const sessionRaw = localStorage.getItem("crembo-login-session");
+    const memberName = document.getElementById("memberName");
+    if (sessionRaw) {
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (session.fullName) {
+          memberName.textContent = session.fullName;
+        } else if (session.identifier) {
+          memberName.textContent = session.identifier;
+        }
+      } catch (error) {
+      }
+    }
+
+    const liveDateTime = document.getElementById("liveDateTime");
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    const statusTableRows = document.getElementById("statusTableRows");
+    const riwayatContainer = document.getElementById("riwayatContainer");
+
+    const PENGAJUAN_STORAGE_KEY = "crembo-peminjaman-pengajuan";
+    const RIWAYAT_STORAGE_KEY = "crembo-peminjaman-riwayat";
+    const DEMO_PENGAJUAN = [
+      { id: "pjn-demo-1", barangId: "inv-001", barangNama: "Kamera Sony A6400", barangCode: "CAM-001", jumlahDiminta: 1, tanggalPengajuan: "2026-04-08", tanggalMulai: "2026-04-10", tanggalSelesai: "2026-04-12", tujuan: "Dokumentasi Misa Harian", status: "approved" },
+      { id: "pjn-demo-2", barangId: "inv-002", barangNama: "Wireless Microphone Set", barangCode: "AUD-004", jumlahDiminta: 2, tanggalPengajuan: "2026-04-07", tanggalMulai: "2026-04-10", tanggalSelesai: "2026-04-11", tujuan: "Siaran live dan rekaman audio", status: "taken" },
+      { id: "pjn-demo-3", barangId: "inv-003", barangNama: "Tripod Heavy Duty", barangCode: "TRI-002", jumlahDiminta: 1, tanggalPengajuan: "2026-04-09", tanggalMulai: "2026-04-11", tanggalSelesai: "2026-04-13", tujuan: "Pendukung kamera misa", status: "pending" },
+      { id: "pjn-demo-4", barangId: "inv-005", barangNama: "Kabel HDMI 10m", barangCode: "CAB-015", jumlahDiminta: 1, tanggalPengajuan: "2026-04-01", tanggalMulai: "2026-04-02", tanggalSelesai: "2026-04-03", tujuan: "Kebutuhan input video", status: "rejected" }
+    ];
+    const DEMO_RIWAYAT = [
+      { id: "rwyt-demo-1", pengajuanId: "pjn-demo-1", barangId: "inv-001", barangNama: "Kamera Sony A6400", jumlah: 1, tanggalDiambil: "2026-04-10", jamDiambil: "08:15", tanggalDikembalikan: null, jamDikembalikan: null, kondisiSebelum: "Baik", kondisiSesudah: null, keterangan: "Dipakai untuk dokumentasi Misa Harian", pickup: { time: "2026-04-10T08:15:00", location: "Gudang Studio" } },
+      { id: "rwyt-demo-2", pengajuanId: "pjn-demo-2", barangId: "inv-002", barangNama: "Wireless Microphone Set", jumlah: 2, tanggalDiambil: "2026-04-09", jamDiambil: "17:30", tanggalDikembalikan: null, jamDikembalikan: null, kondisiSebelum: "Baik, Baik", kondisiSesudah: null, keterangan: "Satu set untuk live dan satu set cadangan", pickup: { time: "2026-04-09T17:30:00", location: "Rak Audio 2" } },
+      { id: "rwyt-demo-3", pengajuanId: "pjn-demo-3", barangId: "inv-003", barangNama: "Tripod Heavy Duty", jumlah: 1, tanggalDiambil: "2026-04-05", jamDiambil: "09:00", tanggalDikembalikan: "2026-04-08", jamDikembalikan: "16:45", kondisiSebelum: "Baik", kondisiSesudah: "Baik", keterangan: "Sudah dikembalikan setelah kegiatan", pickup: { time: "2026-04-05T09:00:00", location: "Gudang Perlengkapan" }, returnInfo: { time: "2026-04-08T16:45:00", location: "Gudang Perlengkapan", condition: "Baik" } }
+    ];
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    function safeParse(raw, fallback) {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function readPengajuan() {
+      const stored = safeParse(localStorage.getItem(PENGAJUAN_STORAGE_KEY), []);
+      return stored.length ? stored : DEMO_PENGAJUAN.slice();
+    }
+
+    function readRiwayat() {
+      const stored = safeParse(localStorage.getItem(RIWAYAT_STORAGE_KEY), []);
+      return stored.length ? stored : DEMO_RIWAYAT.slice();
+    }
+
+    function renderStatusTable() {
+      let items = readPengajuan().slice().reverse();
+
+      if (!items.length) {
+        statusTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Belum ada pengajuan.</td></tr>';
+        return;
+      }
+
+      statusTableRows.innerHTML = items.map(function (item) {
+        let statusHtml = '<span class="status-warn">Menunggu</span>';
+        if (item.status === "approved") {
+          statusHtml = '<span class="status-ok">Disetujui</span>';
+        } else if (item.status === "rejected") {
+          statusHtml = '<span class="status-danger">Ditolak</span>';
+        } else if (item.status === "taken") {
+          statusHtml = '<span class="status-ok">Sedang Dipinjam</span>';
+        } else if (item.status === "returned") {
+          statusHtml = '<span class="status-ok">Selesai</span>';
+        }
+
+        const periode = item.tanggalMulai + " sd " + item.tanggalSelesai;
+
+        return '<tr>'
+          + '<td data-label="Barang">' + item.barangNama + '</td>'
+          + '<td data-label="Periode" style="font-size: 0.75rem;">' + periode + '</td>'
+          + '<td data-label="Tujuan">' + (item.tujuan ? item.tujuan.substring(0, 40) + "..." : "-") + '</td>'
+          + '<td data-label="Status">' + statusHtml + '</td>'
+          + '<td data-label="Tanggal Pengajuan">' + item.tanggalPengajuan + '</td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    function renderRiwayatCards() {
+      let items = readRiwayat().slice().reverse();
+
+      if (!items.length) {
+        riwayatContainer.innerHTML = '<div style="text-align: center; padding: 40px 16px; color: #5b6473;">Belum ada riwayat peminjaman.</div>';
+        return;
+      }
+
+      riwayatContainer.innerHTML = items.map(function (item) {
+        const statusPengembalian = item.tanggalDikembalikan ? "Sudah Dikembalikan" : "Sedang Dipinjam";
+        const statusColor = item.tanggalDikembalikan ? "status-ok" : "status-warn";
+        const pickupPhoto = item.pickup && item.pickup.photo ? item.pickup.photo : "";
+        const returnPhoto = item.returnInfo && item.returnInfo.photo ? item.returnInfo.photo : "";
+        const pickupStamp = item.pickup && item.pickup.date ? item.pickup.date + " " + (item.pickup.time || "") : item.tanggalDiambil + " " + item.jamDiambil;
+        const returnStamp = item.returnInfo && item.returnInfo.date ? item.returnInfo.date + " " + (item.returnInfo.time || "") : (item.tanggalDikembalikan ? item.tanggalDikembalikan + " " + (item.jamDikembalikan || "") : "-");
+        const pickupLocation = item.pickup && item.pickup.location ? item.pickup.location : (item.pickup && item.pickup.locationText ? item.pickup.locationText : "-");
+        const returnLocation = item.returnInfo && item.returnInfo.location ? item.returnInfo.location : "-";
+
+        return '<div class="detail-card">'
+          + '<h3>' + item.barangNama + ' <span class="' + statusColor + '">' + statusPengembalian + '</span></h3>'
+          + '<div class="detail-row">'
+          + '<div class="detail-item">'
+          + '<strong>Tanggal Pengambilan:</strong>'
+          + pickupStamp
+          + '</div>'
+          + '<div class="detail-item">'
+          + '<strong>Lokasi Pengambilan:</strong>'
+          + pickupLocation
+          + '</div>'
+          + '</div>'
+          + '<div class="detail-row">'
+          + '<div class="detail-item">'
+          + '<strong>Kondisi Saat Diambil:</strong>'
+          + item.kondisiSebelum
+          + '</div>'
+          + '<div class="detail-item">'
+          + '<strong>Jumlah Unit:</strong>'
+          + item.jumlah
+          + '</div>'
+          + '</div>'
+          + (item.tanggalDikembalikan ? 
+            '<div class="detail-row">'
+            + '<div class="detail-item">'
+            + '<strong>Tanggal Pengembalian:</strong>'
+            + returnStamp
+            + '</div>'
+            + '<div class="detail-item">'
+            + '<strong>Lokasi Pengembalian:</strong>'
+            + returnLocation
+            + '</div>'
+            + '</div>'
+            : '')
+          + '<div class="detail-row">'
+          + '<div class="detail-item">'
+          + '<strong>Kondisi Saat Dikembalikan:</strong>'
+          + (item.kondisiSesudah ? item.kondisiSesudah : "-")
+          + '</div>'
+          + '<div class="detail-item">'
+          + '<strong>Catatan:</strong>'
+          + (item.keterangan ? item.keterangan : "-")
+          + '</div>'
+          + '</div>'
+          + ((pickupPhoto || returnPhoto) ? '<div class="evidence-grid">'
+            + '<div class="evidence-box">'
+            + '<strong>Bukti Foto Pengambilan</strong>'
+            + (pickupPhoto ? '<img src="' + pickupPhoto + '" alt="Bukti foto pengambilan">' : '<div>-</div>')
+            + '</div>'
+            + '<div class="evidence-box">'
+            + '<strong>Bukti Foto Pengembalian</strong>'
+            + (returnPhoto ? '<img src="' + returnPhoto + '" alt="Bukti foto pengembalian">' : '<div>-</div>')
+            + '</div>'
+            + '</div>' : '')
+          + '</div>';
+      }).join("");
+    }
+
+    tabBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const tabName = btn.getAttribute("data-tab");
+        tabBtns.forEach(function (b) { b.classList.remove("active"); });
+        tabContents.forEach(function (c) { c.classList.remove("active"); });
+        btn.classList.add("active");
+        document.getElementById(tabName).classList.add("active");
+      });
+    });
+
+    renderStatusTable();
+    renderRiwayatCards();
+  </script>
+<script src="_sidebar-fix.js"></script>
+</body>
+</html>
