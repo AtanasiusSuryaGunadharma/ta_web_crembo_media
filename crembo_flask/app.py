@@ -310,6 +310,21 @@ def ensure_auth_schema() -> None:
     if cursor.fetchone()[0] == 0:
         cursor.execute("INSERT INTO `google_maps_embed` (`id`, `url`) VALUES (1, '')")
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS `sertifikat_config` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `ketua_name` varchar(255) DEFAULT 'Ketua Crembo Media',
+          `pembina_name` varchar(255) DEFAULT 'Pembina Crembo Media',
+          `ketua_sign_url` text DEFAULT NULL,
+          `pembina_sign_url` text DEFAULT NULL,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    ''')
+    cursor.execute("SELECT COUNT(*) FROM `sertifikat_config`")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`) VALUES (1, 'Ketua Crembo Media', 'Pembina Crembo Media', '', '')")
+        
     conn.commit()
     cursor.close()
     conn.close()
@@ -1074,7 +1089,41 @@ def sync_carousel():
     conn.commit()
     conn.close()
     return jsonify({"success": True})
-    
+@app.route("/api/sertifikat/config", methods=["GET"])
+def get_sertifikat_config():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM `sertifikat_config` LIMIT 1")
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if row:
+        return jsonify({
+            "ketuaName": row["ketua_name"],
+            "pembinaName": row["pembina_name"],
+            "ketuaSignUrl": row["ketua_sign_url"],
+            "pembinaSignUrl": row["pembina_sign_url"],
+            "updatedAt": row["updated_at"]
+        })
+    return jsonify({})
+
+@app.route("/api/sertifikat/config", methods=["POST"])
+def set_sertifikat_config():
+    ensure_auth_schema()
+    data = request.json or {}
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE `sertifikat_config` 
+        SET `ketua_name` = %s, `pembina_name` = %s, `ketua_sign_url` = %s, `pembina_sign_url` = %s
+        WHERE `id` = 1
+    """, (data.get("ketuaName", ""), data.get("pembinaName", ""), data.get("ketuaSignUrl", ""), data.get("pembinaSignUrl", "")))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({"success": True})
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()

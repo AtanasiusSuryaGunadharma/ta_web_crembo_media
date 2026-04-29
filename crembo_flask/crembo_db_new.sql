@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 30 Apr 2026 pada 00.28
+-- Waktu pembuatan: 30 Apr 2026 pada 01.32
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -145,7 +145,7 @@ CREATE TABLE `carousel_slides` (
 INSERT INTO `carousel_slides` (`id`, `title`, `slug`, `description`, `button_text`, `button_link`, `background_image`, `order_index`, `is_visible`) VALUES
 ('slide-1777501533719', 'Tes Slide 1', 'tes-slide-1', 'Tes Slide 1', 'Lihat Detail', 'https://www.ampta.ac.id/', 'uploads/foto_baju_koki_1777501490.jpg', 1, 1),
 ('slide-1777501608227', 'Tes Slide 2', 'tes-slide-2', 'Tes Slide 2', 'Lihat Detail', 'https://jurnal.ampta.ac.id/', 'uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_1777501565.png', 2, 1),
-('slide-1777501680625', 'Tes Slide 3', 'tes-slide-3', 'tes slide 3', 'Lihat Detail', 'https://pascasarjana.ampta.ac.id/', 'uploads/screencapture-10-10-10-85-2026-04-07-11_10_15_1777501665.png', 3, 1);
+('slide-1777501680625', 'Tes Slide 3', 'tes-slide-3', 'tes slide 3', 'Lihat Detail', 'https://pascasarjana.ampta.ac.id/', 'uploads/User_Journey_Map_User_Biasa_1777504646.png', 3, 1);
 
 -- --------------------------------------------------------
 
@@ -253,6 +253,28 @@ CREATE TABLE `kegiatan_form` (
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `sertifikat_config`
+--
+
+CREATE TABLE `sertifikat_config` (
+  `id` int(11) NOT NULL,
+  `ketua_name` varchar(255) DEFAULT 'Ketua Crembo Media',
+  `pembina_name` varchar(255) DEFAULT 'Pembina Crembo Media',
+  `ketua_sign_url` text DEFAULT NULL,
+  `pembina_sign_url` text DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `sertifikat_config`
+--
+
+INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`, `updated_at`) VALUES
+(1, 'Ketua Crembo Media', 'Pembina Crembo Media', '', '', '2026-04-30 06:26:30');
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `tentang_crembo_config`
 --
 
@@ -269,7 +291,7 @@ CREATE TABLE `tentang_crembo_config` (
 --
 
 INSERT INTO `tentang_crembo_config` (`id`, `description`, `button_text`, `button_link`, `auto_seconds`) VALUES
-(1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah loginnnnnnnnn.', 'Pelajari Lebih Lanjut', 'https://www.instagram.com/crembo_media?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', 5);
+(1, 'Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah loginnn', 'Pelajari Lebih Lanjut', 'https://www.instagram.com/crembo_media?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', 5);
 
 -- --------------------------------------------------------
 
@@ -1848,7 +1870,7 @@ INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
 ('yt-1777497207553', 'https://youtu.be/7y3AlFqobck?si=HoSKCZdrYLbPr3PB', 2, 1),
 ('yt-1777497242761', 'https://youtu.be/tPIDedX3zQ4?si=VHukpSDtC64xZ49s', 1, 1),
 ('yt-1777497264044', 'https://youtu.be/PWkkMvsp4Ws?si=SvjcHAqsgWNJ3518', 3, 1),
-('yt-1777497318308', 'https://youtu.be/d5mZ5SKWIx4?si=uguT4CisV_sxs6la', 4, 1);
+('yt-1777504238859', 'https://youtu.be/d5mZ5SKWIx4?si=uguT4CisV_sxs6la', 4, 1);
 
 --
 -- Indexes for dumped tables
@@ -1891,6 +1913,12 @@ ALTER TABLE `kegiatan`
 ALTER TABLE `kegiatan_form`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_kegiatan_form_slug` (`slug`);
+
+--
+-- Indeks untuk tabel `sertifikat_config`
+--
+ALTER TABLE `sertifikat_config`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indeks untuk tabel `tentang_crembo_config`
@@ -2011,6 +2039,12 @@ ALTER TABLE `youtube_embeds`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `sertifikat_config`
+--
+ALTER TABLE `sertifikat_config`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `tentang_crembo_config`
