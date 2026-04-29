@@ -17,5 +17,12 @@ Lalu buka:
 ## Catatan
 
 - Folder `registrasi` tetap dibiarkan sebagai source lama.
-- Frontend HTML dan aset statis masih dibaca langsung dari `Mockup_hifi` sebagai sumber awal integrasi.
-- Ini sengaja dibuat sebagai langkah awal sebelum pemecahan backend SQLite ke MySQL.
+- Frontend HTML dan aset statis sudah disalin ke `crembo_flask/frontend`.
+- Schema MySQL ada di `crembo_db_new.sql`.
+- Migrasi data SQLite lama ke MySQL bisa dijalankan dengan:
+
+```powershell
+& "c:\xampp\htdocs\ta_crembo_media\.venv\Scripts\python.exe" migrate_sqlite_to_mysql.py --mysql-user root --mysql-password "" --mysql-database crembo_db_new
+```
+
+- Script migrasi membaca SQLite lama dari `registrasi/crembo.db` dan menyalin tabel `anggota`, `kegiatan`, `kegiatan_form`, `tugas_form`, `tugas_form_slot`, `tugas_form_audit`, plus tabel tugas bulanan `tugas_YYYY_MM`.
