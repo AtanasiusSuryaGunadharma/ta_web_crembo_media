@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import re
 
 import mysql.connector
@@ -611,15 +612,6 @@ def render_mockup_page(page: str):
     abort(404)
 
 
-if __name__ == "__main__":
-    try:
-        ensure_auth_schema()
-    except Exception as exc:
-        print(f"[WARN] MySQL bootstrap skipped: {exc}")
-    app.run(debug=True)
-
-
-
 # --- TENTANG CREMBO ENDPOINTS ---
 
 @app.route("/api/tentang/config", methods=["GET"])
@@ -741,4 +733,12 @@ def upload_image():
             "success": True, 
             "url": f"uploads/{new_filename}"
         })
+
+
+if __name__ == "__main__":
+    try:
+        ensure_auth_schema()
+    except Exception as exc:
+        print(f"[WARN] MySQL bootstrap skipped: {exc}")
+    app.run(debug=True)
         

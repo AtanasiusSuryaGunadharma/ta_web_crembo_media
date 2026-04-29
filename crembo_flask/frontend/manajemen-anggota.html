@@ -614,6 +614,7 @@
   </div>
 
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
+  <input type="file" id="csvFileInput" accept=".csv,.xls,.xlsx" style="display:none;">
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
@@ -945,21 +946,21 @@
       const serverRows = Array.isArray(window.CREMBO_MEMBER_ROWS) ? window.CREMBO_MEMBER_ROWS : [];
       if (serverRows.length > 0) {
         members = serverRows.map(normalizeMember);
-        return;
+        return Promise.resolve();
       }
       // If no server rows injected, fetch from API
-      fetch("/api/anggota")
+      return fetch("/api/anggota")
         .then(function(res) { return res.json(); })
         .then(function(data) {
           if (data.ok && Array.isArray(data.members)) {
             members = data.members.map(normalizeMember);
-            renderAll();
+            return;
           }
+          members = [];
         })
         .catch(function() {
           // On API error, just show empty
           members = [];
-          renderAll();
         });
     }
 
@@ -972,7 +973,7 @@
 
     function saveMembers() {
       // Sync full member list to DB
-      fetch("/api/anggota/sync", {
+      return fetch("/api/anggota/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ members: members })
@@ -981,9 +982,13 @@
           if (data.ok && Array.isArray(data.members)) {
             members = data.members.map(normalizeMember);
             renderAll();
+            return;
           }
+          showNotify("Gagal menyimpan data anggota ke server.");
         })
-        .catch(function() {});
+        .catch(function() {
+          showNotify("Server tidak merespons saat menyimpan data anggota.");
+        });
     }
 
     function loadRequests() {
@@ -1068,7 +1073,7 @@
     function renderMemberTable() {
       const rows = filteredMembers();
       if (!rows.length) {
-        memberTableBody.innerHTML = '<tr><td colspan="8">Tidak ada data anggota yang cocok.</td></tr>';
+        memberTableBody.innerHTML = '<tr><td colspan="9">Tidak ada data anggota yang cocok.</td></tr>';
         return;
       }
 
@@ -1462,73 +1467,79 @@
 
     
     const csvFileInput = document.getElementById("csvFileInput");
-    csvFileInput.addEventListener("change", function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const text = event.target.result;
-        const lines = text.split("\n");
-        let added = 0;
-        let duplicates = 0;
-        
-        for (let i = 1; i < lines.length; i++) {
-          if (!lines[i].trim()) continue;
-          
-          // Basic CSV split by comma (assuming no commas inside quotes)
-          const cols = lines[i].split(",").map(c => c.trim());
-          if (cols.length < 6) continue;
-          
-          const nama = cols[0];
-          const username = cols[1];
-          const email = cols[2];
-          const telp = cols[3];
-          const alamat = cols[4];
-          const tglLahirRaw = cols[5]; // Should be YYYY-MM-DD
-          
-          if (!nama || !username) continue;
-          
-          const isDuplicate = members.some(m => m.username === username || m.email === email || m.phone === telp);
-          if (isDuplicate) {
-            duplicates++;
-            continue;
+    if (csvFileInput) {
+      csvFileInput.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const text = event.target.result;
+          const lines = text.split("\n");
+          let added = 0;
+          let duplicates = 0;
+
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+
+            // Basic CSV split by comma (assuming no commas inside quotes)
+            const cols = lines[i].split(",").map(c => c.trim());
+            if (cols.length < 6) continue;
+
+            const nama = cols[0];
+            const username = cols[1];
+            const email = cols[2];
+            const telp = cols[3];
+            const alamat = cols[4];
+            const tglLahirRaw = cols[5]; // Should be YYYY-MM-DD
+
+            if (!nama || !username) continue;
+
+            const isDuplicate = members.some(m => m.username === username || m.email === email || m.phone === telp);
+            if (isDuplicate) {
+              duplicates++;
+              continue;
+            }
+
+            const newId = makeId("m");
+            const birthDate = normalizeBirthDate(tglLahirRaw);
+            const payload = {
+              id: newId,
+              name: nama,
+              username: username,
+              email: email,
+              phone: telp,
+              address: alamat,
+              birthDate: birthDate,
+              role: "anggota",
+              status: "Aktif",
+              password: defaultPasswordFromBirthDate(birthDate),
+              note: "",
+              inactiveUntil: "",
+              registeredAt: new Date().toISOString()
+            };
+
+            members.push(payload);
+            added++;
           }
-          
-          const newId = makeId("m");
-          const birthDate = normalizeBirthDate(tglLahirRaw);
-          const payload = {
-            id: newId,
-            name: nama,
-            username: username,
-            email: email,
-            phone: telp,
-            address: alamat,
-            birthDate: birthDate,
-            role: "anggota",
-            status: "Aktif",
-            password: defaultPasswordFromBirthDate(birthDate),
-            note: "",
-            inactiveUntil: "",
-            registeredAt: new Date().toISOString()
-          };
-          
-          members.push(payload);
-          added++;
-        }
-        
-        if (added > 0) {
-          saveMembers();
-          renderAll();
-        }
-        
-        showNotify("Import selesai. " + added + " ditambahkan, " + duplicates + " dilewati (duplikat).");
-        e.target.value = ""; // reset
-      };
-      reader.readAsText(file);
-    });
+
+          if (added > 0) {
+            saveMembers();
+            renderAll();
+          }
+
+          showNotify("Import selesai. " + added + " ditambahkan, " + duplicates + " dilewati (duplikat).");
+          e.target.value = ""; // reset
+        };
+        reader.readAsText(file);
+      });
+    }
 
     importCsvBtn.addEventListener("click", function () {
+      if (!csvFileInput) {
+        showNotify("Input file tidak tersedia.");
+        return;
+      }
       csvFileInput.click();
     });
 
@@ -1570,12 +1581,10 @@
       }
     }
 
-    loadMembers();
     loadRequests();
-    saveMembers();
     saveRequests();
     resetForm();
-    renderAll();
+    loadMembers().finally(renderAll);
 
     memberForm.addEventListener("submit", upsertMember);
     cancelEditBtn.addEventListener("click", resetForm);
@@ -1600,13 +1609,29 @@
     
 
     importExcelBtn.addEventListener("click", function () {
-      showNotify("UI import Excel siap. Proses impor akan diaktifkan pada tahap berikutnya.");
+      if (!csvFileInput) {
+        showNotify("Input file tidak tersedia.");
+        return;
+      }
+      csvFileInput.click();
     });
 
     
 
     downloadExcelTemplateBtn.addEventListener("click", function () {
-      showNotify("Tombol template Excel sudah disiapkan (mode tampilan).");
+      const tableHeader = '<tr><th>Nama</th><th>Username</th><th>Email</th><th>Telp</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr>';
+      const tableBody = '<tr><td>Budi Santoso</td><td>budis</td><td>budi@example.com</td><td>081234567890</td><td>Jl. Merdeka No. 1</td><td>2000-01-01</td><td>anggota</td><td>Aktif</td></tr>';
+      const excelHtml = '<html><head><meta charset="utf-8"></head><body><table border="1">' + tableHeader + tableBody + '</table></body></html>';
+      const blob = new Blob(["\ufeff", excelHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "template-import-anggota.xls";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showNotify("Template Excel berhasil diunduh.");
     });
 
     previewMemberReportBtn.addEventListener("click", openMemberReportPreview);
@@ -1664,6 +1689,5 @@
     setInterval(updateLiveDateTime, 1000);
   </script>
 <script src="_sidebar-fix.js"></script>
-<input type="file" id="csvFileInput" accept=".csv" style="display:none;">
 </body>
 </html>
