@@ -92,7 +92,9 @@ def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "status": "Aktif" if normalize_status(status_value) == "aktif" else "Nonaktif",
         "password": row.get("password") or "",
         "note": "",
-        "registeredAt": "",
+        "registeredAt": row.get("created_at") or "",
+        "createdAt": row.get("created_at") or "",
+        "updatedAt": row.get("updated_at") or "",
         "inactiveUntil": "",
     }
 
@@ -104,6 +106,7 @@ def read_member_rows() -> list[dict[str, object]]:
     cursor.execute(
         """
         SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun
+        , created_at, updated_at
         FROM anggota
         ORDER BY id ASC
         """
@@ -164,6 +167,8 @@ def ensure_auth_schema() -> None:
           `email` varchar(255) DEFAULT NULL,
           `alamat` text DEFAULT NULL,
           `status_akun` varchar(20) NOT NULL DEFAULT 'aktif',
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
           UNIQUE KEY `uniq_anggota_username` (`username`),
           UNIQUE KEY `uniq_anggota_email` (`email`),
@@ -174,8 +179,18 @@ def ensure_auth_schema() -> None:
 
     ensure_column(cursor, "anggota", "alamat", "`alamat` text DEFAULT NULL")
     ensure_column(cursor, "anggota", "status_akun", "`status_akun` varchar(20) NOT NULL DEFAULT 'aktif'")
+    ensure_column(cursor, "anggota", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
+    ensure_column(cursor, "anggota", "updated_at", "`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
     cursor.execute("UPDATE `anggota` SET `status_akun` = 'aktif' WHERE `status_akun` IS NULL OR `status_akun` = ''")
+    cursor.execute(
+        """
+        UPDATE `anggota`
+        SET `created_at` = COALESCE(`created_at`, CURRENT_TIMESTAMP),
+            `updated_at` = COALESCE(`updated_at`, CURRENT_TIMESTAMP)
+        WHERE `created_at` IS NULL OR `updated_at` IS NULL
+        """
+    )
 
     cursor.execute(
         """
@@ -263,6 +278,7 @@ def fetch_member(identifier: str):
     cursor.execute(
         """
         SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun
+        , created_at, updated_at
         FROM anggota
         ORDER BY id ASC
         """
@@ -647,8 +663,8 @@ def set_tentang_config():
     cursor.execute("""
         UPDATE `tentang_crembo_config` 
         SET `description`=%s, `button_text`=%s, `button_link`=%s, `auto_seconds`=%s 
-        WHERE `id`=1
-    """, (description, button_text, button_link, auto_seconds))
+                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     conn.commit()
     cursor.close()
     conn.close()

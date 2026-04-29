@@ -37,7 +37,9 @@ CREATE TABLE `anggota` (
   `tgl_lahir` varchar(50) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `alamat` text DEFAULT NULL,
-  `status_akun` varchar(20) NOT NULL DEFAULT 'aktif'
+  `status_akun` varchar(20) NOT NULL DEFAULT 'aktif',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
