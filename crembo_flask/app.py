@@ -230,7 +230,21 @@ def ensure_auth_schema() -> None:
         legacy_cursor.close()
         cursor.execute("DROP TABLE `db_anggota`")
 
-    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS `carousel_slides` (
+          `id` varchar(100) NOT NULL,
+          `title` varchar(255) DEFAULT NULL,
+          `slug` varchar(255) DEFAULT NULL,
+          `description` text DEFAULT NULL,
+          `button_text` varchar(100) DEFAULT NULL,
+          `button_link` varchar(255) DEFAULT NULL,
+          `background_image` text DEFAULT NULL,
+          `order_index` int(11) DEFAULT 0,
+          `is_visible` tinyint(1) DEFAULT 1,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    ''')
+
     cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS `tentang_crembo_config` (
@@ -299,10 +313,6 @@ def ensure_auth_schema() -> None:
     conn.commit()
     cursor.close()
     conn.close()
-
-
-
-
 
 def fetch_member(identifier: str):
     ensure_auth_schema()
@@ -541,9 +551,35 @@ def load_gmaps_url():
     except Exception:
         return ""
 
+def load_carousel_slides():
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        # Ambil hanya yang aktif untuk di home
+        cursor.execute("SELECT * FROM `carousel_slides` WHERE `is_visible`=1 ORDER BY `order_index` ASC")
+        rows = cursor.fetchall() or []
+        conn.close()
+        return [{
+            "id": r["id"],
+            "title": r["title"],
+            "slug": r["slug"],
+            "description": r["description"],
+            "buttonText": r["button_text"],
+            "link": r["button_link"],
+            "backgroundImage": r["background_image"],
+            "order": r["order_index"],
+            "active": bool(r["is_visible"])
+        } for r in rows]
+    except Exception:
+        return []
+
 def build_home_page_data() -> dict[str, object]:
-    return {
-        "carouselSlides": [
+    # Ambil slide dari database
+    db_slides = load_carousel_slides()
+    
+    # Jika database masih kosong, tampilkan default bawaan (agar layout tidak hancur)
+    if not db_slides:
+        db_slides = [
             {
                 "id": "default-1",
                 "title": "Jadwal Misa Mingguan",
@@ -565,19 +601,11 @@ def build_home_page_data() -> dict[str, object]:
                 "backgroundImage": "",
                 "order": 2,
                 "active": True,
-            },
-            {
-                "id": "default-3",
-                "title": "Pengumuman Agenda",
-                "slug": "agenda-terbaru",
-                "description": "Pantau agenda dan pengumuman terbaru komunitas Crembo Media.",
-                "link": "agenda.html",
-                "buttonText": "Lihat Agenda",
-                "backgroundImage": "",
-                "order": 3,
-                "active": True,
-            },
-        ],
+            }
+        ]
+
+    return {
+        "carouselSlides": db_slides,
         "aboutContent": load_about_content_from_db(),
         "instagramPosts": load_instagram_posts_from_db(limit=12, active_only=True),
         "youtubeVideos": load_youtube_videos(),
@@ -1002,6 +1030,47 @@ def api_set_gmaps():
     conn = mysql_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE `google_maps_embed` SET `url` = %s WHERE `id` = 1", (url,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route("/api/carousel", methods=["GET"])
+def get_carousel():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM `carousel_slides` ORDER BY `order_index` ASC")
+    rows = cursor.fetchall() or []
+    conn.close()
+    return jsonify([{
+        "id": r["id"],
+        "title": r["title"],
+        "slug": r["slug"],
+        "description": r["description"],
+        "buttonText": r["button_text"],
+        "link": r["button_link"],
+        "backgroundImage": r["background_image"],
+        "order": r["order_index"],
+        "active": bool(r["is_visible"])
+    } for r in rows])
+
+@app.route("/api/carousel/sync", methods=["POST"])
+def sync_carousel():
+    ensure_auth_schema()
+    payload = request.json
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM `carousel_slides`")
+    for item in payload:
+        cursor.execute("""
+            INSERT INTO `carousel_slides` 
+            (`id`, `title`, `slug`, `description`, `button_text`, `button_link`, `background_image`, `order_index`, `is_visible`) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            item.get("id"), item.get("title"), item.get("slug"), item.get("description"),
+            item.get("buttonText"), item.get("link"), item.get("backgroundImage"),
+            item.get("order"), 1 if item.get("active") else 0
+        ))
     conn.commit()
     conn.close()
     return jsonify({"success": True})

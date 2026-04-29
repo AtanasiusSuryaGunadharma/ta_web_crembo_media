@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Apr 2026 pada 23.16
+-- Waktu pembuatan: 30 Apr 2026 pada 00.28
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -123,6 +123,33 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `carousel_slides`
+--
+
+CREATE TABLE `carousel_slides` (
+  `id` varchar(100) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `slug` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `button_text` varchar(100) DEFAULT NULL,
+  `button_link` varchar(255) DEFAULT NULL,
+  `background_image` text DEFAULT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `is_visible` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `carousel_slides`
+--
+
+INSERT INTO `carousel_slides` (`id`, `title`, `slug`, `description`, `button_text`, `button_link`, `background_image`, `order_index`, `is_visible`) VALUES
+('slide-1777501533719', 'Tes Slide 1', 'tes-slide-1', 'Tes Slide 1', 'Lihat Detail', 'https://www.ampta.ac.id/', 'uploads/foto_baju_koki_1777501490.jpg', 1, 1),
+('slide-1777501608227', 'Tes Slide 2', 'tes-slide-2', 'Tes Slide 2', 'Lihat Detail', 'https://jurnal.ampta.ac.id/', 'uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_1777501565.png', 2, 1),
+('slide-1777501680625', 'Tes Slide 3', 'tes-slide-3', 'tes slide 3', 'Lihat Detail', 'https://pascasarjana.ampta.ac.id/', 'uploads/screencapture-10-10-10-85-2026-04-07-11_10_15_1777501665.png', 3, 1);
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `google_maps_embed`
 --
 
@@ -136,7 +163,7 @@ CREATE TABLE `google_maps_embed` (
 --
 
 INSERT INTO `google_maps_embed` (`id`, `url`) VALUES
-(1, 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3952.9865514554162!2d110.38705967476602!3d-7.791247892228708!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a59d773957dad%3A0xae048b4c2addab14!2sGereja%20Katolik%20Paroki%20Kristus%20Raja%2C%20Baciro!5e0!3m2!1sid!2sid!4v1777496482755!5m2!1sid!2sid');
+(1, 'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14308.98777372105!2d110.389635!3d-7.791248!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a59d773957dad%3A0xae048b4c2addab14!2sGereja%20Katolik%20Paroki%20Kristus%20Raja%2C%20Baciro!5e1!3m2!1sid!2sid!4v1777498907792!5m2!1sid!2sid');
 
 -- --------------------------------------------------------
 
@@ -1818,8 +1845,8 @@ CREATE TABLE `youtube_embeds` (
 --
 
 INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
-('yt-1777497207553', 'https://youtu.be/7y3AlFqobck?si=HoSKCZdrYLbPr3PB', 1, 1),
-('yt-1777497242761', 'https://youtu.be/tPIDedX3zQ4?si=VHukpSDtC64xZ49s', 2, 1),
+('yt-1777497207553', 'https://youtu.be/7y3AlFqobck?si=HoSKCZdrYLbPr3PB', 2, 1),
+('yt-1777497242761', 'https://youtu.be/tPIDedX3zQ4?si=VHukpSDtC64xZ49s', 1, 1),
 ('yt-1777497264044', 'https://youtu.be/PWkkMvsp4Ws?si=SvjcHAqsgWNJ3518', 3, 1),
 ('yt-1777497318308', 'https://youtu.be/d5mZ5SKWIx4?si=uguT4CisV_sxs6la', 4, 1);
 
@@ -1833,6 +1860,12 @@ INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
 ALTER TABLE `anggota`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_anggota_username` (`username`);
+
+--
+-- Indeks untuk tabel `carousel_slides`
+--
+ALTER TABLE `carousel_slides`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indeks untuk tabel `google_maps_embed`
