@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kelola Embed Google Maps - Crembo Media</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #ececec;
@@ -199,12 +200,6 @@
       overflow: hidden;
     }
 
-    main .topbar::before,
-    main .headline::before {
-      display: none !important;
-      content: none !important;
-    }
-
     main .headline {
       margin: 0;
       font-size: clamp(1.05rem, 2.5vw, 1.5rem);
@@ -263,132 +258,39 @@
     }
 
     .status.show { display: block; }
+    .status.ok { border-color: #a9d6b9; background: #eef8ef; color: var(--ok); }
+    .status.warn { border-color: #e3c188; background: #fff8ea; color: var(--warn); }
 
-    .status.ok {
-      border-color: #a9d6b9;
-      background: #eef8ef;
-      color: var(--ok);
-    }
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 0.84rem; color: #515151; }
 
-    .status.warn {
-      border-color: #e3c188;
-      background: #fff8ea;
-      color: var(--warn);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
-
-    .field label {
-      font-size: 0.84rem;
-      color: #515151;
-    }
-
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      border: 1px solid #bdbdbd;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 0.86rem;
-      font-family: inherit;
-      background: #fff;
+    input[type="text"] {
+      width: 100%; border: 1px solid #bdbdbd; border-radius: 10px;
+      padding: 8px 10px; font-size: 0.86rem; font-family: inherit; background: #fff;
     }
 
     .btn {
-      border: 1px solid #1f2937;
-      border-radius: 9px;
+      border: 1px solid #1f2937; border-radius: 9px;
       background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
-      color: #fff;
-      font-weight: 700;
-      padding: 8px 12px;
-      font-size: 0.82rem;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      color: #fff; font-weight: 700; padding: 8px 12px; font-size: 0.82rem;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
     }
 
-    .btn.primary {
-      background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%);
-      border-color: #295fc2;
-    }
+    .btn.primary { background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%); border-color: #295fc2; }
+    .btn.warn { background: #fff; color: var(--danger); border-color: #ef4444; font-weight: 700; }
 
-    .btn.ghost {
-      background: #fff;
-      color: #1f2937;
-      border-color: #9ca3af;
-      font-weight: 600;
-    }
+    .form-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .info-box { margin-top: 12px; border: 1px solid #d4d4d4; border-radius: 10px; background: #fafafa; padding: 10px 12px; font-size: 0.84rem; color: #505050; line-height: 1.5; }
+    .info-box strong { display: block; color: #2c2c2c; margin-bottom: 6px; }
 
-    .btn.warn {
-      background: #fff;
-      color: var(--danger);
-      border-color: #ef4444;
-      font-weight: 700;
-    }
-
-    .form-actions {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .info-box {
-      margin-top: 12px;
-      border: 1px solid #d4d4d4;
-      border-radius: 10px;
-      background: #fafafa;
-      padding: 10px 12px;
-      font-size: 0.84rem;
-      color: #505050;
-    }
-
-    .info-box strong {
-      display: block;
-      color: #2c2c2c;
-      margin-bottom: 6px;
-    }
-
-    @media (max-width: 1080px) {
-      .layout { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; }
-      .form-grid { grid-template-columns: 1fr; }
-    }
-
+    @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } }
     @media (max-width: 760px) {
       .main { padding: 10px; }
-      .dashboard-headline-bar,
-      .topbar,
-      .panel-head,
-      .panel-body { padding: 10px; }
-
-      .form-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-      }
-
-      .form-actions .btn {
-        width: 100%;
-      }
+      .form-actions { display: grid; grid-template-columns: 1fr; }
+      .form-actions .btn { width: 100%; }
     }
   </style>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
@@ -398,7 +300,7 @@
         <p>Modul kelola embed Google Maps</p>
       </div>
 
-      <div class="menu-group">
+      <div class="menu-group open">
         <button class="group-toggle" type="button">Konten Utama Website <span>-</span></button>
         <div class="group-items">
           <a class="menu-link" href="kelola-carousel-home.html">Kelola Carousel Home</a>
@@ -416,17 +318,12 @@
     </aside>
 
     <main class="main">
-      <header class="dashboard-headline-bar" aria-label="Header kelola embed gmaps waktu berjalan">
+      <header class="dashboard-headline-bar">
         <h1>Kelola Embed Google Maps</h1>
         <div class="head-meta">
           <span id="liveDateTime">-</span>
-          <a class="world-link" href="home.html?session=active" title="Lihat Home (tetap login)">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
-              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
-              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
-              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
-            </svg>
+          <a class="world-link" href="home.html?session=active" title="Lihat Home">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path><path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path><path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path></svg>
           </a>
         </div>
       </header>
@@ -441,189 +338,152 @@
 
       <section class="panel" aria-label="Form kelola embed google maps">
         <header class="panel-head">
-          <h2>Atur Link Google Maps</h2>
+          <h2>Atur Link Google Maps (Single Link)</h2>
         </header>
         <div class="panel-body">
-          <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
-
-          <form id="mapsForm">
-            <div class="form-grid">
-              <div class="field full">
-                <label for="mapsUrl">URL Embed Google Maps</label>
-                <input id="mapsUrl" type="text" required placeholder="https://www.google.com/maps/embed?pb=... atau iframe src attribute">
-              </div>
+          <p style="color:#666; font-size:0.86rem; margin-top:0;">Sistem hanya menyimpan 1 lokasi. Jika diisi link baru, lokasi lama otomatis terganti. Keterangan/Kartu Lokasi otomatis muncul di halaman utama.</p>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="mapUrl">URL Embed Google Maps</label>
+              <input type="text" id="mapUrl" placeholder='Paste link iframe src atau tag <iframe> utuh dari Google Maps (contoh: https://www.google.com/maps/embed?pb=...)'>
             </div>
-
-            <div class="form-actions">
-              <button id="submitBtn" class="btn primary" type="submit">Simpan Link Maps</button>
-              <button id="resetFormBtn" class="btn ghost" type="button">Reset Form</button>
-              <button id="deleteLinkBtn" class="btn warn" type="button">Hapus Link Aktif</button>
-            </div>
-          </form>
+          </div>
+          <div class="form-actions">
+            <button id="saveMapBtn" class="btn primary">Simpan Lokasi</button>
+            <button id="deleteLinkBtn" class="btn warn">Hapus Link Aktif</button>
+            <span id="saveStatus" class="status" style="margin-bottom:0; display:none; padding: 6px 12px; margin-left:10px;"></span>
+          </div>
 
           <div class="info-box">
-            <strong>Cara mendapatkan embed link:</strong>
-            1. Buka Google Maps<br>
-            2. Cari lokasi yang diinginkan<br>
-            3. Klik tombol "Share" (Bagikan)<br>
-            4. Pilih tab "Embed a map" (Sematkan peta)<br>
-            5. Salin link iframe src dari kolom kode embed
+            <strong>Agar Kotak Keterangan/Informasi Tempat (Place Card) Muncul:</strong>
+            1. Buka <b>Google Maps</b> di browser komputer kamu.<br>
+            2. Ketik dan <b>cari nama tempat</b> secara spesifik (Contoh: "Sekolah Tinggi Pariwisata AMPTA"). Pastikan pin merahnya muncul.<br>
+            3. Di menu sebelah kiri, klik tombol <b>"Bagikan" (Share)</b>.<br>
+            4. Pilih tab <b>"Sematkan Peta" (Embed a map)</b>.<br>
+            5. Klik tombol <b>"Salin HTML" (Copy HTML)</b>.<br>
+            6. Paste kode tersebut ke dalam kotak teks di atas, lalu klik <b>Simpan Lokasi</b>.<br>
+            <i>Sistem akan otomatis mengekstrak tautan yang benar agar kartu informasi Google Maps dapat tampil dengan baik di website.</i>
           </div>
         </div>
       </section>
 
-      <section class="panel" aria-label="Status link google maps">
+      <section class="panel" aria-label="Preview Maps">
         <header class="panel-head">
-          <h2>Status Link Google Maps Saat Ini</h2>
+          <h2>Preview Maps Saat Ini:</h2>
         </header>
         <div class="panel-body">
-          <div id="statusDisplay" style="padding: 12px; border: 1px solid #d1d1d1; border-radius: 8px; background: #fafafa; font-size: 0.85rem;">
-            <strong id="statusLabel">Status:</strong>
-            <p id="statusText" style="margin: 6px 0 0; color: #5b5b5b;">Belum ada link yang disimpan</p>
-            <p id="linkDisplay" style="margin: 6px 0 0; word-break: break-all; font-family: monospace; font-size: 0.8rem; color: #2c2c2c; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;"></p>
-          </div>
+          <iframe id="mapPreview" width="100%" height="450" style="border:1px solid #ccc; border-radius:8px; background:#f4f4f4;" loading="lazy"></iframe>
         </div>
       </section>
     </main>
   </div>
 
   <script>
-    const STORAGE_KEY = "crembo-home-google-maps-link";
-
     const roleChip = document.getElementById("roleChip");
     const liveDateTime = document.getElementById("liveDateTime");
-    const mapsForm = document.getElementById("mapsForm");
-    const mapsUrl = document.getElementById("mapsUrl");
-    const submitBtn = document.getElementById("submitBtn");
-    const resetFormBtn = document.getElementById("resetFormBtn");
+    const mapUrlInput = document.getElementById("mapUrl");
+    const saveMapBtn = document.getElementById("saveMapBtn");
     const deleteLinkBtn = document.getElementById("deleteLinkBtn");
-    const statusMessage = document.getElementById("statusMessage");
-    const statusDisplay = document.getElementById("statusDisplay");
-    const statusLabel = document.getElementById("statusLabel");
-    const statusText = document.getElementById("statusText");
-    const linkDisplay = document.getElementById("linkDisplay");
+    const saveStatus = document.getElementById("saveStatus");
+    const mapPreview = document.getElementById("mapPreview");
 
     function getCurrentRole() {
       const params = new URLSearchParams(window.location.search);
       const roleFromQuery = params.get("role");
-
       let roleFromStorage = "";
       const storedSessionRaw = localStorage.getItem("crembo-login-session");
       if (storedSessionRaw) {
         try {
           const sessionObj = JSON.parse(storedSessionRaw);
           roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
-        } catch (error) {
-          roleFromStorage = "";
-        }
+        } catch (error) { roleFromStorage = ""; }
       }
-
       return roleFromQuery || roleFromStorage || "admin";
     }
 
     function formatRole(role) {
-      if (role === "super_admin") {
-        return "Super Admin";
-      }
-      if (role === "admin") {
-        return "Admin";
-      }
-      return "Anggota";
-    }
-
-    function escapeHtml(text) {
-      return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    function readMapsLink() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? String(raw) : "";
-      } catch (error) {
-        return "";
-      }
-    }
-
-    function writeMapsLink(url) {
-      localStorage.setItem(STORAGE_KEY, String(url));
-    }
-
-    function removeMapsLink() {
-      localStorage.removeItem(STORAGE_KEY);
+      return role === "super_admin" ? "Super Admin" : role === "admin" ? "Admin" : "Anggota";
     }
 
     function setStatus(text, kind) {
-      statusMessage.textContent = text;
-      statusMessage.className = "status show " + (kind || "ok");
+      saveStatus.style.display = "inline-block";
+      saveStatus.textContent = text;
+      saveStatus.className = "status show " + (kind || "ok");
+      setTimeout(() => { saveStatus.style.display = "none"; }, 3000);
     }
 
-    function clearStatus() {
-      statusMessage.className = "status";
-      statusMessage.textContent = "";
+    async function loadMap() {
+        try {
+            const res = await fetch('/api/gmaps');
+            const data = await res.json();
+            mapUrlInput.value = data.url || "";
+            if(data.url) updateIframe(data.url);
+        } catch (err) {
+            console.error("Gagal load Maps:", err);
+        }
     }
 
-    function resetForm() {
-      mapsForm.reset();
-      clearStatus();
+    function updateIframe(rawUrl) {
+        if (!rawUrl) {
+            mapPreview.src = "";
+            return;
+        }
+        const srcMatch = rawUrl.match(/src=["']([^"']+)["']/);
+        mapPreview.src = srcMatch ? srcMatch[1] : rawUrl;
     }
 
-    function updateDisplay() {
-      const url = readMapsLink();
-      if (url) {
-        statusLabel.textContent = "Status: ✓ Link tersimpan";
-        statusText.textContent = "Link Google Maps telah disimpan dan siap ditampilkan di halaman home.";
-        linkDisplay.textContent = url;
-        linkDisplay.style.display = "block";
-      } else {
-        statusLabel.textContent = "Status: -";
-        statusText.textContent = "Belum ada link yang disimpan";
-        linkDisplay.style.display = "none";
-      }
-    }
+    saveMapBtn.addEventListener('click', async () => {
+        const url = mapUrlInput.value.trim();
+        if (!url) {
+            setStatus("URL tidak boleh kosong!", "warn");
+            return;
+        }
+        if (!url.includes("google.com/maps") && !url.includes("gstatic.com") && !url.includes("<iframe")) {
+            setStatus("Pastikan URL valid dari Google Maps!", "warn");
+            return;
+        }
 
-    function saveMapsLink(event) {
-      event.preventDefault();
+        saveMapBtn.textContent = "Menyimpan...";
+        try {
+            const srcMatch = url.match(/src=["']([^"']+)["']/);
+            const finalUrl = srcMatch ? srcMatch[1] : url;
 
-      const url = mapsUrl.value.trim();
+            const res = await fetch('/api/gmaps', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ url: finalUrl })
+            });
+            if(res.ok) {
+                setStatus("✓ Lokasi Tersimpan!", "ok");
+                mapUrlInput.value = finalUrl;
+                updateIframe(finalUrl);
+            }
+        } catch(err) {
+            setStatus("Kesalahan Jaringan.", "danger");
+        } finally {
+            saveMapBtn.textContent = "Simpan Lokasi";
+        }
+    });
 
-      if (!url) {
-        setStatus("URL atau iframe link wajib diisi.", "warn");
-        return;
-      }
-
-      if (!url.includes("google.com/maps") && !url.includes("gstatic.com")) {
-        setStatus("⚠ Pastikan URL/link dari Google Maps", "warn");
-        return;
-      }
-
-      writeMapsLink(url);
-      updateDisplay();
-      resetForm();
-      setStatus("Link Google Maps berhasil disimpan.", "ok");
-    }
-
-    function deleteMapsLink() {
-      const currentLink = readMapsLink();
-      if (!currentLink) {
-        setStatus("Belum ada link aktif yang dapat dihapus.", "warn");
-        return;
-      }
-
-      const confirmed = window.confirm("Hapus link Google Maps yang sedang aktif?");
-      if (!confirmed) {
-        return;
-      }
-
-      removeMapsLink();
-      mapsUrl.value = "";
-      updateDisplay();
-      setStatus("Link Google Maps aktif berhasil dihapus.", "ok");
-    }
+    deleteLinkBtn.addEventListener('click', async () => {
+        if(!mapUrlInput.value) return;
+        if(confirm("Hapus link Google Maps aktif?")) {
+            try {
+                const res = await fetch('/api/gmaps', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ url: "" })
+                });
+                if(res.ok) {
+                    mapUrlInput.value = "";
+                    updateIframe("");
+                    setStatus("✓ Link Dihapus!", "ok");
+                }
+            } catch(err) {
+                alert("Gagal menghapus.");
+            }
+        }
+    });
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -641,20 +501,9 @@
 
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
-
     roleChip.textContent = "Role: " + formatRole(getCurrentRole());
 
-    // Load existing data
-    const existingUrl = readMapsLink();
-    if (existingUrl) {
-      mapsUrl.value = existingUrl;
-    }
-    updateDisplay();
-
-    mapsForm.addEventListener("submit", saveMapsLink);
-    resetFormBtn.addEventListener("click", resetForm);
-    deleteLinkBtn.addEventListener("click", deleteMapsLink);
+    loadMap();
   </script>
-<script src="_sidebar-fix.js"></script>
 </body>
 </html>

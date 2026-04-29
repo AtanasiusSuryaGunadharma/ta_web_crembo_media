@@ -864,6 +864,38 @@
 			overflow-y: auto;
 			min-height: 300px;
 			max-height: 500px;
+
+		.map-embed-box {
+			position: relative;
+		}
+
+		.map-embed-box iframe {
+			display: block;
+		}
+
+		.map-open-btn {
+			position: absolute;
+			top: 12px;
+			left: 12px;
+			z-index: 2;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 8px 12px;
+			border-radius: 10px;
+			background: rgba(255, 255, 255, 0.96);
+			color: #1f5fd1;
+			font-weight: 700;
+			font-size: 0.82rem;
+			border: 1px solid rgba(31, 95, 209, 0.18);
+			box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+			text-decoration: none;
+		}
+
+		.map-open-btn:hover {
+			background: #fff;
+			transform: translateY(-1px);
+		}
 			padding: 0;
 		}
 
@@ -2132,25 +2164,30 @@
 			</div>
 		</section>
 
+		
 		<section class="section" aria-label="Embed YouTube dan lokasi">
 			<div class="section-title">
 				<h3>YouTube & Google Maps</h3>
-				<span class="dynamic-note">Kedua link embed bisa diganti manual kapan saja.</span>
+				<span class="dynamic-note">Kedua link embed bisa diganti manual melalui panel admin.</span>
 			</div>
 			<div class="embed-grid">
 				<article class="embed-card">
 					<h4>Embed YouTube</h4>
-					<div class="embed-box">
-						<iframe id="ytFrame" src="" title="Embed YouTube" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+					<!-- YouTube disulap menjadi Carousel seperti Profil -->
+					<div class="about-media-carousel" style="min-height: 280px;">
+						<button id="ytMediaPrev" class="about-media-btn prev" type="button" aria-label="Video sebelumnya" style="left:-15px;">&#8249;</button>
+						<div id="ytStage" class="about-media-stage empty" style="min-height:280px; width:100%; position:relative; padding:0;">Belum ada video.</div>
+						<button id="ytMediaNext" class="about-media-btn next" type="button" aria-label="Video berikutnya" style="right:-15px;">&#8250;</button>
+						<div id="ytMediaDots" class="about-media-dots" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); padding: 6px;"></div>
 					</div>
-					<p class="embed-note">Link embed YouTube diatur melalui panel admin.</p>
 				</article>
 				<article class="embed-card">
 					<h4>Embed Google Maps</h4>
-					<div class="embed-box">
+					<div class="embed-box map-embed-box">
+						<a id="mapOpenBtn" class="map-open-btn" href="#" target="_blank" rel="noopener noreferrer">Buka di Maps ↗</a>
 						<iframe id="mapFrame" src="" title="Embed Google Maps" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 					</div>
-					<p class="embed-note">Link embed Google Maps diatur melalui panel admin.</p>
+					<p class="embed-note" id="mapNote">Lokasi akan terbuka langsung di Google Maps.</p>
 				</article>
 			</div>
 		</section>
@@ -2474,7 +2511,12 @@
 		const homeMisaBesarNote = document.getElementById("homeMisaBesarNote");
 		const scrollTopBtn = document.getElementById("scrollTopBtn");
 		const aboutSection = document.querySelector('section[aria-label="Tentang Crembo"]');
-		
+		const ytStage = document.getElementById("ytStage");
+
+		const ytMediaPrev = document.getElementById("ytMediaPrev");
+		const ytMediaNext = document.getElementById("ytMediaNext");
+		const ytMediaDots = document.getElementById("ytMediaDots");
+
 		const CAROUSEL_STORAGE_KEY = "crembo-home-carousel-slides";
 		const ABOUT_STORAGE_KEY = "crembo-home-about-content";
 		const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
@@ -2533,10 +2575,13 @@
 		let aboutMediaIndex = 0;
 		let aboutMediaImages = [];
 		let aboutAutoSeconds = 5;
+		let ytVideos = HOME_DATA.youtubeVideos || [];
+		let ytCurrentIndex = 0;
 		let instagramCarouselPaused = false;
 		let instagramAutoTimer = null;
 		let instagramAutoLastTime = null;
 
+		
 		function syncStickyOffset() {
 			const headerHeight = topHeader ? topHeader.offsetHeight : 104;
 			document.documentElement.style.setProperty("--header-h", headerHeight + "px");
@@ -2702,6 +2747,38 @@
 				order: Number(item && item.order ? item.order : index + 1),
 				active: item && item.active !== false
 			};
+		}
+
+		async function ensureYoutubeVideosLoaded() {
+			if (Array.isArray(ytVideos) && ytVideos.length) {
+				return ytVideos;
+			}
+
+			try {
+				const response = await fetch('/api/youtube');
+				const data = await response.json();
+				ytVideos = Array.isArray(data)
+					? data
+						.map(function (item) {
+							return {
+								id: item && item.id ? String(item.id) : '',
+								url: item && item.url ? String(item.url) : '',
+								order: Number(item && item.order ? item.order : 0),
+								active: item && item.active !== false
+							};
+						})
+						.filter(function (item) {
+							return item.active !== false && item.url;
+						})
+						.sort(function (a, b) {
+							return Number(a.order || 0) - Number(b.order || 0);
+						})
+					: [];
+			} catch (error) {
+				ytVideos = [];
+			}
+
+			return ytVideos;
 		}
 
 		function readInstagramPosts() {
@@ -3016,10 +3093,79 @@
 			}, 5000);
 		}
 
+		function renderYtCarousel() {
+			if (!ytVideos || !ytVideos.length) {
+				ytStage.innerHTML = '<div style="display:grid; place-items:center; height:100%; width:100%; color:#888; background:#f4f4f4;">Belum ada video YouTube aktif.</div>';
+				if (ytMediaPrev) ytMediaPrev.style.display = 'none';
+				if (ytMediaNext) ytMediaNext.style.display = 'none';
+				ensureYoutubeVideosLoaded().then(function (loadedVideos) {
+					if (Array.isArray(loadedVideos) && loadedVideos.length) {
+						renderYtCarousel();
+					}
+				});
+				return;
+			}
+
+            // Memastikan tombol next/prev muncul jika video lebih dari 1
+            if (ytMediaPrev) ytMediaPrev.style.display = ytVideos.length > 1 ? 'grid' : 'none';
+            if (ytMediaNext) ytMediaNext.style.display = ytVideos.length > 1 ? 'grid' : 'none';
+
+			ytMediaDots.innerHTML = "";
+			ytVideos.forEach((_, idx) => {
+				const dot = document.createElement("button");
+				dot.className = "about-dot";
+				dot.addEventListener("click", () => showYtVideo(idx));
+				ytMediaDots.appendChild(dot);
+			});
+
+            // LANGSUNG RENDER VIDEO PERTAMA
+			showYtVideo(0); 
+		}
+
+		function showYtVideo(index) {
+			if (!ytVideos || !ytVideos.length) return;
+			ytCurrentIndex = (index + ytVideos.length) % ytVideos.length;
+			
+			const video = ytVideos[ytCurrentIndex];
+			const match = video.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
+			
+			if (match && match[1]) {
+				ytStage.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + match[1] + '?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>';
+			} else {
+                ytStage.innerHTML = '<div style="display:grid; place-items:center; height:100%; width:100%; background:#f4f4f4;">URL Tidak Valid</div>';
+            }
+
+			const dots = ytMediaDots.querySelectorAll(".about-dot");
+			dots.forEach((dot, i) => dot.classList.toggle("active", i === ytCurrentIndex));
+		}
+
+		if (ytMediaPrev) ytMediaPrev.addEventListener("click", () => showYtVideo(ytCurrentIndex - 1));
+		if (ytMediaNext) ytMediaNext.addEventListener("click", () => showYtVideo(ytCurrentIndex + 1));
+
+
+		// ---- RENDER GOOGLE MAPS ----
+		const mapFrame = document.getElementById("mapFrame");
+		const mapOpenBtn = document.getElementById("mapOpenBtn");
+		if (mapFrame) {
+			const mapUrl = HOME_DATA.gmapsUrl || "";
+			if (mapUrl) {
+				const srcMatch = mapUrl.match(/src="([^"]+)"/);
+				const finalMapUrl = srcMatch ? srcMatch[1] : mapUrl;
+				mapFrame.src = finalMapUrl;
+				if (mapOpenBtn) {
+					mapOpenBtn.href = finalMapUrl;
+				}
+			} else {
+				mapFrame.parentElement.innerHTML = '<div style="display:grid; place-items:center; height:100%; color:#888; background:#f4f4f4;">Peta lokasi belum diatur di panel admin.</div>';
+			}
+		}
+
+
         // INIT SEMUA FUNGSI UTAMA
 		renderCarouselSlides();
 		buildDots();
 		renderAboutSection();
+		renderYtCarousel();
 		renderInstagramSection();
         
 		carouselTrack.addEventListener("scroll", syncActiveDot);

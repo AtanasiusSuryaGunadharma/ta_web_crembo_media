@@ -275,6 +275,27 @@ def ensure_auth_schema() -> None:
         '''
     )
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS `youtube_embeds` (
+          `id` varchar(100) NOT NULL,
+          `url` varchar(255) NOT NULL,
+          `order_index` int(11) DEFAULT 0,
+          `is_visible` tinyint(1) DEFAULT 1,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS `google_maps_embed` (
+          `id` int(11) NOT NULL,
+          `url` text DEFAULT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    ''')
+    cursor.execute("SELECT COUNT(*) FROM `google_maps_embed`")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO `google_maps_embed` (`id`, `url`) VALUES (1, '')")
+
     conn.commit()
     cursor.close()
     conn.close()
@@ -498,6 +519,27 @@ def save_instagram_posts_payload(payload: list[dict[str, object]]) -> int:
         cursor.close()
         conn.close()
 
+def load_youtube_videos():
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM `youtube_embeds` WHERE `is_visible`=1 ORDER BY `order_index` ASC")
+        rows = cursor.fetchall() or []
+        conn.close()
+        return [{"id": r["id"], "url": r["url"], "order": r["order_index"]} for r in rows]
+    except Exception:
+        return []
+
+def load_gmaps_url():
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT `url` FROM `google_maps_embed` WHERE `id`=1 LIMIT 1")
+        row = cursor.fetchone()
+        conn.close()
+        return row["url"] if row and row["url"] else ""
+    except Exception:
+        return ""
 
 def build_home_page_data() -> dict[str, object]:
     return {
@@ -538,6 +580,8 @@ def build_home_page_data() -> dict[str, object]:
         ],
         "aboutContent": load_about_content_from_db(),
         "instagramPosts": load_instagram_posts_from_db(limit=12, active_only=True),
+        "youtubeVideos": load_youtube_videos(),
+        "gmapsUrl": load_gmaps_url(),
         "bigMassSchedules": [],
         "instagramAutoSeconds": 4,
         "profileMenu": [
@@ -923,7 +967,45 @@ def upload_image():
             "url": f"uploads/{new_filename}"
         })
 
+@app.route("/api/youtube", methods=["GET"])
+def get_youtube():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM `youtube_embeds` ORDER BY `order_index` ASC")
+    rows = cursor.fetchall() or []
+    conn.close()
+    return jsonify([{"id": r["id"], "url": r["url"], "order": r["order_index"], "active": bool(r["is_visible"])} for r in rows])
 
+@app.route("/api/youtube/sync", methods=["POST"])
+def sync_youtube():
+    ensure_auth_schema()
+    payload = request.json
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM `youtube_embeds`")
+    for item in payload:
+        cursor.execute("INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES (%s, %s, %s, %s)",
+                       (item.get("id"), item.get("url"), item.get("order"), 1 if item.get("active") else 0))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route("/api/gmaps", methods=["GET"])
+def api_get_gmaps():
+    return jsonify({"url": load_gmaps_url()})
+
+@app.route("/api/gmaps", methods=["POST"])
+def api_set_gmaps():
+    ensure_auth_schema()
+    url = request.json.get("url", "")
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE `google_maps_embed` SET `url` = %s WHERE `id` = 1", (url,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+    
 if __name__ == "__main__":
     try:
         ensure_auth_schema()
