@@ -77,6 +77,10 @@
 		.alert.error{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);color:#991b1b;}
 		.alert.success{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);color:#166534;}
 		.alert.show{display:block;}
+		.flash-stack{display:grid;gap:10px;margin-bottom:16px;}
+		.flash{padding:12px 14px;border-radius:var(--radius-sm);font-size:0.85rem;border:1px solid transparent;}
+		.flash.error{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.25);color:#991b1b;}
+		.flash.success{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.25);color:#166534;}
 
 		/* ROLE MODAL */
 		.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:2000;display:none;place-items:center;}
@@ -152,14 +156,22 @@
 
 			<div class="login-card">
 				<h3>Masuk Sistem</h3>
-				<p>Silakan masuk dengan akun Anda</p>
+				<p>Silakan masuk dengan akun Anda. Sistem akan mendeteksi role secara otomatis.</p>
 
-				<div id="loginAlert" class="alert error"></div>
+				{% with messages = get_flashed_messages(with_categories=true) %}
+				{% if messages %}
+				<div class="flash-stack">
+					{% for category, message in messages %}
+					<div class="flash {{ category }}">{{ message }}</div>
+					{% endfor %}
+				</div>
+				{% endif %}
+				{% endwith %}
 
-				<form id="loginForm" novalidate>
+				<form id="loginForm" action="{{ url_for('login') }}" method="post" novalidate>
 					<div class="field">
 						<label for="loginIdentifier">Username / No HP / Email</label>
-						<input id="loginIdentifier" type="text" placeholder="Masukkan username, no HP, atau email" autocomplete="username" required>
+						<input id="loginIdentifier" name="identifier" type="text" placeholder="Masukkan username, no HP, atau email" autocomplete="username" required>
 					</div>
 					<div class="field">
 						<div class="field-row">
@@ -167,7 +179,7 @@
 							<a class="forgot-link" href="forgot-password.html">Lupa kata sandi?</a>
 						</div>
 						<div class="field-wrap">
-							<input id="loginPassword" type="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
+							<input id="loginPassword" name="password" type="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
 							<button class="toggle-pw" type="button" id="togglePw">Tampil</button>
 						</div>
 					</div>
@@ -180,33 +192,10 @@
 					<button class="btn-login-submit" type="submit" id="loginBtn">Masuk</button>
 				</form>
 
-				<p class="login-note">Dashboard admin, anggota, dan super admin tersedia setelah memilih role.</p>
+				<p class="login-note">Role dashboard akan dipilih otomatis berdasarkan akun yang berhasil diverifikasi.</p>
 			</div>
 		</div>
 	</section>
-
-	<!-- ROLE SELECTION MODAL -->
-	<div class="modal-overlay" id="roleModal" aria-modal="true" aria-label="Pilih jenis login" role="dialog">
-		<div class="modal-box">
-			<h3>Pilih Jenis Login</h3>
-			<p>Prototipe: pilih role akun untuk melanjutkan ke dashboard.</p>
-
-			<button class="role-option" type="button" onclick="goToDashboard('super_admin')">
-				Login sebagai Super Admin
-				<small>Akses penuh sistem</small>
-			</button>
-			<button class="role-option" type="button" onclick="goToDashboard('admin')">
-				Login sebagai Admin
-				<small>Akses pengelolaan modul utama</small>
-			</button>
-			<button class="role-option" type="button" onclick="goToDashboard('anggota')">
-				Login sebagai Anggota
-				<small>Akses pengguna anggota tim</small>
-			</button>
-
-			<button class="btn-cancel" type="button" onclick="closeModal()">Batal</button>
-		</div>
-	</div>
 
 	<!-- FOOTER -->
 	<footer class="footer">
@@ -242,11 +231,7 @@
 
 	<script>
 	const topHeader = document.getElementById("topHeader");
-	const loginForm = document.getElementById("loginForm");
-	const loginAlert = document.getElementById("loginAlert");
 	const togglePw  = document.getElementById("togglePw");
-	const roleModal  = document.getElementById("roleModal");
-	const SESSION_KEY = "crembo-login-session";
 
 	function syncH() {
 		const h = topHeader ? topHeader.offsetHeight : 104;
@@ -259,35 +244,6 @@
 		const isText = inp.type === "text";
 		inp.type = isText ? "password" : "text";
 		togglePw.textContent = isText ? "Tampil" : "Sembunyikan";
-	});
-
-	function showAlert(msg,type){ loginAlert.textContent=msg; loginAlert.className="alert "+(type||"error")+" show"; }
-
-	loginForm.addEventListener("submit", function(e) {
-		e.preventDefault();
-		const id = document.getElementById("loginIdentifier").value.trim();
-		const pw = document.getElementById("loginPassword").value;
-		if (!id || !pw) { showAlert("Mohon isi semua kolom."); return; }
-		// For mockup: any input works — just show role modal
-		showAlert("Verifikasi berhasil! Pilih jenis login.","success");
-		setTimeout(function() { roleModal.classList.add("show"); }, 600);
-	});
-
-	function goToDashboard(role) {
-		const id = document.getElementById("loginIdentifier").value.trim();
-		const session = { identifier: id, role: role, loginAt: new Date().toISOString() };
-		localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-		if (role === "super_admin" || role === "admin") {
-			window.location.href = "dashboard.html?role=" + role;
-		} else {
-			window.location.href = "dashboard-anggota.html";
-		}
-	}
-
-	function closeModal() { roleModal.classList.remove("show"); }
-
-	roleModal.addEventListener("click", function(e) {
-		if (e.target === roleModal) closeModal();
 	});
 	</script>
 </body>

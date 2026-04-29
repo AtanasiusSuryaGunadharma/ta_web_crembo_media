@@ -35,7 +35,9 @@ CREATE TABLE `anggota` (
   `password` varchar(255) DEFAULT NULL,
   `role` varchar(50) DEFAULT NULL,
   `tgl_lahir` varchar(50) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL
+  `email` varchar(255) DEFAULT NULL,
+  `alamat` text DEFAULT NULL,
+  `status_akun` varchar(20) NOT NULL DEFAULT 'aktif'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -128,7 +130,11 @@ CREATE TABLE `db_anggota` (
   `username` varchar(150) DEFAULT NULL,
   `telp` varchar(50) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `role` varchar(50) DEFAULT NULL
+  `role` varchar(50) DEFAULT NULL,
+  `tgl_lahir` varchar(50) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `alamat` text DEFAULT NULL,
+  `status_akun` varchar(20) NOT NULL DEFAULT 'aktif'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

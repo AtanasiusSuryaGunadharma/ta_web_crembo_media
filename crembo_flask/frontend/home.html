@@ -2172,7 +2172,7 @@
 	</footer>
 
 	<script>
-		window.CREMBO_HOME_DATA = {{ home_page_data | tojson }};
+		window.CREMBO_HOME_DATA = {{ home_page_data | default({}, true) | tojson }};
 
 		const topHeader = document.getElementById("topHeader");
 		const menuToggle = document.getElementById("menuToggle");
