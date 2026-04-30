@@ -251,22 +251,99 @@
       padding: 8px;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       font-size: 0.78rem;
       color: #4b5563;
+      align-items: center;
     }
 
-    .editor-toolbar span {
-      border: 1px solid #d0d0d0;
-      border-radius: 6px;
-      padding: 3px 6px;
+    .editor-toolbar .toolbar-group {
+      display: inline-flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      padding-right: 8px;
+      margin-right: 4px;
+      border-right: 1px solid #d0d0d0;
+    }
+
+    .editor-toolbar .toolbar-group:last-child {
+      border-right: 0;
+      padding-right: 0;
+      margin-right: 0;
+    }
+
+    .editor-toolbar button {
+      border: 1px solid #c7cdd6;
+      border-radius: 8px;
+      padding: 6px 9px;
       background: #fff;
+      color: #334155;
+      cursor: pointer;
+      font: inherit;
+      line-height: 1;
     }
 
-    .editor-area {
+    .editor-toolbar button:hover {
+      background: #f8fbff;
+      border-color: #9fb7e6;
+    }
+
+    .editor-toolbar button:active {
+      transform: translateY(1px);
+    }
+
+    .editor-toolbar button[data-command="bold"] { font-weight: 800; }
+    .editor-toolbar button[data-command="italic"] { font-style: italic; }
+    .editor-toolbar button[data-command="underline"] { text-decoration: underline; }
+
+    .editor-content {
+      min-height: 240px;
       border: 1px solid #d0d0d0;
       border-radius: 0 0 10px 10px;
-      overflow: hidden;
+      padding: 12px 12px 16px;
+      background: #fff;
+      outline: none;
+      line-height: 1.6;
+      overflow: auto;
+    }
+
+    .editor-content:empty::before {
+      content: attr(data-placeholder);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+
+    .editor-content:focus {
+      border-color: #78a3ff;
+      box-shadow: 0 0 0 3px rgba(59, 125, 248, 0.12);
+    }
+
+    .editor-content ul,
+    .editor-content ol {
+      padding-left: 1.5rem;
+      margin: 0.4rem 0;
+    }
+
+    .editor-content blockquote {
+      margin: 0.6rem 0;
+      padding: 0.4rem 0.9rem;
+      border-left: 4px solid #9ab6ea;
+      background: #f8fbff;
+      color: #334155;
+    }
+
+    .editor-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .editor-content p:first-child {
+      margin-top: 0;
+    }
+
+    .editor-content p:last-child {
+      margin-bottom: 0;
     }
 
     .attachment-row {
@@ -310,25 +387,90 @@
 
     .file-item {
       border: 1px solid #d1d5db;
-      border-radius: 8px;
+      border-radius: 10px;
       background: #f9fafb;
-      padding: 6px 8px;
+      padding: 10px 10px 9px;
       display: flex;
       justify-content: space-between;
       gap: 8px;
       align-items: center;
       font-size: 0.82rem;
       color: #374151;
+      flex-wrap: wrap;
     }
 
-    .file-item button {
-      border: 1px solid #ef4444;
+    .file-main {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      flex: 1 1 260px;
+    }
+
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfd4ff;
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      flex: 0 0 auto;
+    }
+
+    .file-meta {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .file-meta strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-meta span {
+      color: #6b7280;
+      font-size: 0.76rem;
+    }
+
+    .file-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .file-actions a,
+    .file-actions button,
+    .file-actions span {
+      border-radius: 8px;
+      border: 1px solid #c7d2fe;
       background: #fff;
-      color: #b91c1c;
-      border-radius: 7px;
-      font-size: 0.74rem;
-      padding: 4px 7px;
+      color: #1d4ed8;
+      text-decoration: none;
+      padding: 5px 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
       cursor: pointer;
+    }
+
+    .file-actions .danger {
+      border-color: #ef4444;
+      color: #b91c1c;
+    }
+
+    .file-actions .preview-disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .inline {
@@ -454,21 +596,35 @@
 
           <div class="field">
             <label class="label" for="contentInput">Konten</label>
-            <div class="editor-toolbar" aria-hidden="true">
-              <span>Normal</span><span>B</span><span>I</span><span>U</span><span>List</span><span>Quote</span><span>Link</span><span>Image</span>
+            <div id="editorToolbar" class="editor-toolbar" role="toolbar" aria-label="Toolbar editor konten">
+              <div class="toolbar-group">
+                <button type="button" data-command="formatBlock" data-value="<p>">Normal</button>
+                <button type="button" data-command="formatBlock" data-value="<h2>">H2</button>
+                <button type="button" data-command="formatBlock" data-value="<blockquote>">Quote</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" data-command="bold" title="Bold">B</button>
+                <button type="button" data-command="italic" title="Italic">I</button>
+                <button type="button" data-command="underline" title="Underline">U</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" data-command="insertUnorderedList" title="Bullet list">List</button>
+                <button type="button" data-command="insertOrderedList" title="Numbered list">1.</button>
+                <button type="button" data-command="createLink" title="Tambah link">Link</button>
+                <button type="button" data-command="insertImage" title="Sisipkan gambar via URL">Image</button>
+                <button type="button" data-command="removeFormat" title="Hapus format">Clear</button>
+              </div>
             </div>
-            <div class="editor-area">
-              <textarea id="contentInput" placeholder="Tulis konten profil di sini..." required></textarea>
-            </div>
-            <p class="helper">Tampilan toolbar hanya simulasi untuk wireframe.</p>
+            <div id="contentInput" class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Tulis konten profil di sini..."></div>
+            <p class="helper">Gunakan toolbar untuk format teks, daftar, kutipan, link, dan gambar.</p>
           </div>
 
           <div class="field">
             <label class="label">Lampiran (Opsional)</label>
             <div class="attachment-row">
-              <input id="attachmentInput" type="file" multiple style="display:none;">
+              <input id="attachmentInput" type="file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv" style="display:none;">
               <button id="addAttachmentBtn" class="btn primary" type="button">+ Tambah File</button>
-              <span class="helper">Maks 10MB per file. Contoh: gambar, PDF, dokumen office.</span>
+              <span class="helper">Bisa upload banyak file sekaligus, termasuk gambar, PDF, Word, Excel, dan ZIP. Maks 10MB per file.</span>
             </div>
             <div id="fileList" class="files"></div>
           </div>
@@ -505,6 +661,7 @@
 
     const titleInput = document.getElementById("titleInput");
     const contentInput = document.getElementById("contentInput");
+    const editorToolbar = document.getElementById("editorToolbar");
     const attachmentInput = document.getElementById("attachmentInput");
     const addAttachmentBtn = document.getElementById("addAttachmentBtn");
     const fileList = document.getElementById("fileList");
@@ -513,7 +670,7 @@
     const notify = document.getElementById("notify");
     const liveDateTime = document.getElementById("liveDateTime");
 
-    let attachmentUrl = "";
+    let attachments = [];
     let isLoading = false;
 
     function showNotify(message) {
@@ -525,17 +682,177 @@
       }, 2200);
     }
 
-    function renderAttachments() {
-      if (!attachmentUrl) {
-        fileList.innerHTML = '<p class="helper">Belum ada lampiran.</p>';
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function stripHtml(html) {
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = String(html || "");
+      return (wrapper.textContent || wrapper.innerText || "").replace(/\u200B/g, "").trim();
+    }
+
+    function formatFileSize(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        return "0 B";
+      }
+      const units = ["B", "KB", "MB", "GB"];
+      let size = bytes;
+      let unitIndex = 0;
+      while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex += 1;
+      }
+      return size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1) + " " + units[unitIndex];
+    }
+
+    function attachmentBadge(item) {
+      const name = String(item && item.name ? item.name : "");
+      const extension = name.includes(".") ? name.split(".").pop() : (String(item && item.url ? item.url : "").split(".").pop() || "file");
+      return extension.slice(0, 5).toUpperCase();
+    }
+
+    function normalizeAttachment(item) {
+      if (!item) {
+        return null;
+      }
+
+      if (typeof item === "string") {
+        const url = item.trim();
+        if (!url) {
+          return null;
+        }
+        return {
+          url: url,
+          name: url.split("/").pop() || "lampiran",
+          mimeType: "",
+          size: 0,
+          previewable: /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url),
+          kind: /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url) ? "image" : (/\.pdf$/i.test(url) ? "pdf" : "file")
+        };
+      }
+
+      if (typeof item !== "object") {
+        return null;
+      }
+
+      const url = String(item.url || item.path || item.fileUrl || "").trim();
+      if (!url) {
+        return null;
+      }
+
+      const name = String(item.name || item.filename || url.split("/").pop() || "lampiran");
+      const previewable = typeof item.previewable === "boolean"
+        ? item.previewable
+        : /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(name) || /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url);
+
+      return {
+        url: url,
+        name: name,
+        mimeType: String(item.mimeType || item.mime_type || ""),
+        size: Number(item.size || 0) || 0,
+        previewable: previewable,
+        kind: String(item.kind || (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name) ? "image" : (/\.pdf$/i.test(name) ? "pdf" : "file")))
+      };
+    }
+
+    function normalizeAttachmentList(value) {
+      if (!value) {
+        return [];
+      }
+
+      let rawItems = value;
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return [];
+        }
+        try {
+          const parsed = JSON.parse(trimmed);
+          rawItems = Array.isArray(parsed) ? parsed : [trimmed];
+        } catch (error) {
+          rawItems = [trimmed];
+        }
+      }
+
+      if (!Array.isArray(rawItems)) {
+        rawItems = [rawItems];
+      }
+
+      return rawItems.map(normalizeAttachment).filter(Boolean);
+    }
+
+    function emptyEditorIfNeeded() {
+      if (!stripHtml(contentInput.innerHTML)) {
+        contentInput.innerHTML = "";
+      }
+    }
+
+    function executeEditorCommand(command, value) {
+      contentInput.focus();
+
+      if (command === "createLink") {
+        const url = window.prompt("Masukkan URL link:", "https://");
+        if (url && url.trim()) {
+          document.execCommand("createLink", false, url.trim());
+        }
         return;
       }
 
-      const fileName = attachmentUrl.split('/').pop();
-      fileList.innerHTML = '<div class="file-item">'
-        + '<span>📎 ' + fileName.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>'
-        + '<button type="button" data-remove-attachment>Hapus</button>'
-        + '</div>';
+      if (command === "insertImage") {
+        const url = window.prompt("Masukkan URL gambar:", "https://");
+        if (url && url.trim()) {
+          document.execCommand("insertImage", false, url.trim());
+        }
+        return;
+      }
+
+      if (command === "removeFormat") {
+        document.execCommand("removeFormat", false, null);
+        document.execCommand("unlink", false, null);
+        return;
+      }
+
+      if (command === "formatBlock") {
+        document.execCommand(command, false, value);
+        return;
+      }
+
+      document.execCommand(command, false, value || null);
+    }
+
+    function renderAttachments() {
+      if (!attachments.length) {
+        fileList.innerHTML = '<p class="helper">Belum ada lampiran. Klik tombol tambah file untuk upload banyak file sekaligus.</p>';
+        return;
+      }
+
+      fileList.innerHTML = attachments.map(function (item, index) {
+        const fileName = item.name || item.url.split('/').pop() || "lampiran";
+        const previewLink = item.previewable
+          ? '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Preview</a>'
+          : '<span title="Preview tidak tersedia">Preview</span>';
+
+        return '<div class="file-item">'
+          + '<div class="file-main">'
+          + '<div class="file-badge">' + escapeHtml(attachmentBadge(item)) + '</div>'
+          + '<div class="file-meta">'
+          + '<strong>' + escapeHtml(fileName) + '</strong>'
+          + '<span>' + escapeHtml(item.kind === "image" ? "Gambar" : (item.kind === "pdf" ? "PDF" : "Lampiran file")) + ' • ' + escapeHtml(formatFileSize(item.size)) + '</span>'
+          + '</div>'
+          + '</div>'
+          + '<div class="file-actions">'
+          + previewLink
+          + '<a href="' + escapeHtml(item.url) + '" download>Download</a>'
+          + '<button class="danger" type="button" data-remove-attachment-index="' + String(index) + '">Hapus</button>'
+          + '</div>'
+          + '</div>';
+      }).join("");
     }
 
     async function loadProfileData() {
@@ -555,11 +872,12 @@
         pageTitle.textContent = "Edit Profil";
         pageDesc.textContent = "Perbarui konten profil yang sudah ada. Data sebelumnya sudah dimuat ke form.";
         titleInput.value = profile.title || "";
-        contentInput.value = profile.description || "";
+        contentInput.innerHTML = profile.description || "";
         orderInput.value = profile.order || 0;
         activeInput.checked = profile.active;
-        attachmentUrl = profile.attachmentUrl || "";
+        attachments = normalizeAttachmentList(profile.attachments || profile.attachmentUrl || []);
         renderAttachments();
+        emptyEditorIfNeeded();
       } catch (err) {
         console.error("Error loading profile:", err);
         showNotify("Gagal memuat data profil.");
@@ -583,10 +901,10 @@
       event.preventDefault();
 
       const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
+      const content = contentInput.innerHTML.trim();
       const order = Number(orderInput.value);
 
-      if (!title || !content) {
+      if (!title || !stripHtml(content)) {
         showNotify("Judul dan konten wajib diisi.");
         return;
       }
@@ -597,7 +915,8 @@
       const payload = {
         title: title,
         description: content,
-        attachmentUrl: attachmentUrl,
+        attachmentUrl: attachments[0] ? attachments[0].url : "",
+        attachments: attachments,
         order: Number.isFinite(order) && order >= 0 ? order : 0,
         active: activeInput.checked
       };
@@ -633,25 +952,33 @@
     });
 
     attachmentInput.addEventListener("change", async function () {
-      const file = attachmentInput.files?.[0];
-      if (!file) return;
+      const selectedFiles = Array.from(attachmentInput.files || []);
+      if (!selectedFiles.length) {
+        return;
+      }
 
-      if (file.size > 10 * 1024 * 1024) {
-        showNotify("File terlalu besar (max 10MB)");
+      const tooLargeFile = selectedFiles.find(function (file) {
+        return file.size > 10 * 1024 * 1024;
+      });
+      if (tooLargeFile) {
+        showNotify("File terlalu besar (max 10MB per file)");
         attachmentInput.value = "";
         return;
       }
 
       const formData = new FormData();
-      formData.append('file', file);
+      selectedFiles.forEach(function (file) {
+        formData.append('files', file);
+      });
 
       try {
         const res = await fetch('/api/upload_image', { method: 'POST', body: formData });
         const json = await res.json();
-        if (json.url) {
-          attachmentUrl = json.url;
+        const uploadedFiles = Array.isArray(json.files) ? json.files : (json.url ? [normalizeAttachment(json.url)] : []);
+        if (uploadedFiles.length) {
+          attachments = attachments.concat(uploadedFiles.map(normalizeAttachment).filter(Boolean));
           renderAttachments();
-          showNotify("File berhasil di-upload.");
+          showNotify(uploadedFiles.length > 1 ? "Beberapa file berhasil di-upload." : "File berhasil di-upload.");
         } else {
           showNotify("Gagal upload: " + (json.error || "Error"));
         }
@@ -663,11 +990,35 @@
     });
 
     fileList.addEventListener("click", function (event) {
-      const button = event.target.closest("button[data-remove-attachment]");
+      const button = event.target.closest("button[data-remove-attachment-index]");
       if (!button) return;
-      attachmentUrl = "";
+      const removeIndex = Number(button.getAttribute("data-remove-attachment-index"));
+      if (Number.isFinite(removeIndex)) {
+        attachments.splice(removeIndex, 1);
+      }
       renderAttachments();
     });
+
+    editorToolbar.addEventListener("mousedown", function (event) {
+      if (event.target.closest("button")) {
+        event.preventDefault();
+      }
+    });
+
+    editorToolbar.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-command]");
+      if (!button) {
+        return;
+      }
+      executeEditorCommand(button.getAttribute("data-command") || "", button.getAttribute("data-value") || "");
+      contentInput.focus();
+    });
+
+    contentInput.addEventListener("input", function () {
+      emptyEditorIfNeeded();
+    });
+
+    contentInput.addEventListener("blur", emptyEditorIfNeeded);
 
     profileForm.addEventListener("submit", saveForm);
 

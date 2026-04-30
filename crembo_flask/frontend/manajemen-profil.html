@@ -522,6 +522,71 @@
         .replace(/^-|-$/g, "");
     }
 
+    function stripHtml(value) {
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = String(value || "");
+      return (wrapper.textContent || wrapper.innerText || "").replace(/\u200B/g, "").trim();
+    }
+
+    function normalizeAttachment(item) {
+      if (!item) {
+        return null;
+      }
+
+      if (typeof item === "string") {
+        const url = item.trim();
+        if (!url) {
+          return null;
+        }
+        return {
+          url: url,
+          name: url.split("/").pop() || "lampiran",
+          previewable: /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url)
+        };
+      }
+
+      if (typeof item !== "object") {
+        return null;
+      }
+
+      const url = String(item.url || item.path || item.fileUrl || "").trim();
+      if (!url) {
+        return null;
+      }
+
+      return {
+        url: url,
+        name: String(item.name || item.filename || url.split("/").pop() || "lampiran"),
+        previewable: typeof item.previewable === "boolean" ? item.previewable : /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url)
+      };
+    }
+
+    function normalizeAttachmentList(value) {
+      if (!value) {
+        return [];
+      }
+
+      let rawItems = value;
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return [];
+        }
+        try {
+          const parsed = JSON.parse(trimmed);
+          rawItems = Array.isArray(parsed) ? parsed : [trimmed];
+        } catch (error) {
+          rawItems = [trimmed];
+        }
+      }
+
+      if (!Array.isArray(rawItems)) {
+        rawItems = [rawItems];
+      }
+
+      return rawItems.map(normalizeAttachment).filter(Boolean);
+    }
+
     function loadProfiles() {
       fetch('/api/profiles')
         .then(res => res.json())
@@ -532,7 +597,8 @@
             description: p.description || "",
             slug: p.title ? String(p.title).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : "",
             content: p.description || "",
-            attachmentNames: p.attachmentUrl ? [p.attachmentUrl.split('/').pop()] : [],
+            attachmentNames: normalizeAttachmentList(p.attachments || p.attachmentUrl).map(function (item) { return item.name; }),
+            attachments: normalizeAttachmentList(p.attachments || p.attachmentUrl),
             order: p.order || 0,
             isActive: p.active,
             updatedAt: p.updatedAt,
@@ -579,7 +645,8 @@
             body: JSON.stringify({
               title: item.title,
               description: item.content || item.description || "",
-              attachmentUrl: item.attachmentUrl || "",
+              attachmentUrl: item.attachments && item.attachments[0] ? item.attachments[0].url : (item.attachmentUrl || ""),
+              attachments: item.attachments || [],
               order: index,
               active: Boolean(item.isActive)
             })
@@ -661,7 +728,7 @@
           return String(b.updatedAt).localeCompare(String(a.updatedAt));
         })
         .filter(function (item) {
-          const matchKeyword = !keyword || [item.title, item.slug, item.content].join(" ").toLowerCase().includes(keyword);
+          const matchKeyword = !keyword || [item.title, item.slug, stripHtml(item.content)].join(" ").toLowerCase().includes(keyword);
           const matchStatus = status === "all"
             || (status === "active" && item.isActive)
             || (status === "draft" && !item.isActive);
@@ -679,7 +746,15 @@
       cards.innerHTML = items.map(function (item) {
         const statusClass = item.isActive ? "active" : "draft";
         const statusLabel = item.isActive ? "Aktif" : "Draft";
-        const excerpt = item.content.length > 110 ? item.content.slice(0, 110) + "..." : item.content || "-";
+        const plainContent = stripHtml(item.content);
+        const excerpt = plainContent.length > 110 ? plainContent.slice(0, 110) + "..." : plainContent || "-";
+        const attachmentItems = item.attachments || normalizeAttachmentList(item.attachmentUrl);
+        const attachmentSummary = attachmentItems.slice(0, 2).map(function (file) {
+          return file.name;
+        }).join(", ");
+        const attachmentLabel = attachmentItems.length
+          ? attachmentSummary + (attachmentItems.length > 2 ? " +" + String(attachmentItems.length - 2) + " lainnya" : "")
+          : "Tidak ada lampiran";
         return '<article class="card" data-profile-id="' + escapeHtml(item.id) + '">'
           + '<div class="card-head">'
           + '<div class="card-head-main">'
@@ -691,10 +766,11 @@
           + '<p class="meta">Slug: ' + escapeHtml(item.slug) + '</p>'
           + '<p class="excerpt">' + escapeHtml(excerpt) + '</p>'
           + '<div class="card-foot">'
-          + '<span>Lampiran: ' + String(item.attachmentNames.length) + '</span>'
+          + '<span>Lampiran: ' + String(attachmentItems.length) + '</span>'
           + '<span>Urutan: ' + String(item.order) + '</span>'
           + '<span>Update: ' + escapeHtml(formatDate(item.updatedAt)) + '</span>'
           + '</div>'
+          + '<p class="meta">' + escapeHtml(attachmentLabel) + '</p>'
           + '<div class="card-actions">'
           + '<a class="btn" href="form-profil.html?id=' + encodeURIComponent(item.id) + '">Edit</a>'
           + '<button class="btn warn" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '">Hapus</button>'

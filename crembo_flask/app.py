@@ -1,11 +1,14 @@
 from pathlib import Path
+import json
 import os
 import re
 import time
+import uuid
 
 import mysql.connector
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
@@ -27,6 +30,37 @@ MYSQL_CONFIG = {
     "autocommit": False,
 }
 
+UPLOAD_FOLDER = FRONTEND_DIR / "uploads"
+ALLOWED_ATTACHMENT_EXTENSIONS = {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
+    ".bmp",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    ".zip",
+    ".rar",
+    ".7z",
+    ".txt",
+    ".csv",
+}
+PREVIEWABLE_ATTACHMENT_EXTENSIONS = {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
+    ".bmp",
+    ".pdf",
+}
+
 
 
 
@@ -36,6 +70,94 @@ def template_exists(template_name: str) -> bool:
 
 def mysql_connection():
     return mysql.connector.connect(**MYSQL_CONFIG)
+
+
+def ensure_upload_folder() -> Path:
+    UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+    return UPLOAD_FOLDER
+
+
+def attachment_record_from_url(url_value: str, *, name: str | None = None, mime_type: str | None = None, size: int | None = None) -> dict[str, object]:
+    clean_url = (url_value or "").strip()
+    filename = (name or Path(clean_url).name or "lampiran").strip()
+    extension = Path(filename).suffix.lower() or Path(clean_url).suffix.lower()
+    previewable = extension in PREVIEWABLE_ATTACHMENT_EXTENSIONS
+    kind = "image" if extension in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"} else ("pdf" if extension == ".pdf" else "file")
+    return {
+        "url": clean_url,
+        "name": filename,
+        "mimeType": mime_type or "",
+        "size": int(size) if isinstance(size, int) else 0,
+        "previewable": previewable,
+        "kind": kind,
+    }
+
+
+def normalize_attachment_payload(value) -> list[dict[str, object]]:
+    if value in (None, "", []):
+        return []
+
+    raw_items = value
+    if isinstance(value, str):
+        raw_text = value.strip()
+        if not raw_text:
+            return []
+        try:
+            parsed = json.loads(raw_text)
+            raw_items = parsed if isinstance(parsed, list) else [raw_text]
+        except (TypeError, ValueError):
+            raw_items = [raw_text]
+
+    if isinstance(raw_items, dict):
+        raw_items = [raw_items]
+
+    normalized_items: list[dict[str, object]] = []
+    for item in raw_items or []:
+        if isinstance(item, str):
+            clean_item = item.strip()
+            if clean_item:
+                normalized_items.append(attachment_record_from_url(clean_item))
+            continue
+
+        if not isinstance(item, dict):
+            continue
+
+        url_value = str(item.get("url") or item.get("path") or item.get("fileUrl") or "").strip()
+        if not url_value:
+            continue
+
+        normalized_items.append(
+            attachment_record_from_url(
+                url_value,
+                name=str(item.get("name") or item.get("filename") or "").strip() or None,
+                mime_type=str(item.get("mimeType") or item.get("mime_type") or "").strip() or None,
+                size=item.get("size") if isinstance(item.get("size"), int) else None,
+            )
+        )
+
+    return normalized_items
+
+
+def save_uploaded_attachment(file_storage) -> dict[str, object]:
+    filename = secure_filename(file_storage.filename or "")
+    if not filename:
+        raise ValueError("Nama file tidak valid.")
+
+    extension = Path(filename).suffix.lower()
+    if extension not in ALLOWED_ATTACHMENT_EXTENSIONS:
+        raise ValueError("Format file tidak didukung.")
+
+    upload_folder = ensure_upload_folder()
+    unique_name = f"{Path(filename).stem}_{uuid.uuid4().hex}{extension}"
+    destination = upload_folder / unique_name
+    file_storage.save(destination)
+
+    return attachment_record_from_url(
+        url_for("serve_uploaded_file", filename=unique_name),
+        name=filename,
+        mime_type=file_storage.mimetype,
+        size=destination.stat().st_size,
+    )
 
 
 def current_user_context() -> dict[str, str]:
@@ -990,39 +1112,40 @@ def sync_instagram_posts():
 
 import werkzeug.utils
 
+@app.route("/uploads/<path:filename>")
+def serve_uploaded_file(filename: str):
+    upload_folder = ensure_upload_folder()
+    return send_from_directory(upload_folder, filename)
+
+
 @app.route("/api/upload_image", methods=["POST"])
 def upload_image():
     ensure_auth_schema()
-    if 'file' not in request.files:
-        return jsonify({"success": False, "error": "No file part"}), 400
-    file = request.files['file']
-    if file.filename == '':
+    incoming_files = request.files.getlist("files")
+    if not incoming_files:
+        single_file = request.files.get("file")
+        incoming_files = [single_file] if single_file and single_file.filename else []
+
+    if not incoming_files:
         return jsonify({"success": False, "error": "No selected file"}), 400
 
-    allowed_ext = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
-    _, ext = os.path.splitext(file.filename.lower())
-    if ext not in allowed_ext or not (file.mimetype or "").startswith("image/"):
-        return jsonify({"success": False, "error": "File harus berupa gambar (jpg/png/gif/webp/bmp)."}), 400
-        
-    if file:
-        filename = werkzeug.utils.secure_filename(file.filename)
-        # Ensure uploads dir exists
-        upload_folder = os.path.join(app.root_path, 'frontend', 'uploads')
-        os.makedirs(upload_folder, exist_ok=True)
-        
-        # Make filename unique
-        import time
-        import random
-        base, ext = os.path.splitext(filename)
-        new_filename = f"{base}_{int(time.time())}{ext}"
-        
-        filepath = os.path.join(upload_folder, new_filename)
-        file.save(filepath)
-        
-        return jsonify({
-            "success": True, 
-            "url": f"uploads/{new_filename}"
-        })
+    saved_files: list[dict[str, object]] = []
+    try:
+        for file in incoming_files:
+            if not file or not file.filename:
+                continue
+            saved_files.append(save_uploaded_attachment(file))
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+
+    if not saved_files:
+        return jsonify({"success": False, "error": "No selected file"}), 400
+
+    return jsonify({
+        "success": True,
+        "files": saved_files,
+        "url": saved_files[0]["url"],
+    })
 
 @app.route("/api/youtube", methods=["GET"])
 def get_youtube():
@@ -1147,24 +1270,33 @@ def get_profiles():
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM `organization_profiles` ORDER BY `order_index` ASC")
     rows = cursor.fetchall() or []
+    cursor.close()
     conn.close()
-    return jsonify([{
-        "id": r["id"],
-        "title": r["title"],
-        "description": r["description"],
-        "attachmentUrl": r["attachment_url"],
-        "order": r["order_index"],
-        "active": bool(r["is_visible"]),
-        "createdAt": r["created_at"],
-        "updatedAt": r["updated_at"]
-    } for r in rows])
+    profile_rows = []
+    for row in rows:
+        attachments = normalize_attachment_payload(row["attachment_url"])
+        profile_rows.append({
+            "id": row["id"],
+            "title": row["title"],
+            "description": row["description"],
+            "attachmentUrl": attachments[0]["url"] if attachments else "",
+            "attachments": attachments,
+            "order": row["order_index"],
+            "active": bool(row["is_visible"]),
+            "createdAt": row["created_at"],
+            "updatedAt": row["updated_at"],
+        })
+    return jsonify(profile_rows)
 
 @app.route("/api/profiles", methods=["POST"])
 def create_profile():
     ensure_auth_schema()
     data = request.json or {}
     profile_id = f"profile-{int(time.time() * 1000)}"
-    
+    attachments = normalize_attachment_payload(data.get("attachments"))
+    if not attachments:
+        attachments = normalize_attachment_payload(data.get("attachmentUrl"))
+
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
@@ -1176,11 +1308,10 @@ def create_profile():
             profile_id,
             data.get("title", ""),
             data.get("description", ""),
-            data.get("attachmentUrl", ""),
+            json.dumps(attachments, ensure_ascii=False),
             int(data.get("order", 0)),
-            1 if data.get("active") else 0
+            1 if data.get("active") else 0,
         ))
-        conn.commit()
         return jsonify({"success": True, "id": profile_id})
     except Exception as e:
         conn.rollback()
@@ -1193,7 +1324,10 @@ def create_profile():
 def update_profile(profile_id):
     ensure_auth_schema()
     data = request.json or {}
-    
+    attachments = normalize_attachment_payload(data.get("attachments"))
+    if not attachments:
+        attachments = normalize_attachment_payload(data.get("attachmentUrl"))
+
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
@@ -1204,7 +1338,7 @@ def update_profile(profile_id):
         """, (
             data.get("title", ""),
             data.get("description", ""),
-            data.get("attachmentUrl", ""),
+            json.dumps(attachments, ensure_ascii=False),
             int(data.get("order", 0)),
             1 if data.get("active") else 0,
             profile_id

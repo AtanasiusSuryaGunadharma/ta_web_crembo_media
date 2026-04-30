@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 30 Apr 2026 pada 17.05
+-- Waktu pembuatan: 30 Apr 2026 pada 22.27
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -272,8 +272,9 @@ CREATE TABLE `organization_profiles` (
 --
 
 INSERT INTO `organization_profiles` (`id`, `title`, `description`, `attachment_url`, `order_index`, `is_visible`, `created_at`, `updated_at`) VALUES
-('profile-1777560615559', 'Profil Organisasi - Test Update', 'Crembo Media adalah organisasi yang berdedikasi untuk mendukung kegiatan multimedia dan liturgi di komunitas. Visi kami adalah menjadi tulang punggung komunikasi visual dalam setiap kegiatan pelayanan.', 'uploads/fake-signature-word-vector_1777561240.jpg', 1, 1, '2026-04-30 21:50:15', '2026-04-30 22:00:42'),
-('profile-1777561298872', 'Test 1 Oprec', 'aSsSA', 'uploads/fake-signature-word-vector_1777561296.jpg', 0, 0, '2026-04-30 22:01:38', '2026-04-30 22:02:40');
+('profile-1777560615559', 'Profil Organisasi - Test Update', 'Crembo Media adalah organisasi yang berdedikasi untuk mendukung kegiatan multimedia dan liturgi di komunitas. Visi kami adalah menjadi tulang punggung komunikasi visual dalam setiap kegiatan pelayanan.', 'uploads/fake-signature-word-vector_1777561240.jpg', 0, 1, '2026-04-30 21:50:15', '2026-04-30 22:25:46'),
+('profile-1777561298872', 'Test 1 Oprec', 'aSsSA', 'uploads/fake-signature-word-vector_1777561296.jpg', 1, 0, '2026-04-30 22:01:38', '2026-04-30 22:25:46'),
+('profile-1777561628347', 'asdas', 'asdasd', 'uploads/Tanda_Tangan_Mick_Schumacher_1777561623.png', 2, 1, '2026-04-30 22:07:08', '2026-04-30 22:25:43');
 
 -- --------------------------------------------------------
 
