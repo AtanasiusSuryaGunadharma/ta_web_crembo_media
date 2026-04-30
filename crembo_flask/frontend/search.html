@@ -209,7 +209,7 @@
 
 		.user-dropdown-menu {
 			position: absolute;
-			top: calc(100% + 8px);
+			top: calc(100% - 1px);
 			right: 0;
 			background: var(--surface);
 			border: 1px solid var(--line);
@@ -608,7 +608,7 @@
 		const dd = document.createElement("div");
 		function applyDesktopDropdownStyle(){
 			li.style.position="relative";
-			Object.assign(dd.style,{position:"absolute",top:"calc(100% + 4px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});
+			Object.assign(dd.style,{position:"absolute",top:"calc(100% - 1px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});
 		}
 		function applyMobileDropdownStyle(){
 			li.style.position="static";
@@ -642,5 +642,6 @@
 		syncDropdownMode();
 	})();
 	</script>
+<script src="_public-nav-sync.js"></script>
 </body>
 </html>

@@ -902,6 +902,38 @@
 			}
 		}
 
+		let profileDropdownCloseTimer = null;
+
+		function showProfileDropdown() {
+			if (profileDropdownCloseTimer) {
+				window.clearTimeout(profileDropdownCloseTimer);
+				profileDropdownCloseTimer = null;
+			}
+			if (profileNavItem) {
+				profileNavItem.classList.add("open");
+			}
+		}
+
+		function hideProfileDropdown(immediate) {
+			if (profileDropdownCloseTimer) {
+				window.clearTimeout(profileDropdownCloseTimer);
+			}
+			const closeNow = function () {
+				if (profileNavItem) {
+					profileNavItem.classList.remove("open");
+				}
+				if (profileNavLink) {
+					profileNavLink.setAttribute("aria-expanded", "false");
+				}
+			};
+			if (immediate) {
+				profileDropdownCloseTimer = null;
+				closeNow();
+				return;
+			}
+			profileDropdownCloseTimer = window.setTimeout(closeNow, 120);
+		}
+
 		function renderProfileMenu(activeId) {
 			const items = getVisibleProfileItems();
 			const currentId = activeId || (items[0] && items[0].id) || "";
@@ -991,6 +1023,19 @@
 					profileNavLink.setAttribute("aria-expanded", String(isOpen));
 				}
 			});
+
+			profileNavItem.addEventListener("mouseenter", showProfileDropdown);
+			profileNavItem.addEventListener("mouseleave", function () {
+				hideProfileDropdown(false);
+			});
+
+			const profileDropdownMenu = profileNavItem.querySelector(".nav-dropdown-menu");
+			if (profileDropdownMenu) {
+				profileDropdownMenu.addEventListener("mouseenter", showProfileDropdown);
+				profileDropdownMenu.addEventListener("mouseleave", function () {
+					hideProfileDropdown(false);
+				});
+			}
 		}
 
 		if (mainNav) {
