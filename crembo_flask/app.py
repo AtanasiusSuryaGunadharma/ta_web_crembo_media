@@ -1312,6 +1312,7 @@ def create_profile():
             int(data.get("order", 0)),
             1 if data.get("active") else 0,
         ))
+        conn.commit()
         return jsonify({"success": True, "id": profile_id})
     except Exception as e:
         conn.rollback()
