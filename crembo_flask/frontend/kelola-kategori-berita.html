@@ -470,10 +470,6 @@
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const CATEGORY_STORAGE_KEY = "crembo-announcement-categories";
-    const ANNOUNCEMENT_STORAGE_KEY = "crembo-announcements";
-
-    const formTitle = document.getElementById("formTitle");
     const categoryForm = document.getElementById("categoryForm");
     const nameInput = document.getElementById("nameInput");
     const slugInput = document.getElementById("slugInput");
@@ -483,6 +479,7 @@
     const categoryCards = document.getElementById("categoryCards");
     const liveDateTime = document.getElementById("liveDateTime");
     const notify = document.getElementById("notify");
+    const formTitle = document.getElementById("formTitle");
 
     let categories = [];
     let editingId = "";
@@ -490,275 +487,143 @@
     function showNotify(message) {
       notify.textContent = message;
       notify.classList.add("show");
-      window.clearTimeout(showNotify.timer);
-      showNotify.timer = window.setTimeout(function () {
-        notify.classList.remove("show");
-      }, 2000);
+      setTimeout(() => notify.classList.remove("show"), 3000);
+    }
+
+    function slugify(text) {
+      return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return (text || '').replace(/[&<>"']/g, m => map[m]);
     }
 
     function updateLiveDateTime() {
       const now = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+      liveDateTime.textContent = now.toLocaleDateString('id-ID', { 
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
     }
 
-    function safeParse(raw) {
+    async function loadCategories() {
       try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
+        const res = await fetch("/api/news-categories");
+        categories = await res.json();
+        renderCards();
+      } catch (err) {
+        showNotify("Error: " + err.message);
       }
-    }
-
-    function slugify(text) {
-      return String(text || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-    }
-
-    function makeId(prefix) {
-      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-    }
-
-    function normalizeCategory(item, index) {
-      if (typeof item === "string") {
-        return {
-          id: "cat-" + index,
-          name: item,
-          slug: slugify(item),
-          description: "",
-          order: index
-        };
-      }
-
-      return {
-        id: String(item && item.id ? item.id : makeId("cat")),
-        name: String(item && (item.name || item.label) ? (item.name || item.label) : "Kategori"),
-        slug: String(item && item.slug ? item.slug : slugify(item && (item.name || item.label) ? (item.name || item.label) : "kategori")),
-        description: String(item && item.description ? item.description : ""),
-        order: Number.isFinite(Number(item && item.order)) ? Number(item.order) : index
-      };
-    }
-
-    function defaultCategories() {
-      return [
-        { id: "cat-umum", name: "Umum", slug: "umum", description: "Berita umum dan pengumuman penting", order: 0 },
-        { id: "cat-akademik", name: "Akademik", slug: "akademik", description: "Berita terkait kegiatan akademik", order: 1 },
-        { id: "cat-prestasi", name: "Prestasi", slug: "prestasi", description: "Pencapaian dan prestasi", order: 2 },
-        { id: "cat-internasional", name: "Internasional", slug: "internasional", description: "Berita kerjasama internasional", order: 3 }
-      ];
-    }
-
-    function loadCategories() {
-      const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      categories = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeCategory) : defaultCategories();
-      saveCategories();
-    }
-
-    function saveCategories() {
-      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
-    }
-
-    function escapeHtml(text) {
-      return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
     }
 
     function renderCards() {
-      if (!categories.length) {
-        categoryCards.innerHTML = '<article class="card"><p class="desc">Belum ada kategori.</p></article>';
-        return;
-      }
+      categoryCards.innerHTML = categories.map(cat => `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>${escapeHtml(cat.name)}</h3>
+              <p class="slug">${escapeHtml(cat.slug)}</p>
+              ${cat.description ? `<p class="desc">${escapeHtml(cat.description)}</p>` : ''}
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="link-btn" data-edit="${cat.id}">Edit</button>
+            <button type="button" class="link-btn delete" data-delete="${cat.id}">Hapus</button>
+          </div>
+        </div>
+      `).join('');
 
-      categoryCards.innerHTML = categories
-        .slice()
-        .sort(function (a, b) { return a.order - b.order; })
-        .map(function (item) {
-          return '<article class="card">'
-            + '<div class="card-head"><div><h3>' + escapeHtml(item.name) + '</h3><div class="slug">' + escapeHtml(item.slug) + '</div></div><span class="order">Urutan: ' + String(item.order) + '</span></div>'
-            + '<p class="desc">' + escapeHtml(item.description || "-") + '</p>'
-            + '<div class="actions">'
-            + '<button class="link-btn" type="button" data-action="edit" data-id="' + escapeHtml(item.id) + '">Edit</button>'
-            + '<button class="link-btn delete" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '">Hapus</button>'
-            + '</div>'
-            + '</article>';
-        }).join("");
+      categoryCards.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => openEdit(btn.getAttribute('data-edit')));
+      });
+
+      categoryCards.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => deleteCategory(btn.getAttribute('data-delete')));
+      });
     }
 
     function resetForm() {
-      editingId = "";
-      formTitle.textContent = "Tambah Kategori";
       categoryForm.reset();
-      orderInput.value = "0";
-    }
-
-    function upsertCategory(event) {
-      event.preventDefault();
-      const payload = {
-        id: editingId || makeId("cat"),
-        name: nameInput.value.trim(),
-        slug: (slugInput.value.trim() || slugify(nameInput.value.trim())),
-        description: descInput.value.trim(),
-        order: Number(orderInput.value)
-      };
-
-      if (!payload.name) {
-        showNotify("Nama kategori wajib diisi.");
-        return;
-      }
-
-      if (!payload.slug) {
-        payload.slug = slugify(payload.name);
-      }
-
-      if (!Number.isFinite(payload.order) || payload.order < 0) {
-        payload.order = 0;
-      }
-
-      const duplicate = categories.find(function (item) {
-        return item.id !== payload.id && item.name.toLowerCase() === payload.name.toLowerCase();
-      });
-      if (duplicate) {
-        showNotify("Nama kategori sudah ada.");
-        return;
-      }
-
-      const existingIndex = categories.findIndex(function (item) { return item.id === payload.id; });
-      let oldName = "";
-      if (existingIndex >= 0) {
-        oldName = categories[existingIndex].name;
-        categories[existingIndex] = payload;
-      } else {
-        categories.push(payload);
-      }
-
-      saveCategories();
-      syncCategoryRenameOnAnnouncements(oldName, payload.name);
-      resetForm();
-      renderCards();
-      showNotify(existingIndex >= 0 ? "Kategori diperbarui." : "Kategori ditambahkan.");
-    }
-
-    function syncCategoryRenameOnAnnouncements(oldName, newName) {
-      if (!oldName || oldName === newName) {
-        return;
-      }
-      const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      if (!Array.isArray(parsed)) {
-        return;
-      }
-
-      const updated = parsed.map(function (item) {
-        const categoriesList = Array.isArray(item && item.categories)
-          ? item.categories.slice()
-          : [String(item && item.category ? item.category : "Umum")];
-        const nextList = categoriesList.map(function (cat) {
-          return String(cat) === oldName ? newName : String(cat);
-        });
-        item.categories = Array.from(new Set(nextList));
-        item.category = item.categories[0] || "Umum";
-        return item;
-      });
-
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(updated));
-    }
-
-    function openEdit(id) {
-      const target = categories.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
-      editingId = id;
-      formTitle.textContent = "Edit Kategori";
-      nameInput.value = target.name;
-      slugInput.value = target.slug;
-      descInput.value = target.description;
-      orderInput.value = String(target.order);
+      editingId = "";
+      formTitle.textContent = "Kategori Baru";
+      cancelEditBtn.style.display = "none";
       nameInput.focus();
     }
 
-    function deleteCategory(id) {
-      const target = categories.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
-      const ok = window.confirm('Hapus kategori "' + target.name + '"?');
-      if (!ok) {
-        return;
-      }
-
-      categories = categories.filter(function (item) { return item.id !== id; });
-      if (!categories.length) {
-        categories = defaultCategories();
-      }
-      saveCategories();
-      syncCategoryDeleteOnAnnouncements(target.name);
-      renderCards();
-      resetForm();
-      showNotify("Kategori dihapus.");
+    function openEdit(id) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      editingId = id;
+      nameInput.value = cat.name;
+      slugInput.value = cat.slug;
+      descInput.value = cat.description || '';
+      orderInput.value = cat.order;
+      formTitle.textContent = "Edit Kategori";
+      cancelEditBtn.style.display = "block";
+      nameInput.focus();
     }
 
-    function syncCategoryDeleteOnAnnouncements(deletedName) {
-      const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      if (!Array.isArray(parsed)) {
+    async function deleteCategory(id) {
+      if (!confirm("Hapus kategori ini?")) return;
+      try {
+        const res = await fetch(`/api/news-categories/${id}`, { method: "DELETE" });
+        const result = await res.json();
+        if (result.success) {
+          showNotify("Kategori berhasil dihapus");
+          loadCategories();
+        } else {
+          showNotify("Error: " + (result.error || "Gagal menghapus"));
+        }
+      } catch (err) {
+        showNotify("Error: " + err.message);
+      }
+    }
+
+    categoryForm.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      if (!name) {
+        showNotify("Nama kategori harus diisi");
         return;
       }
 
-      const fallbackName = categories[0] ? categories[0].name : "Umum";
+      const payload = {
+        name: name,
+        slug: slugInput.value.trim() || slugify(name),
+        description: descInput.value.trim(),
+        order: parseInt(orderInput.value) || 0
+      };
 
-      const updated = parsed.map(function (item) {
-        const categoriesList = Array.isArray(item && item.categories)
-          ? item.categories.map(String)
-          : [String(item && item.category ? item.category : fallbackName)];
+      try {
+        const url = editingId ? `/api/news-categories/${editingId}` : "/api/news-categories";
+        const method = editingId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+          showNotify(editingId ? "Kategori berhasil diperbarui" : "Kategori berhasil ditambahkan");
+          resetForm();
+          loadCategories();
+        } else {
+          showNotify("Error: " + (result.error || "Gagal menyimpan"));
+        }
+      } catch (err) {
+        showNotify("Error: " + err.message);
+      }
+    });
 
-        const kept = categoriesList.filter(function (cat) { return cat !== deletedName; });
-        item.categories = kept.length ? kept : [fallbackName];
-        item.category = item.categories[0];
-        return item;
-      });
-
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(updated));
-    }
-
-    categoryForm.addEventListener("submit", upsertCategory);
     cancelEditBtn.addEventListener("click", resetForm);
-
-    categoryCards.addEventListener("click", function (event) {
-      const button = event.target.closest("button[data-action]");
-      if (!button) {
-        return;
-      }
-      const action = button.getAttribute("data-action");
-      const id = button.getAttribute("data-id") || "";
-      if (action === "edit") {
-        openEdit(id);
-      } else if (action === "delete") {
-        deleteCategory(id);
+    nameInput.addEventListener("input", function() {
+      if (!slugInput.value || editingId === "") {
+        slugInput.value = slugify(this.value);
       }
     });
 
     loadCategories();
-    renderCards();
-    resetForm();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>

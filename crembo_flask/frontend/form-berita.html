@@ -14,6 +14,532 @@
       --side-text: #f4f4f4;
       --radius: 16px;
       --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --blue: #2f66d8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand { border: 1px solid #838383; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 12px; margin-bottom: 16px; }
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255, 255, 255, 0.03); margin-bottom: 10px; overflow: hidden; }
+    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: 0.88rem; padding: 11px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255, 255, 255, 0.02); }
+    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; }
+    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
+
+    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
+    .side-actions a { text-decoration: none; border: 1px solid #8d8d8d; color: #ebebeb; text-align: center; padding: 9px 10px; border-radius: 10px; font-size: 0.82rem; }
+
+    .main { padding: 16px; }
+    .headline { border: 1px solid #cfcfcf; background: #f3f3f3; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .headline h2 { margin: 0; font-size: 1.4rem; }
+    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
+
+    .panel { border: 1px solid #d1d5db; border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); padding: 12px; display: grid; gap: 12px; margin-bottom: 12px; }
+    .panel h3 { margin: 0; font-size: 1.1rem; }
+
+    .field { display: grid; gap: 6px; }
+    .label { font-size: 0.82rem; font-weight: 700; color: #374151; }
+    input, textarea, select { width: 100%; border: 1px solid #bdbdbd; border-radius: 10px; padding: 8px 10px; font-size: 0.86rem; font-family: inherit; background: #fff; }
+    textarea { min-height: 150px; resize: vertical; }
+
+    .editor-toolbar { display: flex; gap: 6px; flex-wrap: wrap; background: #f5f5f5; padding: 8px; border-radius: 10px; border: 1px solid #e5e5e5; margin-bottom: 8px; }
+    .editor-toolbar button { background: #fff; border: 1px solid #d0d0d0; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #333; transition: all 0.2s; }
+    .editor-toolbar button:hover { background: #2f66d8; color: #fff; border-color: #2f66d8; }
+
+    .categories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
+    .category-check { display: flex; align-items: center; gap: 6px; }
+    .category-check input { margin: 0; width: 16px; height: 16px; cursor: pointer; }
+    .category-check label { margin: 0; cursor: pointer; font-size: 0.9rem; }
+
+    .carousel { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; background: #f9f9f9; position: relative; margin-top: 8px; }
+    .carousel-inner { position: relative; min-height: 200px; border-radius: 8px; overflow: hidden; background: #eee; }
+    .carousel-inner img { width: 100%; height: 200px; object-fit: cover; }
+    .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; cursor: pointer; }
+    .dot.active { background: var(--blue); }
+
+    .attachments { display: grid; gap: 8px; margin-top: 8px; }
+    .attachment-item { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; background: #f9f9f9; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .attachment-info { flex: 1; min-width: 0; }
+    .attachment-name { font-weight: 600; font-size: 0.9rem; word-break: break-word; }
+    .attachment-size { font-size: 0.8rem; color: #666; }
+    .attachment-actions { display: flex; gap: 6px; }
+    .attachment-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--blue); font-size: 0.8rem; font-weight: 600; }
+    .attachment-btn.delete { color: #dc2626; }
+
+    .btn { border: 1px solid #1f2937; border-radius: 9px; background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%); color: #fff; padding: 10px 16px; font-size: 0.9rem; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn:hover { background: linear-gradient(180deg, #5a6575 0%, #2a3844 100%); }
+    .btn.primary { background: linear-gradient(180deg, #2f66d8 0%, #1d3aa8 100%); }
+    .btn.danger { background: #dc2626; border-color: #dc2626; }
+    .btn.ghost { background: transparent; border-color: #6b7280; color: #374151; }
+
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+    .notify { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; padding: 12px 16px; border-radius: 10px; z-index: 1000; opacity: 0; transform: translateY(20px); transition: all 0.3s; }
+    .notify.show { opacity: 1; transform: translateY(0); }
+    .notify.error { background: #dc2626; }
+    .notify.success { background: #059669; }
+
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+  </style>
+  <link rel="stylesheet" href="_admin-theme.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar">
+      <div class="brand">
+        <h1>Crembo Media</h1>
+        <p>Admin Dashboard</p>
+      </div>
+      <div class="menu-group">
+        <button class="group-toggle">Menu <span>▼</span></button>
+        <div class="group-items">
+          <a href="/dashboard" class="menu-link">Dashboard</a>
+          <a href="/manajemen-profil" class="menu-link">Profil Organisasi</a>
+          <a href="/kelola-berita" class="menu-link">Kelola Berita</a>
+          <a href="/kelola-kategori-berita" class="menu-link">Kategori Berita</a>
+        </div>
+      </div>
+      <div class="side-actions">
+        <a href="/logout">Logout</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="headline">
+        <div>
+          <h2 id="pageTitle">Tambah Berita Baru</h2>
+          <p id="pageDesc">Isi form di bawah untuk membuat berita baru</p>
+        </div>
+        <div id="liveDateTime" style="font-size: 0.85rem; color: #666;"></div>
+      </div>
+
+      <form id="newsForm" onsubmit="return false">
+        <div class="panel">
+          <h3>Informasi Dasar</h3>
+          <div class="field">
+            <label class="label">Judul Berita *</label>
+            <input id="titleInput" type="text" placeholder="Masukkan judul berita" required>
+          </div>
+          <div class="field">
+            <label class="label">Slug (URL)</label>
+            <input id="slugInput" type="text" placeholder="Auto-generate jika kosong">
+          </div>
+          <div class="field">
+            <label class="label">Ringkasan Berita</label>
+            <textarea id="summaryInput" placeholder="Ringkasan singkat untuk preview..."></textarea>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Konten</h3>
+          <div class="editor-toolbar" id="editorToolbar">
+            <button type="button" data-command="bold">Bold</button>
+            <button type="button" data-command="italic">Italic</button>
+            <button type="button" data-command="underline">Underline</button>
+          </div>
+          <textarea id="contentInput" placeholder="Tulis konten berita..." style="min-height: 300px;" required></textarea>
+        </div>
+
+        <div class="panel">
+          <h3>Status & Kategori</h3>
+          <div class="field">
+            <label class="label">Status</label>
+            <select id="statusInput">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label">Kategori</label>
+            <div id="categoriesContainer" class="categories-grid"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Thumbnail (Gambar Sampul) - Carousel Otomatis</h3>
+          <div style="margin-bottom: 8px;">
+            <button type="button" id="addThumbnailBtn" class="btn">Upload Thumbnail</button>
+            <input type="file" id="thumbnailInput" accept="image/*" multiple style="display: none;">
+          </div>
+          <div id="thumbnailCarousel" class="carousel"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Lampiran (File)</h3>
+          <div style="margin-bottom: 8px;">
+            <button type="button" id="addAttachmentBtn" class="btn">Upload File</button>
+            <input type="file" id="attachmentInput" multiple style="display: none;">
+          </div>
+          <div id="attachmentList" class="attachments"></div>
+        </div>
+
+        <div class="panel">
+          <div class="actions">
+            <button type="submit" class="btn primary">Simpan Berita</button>
+            <button type="button" id="deleteBtn" class="btn danger" style="display: none;">Hapus Berita</button>
+            <button type="button" class="btn ghost" onclick="window.location.href='/kelola-berita'">Batal</button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("id") || "";
+
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const newsForm = document.getElementById("newsForm");
+    const titleInput = document.getElementById("titleInput");
+    const slugInput = document.getElementById("slugInput");
+    const summaryInput = document.getElementById("summaryInput");
+    const contentInput = document.getElementById("contentInput");
+    const statusInput = document.getElementById("statusInput");
+    const categoriesContainer = document.getElementById("categoriesContainer");
+    const editorToolbar = document.getElementById("editorToolbar");
+    const thumbnailInput = document.getElementById("thumbnailInput");
+    const addThumbnailBtn = document.getElementById("addThumbnailBtn");
+    const thumbnailCarousel = document.getElementById("thumbnailCarousel");
+    const attachmentInput = document.getElementById("attachmentInput");
+    const addAttachmentBtn = document.getElementById("addAttachmentBtn");
+    const attachmentList = document.getElementById("attachmentList");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const notify = document.getElementById("notify");
+
+    let categories = [];
+    let thumbnails = [];
+    let attachments = [];
+    let currentCarouselIndex = 0;
+    let carouselInterval = null;
+
+    function showNotify(msg, type = "info") {
+      notify.textContent = msg;
+      notify.className = "notify " + type + " show";
+      setTimeout(() => notify.classList.remove("show"), 3000);
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleDateString('id-ID', { 
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    function slugify(text) {
+      return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return (text || '').replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+    }
+
+    async function loadCategories() {
+      try {
+        const res = await fetch("/api/news-categories");
+        categories = await res.json();
+        renderCategoryChecks();
+      } catch (err) {
+        showNotify("Error loading categories: " + err.message, "error");
+      }
+    }
+
+    function renderCategoryChecks() {
+      categoriesContainer.innerHTML = categories.map(cat => `
+        <div class="category-check">
+          <input type="checkbox" id="cat-${cat.id}" value="${cat.id}">
+          <label for="cat-${cat.id}">${escapeHtml(cat.name)}</label>
+        </div>
+      `).join('');
+    }
+
+    function renderThumbnailCarousel() {
+      if (!thumbnails.length) {
+        thumbnailCarousel.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No thumbnails yet</div>';
+        clearInterval(carouselInterval);
+        return;
+      }
+
+      const thumb = thumbnails[currentCarouselIndex];
+      thumbnailCarousel.innerHTML = `
+        <div class="carousel-inner">
+          <img src="${escapeHtml(thumb.url)}" alt="Thumbnail">
+        </div>
+        <div class="carousel-dots">
+          ${thumbnails.map((_, i) => `
+            <span class="dot ${i === currentCarouselIndex ? 'active' : ''}" data-index="${i}"></span>
+          `).join('')}
+        </div>
+        <div style="margin-top: 8px;">
+          <button type="button" class="btn" data-action="remove-thumb" data-index="${currentCarouselIndex}">Remove</button>
+        </div>
+      `;
+
+      // Auto-scroll carousel
+      if (!carouselInterval) {
+        carouselInterval = setInterval(() => {
+          currentCarouselIndex = (currentCarouselIndex + 1) % thumbnails.length;
+          renderThumbnailCarousel();
+        }, 3000);
+      }
+
+      // Dot click handlers
+      thumbnailCarousel.querySelectorAll('.dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+          currentCarouselIndex = parseInt(dot.getAttribute('data-index'));
+          clearInterval(carouselInterval);
+          carouselInterval = null;
+          renderThumbnailCarousel();
+        });
+      });
+    }
+
+    function renderAttachments() {
+      attachmentList.innerHTML = attachments.map((att, i) => `
+        <div class="attachment-item">
+          <div class="attachment-info">
+            <div class="attachment-name">${escapeHtml(att.name)}</div>
+            <div class="attachment-size">${formatFileSize(att.size)}</div>
+          </div>
+          <div class="attachment-actions">
+            ${att.previewable ? `<a href="${escapeHtml(att.url)}" target="_blank" class="attachment-btn">Preview</a>` : ''}
+            <a href="${escapeHtml(att.url)}" download class="attachment-btn">Download</a>
+            <button type="button" class="attachment-btn delete" data-index="${i}">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      attachmentList.querySelectorAll('[data-index]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          attachments.splice(parseInt(btn.getAttribute('data-index')), 1);
+          renderAttachments();
+        });
+      });
+    }
+
+    async function loadNewsData() {
+      if (!editId) return;
+
+      try {
+        const res = await fetch(`/api/news/${editId}`);
+        if (!res.ok) throw new Error("News not found");
+        const news = await res.json();
+
+        pageTitle.textContent = "Edit Berita";
+        pageDesc.textContent = "Update informasi berita";
+        deleteBtn.style.display = "block";
+
+        titleInput.value = news.title;
+        slugInput.value = news.slug;
+        summaryInput.value = news.summary || '';
+        contentInput.value = news.content;
+        statusInput.value = news.status;
+        thumbnails = news.thumbnails || [];
+        attachments = news.attachments || [];
+
+        // Set categories
+        const catIds = news.categories ? news.categories.map(c => c.id) : [];
+        categoriesContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = catIds.includes(cb.value);
+        });
+
+        renderThumbnailCarousel();
+        renderAttachments();
+      } catch (err) {
+        showNotify("Error loading news: " + err.message, "error");
+      }
+    }
+
+    addThumbnailBtn.addEventListener("click", () => thumbnailInput.click());
+    thumbnailInput.addEventListener("change", async function() {
+      for (const file of this.files) {
+        if (!file.type.startsWith('image/')) {
+          showNotify("Only image files allowed", "error");
+          continue;
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+          const result = await res.json();
+          if (result && result.url) {
+            thumbnails.push(result);
+            renderThumbnailCarousel();
+          }
+        } catch (err) {
+          showNotify("Upload failed: " + err.message, "error");
+        }
+      }
+      this.value = "";
+    });
+
+    thumbnailCarousel.addEventListener("click", function(e) {
+      if (e.target.getAttribute("data-action") === "remove-thumb") {
+        const idx = parseInt(e.target.getAttribute("data-index"));
+        thumbnails.splice(idx, 1);
+        currentCarouselIndex = Math.min(currentCarouselIndex, thumbnails.length - 1);
+        renderThumbnailCarousel();
+      }
+    });
+
+    addAttachmentBtn.addEventListener("click", () => attachmentInput.click());
+    attachmentInput.addEventListener("change", async function() {
+      for (const file of this.files) {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+          const result = await res.json();
+          if (result && result.url) {
+            attachments.push(result);
+            renderAttachments();
+          }
+        } catch (err) {
+          showNotify("Upload failed: " + err.message, "error");
+        }
+      }
+      this.value = "";
+    });
+
+    editorToolbar.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (e.target.tagName !== "BUTTON") return;
+      const cmd = e.target.getAttribute("data-command");
+      document.execCommand(cmd, false, null);
+      contentInput.focus();
+    });
+
+    newsForm.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const title = titleInput.value.trim();
+      const summary = summaryInput.value.trim();
+      const content = contentInput.value.trim();
+
+      if (!title || !summary || !content) {
+        showNotify("Title, summary, and content are required", "error");
+        return;
+      }
+
+      const selectedCats = Array.from(categoriesContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+      const payload = {
+        title: title,
+        slug: slugInput.value.trim() || slugify(title),
+        summary: summary,
+        content: content,
+        status: statusInput.value,
+        thumbnails: thumbnails,
+        attachments: attachments,
+        categoryIds: selectedCats
+      };
+
+      try {
+        const url = editId ? `/api/news/${editId}` : "/api/news";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          showNotify(editId ? "Berita berhasil diperbarui" : "Berita berhasil ditambahkan", "success");
+          setTimeout(() => window.location.href = "/kelola-berita", 1500);
+        } else {
+          showNotify("Error: " + (result.error || "Failed to save"), "error");
+        }
+      } catch (err) {
+        showNotify("Error: " + err.message, "error");
+      }
+    });
+
+    deleteBtn.addEventListener("click", async function() {
+      if (!confirm("Hapus berita ini?")) return;
+      try {
+        const res = await fetch(`/api/news/${editId}`, { method: "DELETE" });
+        const result = await res.json();
+        if (result.success) {
+          showNotify("Berita berhasil dihapus", "success");
+          setTimeout(() => window.location.href = "/kelola-berita", 1500);
+        } else {
+          showNotify("Error: " + (result.error || "Failed to delete"), "error");
+        }
+      } catch (err) {
+        showNotify("Error: " + err.message, "error");
+      }
+    });
+
+    titleInput.addEventListener("input", function() {
+      if (!slugInput.value) {
+        slugInput.value = slugify(this.value);
+      }
+    });
+
+    loadCategories();
+    loadNewsData();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+  </script>
+  <script src="_sidebar-fix.js"></script>
+</body>
+</html>
+  <style>
+    :root {
+      --bg: #ececec;
+      --panel: #ffffff;
+      --panel-2: #f5f5f5;
+      --line: #1f1f1f;
+      --muted: #5b5b5b;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --blue: #2f66d8;
     }
 
     * { box-sizing: border-box; }
@@ -120,62 +646,49 @@
 
     .main { padding: 16px; }
 
-    .container {
-      display: grid;
-      gap: 12px;
+    .headline {
+      width: min(100%, 980px);
+      margin-bottom: 12px;
     }
 
-    .form-headline {
-      border: 1px solid transparent;
-      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
-      border-radius: 12px;
-      padding: 12px 14px;
+    .headline.dashboard-headline-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
       flex-wrap: wrap;
-      box-shadow: var(--shadow);
     }
 
-    .form-headline-copy {
+    .headline-copy {
       min-width: 0;
-      flex: 1;
     }
 
-    .form-headline h1 {
+    .headline h2 {
       margin: 0;
-      font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
       font-weight: 800;
       color: #fff;
+      line-height: 1.2;
     }
 
-    .form-headline p {
+    .headline p {
       margin: 4px 0 0;
-      color: rgba(255, 255, 255, 0.82);
+      color: rgba(255, 255, 255, 0.78);
       font-size: 0.84rem;
     }
 
-    .form-headline-actions {
+    .headline-right {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
       justify-content: flex-end;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.82rem;
+      font-weight: 600;
     }
 
-    .chip {
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-      border-radius: 999px;
-      padding: 5px 10px;
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .world-link {
+    .headline-right .world-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -186,18 +699,37 @@
       background: rgba(255, 255, 255, 0.12);
       color: #fff;
       text-decoration: none;
+      flex: 0 0 auto;
     }
 
-    .world-link svg {
+    .headline-right .world-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.42);
+    }
+
+    .headline-right .world-link svg {
       width: 18px;
       height: 18px;
     }
 
     .panel {
-      border: 1px solid #d1d5db;
+      border: 2px solid var(--line);
       border-radius: var(--radius);
-      background: #fff;
+      background: var(--panel);
       box-shadow: var(--shadow);
+      overflow: hidden;
+      max-width: 980px;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #c8c8c8;
+      background: var(--panel-2);
+    }
+
+    .panel-head h3 { margin: 0; font-size: 1.05rem; }
+
+    .panel-body {
       padding: 14px;
       display: grid;
       gap: 10px;
@@ -243,137 +775,107 @@
       padding: 8px;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       font-size: 0.78rem;
       color: #4b5563;
+      align-items: center;
     }
 
-    .editor-toolbar span {
-      border: 1px solid #d0d0d0;
-      border-radius: 6px;
-      padding: 3px 6px;
+    .editor-toolbar .toolbar-group {
+      display: inline-flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      padding-right: 8px;
+      margin-right: 4px;
+      border-right: 1px solid #d0d0d0;
+    }
+
+    .editor-toolbar .toolbar-group:last-child {
+      border-right: 0;
+      padding-right: 0;
+      margin-right: 0;
+    }
+
+    .editor-toolbar button {
+      border: 1px solid #c7cdd6;
+      border-radius: 8px;
+      padding: 6px 9px;
       background: #fff;
+      color: #334155;
+      cursor: pointer;
+      font: inherit;
+      line-height: 1;
     }
 
-    .editor-area {
+    .editor-toolbar button:hover {
+      background: #f8fbff;
+      border-color: #9fb7e6;
+    }
+
+    .editor-toolbar button:active {
+      transform: translateY(1px);
+    }
+
+    .editor-toolbar button[data-command="bold"] { font-weight: 800; }
+    .editor-toolbar button[data-command="italic"] { font-style: italic; }
+    .editor-toolbar button[data-command="underline"] { text-decoration: underline; }
+
+    .editor-content {
+      min-height: 240px;
       border: 1px solid #d0d0d0;
       border-radius: 0 0 10px 10px;
-      overflow: hidden;
-    }
-
-    .category-checks {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(150px, 1fr));
-      gap: 8px;
-    }
-
-    .check-item {
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      padding: 7px 8px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      background: #f9fafb;
-      font-size: 0.84rem;
-    }
-
-    .check-item input {
-      width: auto;
-      margin: 0;
-    }
-
-    .upload-box {
-      border: 2px dashed #93c5fd;
-      border-radius: 10px;
-      background: #eff6ff;
-      color: #1e3a8a;
-      text-align: center;
-      padding: 16px;
-      display: grid;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .thumb-preview {
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 8px;
-      background: #f8fafc;
-      display: grid;
-      gap: 6px;
-      max-width: 320px;
-    }
-
-    .thumb-preview img {
-      width: 100%;
-      height: 170px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
+      padding: 12px 12px 16px;
       background: #fff;
+      outline: none;
+      line-height: 1.6;
+      overflow: auto;
     }
 
-    .attachments {
-      display: grid;
-      gap: 8px;
+    .editor-content:empty::before {
+      content: attr(data-placeholder);
+      color: #94a3b8;
+      pointer-events: none;
     }
 
-    .attachment-item {
-      border: 1px solid #d1d5db;
-      border-radius: 9px;
-      background: #f9fafb;
-      padding: 8px;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-      font-size: 0.82rem;
-      color: #374151;
+    .editor-content:focus {
+      border-color: #78a3ff;
+      box-shadow: 0 0 0 3px rgba(59, 125, 248, 0.12);
     }
 
-    .attachment-item button {
-      border: 1px solid #ef4444;
-      background: #fff;
-      color: #b91c1c;
-      border-radius: 7px;
-      font-size: 0.74rem;
-      padding: 4px 7px;
-      cursor: pointer;
+    .editor-content ul,
+    .editor-content ol {
+      padding-left: 1.5rem;
+      margin: 0.4rem 0;
+    }
+
+    .editor-content blockquote {
+      margin: 0.6rem 0;
+      padding: 0.4rem 0.9rem;
+      border-left: 4px solid #9ab6ea;
+      background: #f8fbff;
+      color: #334155;
+    }
+
+    .editor-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .editor-content p:first-child {
+      margin-top: 0;
+    }
+
+    .editor-content p:last-child {
+      margin-bottom: 0;
     }
 
     .actions {
+      margin-top: 6px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-top: 2px;
-    }
-
-    .btn {
-      border: 1px solid #1f2937;
-      border-radius: 9px;
-      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
-      color: #fff;
-      font-weight: 700;
-      padding: 9px 13px;
-      font-size: 0.82rem;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn.primary {
-      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
-      border-color: #2f66d8;
-    }
-
-    .btn.ghost {
-      background: #fff;
-      color: #1f2937;
-      border-color: #9ca3af;
-      font-weight: 600;
+      justify-content: flex-start;
     }
 
     .notify {
@@ -395,25 +897,243 @@
 
     .notify.show { opacity: 1; transform: translateY(0); }
 
-    @media (max-width: 920px) {
-      .layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-      .category-checks { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    .carousel-container {
+      position: relative;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f9fafb;
+      height: 240px;
     }
 
-    @media (max-width: 640px) {
-      .category-checks { grid-template-columns: 1fr; }
+    .carousel {
+      display: grid;
+      grid-auto-flow: column;
+      width: 100%;
+      height: 100%;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      overflow: hidden;
+    }
+
+    .carousel-slide {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    .carousel-slide img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .carousel-controls {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 6px 8px;
+      border-radius: 999px;
+    }
+
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      border: 0;
+      cursor: pointer;
+    }
+
+    .carousel-dot.active {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .empty-carousel {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 0.88rem;
+    }
+
+    .categories-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .category-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #d7dce5;
+      background: linear-gradient(180deg, #fcfdff 0%, #f5f9ff 100%);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .category-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+      flex: 0 0 auto;
+    }
+
+    .category-option label {
+      flex: 1;
+      margin: 0;
+      font-size: 0.9rem;
+      color: #1f2937;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .attachment-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .files {
+      display: grid;
+      gap: 6px;
+    }
+
+    .file-item {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      background: #f9fafb;
+      padding: 10px 10px 9px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: #374151;
+      flex-wrap: wrap;
+    }
+
+    .file-main {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      flex: 1 1 260px;
+    }
+
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfd4ff;
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      flex: 0 0 auto;
+    }
+
+    .file-meta {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .file-meta strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-meta span {
+      color: #6b7280;
+      font-size: 0.76rem;
+    }
+
+    .file-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .file-actions a,
+    .file-actions button,
+    .file-actions span {
+      border-radius: 8px;
+      border: 1px solid #c7d2fe;
+      background: #fff;
+      color: #1d4ed8;
+      text-decoration: none;
+      padding: 5px 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .file-actions .danger {
+      border-color: #ef4444;
+      color: #b91c1c;
+    }
+
+    .file-actions .preview-disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .btn.danger {
+      background: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
+      border-color: #dc2626;
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        display: none;
+        position: static;
+        height: auto;
+      }
+      .sidebar.show { display: block; }
+      .categories-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
+  <div class="layout">
   <div class="layout">
     <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Kelola pengumuman, kategori, dan publikasi berita</p>
+        <p>Form tambah atau edit berita dan pengumuman</p>
       </div>
 
       <div class="menu-group">
@@ -433,14 +1153,13 @@
     </aside>
 
     <main class="main">
-      <header class="form-headline" aria-label="Header halaman form berita">
-        <div class="form-headline-copy">
-          <h1 id="pageTitle">Tambah Berita Baru</h1>
-          <p id="pageDesc">Lengkapi judul, kategori, tanggal, thumbnail, isi, status, dan lampiran (opsional).</p>
+      <header class="headline dashboard-headline-bar">
+        <div class="headline-copy">
+          <h2 id="pageTitle">Tambah Berita Baru</h2>
+          <p id="pageDesc">Buat konten berita baru dengan pengaturan kategori, thumbnail, dan status publikasi.</p>
         </div>
-        <div class="form-headline-actions">
-          <!-- <a class="btn ghost" href="kelola-berita.html">Kembali</a> -->
-          <span id="liveDateTime" class="chip">-</span>
+        <div class="headline-right">
+          <span id="liveDateTime">-</span>
           <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
@@ -452,86 +1171,107 @@
         </div>
       </header>
 
-      <section class="container">
+      <article class="panel">
+        <header class="panel-head">
+          <h3>Form Konten Berita</h3>
+        </header>
 
-        <article class="panel">
-          <form id="newsForm" style="display:grid;gap:10px;">
-        <div class="field">
-          <label class="label" for="titleInput">Judul Berita</label>
-          <input id="titleInput" type="text" placeholder="Masukkan judul berita" required>
-        </div>
-
-        <div class="field">
-          <label class="label" for="slugInput">Slug</label>
-          <input id="slugInput" type="text" placeholder="Auto-generated dari judul">
-          <p class="helper">Kosongkan jika ingin slug dibuat otomatis.</p>
-        </div>
-
-        <div class="field">
-          <label class="label">Kategori</label>
-          <div id="categoryChecks" class="category-checks"></div>
-        </div>
-
-        <div class="field">
-          <label class="label" for="dateInput">Tanggal Publikasi</label>
-          <input id="dateInput" type="date" required>
-        </div>
-
-        <div class="field">
-          <label class="label">Thumbnail (Gambar Cover)</label>
-          <input id="thumbnailInput" type="file" accept="image/*" style="display:none;">
-          <div id="thumbnailDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload thumbnail">
-            <strong>Klik untuk upload thumbnail</strong>
-            <span>Format gambar JPG, PNG, WEBP</span>
+        <form id="newsForm" class="panel-body">
+          <div class="field">
+            <label class="label" for="titleInput">Judul Berita</label>
+            <input id="titleInput" type="text" placeholder="Contoh: Kegiatan Natal dan Tahun Baru 2024" required>
+            <p class="helper">Judul wajib diisi. Slug akan dibuat otomatis dari judul saat disimpan.</p>
           </div>
-          <div id="thumbnailPreview" class="thumb-preview" style="display:none;"></div>
-        </div>
 
-        <div class="field">
-          <label class="label" for="contentInput">Konten Berita</label>
-          <div class="editor-toolbar" aria-hidden="true">
-            <span>Normal</span><span>B</span><span>I</span><span>U</span><span>List</span><span>Quote</span><span>Link</span><span>Image</span>
+          <div class="field">
+            <label class="label" for="slugInput">Slug (URL friendly)</label>
+            <input id="slugInput" type="text" placeholder="contoh-berita-judul">
+            <p class="helper">Jika kosong, slug akan dibuat otomatis dari judul. Hanya gunakan huruf kecil, angka, dan tanda hubung.</p>
           </div>
-          <div class="editor-area">
-            <textarea id="contentInput" placeholder="Tulis konten berita di sini..." required></textarea>
+
+          <div class="field">
+            <label class="label" for="summaryInput">Ringkasan / Preview</label>
+            <textarea id="summaryInput" placeholder="Tulis ringkasan singkat berita untuk preview..." style="min-height: 80px; resize: vertical;"></textarea>
+            <p class="helper">Ringkasan singkat yang akan ditampilkan sebagai preview di halaman daftar berita.</p>
           </div>
-          <p class="helper">Toolbar hanya simulasi pada wireframe ini.</p>
-        </div>
 
-        <div class="field">
-          <label class="label" for="statusInput">Status</label>
-          <select id="statusInput" required>
-            <option value="draft">Draft</option>
-            <option value="published">Publikasi</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="label">Lampiran (Opsional, bisa lebih dari 1)</label>
-          <input id="attachmentInput" type="file" multiple style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.png,.jpg,.jpeg,.webp">
-          <div id="attachmentDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload lampiran">
-            <strong>Klik untuk upload lampiran</strong>
-            <span>PDF, DOC, DOCX, XLS, XLSX, ZIP, gambar, dll.</span>
+          <div class="field">
+            <label class="label" for="contentInput">Konten Berita</label>
+            <div id="editorToolbar" class="editor-toolbar" role="toolbar" aria-label="Toolbar editor konten">
+              <div class="toolbar-group">
+                <button type="button" data-command="formatBlock" data-value="<p>">Normal</button>
+                <button type="button" data-command="formatBlock" data-value="<h2>">H2</button>
+                <button type="button" data-command="formatBlock" data-value="<blockquote>">Quote</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" data-command="bold" title="Bold">B</button>
+                <button type="button" data-command="italic" title="Italic">I</button>
+                <button type="button" data-command="underline" title="Underline">U</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" data-command="insertUnorderedList" title="Bullet list">List</button>
+                <button type="button" data-command="insertOrderedList" title="Numbered list">1.</button>
+                <button type="button" data-command="createLink" title="Tambah link">Link</button>
+                <button type="button" data-command="insertImage" title="Sisipkan gambar via URL">Image</button>
+                <button type="button" data-command="removeFormat" title="Hapus format">Clear</button>
+              </div>
+            </div>
+            <div id="contentInput" class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Tulis konten berita di sini..."></div>
+            <p class="helper">Gunakan toolbar untuk format teks, daftar, kutipan, link, dan gambar.</p>
           </div>
-          <div id="attachmentList" class="attachments"></div>
-        </div>
 
-        <div class="actions">
-          <button class="btn primary" type="submit">Simpan Berita</button>
-          <a class="btn ghost" href="kelola-berita.html">Batal</a>
-        </div>
-          </form>
-        </article>
-      </section>
+          <div class="field">
+            <label class="label">Kategori Berita</label>
+            <div id="categoriesContainer" class="categories-grid">
+              <p class="helper">Memuat kategori...</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="statusInput">Status Publikasi</label>
+            <select id="statusInput">
+              <option value="Published">Publikasikan</option>
+              <option value="Draft">Simpan sebagai Draft</option>
+            </select>
+            <p class="helper">Pilih apakah berita langsung dipublikasikan atau disimpan sebagai draft.</p>
+          </div>
+
+          <div class="field">
+            <label class="label">Thumbnail / Gambar Utama</label>
+            <div class="attachment-row">
+              <input id="thumbnailInput" type="file" multiple accept="image/*" style="display:none;">
+              <button id="addThumbnailBtn" class="btn primary" type="button">+ Tambah Thumbnail</button>
+              <span class="helper">Upload gambar untuk carousel otomatis. Hanya file gambar yang diterima.</span>
+            </div>
+            <div id="thumbnailCarousel" class="carousel-container">
+              <div class="empty-carousel">Belum ada thumbnail</div>
+            </div>
+            <p class="helper" style="margin-top: 8px;">Carousel akan otomatis berganti setiap 3 detik.</p>
+          </div>
+
+          <div class="field">
+            <label class="label">Lampiran Tambahan</label>
+            <div class="attachment-row">
+              <input id="attachmentInput" type="file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv" style="display:none;">
+              <button id="addAttachmentBtn" class="btn primary" type="button">+ Tambah File</button>
+              <span class="helper">Upload file tambahan seperti PDF, Word, Excel, atau ZIP. Maks 10MB per file.</span>
+            </div>
+            <div id="fileList" class="files"></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">Simpan Berita</button>
+            <button id="deleteBtn" class="btn danger" type="button" style="display:none;">Hapus Berita</button>
+            <a class="btn secondary" href="kelola-berita.html">Batal</a>
+          </div>
+        </form>
+      </article>
     </main>
   </div>
 
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const ANNOUNCEMENT_STORAGE_KEY = "crembo-announcements";
-    const CATEGORY_STORAGE_KEY = "crembo-announcement-categories";
-
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("id") || "";
 
@@ -541,27 +1281,28 @@
 
     const titleInput = document.getElementById("titleInput");
     const slugInput = document.getElementById("slugInput");
-    const dateInput = document.getElementById("dateInput");
+    const summaryInput = document.getElementById("summaryInput");
     const contentInput = document.getElementById("contentInput");
+    const editorToolbar = document.getElementById("editorToolbar");
+    const categoriesContainer = document.getElementById("categoriesContainer");
     const statusInput = document.getElementById("statusInput");
-
-    const categoryChecks = document.getElementById("categoryChecks");
-
     const thumbnailInput = document.getElementById("thumbnailInput");
-    const thumbnailDrop = document.getElementById("thumbnailDrop");
-    const thumbnailPreview = document.getElementById("thumbnailPreview");
-
+    const addThumbnailBtn = document.getElementById("addThumbnailBtn");
+    const thumbnailCarousel = document.getElementById("thumbnailCarousel");
     const attachmentInput = document.getElementById("attachmentInput");
-    const attachmentDrop = document.getElementById("attachmentDrop");
-    const attachmentList = document.getElementById("attachmentList");
+    const addAttachmentBtn = document.getElementById("addAttachmentBtn");
+    const fileList = document.getElementById("fileList");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const notify = document.getElementById("notify");
     const liveDateTime = document.getElementById("liveDateTime");
 
-    const notify = document.getElementById("notify");
-
-    let categories = [];
-    let announcements = [];
-    let currentThumbnail = { name: "", dataUrl: "" };
-    let currentAttachments = [];
+    let thumbnails = [];
+    let attachments = [];
+    let allCategories = [];
+    let selectedCategories = [];
+    let isLoading = false;
+    let carouselIndex = 0;
+    let carouselTimer = null;
 
     function showNotify(message) {
       notify.textContent = message;
@@ -569,365 +1310,587 @@
       window.clearTimeout(showNotify.timer);
       showNotify.timer = window.setTimeout(function () {
         notify.classList.remove("show");
-      }, 2300);
+      }, 2200);
     }
 
-    function updateLiveDateTime() {
-      const now = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
-    function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function makeId(prefix) {
-      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    function stripHtml(html) {
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = String(html || "");
+      return (wrapper.textContent || wrapper.innerText || "").replace(/\u200B/g, "").trim();
     }
 
     function slugify(text) {
       return String(text || "")
         .toLowerCase()
         .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
         .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
+        .replace(/[^\w\-]/g, "")
+        .replace(/\-+/g, "-")
+        .replace(/^\-+|\-+$/g, "");
     }
 
-    function normalizeCategory(item, index) {
+    function formatFileSize(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        return "0 B";
+      }
+      const units = ["B", "KB", "MB", "GB"];
+      let size = bytes;
+      let unitIndex = 0;
+      while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex += 1;
+      }
+      return size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1) + " " + units[unitIndex];
+    }
+
+    function attachmentBadge(item) {
+      const name = String(item && item.name ? item.name : "");
+      const extension = name.includes(".") ? name.split(".").pop() : (String(item && item.url ? item.url : "").split(".").pop() || "file");
+      return extension.slice(0, 5).toUpperCase();
+    }
+
+    function normalizeAttachment(item) {
+      if (!item) {
+        return null;
+      }
+
       if (typeof item === "string") {
-        return { id: "cat-" + index, name: item, slug: slugify(item), description: "", order: index };
+        const url = item.trim();
+        if (!url) {
+          return null;
+        }
+        return {
+          url: url,
+          name: url.split("/").pop() || "lampiran",
+          mimeType: "",
+          size: 0,
+          previewable: /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url),
+          kind: /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url) ? "image" : (/\.pdf$/i.test(url) ? "pdf" : "file")
+        };
       }
+
+      if (typeof item !== "object") {
+        return null;
+      }
+
+      const url = String(item.url || item.path || item.fileUrl || "").trim();
+      if (!url) {
+        return null;
+      }
+
+      const name = String(item.name || item.filename || url.split("/").pop() || "lampiran");
+      const previewable = typeof item.previewable === "boolean"
+        ? item.previewable
+        : /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(name) || /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url);
+
       return {
-        id: String(item && item.id ? item.id : makeId("cat")),
-        name: String(item && (item.name || item.label) ? (item.name || item.label) : "Kategori"),
-        slug: String(item && item.slug ? item.slug : slugify(item && (item.name || item.label) ? (item.name || item.label) : "kategori")),
-        description: String(item && item.description ? item.description : ""),
-        order: Number.isFinite(Number(item && item.order)) ? Number(item.order) : index
+        url: url,
+        name: name,
+        mimeType: String(item.mimeType || item.mime_type || ""),
+        size: Number(item.size || 0) || 0,
+        previewable: previewable,
+        kind: String(item.kind || (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name) ? "image" : (/\.pdf$/i.test(name) ? "pdf" : "file")))
       };
     }
 
-    function normalizeAttachment(att) {
-      if (typeof att === "string") {
-        return { id: makeId("att"), name: att, type: "", dataUrl: "" };
-      }
-      return {
-        id: String(att && att.id ? att.id : makeId("att")),
-        name: String(att && att.name ? att.name : "lampiran"),
-        type: String(att && att.type ? att.type : ""),
-        dataUrl: String(att && att.dataUrl ? att.dataUrl : "")
-      };
-    }
-
-    function normalizeAnnouncement(item, index) {
-      const categoriesList = Array.isArray(item && item.categories)
-        ? item.categories.map(String)
-        : [String(item && item.category ? item.category : "Umum")];
-
-      let status = String(item && item.status ? item.status : "published").toLowerCase();
-      if (status !== "draft") {
-        status = "published";
+    function normalizeAttachmentList(value) {
+      if (!value) {
+        return [];
       }
 
-      const content = String(item && (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : ""))
-        ? (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : ""))
-        : (item && item.summary ? item.summary : ""));
+      let rawItems = value;
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return [];
+        }
+        try {
+          const parsed = JSON.parse(trimmed);
+          rawItems = Array.isArray(parsed) ? parsed : [trimmed];
+        } catch (error) {
+          rawItems = [trimmed];
+        }
+      }
 
-      return {
-        id: String(item && item.id ? item.id : "berita-" + (index + 1)),
-        title: String(item && item.title ? item.title : "Judul Berita"),
-        slug: String(item && item.slug ? item.slug : slugify(item && item.title ? item.title : "judul-berita")),
-        categories: categoriesList,
-        author: String(item && item.author ? item.author : "Super Admin"),
-        status: status,
-        date: String(item && item.date ? item.date : new Date().toISOString().slice(0, 10)),
-        thumbnailName: String(item && item.thumbnailName ? item.thumbnailName : ""),
-        thumbnailDataUrl: String(item && item.thumbnailDataUrl ? item.thumbnailDataUrl : ""),
-        content: content,
-        summary: String(item && item.summary ? item.summary : content.slice(0, 180)),
-        attachments: Array.isArray(item && item.attachments) ? item.attachments.map(normalizeAttachment) : [],
-        updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString().slice(0, 10))
-      };
+      if (!Array.isArray(rawItems)) {
+        rawItems = [rawItems];
+      }
+
+      return rawItems.map(normalizeAttachment).filter(Boolean);
     }
 
-    function defaultCategories() {
-      return [
-        { id: "cat-umum", name: "Umum", slug: "umum", description: "Berita umum dan pengumuman penting", order: 0 },
-        { id: "cat-akademik", name: "Akademik", slug: "akademik", description: "Berita terkait kegiatan akademik", order: 1 },
-        { id: "cat-prestasi", name: "Prestasi", slug: "prestasi", description: "Pencapaian dan prestasi", order: 2 }
-      ];
+    function emptyEditorIfNeeded() {
+      if (!stripHtml(contentInput.innerHTML)) {
+        contentInput.innerHTML = "";
+      }
     }
 
-    function loadCategories() {
-      const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      categories = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeCategory) : defaultCategories();
-      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+    function executeEditorCommand(command, value) {
+      contentInput.focus();
+
+      if (command === "createLink") {
+        const url = window.prompt("Masukkan URL link:", "https://");
+        if (url && url.trim()) {
+          document.execCommand("createLink", false, url.trim());
+        }
+        return;
+      }
+
+      if (command === "insertImage") {
+        const url = window.prompt("Masukkan URL gambar:", "https://");
+        if (url && url.trim()) {
+          document.execCommand("insertImage", false, url.trim());
+        }
+        return;
+      }
+
+      if (command === "removeFormat") {
+        document.execCommand("removeFormat", false, null);
+        document.execCommand("unlink", false, null);
+        return;
+      }
+
+      if (command === "formatBlock") {
+        document.execCommand(command, false, value);
+        return;
+      }
+
+      document.execCommand(command, false, value || null);
     }
 
-    function loadAnnouncements() {
-      const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      announcements = Array.isArray(parsed) ? parsed.map(normalizeAnnouncement) : [];
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+    function autoScrollCarousel() {
+      if (!thumbnails.length) return;
+      
+      carouselIndex = (carouselIndex + 1) % thumbnails.length;
+      const carousel = thumbnailCarousel.querySelector(".carousel");
+      if (carousel) {
+        carousel.scrollLeft = carouselIndex * thumbnailCarousel.offsetWidth;
+      }
+      updateCarouselDots();
     }
 
-    function saveAnnouncements() {
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+    function startCarouselAutoScroll() {
+      window.clearInterval(carouselTimer);
+      if (thumbnails.length > 1) {
+        carouselTimer = window.setInterval(autoScrollCarousel, 3000);
+      }
     }
 
-    function readAsDataUrl(file) {
-      return new Promise(function (resolve, reject) {
-        const reader = new FileReader();
-        reader.onload = function () { resolve(String(reader.result || "")); };
-        reader.onerror = function () { reject(new Error("Gagal membaca file")); };
-        reader.readAsDataURL(file);
+    function updateCarouselDots() {
+      const dots = thumbnailCarousel.querySelectorAll(".carousel-dot");
+      dots.forEach((dot, idx) => {
+        if (idx === carouselIndex) {
+          dot.classList.add("active");
+        } else {
+          dot.classList.remove("active");
+        }
       });
     }
 
-    function renderCategoryChecks() {
-      categoryChecks.innerHTML = categories
-        .slice()
-        .sort(function (a, b) { return a.order - b.order; })
-        .map(function (cat) {
-          return '<label class="check-item"><input type="checkbox" value="' + cat.name.replace(/"/g, "&quot;") + '"><span>' + cat.name + '</span></label>';
-        }).join("");
-    }
-
-    function renderThumbnail() {
-      if (!currentThumbnail.name && !currentThumbnail.dataUrl) {
-        thumbnailPreview.style.display = "none";
-        thumbnailPreview.innerHTML = "";
+    function renderThumbnails() {
+      if (!thumbnails.length) {
+        thumbnailCarousel.innerHTML = '<div class="empty-carousel">Belum ada thumbnail</div>';
+        window.clearInterval(carouselTimer);
         return;
       }
-      thumbnailPreview.style.display = "grid";
-      const img = currentThumbnail.dataUrl
-        ? '<img src="' + currentThumbnail.dataUrl + '" alt="Thumbnail berita">'
-        : '<img alt="Thumbnail berita" src="" style="display:none;">';
-      thumbnailPreview.innerHTML = img + '<strong>' + currentThumbnail.name + '</strong>';
+
+      const dotsHtml = thumbnails.map((_, idx) => 
+        '<button type="button" class="carousel-dot' + (idx === 0 ? ' active' : '') + '" data-carousel-index="' + idx + '"></button>'
+      ).join("");
+
+      thumbnailCarousel.innerHTML = 
+        '<div class="carousel">' +
+        thumbnails.map((thumb) => 
+          '<div class="carousel-slide"><img src="' + escapeHtml(thumb.url) + '" alt="Thumbnail" loading="lazy"></div>'
+        ).join("") +
+        '</div>' +
+        '<div class="carousel-controls">' + dotsHtml + '</div>';
+
+      carouselIndex = 0;
+      updateCarouselDots();
+      startCarouselAutoScroll();
+
+      const dots = thumbnailCarousel.querySelectorAll(".carousel-dot");
+      dots.forEach(dot => {
+        dot.addEventListener("click", function () {
+          carouselIndex = Number(this.getAttribute("data-carousel-index"));
+          const carousel = thumbnailCarousel.querySelector(".carousel");
+          if (carousel) {
+            carousel.scrollLeft = carouselIndex * thumbnailCarousel.offsetWidth;
+          }
+          updateCarouselDots();
+          startCarouselAutoScroll();
+        });
+      });
     }
 
     function renderAttachments() {
-      if (!currentAttachments.length) {
-        attachmentList.innerHTML = '<p class="helper">Belum ada lampiran.</p>';
+      if (!attachments.length) {
+        fileList.innerHTML = '<p class="helper">Belum ada lampiran. Klik tombol tambah file untuk upload banyak file sekaligus.</p>';
         return;
       }
 
-      attachmentList.innerHTML = currentAttachments.map(function (att, index) {
-        const tag = att.type && att.type.indexOf("pdf") >= 0 ? "PDF" : "FILE";
-        return '<div class="attachment-item">'
-          + '<span>[' + tag + '] ' + att.name + '</span>'
-          + '<button type="button" data-remove-index="' + String(index) + '">Hapus</button>'
+      fileList.innerHTML = attachments.map(function (item, index) {
+        const fileName = item.name || item.url.split('/').pop() || "lampiran";
+        const previewLink = item.previewable
+          ? '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Preview</a>'
+          : '<span title="Preview tidak tersedia">Preview</span>';
+
+        return '<div class="file-item">'
+          + '<div class="file-main">'
+          + '<div class="file-badge">' + escapeHtml(attachmentBadge(item)) + '</div>'
+          + '<div class="file-meta">'
+          + '<strong>' + escapeHtml(fileName) + '</strong>'
+          + '<span>' + escapeHtml(item.kind === "image" ? "Gambar" : (item.kind === "pdf" ? "PDF" : "Lampiran file")) + ' • ' + escapeHtml(formatFileSize(item.size)) + '</span>'
+          + '</div>'
+          + '</div>'
+          + '<div class="file-actions">'
+          + previewLink
+          + '<a href="' + escapeHtml(item.url) + '" download>Download</a>'
+          + '<button class="danger" type="button" data-remove-attachment-index="' + String(index) + '">Hapus</button>'
+          + '</div>'
           + '</div>';
       }).join("");
     }
 
-    function selectedCategories() {
-      return Array.from(categoryChecks.querySelectorAll('input[type="checkbox"]:checked')).map(function (el) {
-        return el.value;
-      });
-    }
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/news-categories');
+        const data = await res.json();
+        allCategories = Array.isArray(data) ? data : (data.categories || []);
 
-    function fillEditData() {
-      if (!editId) {
-        dateInput.value = new Date().toISOString().slice(0, 10);
-        return;
-      }
-
-      const target = announcements.find(function (item) { return item.id === editId; });
-      if (!target) {
-        showNotify("Data berita tidak ditemukan.");
-        window.setTimeout(function () {
-          window.location.href = "kelola-berita.html";
-        }, 700);
-        return;
-      }
-
-      pageTitle.textContent = "Edit Pengumuman";
-      pageDesc.textContent = "Data sebelumnya dimuat otomatis. Silakan update sesuai kebutuhan.";
-
-      titleInput.value = target.title;
-      slugInput.value = target.slug;
-      dateInput.value = target.date;
-      contentInput.value = target.content;
-      statusInput.value = target.status;
-      currentThumbnail = {
-        name: target.thumbnailName || "",
-        dataUrl: target.thumbnailDataUrl || ""
-      };
-      currentAttachments = target.attachments.slice();
-
-      const set = new Set(target.categories.map(String));
-      categoryChecks.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
-        box.checked = set.has(box.value);
-      });
-
-      renderThumbnail();
-      renderAttachments();
-    }
-
-    async function handleThumbnailChange(files) {
-      if (!files || !files.length) {
-        return;
-      }
-      const file = files[0];
-      const dataUrl = await readAsDataUrl(file);
-      currentThumbnail = {
-        name: file.name,
-        dataUrl: dataUrl
-      };
-      renderThumbnail();
-    }
-
-    async function handleAttachmentAdd(files) {
-      if (!files || !files.length) {
-        return;
-      }
-
-      for (const file of files) {
-        let dataUrl = "";
-        try {
-          dataUrl = await readAsDataUrl(file);
-        } catch (error) {
-          dataUrl = "";
+        if (!allCategories.length) {
+          categoriesContainer.innerHTML = '<p class="helper">Tidak ada kategori tersedia.</p>';
+          return;
         }
-        currentAttachments.push({
-          id: makeId("att"),
-          name: file.name,
-          type: file.type || "",
-          dataUrl: dataUrl
+
+        categoriesContainer.innerHTML = allCategories.map(cat => {
+          const catId = String(cat.id || cat._id || "");
+          const catName = String(cat.name || cat.title || "");
+          return '<div class="category-option">'
+            + '<input type="checkbox" id="cat-' + escapeHtml(catId) + '" value="' + escapeHtml(catId) + '" class="category-checkbox">'
+            + '<label for="cat-' + escapeHtml(catId) + '">' + escapeHtml(catName) + '</label>'
+            + '</div>';
+        }).join("");
+
+        const checkboxes = categoriesContainer.querySelectorAll(".category-checkbox");
+        checkboxes.forEach(cb => {
+          cb.addEventListener("change", function () {
+            updateSelectedCategories();
+          });
         });
+
+        updateSelectedCategories();
+      } catch (err) {
+        console.error("Error loading categories:", err);
+        categoriesContainer.innerHTML = '<p class="helper">Error memuat kategori.</p>';
       }
-
-      renderAttachments();
     }
 
-    function buildSummary(content) {
-      const text = content.replace(/\s+/g, " ").trim();
-      return text.length > 180 ? text.slice(0, 180) + "..." : text;
+    function updateSelectedCategories() {
+      const checkboxes = categoriesContainer.querySelectorAll(".category-checkbox:checked");
+      selectedCategories = Array.from(checkboxes).map(cb => String(cb.value));
     }
 
-    async function saveNews(event) {
+    async function loadNewsData() {
+      if (!editId) return;
+
+      try {
+        const res = await fetch('/api/news');
+        const newsList = await res.json();
+        const news = newsList.find(n => n.id === editId);
+
+        if (!news) {
+          showNotify("Data berita tidak ditemukan. Anda diarahkan ke daftar.");
+          setTimeout(() => window.location.href = "kelola-berita.html", 700);
+          return;
+        }
+
+        pageTitle.textContent = "Edit Berita";
+        pageDesc.textContent = "Perbarui konten berita yang sudah ada. Data sebelumnya sudah dimuat ke form.";
+        
+        titleInput.value = news.title || "";
+        slugInput.value = news.slug || "";
+        summaryInput.value = news.summary || "";
+        contentInput.innerHTML = news.content || "";
+        statusInput.value = news.status || "Draft";
+        
+        thumbnails = normalizeAttachmentList(news.thumbnails || news.thumbnailUrl || []);
+        attachments = normalizeAttachmentList(news.attachments || news.attachmentUrl || []);
+        
+        renderThumbnails();
+        renderAttachments();
+        emptyEditorIfNeeded();
+
+        deleteBtn.style.display = "inline-flex";
+
+        if (news.categories && Array.isArray(news.categories)) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          const newsCatIds = news.categories.map(c => String(c.id || c._id || c));
+          const checkboxes = categoriesContainer.querySelectorAll(".category-checkbox");
+          checkboxes.forEach(cb => {
+            if (newsCatIds.includes(String(cb.value))) {
+              cb.checked = true;
+            }
+          });
+          updateSelectedCategories();
+        }
+      } catch (err) {
+        console.error("Error loading news:", err);
+        showNotify("Gagal memuat data berita.");
+      }
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    async function saveForm(event) {
       event.preventDefault();
 
       const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
-      const categoriesSelected = selectedCategories();
+      let slug = slugInput.value.trim();
+      const summary = summaryInput.value.trim();
+      const content = contentInput.innerHTML.trim();
+      const status = statusInput.value;
 
-      if (!title || !content) {
-        showNotify("Judul dan konten wajib diisi.");
+      if (!title || !stripHtml(content) || !summary) {
+        showNotify("Judul, ringkasan, dan konten wajib diisi.");
         return;
       }
 
-      if (!categoriesSelected.length) {
-        showNotify("Pilih minimal 1 kategori.");
-        return;
+      if (!slug) {
+        slug = slugify(title);
       }
+
+      if (isLoading) return;
+      isLoading = true;
 
       const payload = {
-        id: editId || makeId("berita"),
         title: title,
-        slug: slugInput.value.trim() || slugify(title),
-        categories: categoriesSelected,
-        category: categoriesSelected[0],
-        author: "Super Admin",
-        status: statusInput.value === "draft" ? "draft" : "published",
-        date: dateInput.value || new Date().toISOString().slice(0, 10),
-        thumbnailName: currentThumbnail.name || "",
-        thumbnailDataUrl: currentThumbnail.dataUrl || "",
+        slug: slug,
+        summary: summary,
         content: content,
-        summary: buildSummary(content),
-        attachments: currentAttachments.slice(),
-        updatedAt: new Date().toISOString().slice(0, 10)
+        status: status,
+        categories: selectedCategories,
+        thumbnails: thumbnails,
+        thumbnailUrl: thumbnails[0] ? thumbnails[0].url : "",
+        attachments: attachments,
+        attachmentUrl: attachments[0] ? attachments[0].url : ""
       };
 
-      const existingIndex = announcements.findIndex(function (item) { return item.id === payload.id; });
-      if (existingIndex >= 0) {
-        announcements[existingIndex] = payload;
-        showNotify("Pengumuman berhasil diperbarui.");
-      } else {
-        announcements.push(payload);
-        showNotify("Pengumuman berhasil ditambahkan.");
-      }
+      try {
+        const url = editId ? `/api/news/${editId}` : '/api/news';
+        const method = editId ? 'PUT' : 'POST';
 
-      saveAnnouncements();
-      window.setTimeout(function () {
-        window.location.href = "kelola-berita.html";
-      }, 500);
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showNotify("Gagal menyimpan: " + (err.error || "Error tidak diketahui"));
+          isLoading = false;
+          return;
+        }
+
+        showNotify(editId ? "Berita berhasil diperbarui." : "Berita baru berhasil ditambahkan.");
+        setTimeout(() => window.location.href = "kelola-berita.html", 450);
+      } catch (err) {
+        console.error("Save error:", err);
+        showNotify("Error jaringan saat menyimpan.");
+        isLoading = false;
+      }
     }
 
-    thumbnailDrop.addEventListener("click", function () {
+    async function deleteNews() {
+      if (!editId) return;
+      
+      if (!window.confirm("Apakah Anda yakin ingin menghapus berita ini? Tindakan ini tidak dapat diundo.")) {
+        return;
+      }
+
+      if (isLoading) return;
+      isLoading = true;
+
+      try {
+        const res = await fetch(`/api/news/${editId}`, { method: 'DELETE' });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showNotify("Gagal menghapus: " + (err.error || "Error tidak diketahui"));
+          isLoading = false;
+          return;
+        }
+
+        showNotify("Berita berhasil dihapus.");
+        setTimeout(() => window.location.href = "kelola-berita.html", 450);
+      } catch (err) {
+        console.error("Delete error:", err);
+        showNotify("Error saat menghapus berita.");
+        isLoading = false;
+      }
+    }
+
+    titleInput.addEventListener("input", function () {
+      if (!slugInput.value.trim()) {
+        slugInput.value = slugify(titleInput.value);
+      }
+    });
+
+    addThumbnailBtn.addEventListener("click", function () {
       thumbnailInput.click();
     });
 
-    thumbnailDrop.addEventListener("keydown", function (event) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        thumbnailInput.click();
+    thumbnailInput.addEventListener("change", async function () {
+      const selectedFiles = Array.from(thumbnailInput.files || []);
+      if (!selectedFiles.length) {
+        return;
       }
-    });
 
-    thumbnailInput.addEventListener("change", function () {
-      handleThumbnailChange(Array.from(thumbnailInput.files || [])).then(function () {
-        thumbnailInput.value = "";
+      const tooLargeFile = selectedFiles.find(function (file) {
+        return file.size > 10 * 1024 * 1024;
       });
+      if (tooLargeFile) {
+        showNotify("File terlalu besar (max 10MB per file)");
+        thumbnailInput.value = "";
+        return;
+      }
+
+      const formData = new FormData();
+      selectedFiles.forEach(function (file) {
+        formData.append('files', file);
+      });
+
+      try {
+        const res = await fetch('/api/upload_image', { method: 'POST', body: formData });
+        const json = await res.json();
+        const uploadedFiles = Array.isArray(json.files) ? json.files : (json.url ? [normalizeAttachment(json.url)] : []);
+        if (uploadedFiles.length) {
+          thumbnails = thumbnails.concat(uploadedFiles.map(normalizeAttachment).filter(Boolean));
+          renderThumbnails();
+          showNotify(uploadedFiles.length > 1 ? "Beberapa thumbnail berhasil di-upload." : "Thumbnail berhasil di-upload.");
+        } else {
+          showNotify("Gagal upload: " + (json.error || "Error"));
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        showNotify("Error saat upload thumbnail.");
+      }
+      thumbnailInput.value = "";
     });
 
-    attachmentDrop.addEventListener("click", function () {
+    addAttachmentBtn.addEventListener("click", function () {
       attachmentInput.click();
     });
 
-    attachmentDrop.addEventListener("keydown", function (event) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        attachmentInput.click();
+    attachmentInput.addEventListener("change", async function () {
+      const selectedFiles = Array.from(attachmentInput.files || []);
+      if (!selectedFiles.length) {
+        return;
       }
-    });
 
-    attachmentInput.addEventListener("change", function () {
-      handleAttachmentAdd(Array.from(attachmentInput.files || [])).then(function () {
-        attachmentInput.value = "";
+      const tooLargeFile = selectedFiles.find(function (file) {
+        return file.size > 10 * 1024 * 1024;
       });
+      if (tooLargeFile) {
+        showNotify("File terlalu besar (max 10MB per file)");
+        attachmentInput.value = "";
+        return;
+      }
+
+      const formData = new FormData();
+      selectedFiles.forEach(function (file) {
+        formData.append('files', file);
+      });
+
+      try {
+        const res = await fetch('/api/upload_image', { method: 'POST', body: formData });
+        const json = await res.json();
+        const uploadedFiles = Array.isArray(json.files) ? json.files : (json.url ? [normalizeAttachment(json.url)] : []);
+        if (uploadedFiles.length) {
+          attachments = attachments.concat(uploadedFiles.map(normalizeAttachment).filter(Boolean));
+          renderAttachments();
+          showNotify(uploadedFiles.length > 1 ? "Beberapa file berhasil di-upload." : "File berhasil di-upload.");
+        } else {
+          showNotify("Gagal upload: " + (json.error || "Error"));
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        showNotify("Error saat upload file.");
+      }
+      attachmentInput.value = "";
     });
 
-    attachmentList.addEventListener("click", function (event) {
-      const button = event.target.closest("button[data-remove-index]");
-      if (!button) {
-        return;
+    fileList.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-remove-attachment-index]");
+      if (!button) return;
+      const removeIndex = Number(button.getAttribute("data-remove-attachment-index"));
+      if (Number.isFinite(removeIndex)) {
+        attachments.splice(removeIndex, 1);
       }
-      const index = Number(button.getAttribute("data-remove-index"));
-      if (!Number.isFinite(index)) {
-        return;
-      }
-      currentAttachments = currentAttachments.filter(function (_, idx) { return idx !== index; });
       renderAttachments();
     });
 
-    newsForm.addEventListener("submit", saveNews);
+    editorToolbar.addEventListener("mousedown", function (event) {
+      if (event.target.closest("button")) {
+        event.preventDefault();
+      }
+    });
 
-    loadCategories();
-    loadAnnouncements();
-    renderCategoryChecks();
-    renderAttachments();
-    fillEditData();
+    editorToolbar.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-command]");
+      if (!button) {
+        return;
+      }
+      executeEditorCommand(button.getAttribute("data-command") || "", button.getAttribute("data-value") || "");
+      contentInput.focus();
+    });
+
+    contentInput.addEventListener("input", function () {
+      emptyEditorIfNeeded();
+    });
+
+    contentInput.addEventListener("blur", emptyEditorIfNeeded);
+
+    deleteBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      deleteNews();
+    });
+
+    newsForm.addEventListener("submit", saveForm);
+
+    Promise.all([
+      loadCategories(),
+      loadNewsData()
+    ]).then(() => {
+      renderThumbnails();
+      renderAttachments();
+    });
+
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
 <script src="_sidebar-fix.js"></script>
-<script src="_public-nav-sync.js"></script>
 </body>
 </html>

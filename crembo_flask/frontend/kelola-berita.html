@@ -19,6 +19,10 @@
       --green: #0f8e4b;
       --orange: #986200;
       --danger: #bf1f1f;
+      --success-bg: #dcfce7;
+      --success-text: #10623d;
+      --warning-bg: #fef3c7;
+      --warning-text: #7a5a11;
     }
 
     * { box-sizing: border-box; }
@@ -221,7 +225,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 1.5fr 1fr;
+      grid-template-columns: 1.5fr 1fr 1fr;
       gap: 8px;
     }
 
@@ -233,6 +237,12 @@
       font-size: 0.86rem;
       font-family: inherit;
       background: #fff;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(47, 102, 216, 0.12);
     }
 
     .btn {
@@ -281,70 +291,101 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.84rem;
-      min-width: 840px;
+      min-width: 920px;
     }
 
     th, td {
       border: 1px solid #cbcbcb;
-      padding: 8px;
+      padding: 10px 8px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
     }
 
-    th { background: #efefef; font-size: 0.75rem; text-transform: uppercase; }
+    th {
+      background: #f3f3f3;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    tr:hover {
+      background: #fafafa;
+    }
+
+    .title-cell {
+      max-width: 240px;
+      word-wrap: break-word;
+    }
 
     .title-cell strong {
       display: block;
       margin-bottom: 4px;
       font-size: 0.92rem;
+      color: #1f2937;
     }
 
-    .sub {
-      color: #4b5563;
-      font-size: 0.78rem;
+    .title-cell .sub {
+      display: block;
+      color: #6b7280;
+      font-size: 0.75rem;
+      font-weight: 400;
     }
 
     .badge-list {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       flex-wrap: wrap;
+      margin: 0;
+      padding: 0;
     }
 
     .badge {
       border: 1px solid #c7d2fe;
       background: #eef2ff;
       color: #1e40af;
-      border-radius: 999px;
-      padding: 2px 7px;
-      font-size: 0.73rem;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.72rem;
       font-weight: 600;
+      white-space: nowrap;
+      display: inline-block;
     }
 
     .status {
-      border-radius: 999px;
-      padding: 3px 9px;
+      border-radius: 6px;
+      padding: 4px 10px;
       font-size: 0.73rem;
       font-weight: 700;
       border: 1px solid;
       display: inline-block;
+      white-space: nowrap;
     }
 
     .status.published {
-      background: #dcfce7;
-      color: var(--green);
+      background: var(--success-bg);
+      color: var(--success-text);
       border-color: #86efac;
     }
 
     .status.draft {
-      background: #fef3c7;
-      color: var(--orange);
+      background: var(--warning-bg);
+      color: var(--warning-text);
       border-color: #fcd34d;
     }
 
     .inline-actions {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .inline-actions .btn {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      border-radius: 8px;
     }
 
     .empty {
@@ -355,6 +396,31 @@
       border-radius: 12px;
       background: #f8fafc;
       margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(47, 102, 216, 0.2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: #7f1d1d;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
     }
 
     .notify {
@@ -372,14 +438,80 @@
       transform: translateY(8px);
       transition: opacity 180ms ease, transform 180ms ease;
       z-index: 40;
+      max-width: 300px;
     }
 
     .notify.show { opacity: 1; transform: translateY(0); }
 
+    .notify.success {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: #86efac;
+    }
+
+    .notify.error {
+      background: #fee2e2;
+      color: #7f1d1d;
+      border-color: #fecaca;
+    }
+
+    .notify.warning {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-color: #fcd34d;
+    }
+
+    @media (max-width: 1024px) {
+      .filters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     @media (max-width: 860px) {
-      .layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-      .filters { grid-template-columns: 1fr; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+      .filters {
+        grid-template-columns: 1fr;
+      }
+      .inline-actions {
+        flex-direction: column;
+      }
+      .inline-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      table {
+        min-width: auto;
+        font-size: 0.8rem;
+      }
+      th, td {
+        padding: 8px 6px;
+      }
+      .title-cell {
+        max-width: 120px;
+      }
+      .title-cell strong {
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .main {
+        padding: 12px;
+      }
+      .toolbar, .headline {
+        padding: 12px 10px;
+      }
+      .meta-header {
+        padding: 10px 12px;
+      }
+      .meta-title {
+        font-size: 1.2rem !important;
+      }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -439,12 +571,16 @@
       </header>
 
       <section class="toolbar" aria-label="Filter berita">
+        <div id="errorAlert" class="error-message" style="display:none;"></div>
         <div class="filters">
           <input id="searchInput" type="search" placeholder="Cari judul, kategori, atau penulis...">
           <select id="statusFilter">
             <option value="all">Semua Status</option>
             <option value="published">Publikasi</option>
             <option value="draft">Draft</option>
+          </select>
+          <select id="categoryFilter">
+            <option value="all">Semua Kategori</option>
           </select>
         </div>
       </section>
@@ -458,6 +594,7 @@
               <th>Penulis</th>
               <th>Status</th>
               <th>Tanggal Publikasi</th>
+              <th>Ringkasan</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -465,112 +602,345 @@
         </table>
       </section>
       <div id="emptyState" class="empty" style="display:none;">Belum ada data berita yang cocok dengan filter.</div>
+      <div id="loadingState" class="empty" style="display:none;"><span class="loading-spinner"></span> Memuat data berita...</div>
     </main>
   </div>
 
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const ANNOUNCEMENT_STORAGE_KEY = "crembo-announcements";
-    const CATEGORY_STORAGE_KEY = "crembo-announcement-categories";
-
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
+    const categoryFilter = document.getElementById("categoryFilter");
     const newsRows = document.getElementById("newsRows");
     const emptyState = document.getElementById("emptyState");
     const liveDateTime = document.getElementById("liveDateTime");
     const notify = document.getElementById("notify");
 
-    let announcements = [];
+    let news = [];
+    let categories = [];
 
-    function showNotify(message) {
-      notify.textContent = message;
-      notify.classList.add("show");
-      window.clearTimeout(showNotify.timer);
-      showNotify.timer = window.setTimeout(function () {
-        notify.classList.remove("show");
-      }, 2000);
+    function showNotify(msg, type = "info") {
+      notify.textContent = msg;
+      notify.className = "notify " + type + " show";
+      setTimeout(() => notify.classList.remove("show"), 3000);
     }
 
-    function safeParse(raw) {
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return (text || '').replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function formatDate(date) {
+      if (!date) return "-";
+      const d = new Date(date);
+      return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleDateString('id-ID', { 
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    async function loadData() {
       try {
-        return JSON.parse(raw);
+        const [newsRes, catRes] = await Promise.all([
+          fetch("/api/news"),
+          fetch("/api/news-categories")
+        ]);
+        
+        news = await newsRes.json();
+        categories = await catRes.json();
+        
+        renderCategoryFilter();
+        renderRows();
+      } catch (err) {
+        showNotify("Error loading data: " + err.message, "error");
+      }
+    }
+
+    function renderCategoryFilter() {
+      const options = `<option value="">Semua Kategori</option>` + categories.map(cat => 
+        `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`
+      ).join('');
+      categoryFilter.innerHTML = options;
+    }
+
+    function getFilteredNews() {
+      const search = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+      const catId = categoryFilter.value;
+
+      return news.filter(item => {
+        const matchSearch = !search || 
+          item.title.toLowerCase().includes(search) ||
+          item.summary.toLowerCase().includes(search) ||
+          item.categories.some(c => c.name.toLowerCase().includes(search));
+        
+        const matchStatus = !status || item.status === status;
+        
+        const matchCat = !catId || item.categories.some(c => c.id === catId);
+        
+        return matchSearch && matchStatus && matchCat;
+      });
+    }
+
+    function renderRows() {
+      const filtered = getFilteredNews().sort((a, b) => {
+        const dateA = new Date(a.publishedAt || a.createdAt);
+        const dateB = new Date(b.publishedAt || b.createdAt);
+        return dateB - dateA;
+      });
+
+      if (!filtered.length) {
+        newsRows.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">Tidak ada berita</td></tr>';
+        return;
+      }
+
+      newsRows.innerHTML = filtered.map(item => `
+        <tr>
+          <td><strong>${escapeHtml(item.title)}</strong><br><small style="color: #666;">${escapeHtml(item.slug)}</small></td>
+          <td>${item.categories.map(c => `<span class="badge">${escapeHtml(c.name)}</span>`).join('')}</td>
+          <td><span class="status ${item.status}">${item.status}</span></td>
+          <td>${formatDate(item.publishedAt || item.createdAt)}</td>
+          <td>${escapeHtml((item.summary || '').substring(0, 50))}...</td>
+          <td style="white-space: nowrap;">
+            <a href="/form-berita?id=${encodeURIComponent(item.id)}" class="inline-action">Edit</a>
+            <button type="button" class="inline-action danger" data-delete="${item.id}">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+
+      newsRows.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (confirm("Hapus berita ini?")) {
+            deleteNews(btn.getAttribute('data-delete'));
+          }
+        });
+      });
+    }
+
+    async function deleteNews(id) {
+      try {
+        const res = await fetch(`/api/news/${id}`, { method: "DELETE" });
+        const result = await res.json();
+        if (result.success) {
+          showNotify("Berita berhasil dihapus", "success");
+          loadData();
+        } else {
+          showNotify("Error: " + (result.error || "Gagal menghapus"), "error");
+        }
+      } catch (err) {
+        showNotify("Error: " + err.message, "error");
+      }
+    }
+
+    searchInput.addEventListener("input", renderRows);
+    statusFilter.addEventListener("change", renderRows);
+    categoryFilter.addEventListener("change", renderRows);
+
+    loadData();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+    loadData();
+    setInterval(loadData, 5 * 60 * 1000);
+  </script>
+  <script src="_sidebar-fix.js"></script>
+</body>
+</html>
+      showNotify(message, "warning");
+    }
+
+    function showAlertError(message) {
+      errorAlert.textContent = message;
+      errorAlert.style.display = "block";
+      window.clearTimeout(showAlertError.timer);
+      showAlertError.timer = window.setTimeout(function () {
+        errorAlert.style.display = "none";
+      }, 5000);
+    }
+
+    // ==================== API Functions ====================
+    async function fetchNewsFromAPI() {
+      try {
+        const response = await fetch(API_BASE_URL + "/news");
+        if (!response.ok) {
+          throw new Error("API responded with status " + response.status);
+        }
+        const data = await response.json();
+        return Array.isArray(data.data) ? data.data : [];
       } catch (error) {
+        console.error("Error fetching news from API:", error);
         return null;
       }
     }
 
-    function slugify(text) {
-      return String(text || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
+    async function fetchCategoriesFromAPI() {
+      try {
+        const response = await fetch(API_BASE_URL + "/news/categories");
+        if (!response.ok) {
+          throw new Error("API responded with status " + response.status);
+        }
+        const data = await response.json();
+        return Array.isArray(data.data) ? data.data : [];
+      } catch (error) {
+        console.error("Error fetching categories from API:", error);
+        return null;
+      }
     }
 
-    function makeId(prefix) {
-      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    async function deleteNewsAPI(newsId) {
+      try {
+        const response = await fetch(API_BASE_URL + "/news/" + newsId, {
+          method: "DELETE"
+        });
+        if (!response.ok) {
+          throw new Error("API responded with status " + response.status);
+        }
+        return true;
+      } catch (error) {
+        console.error("Error deleting news:", error);
+        return false;
+      }
     }
 
-    function normalizeCategoryName(value) {
-      return String(value || "Umum").trim() || "Umum";
-    }
-
+    // ==================== Data Management ====================
     function normalizeAttachment(att) {
       if (typeof att === "string") {
-        return { id: makeId("att"), name: att, type: "", dataUrl: "" };
+        return {
+          id: "att-" + Math.random().toString(36).slice(2, 8),
+          name: att,
+          type: "",
+          dataUrl: ""
+        };
       }
       return {
-        id: String(att && att.id ? att.id : makeId("att")),
+        id: String(att && att.id ? att.id : "att-" + Math.random().toString(36).slice(2, 8)),
         name: String(att && att.name ? att.name : "lampiran"),
         type: String(att && att.type ? att.type : ""),
         dataUrl: String(att && att.dataUrl ? att.dataUrl : "")
       };
     }
 
-    function normalizeAnnouncement(item, index) {
-      const categories = Array.isArray(item && item.categories)
-        ? item.categories.map(normalizeCategoryName)
-        : [normalizeCategoryName(item && item.category)];
+    function normalizeCategories(item) {
+      if (Array.isArray(item)) {
+        return item;
+      }
+      if (typeof item === "string") {
+        return [item];
+      }
+      return ["Umum"];
+    }
+
+    function normalizeNews(item, index) {
+      const categories = normalizeCategories(item && (item.categories || item.category) ? (item.categories || item.category) : []);
 
       let status = String(item && item.status ? item.status : "published").toLowerCase();
       if (status !== "draft") {
         status = "published";
       }
 
-      const content = String(item && (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : ""))
-        ? (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : ""))
-        : (item && item.summary ? item.summary : ""));
+      const content = String(item && (item.content || item.body) ? (item.content || item.body) : "");
+      const summary = String(item && item.summary ? item.summary : (content.slice(0, 160) + (content.length > 160 ? "..." : "")));
 
       return {
         id: String(item && item.id ? item.id : "berita-" + (index + 1)),
         title: String(item && item.title ? item.title : "Judul Berita"),
-        slug: String(item && item.slug ? item.slug : slugify(item && item.title ? item.title : "judul-berita")),
+        slug: String(item && item.slug ? item.slug : "berita-" + (index + 1)),
         categories: categories,
-        author: String(item && item.author ? item.author : "Super Admin"),
+        author: String(item && item.author ? item.author : "Admin"),
         status: status,
         date: String(item && item.date ? item.date : new Date().toISOString().slice(0, 10)),
+        published_date: String(item && item.published_date ? item.published_date : (item && item.date ? item.date : new Date().toISOString().slice(0, 10))),
         thumbnailName: String(item && item.thumbnailName ? item.thumbnailName : ""),
         thumbnailDataUrl: String(item && item.thumbnailDataUrl ? item.thumbnailDataUrl : ""),
         content: content,
-        summary: String(item && item.summary ? item.summary : content.slice(0, 180)),
+        summary: summary,
         attachments: Array.isArray(item && item.attachments) ? item.attachments.map(normalizeAttachment) : [],
         updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString().slice(0, 10))
       };
     }
 
-    function defaultCategories() {
-      return [
-        { id: "cat-umum", name: "Umum", slug: "umum", description: "Berita umum dan pengumuman penting", order: 0 },
-        { id: "cat-akademik", name: "Akademik", slug: "akademik", description: "Berita terkait kegiatan akademik", order: 1 },
-        { id: "cat-prestasi", name: "Prestasi", slug: "prestasi", description: "Pencapaian dan prestasi", order: 2 }
-      ];
+    // ==================== Data Loading ====================
+    async function loadData() {
+      isLoading = true;
+      loadingState.style.display = "block";
+      errorAlert.style.display = "none";
+      newsRows.innerHTML = "";
+      emptyState.style.display = "none";
+
+      try {
+        // Try to load from API first
+        const apiNews = await fetchNewsFromAPI();
+        const apiCategories = await fetchCategoriesFromAPI();
+
+        if (apiNews !== null) {
+          announcements = apiNews.map(normalizeNews);
+          if (apiCategories !== null) {
+            categories = apiCategories;
+          } else {
+            // Extract categories from news data if API fails
+            extractCategoriesFromNews();
+          }
+          hasApiError = false;
+          localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+          if (categories.length > 0) {
+            localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+          }
+        } else {
+          // Fall back to localStorage
+          const stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
+          announcements = stored ? JSON.parse(stored).map(normalizeNews) : [];
+          
+          const storedCat = localStorage.getItem(CATEGORY_STORAGE_KEY);
+          categories = storedCat ? JSON.parse(storedCat) : [];
+          
+          if (!announcements.length) {
+            ensureDefaultData();
+          }
+          hasApiError = true;
+          showWarning("Data berita dimuat dari cache lokal. Koneksi API mungkin bermasalah.");
+        }
+
+        populateCategoryFilter();
+        renderRows();
+      } catch (error) {
+        console.error("Error loading data:", error);
+        showAlertError("Gagal memuat data berita. Silakan coba lagi.");
+        // Try to load from cache
+        const stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
+        announcements = stored ? JSON.parse(stored).map(normalizeNews) : [];
+        populateCategoryFilter();
+        renderRows();
+      } finally {
+        isLoading = false;
+        loadingState.style.display = "none";
+      }
     }
 
-    function defaultAnnouncements() {
-      return [
+    function extractCategoriesFromNews() {
+      const uniqueCategories = new Set();
+      announcements.forEach(function (news) {
+        (news.categories || []).forEach(function (cat) {
+          uniqueCategories.add(cat);
+        });
+      });
+
+      categories = Array.from(uniqueCategories).map(function (name, idx) {
+        return {
+          id: "cat-" + idx,
+          name: name,
+          slug: name.toLowerCase().replace(/\s+/g, "-"),
+          description: ""
+        };
+      });
+    }
+
+    function ensureDefaultData() {
+      announcements = [
         {
           id: "berita-1",
           title: "Mahasiswa Informatika UAJY Unjuk Kreativitas Melalui Pameran Hasil Karya UAS",
@@ -578,47 +948,53 @@
           categories: ["Umum", "Prestasi"],
           author: "Super Admin",
           status: "published",
-          date: "2026-02-25",
+          date: new Date().toISOString().slice(0, 10),
+          published_date: new Date().toISOString().slice(0, 10),
           thumbnailName: "karya-uas.jpg",
           thumbnailDataUrl: "",
-          content: "Program Studi Informatika UAJY menggelar pameran hasil karya mahasiswa semester satu. Kegiatan menampilkan proyek game dan aplikasi hasil pembelajaran satu semester.",
+          content: "Program Studi Informatika UAJY menggelar pameran hasil karya mahasiswa semester satu.",
           summary: "Program Studi Informatika UAJY menggelar pameran hasil karya mahasiswa semester satu.",
-          attachments: [
-            { id: "att-1", name: "siaran-pers.pdf", type: "application/pdf", dataUrl: "" },
-            { id: "att-2", name: "rundown-acara.docx", type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", dataUrl: "" }
-          ],
-          updatedAt: "2026-02-25"
+          attachments: [],
+          updatedAt: new Date().toISOString().slice(0, 10)
         }
+      ];
+
+      categories = [
+        { id: "cat-umum", name: "Umum", slug: "umum", description: "Berita umum" },
+        { id: "cat-prestasi", name: "Prestasi", slug: "prestasi", description: "Prestasi" }
       ];
     }
 
-    function ensureSeedData() {
-      const catRaw = localStorage.getItem(CATEGORY_STORAGE_KEY);
-      const annRaw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-      const parsedCat = catRaw ? safeParse(catRaw) : null;
-      const parsedAnn = annRaw ? safeParse(annRaw) : null;
+    // ==================== UI Rendering ====================
+    function populateCategoryFilter() {
+      const existingOptions = categoryFilter.querySelectorAll("option");
+      const currentValue = categoryFilter.value;
 
-      if (!Array.isArray(parsedCat) || !parsedCat.length) {
-        localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(defaultCategories()));
+      // Remove all options except the first one (Semua Kategori)
+      while (existingOptions.length > 1) {
+        existingOptions[1].remove();
       }
 
-      if (!Array.isArray(parsedAnn) || !parsedAnn.length) {
-        localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(defaultAnnouncements()));
-      }
-    }
+      // Add category options
+      const uniqueCategories = new Set();
+      announcements.forEach(function (news) {
+        (news.categories || []).forEach(function (cat) {
+          uniqueCategories.add(cat);
+        });
+      });
 
-    function loadAnnouncements() {
-      const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      announcements = Array.isArray(parsed) ? parsed.map(normalizeAnnouncement) : [];
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
-    }
+      Array.from(uniqueCategories).sort().forEach(function (catName) {
+        const option = document.createElement("option");
+        option.value = catName.toLowerCase();
+        option.textContent = catName;
+        categoryFilter.appendChild(option);
+      });
 
-    function saveAnnouncements() {
-      localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+      categoryFilter.value = currentValue;
     }
 
     function formatDate(value) {
+      if (!value) return "-";
       const d = new Date(value + "T00:00:00");
       if (Number.isNaN(d.getTime())) {
         return value;
@@ -627,31 +1003,51 @@
     }
 
     function escapeHtml(text) {
-      return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      };
+      return String(text || "").replace(/[&<>"']/g, function (c) {
+        return map[c];
+      });
     }
 
     function getFilteredRows() {
       const keyword = searchInput.value.trim().toLowerCase();
       const filterStatus = statusFilter.value;
+      const filterCategory = categoryFilter.value;
 
       return announcements
         .slice()
-        .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); })
+        .sort(function (a, b) {
+          const dateA = new Date(a.published_date || a.date || 0);
+          const dateB = new Date(b.published_date || b.date || 0);
+          return dateB.getTime() - dateA.getTime();
+        })
         .filter(function (item) {
-          const text = [item.title, item.slug, item.author].concat(item.categories).join(" ").toLowerCase();
-          const passKeyword = !keyword || text.includes(keyword);
+          const searchText = [
+            item.title,
+            item.slug,
+            item.author,
+            (item.categories || []).join(" ")
+          ].join(" ").toLowerCase();
+
+          const passKeyword = !keyword || searchText.includes(keyword);
           const passStatus = filterStatus === "all" || item.status === filterStatus;
-          return passKeyword && passStatus;
+          const passCategory = filterCategory === "all" || (item.categories || []).some(function (cat) {
+            return cat.toLowerCase() === filterCategory;
+          });
+
+          return passKeyword && passStatus && passCategory;
         });
     }
 
     function renderRows() {
       const rows = getFilteredRows();
+
       if (!rows.length) {
         newsRows.innerHTML = "";
         emptyState.style.display = "block";
@@ -662,37 +1058,54 @@
       newsRows.innerHTML = rows.map(function (item) {
         return "<tr>"
           + '<td class="title-cell"><strong>' + escapeHtml(item.title) + '</strong><span class="sub">slug: ' + escapeHtml(item.slug) + '</span></td>'
-          + '<td><div class="badge-list">' + item.categories.map(function (cat) { return '<span class="badge">' + escapeHtml(cat) + '</span>'; }).join("") + '</div></td>'
+          + '<td><div class="badge-list">' + (item.categories || []).map(function (cat) { return '<span class="badge">' + escapeHtml(cat) + '</span>'; }).join("") + '</div></td>'
           + '<td>' + escapeHtml(item.author) + '</td>'
-          + '<td><span class="status ' + item.status + '">' + (item.status === "published" ? "Published" : "Draft") + '</span></td>'
-          + '<td>' + escapeHtml(formatDate(item.date)) + '</td>'
+          + '<td><span class="status ' + item.status + '">' + (item.status === "published" ? "Publikasi" : "Draft") + '</span></td>'
+          + '<td>' + escapeHtml(formatDate(item.published_date || item.date)) + '</td>'
+          + '<td style="max-width: 200px; font-size: 0.82rem; color: #6b7280;">' + escapeHtml(item.summary.slice(0, 80) + (item.summary.length > 80 ? "..." : "")) + '</td>'
           + '<td><div class="inline-actions">'
           + '<a class="btn ghost" href="form-berita.html?id=' + encodeURIComponent(item.id) + '">Edit</a>'
-          + '<button class="btn warn" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '">Hapus</button>'
+          + '<button class="btn warn" type="button" data-action="delete" data-id="' + escapeHtml(item.id) + '" data-title="' + escapeHtml(item.title) + '">Hapus</button>'
           + '</div></td>'
           + "</tr>";
       }).join("");
     }
 
-    function deleteNews(id) {
-      const target = announcements.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
-      const ok = window.confirm('Hapus berita "' + target.title + '"?');
+    // ==================== Actions ====================
+    function deleteNews(id, title) {
+      const ok = window.confirm('Yakin ingin menghapus berita "' + title + '"?');
       if (!ok) {
         return;
       }
-      announcements = announcements.filter(function (item) { return item.id !== id; });
-      saveAnnouncements();
-      renderRows();
-      showNotify("Berita berhasil dihapus.");
+
+      isLoading = true;
+      
+      // Try to delete from API first
+      deleteNewsAPI(id).then(function (success) {
+        if (success) {
+          announcements = announcements.filter(function (item) { return item.id !== id; });
+          localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+          renderRows();
+          showSuccess("Berita berhasil dihapus.");
+        } else {
+          // Fall back to local deletion
+          announcements = announcements.filter(function (item) { return item.id !== id; });
+          localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+          renderRows();
+          showWarning("Berita dihapus dari cache lokal. Mungkin tidak tersimpan di server.");
+        }
+        isLoading = false;
+      }).catch(function (error) {
+        console.error("Error in delete:", error);
+        announcements = announcements.filter(function (item) { return item.id !== id; });
+        localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(announcements));
+        renderRows();
+        showWarning("Berita berhasil dihapus dari cache lokal.");
+        isLoading = false;
+      });
     }
 
-    ensureSeedData();
-    loadAnnouncements();
-    renderRows();
-
+    // ==================== Live Date Time ====================
     function updateLiveDateTime() {
       const now = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -707,20 +1120,27 @@
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
-
+    // ==================== Event Listeners ====================
     searchInput.addEventListener("input", renderRows);
     statusFilter.addEventListener("change", renderRows);
+    categoryFilter.addEventListener("change", renderRows);
 
     newsRows.addEventListener("click", function (event) {
       const button = event.target.closest("button[data-action='delete']");
       if (!button) {
         return;
       }
-      deleteNews(button.getAttribute("data-id") || "");
+      deleteNews(button.getAttribute("data-id") || "", button.getAttribute("data-title") || "");
     });
+
+    // ==================== Initialization ====================
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    // Load data when page loads
+    loadData();
+    setInterval(loadData, 5 * 60 * 1000);
   </script>
-<script src="_sidebar-fix.js"></script>
+  <script src="_sidebar-fix.js"></script>
 </body>
 </html>

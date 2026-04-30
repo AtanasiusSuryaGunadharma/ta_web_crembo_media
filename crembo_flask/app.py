@@ -273,6 +273,62 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
         cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
 
 
+def ensure_news_schema() -> None:
+    """Ensure news/article tables exist in database."""
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        # News categories table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `news_categories` (
+                `id` VARCHAR(100) PRIMARY KEY,
+                `name` VARCHAR(255) NOT NULL UNIQUE,
+                `slug` VARCHAR(255) NOT NULL UNIQUE,
+                `description` TEXT,
+                `order_index` INT DEFAULT 0,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """)
+
+        # News/articles table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `news` (
+                `id` VARCHAR(100) PRIMARY KEY,
+                `title` VARCHAR(500) NOT NULL,
+                `slug` VARCHAR(500) NOT NULL UNIQUE,
+                `content` LONGTEXT NOT NULL,
+                `summary` TEXT,
+                `thumbnails` JSON,
+                `attachments` JSON,
+                `status` VARCHAR(20) DEFAULT 'draft',
+                `published_at` DATETIME,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """)
+
+        # Junction table for news-category mapping
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `news_category_mapping` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `news_id` VARCHAR(100) NOT NULL,
+                `category_id` VARCHAR(100) NOT NULL,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (`news_id`) REFERENCES `news`(`id`) ON DELETE CASCADE,
+                FOREIGN KEY (`category_id`) REFERENCES `news_categories`(`id`) ON DELETE CASCADE,
+                UNIQUE KEY `unique_news_category` (`news_id`, `category_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """)
+
+        conn.commit()
+    except Exception as e:
+        print(f"[INFO] News schema ensure: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -1400,9 +1456,298 @@ def delete_profile(profile_id):
         cursor.close()
         conn.close()
 
+# --- NEWS & CATEGORIES ENDPOINTS ---
+
+@app.route("/api/news-categories", methods=["GET"])
+def get_news_categories():
+    ensure_news_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `news_categories` ORDER BY `order_index`, `name`")
+        categories = cursor.fetchall()
+        return jsonify([{
+            "id": cat["id"],
+            "name": cat["name"],
+            "slug": cat["slug"],
+            "description": cat["description"],
+            "order": cat["order_index"]
+        } for cat in categories])
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news-categories", methods=["POST"])
+def create_news_category():
+    ensure_news_schema()
+    data = request.json or {}
+    name = (data.get("name") or "").strip()
+    slug = (data.get("slug") or "").strip() or re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+    category_id = f"cat-{int(time.time() * 1000)}"
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO `news_categories` (`id`, `name`, `slug`, `description`, `order_index`)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            category_id,
+            name,
+            slug,
+            data.get("description", ""),
+            int(data.get("order", 0))
+        ))
+        conn.commit()
+        return jsonify({"success": True, "id": category_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news-categories/<category_id>", methods=["PUT"])
+def update_news_category(category_id):
+    ensure_news_schema()
+    data = request.json or {}
+    name = (data.get("name") or "").strip()
+    slug = (data.get("slug") or "").strip() or re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE `news_categories`
+            SET `name` = %s, `slug` = %s, `description` = %s, `order_index` = %s
+            WHERE `id` = %s
+        """, (
+            name,
+            slug,
+            data.get("description", ""),
+            int(data.get("order", 0)),
+            category_id
+        ))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news-categories/<category_id>", methods=["DELETE"])
+def delete_news_category(category_id):
+    ensure_news_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM `news_category_mapping` WHERE `category_id` = %s", (category_id,))
+        cursor.execute("DELETE FROM `news_categories` WHERE `id` = %s", (category_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news", methods=["GET"])
+def get_news():
+    ensure_news_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT * FROM `news` ORDER BY `published_at` DESC, `created_at` DESC
+        """)
+        news_items = cursor.fetchall()
+        
+        result = []
+        for item in news_items:
+            # Get categories for this news
+            cursor.execute("""
+                SELECT c.id, c.name, c.slug FROM `news_category_mapping` m
+                JOIN `news_categories` c ON m.category_id = c.id
+                WHERE m.news_id = %s
+            """, (item["id"],))
+            categories = cursor.fetchall()
+            
+            result.append({
+                "id": item["id"],
+                "title": item["title"],
+                "slug": item["slug"],
+                "content": item["content"],
+                "summary": item["summary"],
+                "thumbnails": json.loads(item["thumbnails"] or "[]"),
+                "attachments": json.loads(item["attachments"] or "[]"),
+                "status": item["status"],
+                "publishedAt": item["published_at"].isoformat() if item["published_at"] else None,
+                "createdAt": item["created_at"].isoformat() if item["created_at"] else None,
+                "categories": [{"id": c["id"], "name": c["name"], "slug": c["slug"]} for c in categories]
+            })
+        return jsonify(result)
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news/<news_id>", methods=["GET"])
+def get_news_detail(news_id):
+    ensure_news_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `news` WHERE `id` = %s", (news_id,))
+        item = cursor.fetchone()
+        if not item:
+            return jsonify({"error": "News not found"}), 404
+
+        # Get categories for this news
+        cursor.execute("""
+            SELECT c.id, c.name, c.slug FROM `news_category_mapping` m
+            JOIN `news_categories` c ON m.category_id = c.id
+            WHERE m.news_id = %s
+        """, (news_id,))
+        categories = cursor.fetchall()
+
+        return jsonify({
+            "id": item["id"],
+            "title": item["title"],
+            "slug": item["slug"],
+            "content": item["content"],
+            "summary": item["summary"],
+            "thumbnails": json.loads(item["thumbnails"] or "[]"),
+            "attachments": json.loads(item["attachments"] or "[]"),
+            "status": item["status"],
+            "publishedAt": item["published_at"].isoformat() if item["published_at"] else None,
+            "createdAt": item["created_at"].isoformat() if item["created_at"] else None,
+            "categories": [{"id": c["id"], "name": c["name"], "slug": c["slug"]} for c in categories]
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news", methods=["POST"])
+def create_news():
+    ensure_news_schema()
+    data = request.json or {}
+    news_id = f"news-{int(time.time() * 1000)}"
+    
+    title = (data.get("title") or "").strip()
+    slug = (data.get("slug") or "").strip() or re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+    content = data.get("content", "")
+    summary = data.get("summary", "")
+    thumbnails = normalize_attachment_payload(data.get("thumbnails", []))
+    attachments = normalize_attachment_payload(data.get("attachments", []))
+    status = data.get("status", "draft")
+    category_ids = data.get("categoryIds", [])
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO `news` (`id`, `title`, `slug`, `content`, `summary`, `thumbnails`, `attachments`, `status`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            news_id,
+            title,
+            slug,
+            content,
+            summary,
+            json.dumps(thumbnails, ensure_ascii=False),
+            json.dumps(attachments, ensure_ascii=False),
+            status
+        ))
+
+        # Add categories
+        for cat_id in category_ids:
+            cursor.execute("""
+                INSERT IGNORE INTO `news_category_mapping` (`news_id`, `category_id`)
+                VALUES (%s, %s)
+            """, (news_id, cat_id))
+
+        conn.commit()
+        return jsonify({"success": True, "id": news_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news/<news_id>", methods=["PUT"])
+def update_news(news_id):
+    ensure_news_schema()
+    data = request.json or {}
+    
+    title = (data.get("title") or "").strip()
+    slug = (data.get("slug") or "").strip() or re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+    content = data.get("content", "")
+    summary = data.get("summary", "")
+    thumbnails = normalize_attachment_payload(data.get("thumbnails", []))
+    attachments = normalize_attachment_payload(data.get("attachments", []))
+    status = data.get("status", "draft")
+    category_ids = data.get("categoryIds", [])
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE `news`
+            SET `title` = %s, `slug` = %s, `content` = %s, `summary` = %s, 
+                `thumbnails` = %s, `attachments` = %s, `status` = %s
+            WHERE `id` = %s
+        """, (
+            title,
+            slug,
+            content,
+            summary,
+            json.dumps(thumbnails, ensure_ascii=False),
+            json.dumps(attachments, ensure_ascii=False),
+            status,
+            news_id
+        ))
+
+        # Update categories
+        cursor.execute("DELETE FROM `news_category_mapping` WHERE `news_id` = %s", (news_id,))
+        for cat_id in category_ids:
+            cursor.execute("""
+                INSERT IGNORE INTO `news_category_mapping` (`news_id`, `category_id`)
+                VALUES (%s, %s)
+            """, (news_id, cat_id))
+
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/news/<news_id>", methods=["DELETE"])
+def delete_news(news_id):
+    ensure_news_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM `news_category_mapping` WHERE `news_id` = %s", (news_id,))
+        cursor.execute("DELETE FROM `news` WHERE `id` = %s", (news_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()
+        ensure_news_schema()
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)
