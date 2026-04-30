@@ -397,6 +397,22 @@
 			text-align: justify;
 		}
 
+		/* Center images that appear inside profile content */
+		#profileContent img {
+			display: block;
+			margin: 12px auto;
+			max-width: 100%;
+			height: auto;
+		}
+
+		/* Attachments area under profile content */
+		.profile-attachments { margin-top: 18px; border-top: 1px dashed var(--line); padding-top: 12px; }
+		.profile-attachments h4 { margin: 0 0 8px; font-size: 0.95rem; color: var(--muted); }
+		.attachment-item { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+		.attachment-item .attachment-name { color: var(--ink-secondary); text-decoration: none; }
+		.attachment-item .attachment-actions { margin-left: auto; display: inline-flex; gap: 6px; }
+		.attachment-item button, .attachment-item a.attachment-download { border: 1px solid var(--line); background: transparent; padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: var(--primary); text-decoration: none; }
+
 		.content-actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
 
 		.btn-ghost {
@@ -859,6 +875,21 @@
 				label: title,
 				title: title,
 				description: String(item.description || "").trim(),
+				attachments: (function () {
+					var files = item.attachments || item.files || item.attachments_list || [];
+					if (!Array.isArray(files)) return [];
+					return files.map(function (f) {
+						if (!f) return null;
+						if (typeof f === "string") {
+							var url = String(f).trim();
+							return url ? { name: url.split("/").pop(), url: url } : null;
+						}
+						return {
+							name: String(f.name || f.filename || (f.url && f.url.split("/").pop()) || "attachment").trim(),
+							url: String(f.url || f.path || f.download || "").trim()
+						};
+					}).filter(function (x) { return x && x.url; });
+				})(),
 				order: Number.isFinite(Number(item.order)) ? Number(item.order) : 0,
 				active: typeof item.active === "boolean" ? item.active : true
 			};
@@ -973,6 +1004,58 @@
 			profileTitle.textContent = current.title || current.label || "Profil";
 			breadcrumbCurrent.textContent = current.label || current.title || "Profil";
 			profileContent.innerHTML = renderDescription(current.description);
+
+			// Render attachments (lampiran) under the content if present
+			const attachments = Array.isArray(current.attachments) ? current.attachments : [];
+			// Remove existing attachments area if any
+			const existing = profileContent.querySelector('.profile-attachments');
+			if (existing) existing.remove();
+			if (attachments.length) {
+				const wrap = document.createElement('div');
+				wrap.className = 'profile-attachments';
+				const title = document.createElement('h4');
+				title.textContent = 'Lampiran';
+				wrap.appendChild(title);
+				attachments.forEach(function (att) {
+					const item = document.createElement('div');
+					item.className = 'attachment-item';
+					const a = document.createElement('a');
+					a.className = 'attachment-name';
+					a.href = att.url;
+					a.target = '_blank';
+					a.rel = 'noopener noreferrer';
+					a.textContent = att.name || att.url.split('/').pop();
+					item.appendChild(a);
+					const actions = document.createElement('div');
+					actions.className = 'attachment-actions';
+					// Preview button (for images will open a simple preview)
+					const preview = document.createElement('button');
+					preview.type = 'button';
+					preview.textContent = 'Preview';
+					preview.addEventListener('click', function () {
+						const url = att.url || '';
+						if (/\.(jpe?g|png|gif|webp|svg)$/i.test(url)) {
+							const w = window.open('', '_blank');
+							w.document.write('<title>' + (att.name||'Preview') + '</title>');
+							w.document.write('<img src="' + url + '" style="max-width:100%;display:block;margin:24px auto;">');
+							w.document.close();
+						} else {
+							window.open(url, '_blank');
+						}
+					});
+					actions.appendChild(preview);
+					// Download link
+					const download = document.createElement('a');
+					download.className = 'attachment-download';
+					download.href = att.url;
+					download.setAttribute('download', '');
+					download.textContent = 'Download';
+					actions.appendChild(download);
+					item.appendChild(actions);
+					wrap.appendChild(item);
+				});
+				profileContent.appendChild(wrap);
+			}
 		}
 
 		async function loadProfiles() {
