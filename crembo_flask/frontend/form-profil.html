@@ -496,8 +496,6 @@
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const PROFILE_STORAGE_KEY = "crembo-profile-contents";
-
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("id") || "";
 
@@ -515,8 +513,8 @@
     const notify = document.getElementById("notify");
     const liveDateTime = document.getElementById("liveDateTime");
 
-    let profileContents = [];
-    let attachmentNames = [];
+    let attachmentUrl = "";
+    let isLoading = false;
 
     function showNotify(message) {
       notify.textContent = message;
@@ -527,75 +525,45 @@
       }, 2200);
     }
 
-    function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function makeId(prefix) {
-      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-    }
-
-    function slugify(text) {
-      return String(text || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-    }
-
-    function loadProfiles() {
-      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      profileContents = Array.isArray(parsed) ? parsed : [];
-    }
-
-    function saveProfiles() {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileContents));
-    }
-
     function renderAttachments() {
-      if (!attachmentNames.length) {
+      if (!attachmentUrl) {
         fileList.innerHTML = '<p class="helper">Belum ada lampiran.</p>';
         return;
       }
 
-      fileList.innerHTML = attachmentNames.map(function (name, index) {
-        return '<div class="file-item">'
-          + '<span>' + name.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>'
-          + '<button type="button" data-remove-index="' + String(index) + '">Hapus</button>'
-          + '</div>';
-      }).join("");
+      const fileName = attachmentUrl.split('/').pop();
+      fileList.innerHTML = '<div class="file-item">'
+        + '<span>📎 ' + fileName.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>'
+        + '<button type="button" data-remove-attachment>Hapus</button>'
+        + '</div>';
     }
 
-    function fillEditData() {
-      if (!editId) {
-        return;
-      }
-      const target = profileContents.find(function (item) {
-        return String(item && item.id || "") === editId;
-      });
-      if (!target) {
-        showNotify("Data profil tidak ditemukan. Anda diarahkan ke daftar.");
-        window.setTimeout(function () {
-          window.location.href = "manajemen-profil.html";
-        }, 700);
-        return;
-      }
+    async function loadProfileData() {
+      if (!editId) return;
 
-      pageTitle.textContent = "Edit Profil";
-      pageDesc.textContent = "Perbarui konten profil yang sudah ada. Data sebelumnya sudah dimuat ke form.";
-      titleInput.value = String(target.title || "");
-      contentInput.value = String(target.content || "");
-      orderInput.value = Number.isFinite(Number(target.order)) ? String(Number(target.order)) : "0";
-      activeInput.checked = Boolean(target.isActive);
-      attachmentNames = Array.isArray(target.attachmentNames) ? target.attachmentNames.map(String) : [];
-      renderAttachments();
+      try {
+        const res = await fetch('/api/profiles');
+        const profiles = await res.json();
+        const profile = profiles.find(p => p.id === editId);
+
+        if (!profile) {
+          showNotify("Data profil tidak ditemukan. Anda diarahkan ke daftar.");
+          setTimeout(() => window.location.href = "manajemen-profil.html", 700);
+          return;
+        }
+
+        pageTitle.textContent = "Edit Profil";
+        pageDesc.textContent = "Perbarui konten profil yang sudah ada. Data sebelumnya sudah dimuat ke form.";
+        titleInput.value = profile.title || "";
+        contentInput.value = profile.description || "";
+        orderInput.value = profile.order || 0;
+        activeInput.checked = profile.active;
+        attachmentUrl = profile.attachmentUrl || "";
+        renderAttachments();
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        showNotify("Gagal memuat data profil.");
+      }
     }
 
     function updateLiveDateTime() {
@@ -611,7 +579,7 @@
       }) + " WIB";
     }
 
-    function saveForm(event) {
+    async function saveForm(event) {
       event.preventDefault();
 
       const title = titleInput.value.trim();
@@ -623,70 +591,88 @@
         return;
       }
 
+      if (isLoading) return;
+      isLoading = true;
+
       const payload = {
-        id: editId || makeId("prof"),
         title: title,
-        slug: slugify(title),
-        content: content,
-        attachmentNames: attachmentNames.slice(),
+        description: content,
+        attachmentUrl: attachmentUrl,
         order: Number.isFinite(order) && order >= 0 ? order : 0,
-        isActive: activeInput.checked,
-        updatedAt: new Date().toISOString().slice(0, 10)
+        active: activeInput.checked
       };
 
-      const existingIndex = profileContents.findIndex(function (item) {
-        return String(item && item.id || "") === payload.id;
-      });
+      try {
+        const url = editId ? `/api/profiles/${editId}` : '/api/profiles';
+        const method = editId ? 'PUT' : 'POST';
 
-      if (existingIndex >= 0) {
-        profileContents[existingIndex] = payload;
-        showNotify("Profil berhasil diperbarui.");
-      } else {
-        profileContents.push(payload);
-        showNotify("Profil baru berhasil ditambahkan.");
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showNotify("Gagal menyimpan: " + (err.error || "Error tidak diketahui"));
+          isLoading = false;
+          return;
+        }
+
+        showNotify(editId ? "Profil berhasil diperbarui." : "Profil baru berhasil ditambahkan.");
+        setTimeout(() => window.location.href = "manajemen-profil.html", 450);
+      } catch (err) {
+        console.error("Save error:", err);
+        showNotify("Error jaringan saat menyimpan.");
+        isLoading = false;
       }
-
-      saveProfiles();
-      window.setTimeout(function () {
-        window.location.href = "manajemen-profil.html";
-      }, 450);
     }
 
     addAttachmentBtn.addEventListener("click", function () {
       attachmentInput.click();
     });
 
-    attachmentInput.addEventListener("change", function () {
-      const files = Array.from(attachmentInput.files || []);
-      files.forEach(function (file) {
-        if (file && file.name) {
-          attachmentNames.push(file.name);
+    attachmentInput.addEventListener("change", async function () {
+      const file = attachmentInput.files?.[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        showNotify("File terlalu besar (max 10MB)");
+        attachmentInput.value = "";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload_image', { method: 'POST', body: formData });
+        const json = await res.json();
+        if (json.url) {
+          attachmentUrl = json.url;
+          renderAttachments();
+          showNotify("File berhasil di-upload.");
+        } else {
+          showNotify("Gagal upload: " + (json.error || "Error"));
         }
-      });
+      } catch (err) {
+        console.error("Upload error:", err);
+        showNotify("Error saat upload file.");
+      }
       attachmentInput.value = "";
-      renderAttachments();
     });
 
     fileList.addEventListener("click", function (event) {
-      const button = event.target.closest("button[data-remove-index]");
-      if (!button) {
-        return;
-      }
-      const index = Number(button.getAttribute("data-remove-index"));
-      if (!Number.isFinite(index)) {
-        return;
-      }
-      attachmentNames = attachmentNames.filter(function (_, idx) {
-        return idx !== index;
-      });
+      const button = event.target.closest("button[data-remove-attachment]");
+      if (!button) return;
+      attachmentUrl = "";
       renderAttachments();
     });
 
     profileForm.addEventListener("submit", saveForm);
 
-    loadProfiles();
+    loadProfileData();
     renderAttachments();
-    fillEditData();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>

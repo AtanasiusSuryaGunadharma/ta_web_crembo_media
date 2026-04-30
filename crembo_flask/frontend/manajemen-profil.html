@@ -547,29 +547,48 @@
     }
 
     function loadProfiles() {
-      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      if (Array.isArray(parsed) && parsed.length) {
-        profileContents = parsed.map(normalizeItem);
-        return;
-      }
-      profileContents = defaultProfiles();
-      saveProfiles();
+      fetch('/api/profiles')
+        .then(res => res.json())
+        .then(data => {
+          profileContents = Array.isArray(data) ? data.map(p => ({
+            id: p.id,
+            title: p.title || "",
+            description: p.description || "",
+            slug: p.title ? String(p.title).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : "",
+            content: p.description || "",
+            attachmentNames: p.attachmentUrl ? [p.attachmentUrl.split('/').pop()] : [],
+            order: p.order || 0,
+            isActive: p.active,
+            updatedAt: p.updatedAt,
+            attachmentUrl: p.attachmentUrl || ""
+          })) : [];
+          renderCards();
+        })
+        .catch(err => {
+          console.error("Error loading profiles:", err);
+          showNotify("Gagal memuat profil.");
+          profileContents = [];
+          renderCards();
+        });
     }
 
     function saveProfiles() {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileContents));
+      // No longer needed - backend auto-saves
     }
 
     function formatDate(value) {
       if (!value) {
         return "-";
       }
-      const d = new Date(value + "T00:00:00");
-      if (Number.isNaN(d.getTime())) {
+      try {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) {
+          return value;
+        }
+        return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+      } catch (e) {
         return value;
       }
-      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
     }
 
     function escapeHtml(text) {
@@ -642,10 +661,22 @@
       if (!ok) {
         return;
       }
-      profileContents = profileContents.filter(function (item) { return item.id !== id; });
-      saveProfiles();
-      renderCards();
-      showNotify("Profil berhasil dihapus.");
+
+      fetch(`/api/profiles/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            profileContents = profileContents.filter(function (item) { return item.id !== id; });
+            renderCards();
+            showNotify("Profil berhasil dihapus.");
+          } else {
+            showNotify("Gagal menghapus profil: " + (data.error || "Unknown error"));
+          }
+        })
+        .catch(err => {
+          console.error("Delete error:", err);
+          showNotify("Error jaringan saat menghapus.");
+        });
     }
 
     function updateLiveDateTime() {
@@ -664,7 +695,6 @@
 
     roleBadge.textContent = "Role: " + formatRole(role);
     loadProfiles();
-    renderCards();
 
     searchInput.addEventListener("input", renderCards);
     statusFilter.addEventListener("change", renderCards);

@@ -324,6 +324,20 @@ def ensure_auth_schema() -> None:
     cursor.execute("SELECT COUNT(*) FROM `sertifikat_config`")
     if cursor.fetchone()[0] == 0:
         cursor.execute("INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`) VALUES (1, 'Ketua Crembo Media', 'Pembina Crembo Media', '', '')")
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS `organization_profiles` (
+          `id` varchar(100) NOT NULL,
+          `title` varchar(255) NOT NULL,
+          `description` text DEFAULT NULL,
+          `attachment_url` text DEFAULT NULL,
+          `order_index` int(11) DEFAULT 0,
+          `is_visible` tinyint(1) DEFAULT 1,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    ''')
         
     conn.commit()
     cursor.close()
@@ -1123,6 +1137,102 @@ def set_sertifikat_config():
     cursor.close()
     conn.close()
     return jsonify({"success": True})
+
+# --- ORGANIZATION PROFILES ENDPOINTS ---
+
+@app.route("/api/profiles", methods=["GET"])
+def get_profiles():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM `organization_profiles` ORDER BY `order_index` ASC")
+    rows = cursor.fetchall() or []
+    conn.close()
+    return jsonify([{
+        "id": r["id"],
+        "title": r["title"],
+        "description": r["description"],
+        "attachmentUrl": r["attachment_url"],
+        "order": r["order_index"],
+        "active": bool(r["is_visible"]),
+        "createdAt": r["created_at"],
+        "updatedAt": r["updated_at"]
+    } for r in rows])
+
+@app.route("/api/profiles", methods=["POST"])
+def create_profile():
+    ensure_auth_schema()
+    data = request.json or {}
+    profile_id = f"profile-{int(time.time() * 1000)}"
+    
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO `organization_profiles` 
+            (`id`, `title`, `description`, `attachment_url`, `order_index`, `is_visible`)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (
+            profile_id,
+            data.get("title", ""),
+            data.get("description", ""),
+            data.get("attachmentUrl", ""),
+            int(data.get("order", 0)),
+            1 if data.get("active") else 0
+        ))
+        conn.commit()
+        return jsonify({"success": True, "id": profile_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/profiles/<profile_id>", methods=["PUT"])
+def update_profile(profile_id):
+    ensure_auth_schema()
+    data = request.json or {}
+    
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE `organization_profiles`
+            SET `title` = %s, `description` = %s, `attachment_url` = %s, `order_index` = %s, `is_visible` = %s
+            WHERE `id` = %s
+        """, (
+            data.get("title", ""),
+            data.get("description", ""),
+            data.get("attachmentUrl", ""),
+            int(data.get("order", 0)),
+            1 if data.get("active") else 0,
+            profile_id
+        ))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/profiles/<profile_id>", methods=["DELETE"])
+def delete_profile(profile_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM `organization_profiles` WHERE `id` = %s", (profile_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 if __name__ == "__main__":
     try:

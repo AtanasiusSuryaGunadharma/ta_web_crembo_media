@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 30 Apr 2026 pada 01.32
+-- Waktu pembuatan: 30 Apr 2026 pada 17.05
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -253,6 +253,31 @@ CREATE TABLE `kegiatan_form` (
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `organization_profiles`
+--
+
+CREATE TABLE `organization_profiles` (
+  `id` varchar(100) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `attachment_url` text DEFAULT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `is_visible` tinyint(1) DEFAULT 1,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `organization_profiles`
+--
+
+INSERT INTO `organization_profiles` (`id`, `title`, `description`, `attachment_url`, `order_index`, `is_visible`, `created_at`, `updated_at`) VALUES
+('profile-1777560615559', 'Profil Organisasi - Test Update', 'Crembo Media adalah organisasi yang berdedikasi untuk mendukung kegiatan multimedia dan liturgi di komunitas. Visi kami adalah menjadi tulang punggung komunikasi visual dalam setiap kegiatan pelayanan.', 'uploads/fake-signature-word-vector_1777561240.jpg', 1, 1, '2026-04-30 21:50:15', '2026-04-30 22:00:42'),
+('profile-1777561298872', 'Test 1 Oprec', 'aSsSA', 'uploads/fake-signature-word-vector_1777561296.jpg', 0, 0, '2026-04-30 22:01:38', '2026-04-30 22:02:40');
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `sertifikat_config`
 --
 
@@ -270,7 +295,7 @@ CREATE TABLE `sertifikat_config` (
 --
 
 INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`, `updated_at`) VALUES
-(1, 'Ketua Crembo Media', 'Pembina Crembo Media', '', '', '2026-04-30 06:26:30');
+(1, 'Pria Briliantama', 'Fransiskus Xaverius Harso Susanto', 'uploads/Tanda_Tangan_Mick_Schumacher_1777507332.png', 'uploads/fake-signature-word-vector_1777507334.jpg', '2026-04-30 07:02:15');
 
 -- --------------------------------------------------------
 
@@ -1913,6 +1938,12 @@ ALTER TABLE `kegiatan`
 ALTER TABLE `kegiatan_form`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_kegiatan_form_slug` (`slug`);
+
+--
+-- Indeks untuk tabel `organization_profiles`
+--
+ALTER TABLE `organization_profiles`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indeks untuk tabel `sertifikat_config`
