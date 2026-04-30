@@ -264,11 +264,47 @@
       gap: 8px;
     }
 
+    .card.dragging {
+      opacity: 0.56;
+    }
+
+    .card.drop-target {
+      border-color: #8bb3ff;
+      box-shadow: 0 0 0 2px rgba(59, 125, 248, 0.26);
+    }
+
     .card-head {
       display: flex;
       justify-content: space-between;
       gap: 8px;
       align-items: flex-start;
+    }
+
+    .card-head-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #b8b8b8;
+      border-radius: 6px;
+      background: #f8f8f8;
+      cursor: grab;
+      user-select: none;
+      font-size: 0.9rem;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
     }
 
     .card h3 {
@@ -438,8 +474,6 @@
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const PROFILE_STORAGE_KEY = "crembo-profile-contents";
-
     const params = new URLSearchParams(window.location.search);
     const storedSessionRaw = localStorage.getItem("crembo-login-session");
     let storedRole = "";
@@ -462,6 +496,8 @@
     const notify = document.getElementById("notify");
 
     let profileContents = [];
+    let draggingProfileId = "";
+    let isSyncingOrder = false;
 
     function showNotify(message) {
       notify.textContent = message;
@@ -476,18 +512,6 @@
       return value === "super_admin" ? "Super Admin" : "Admin";
     }
 
-    function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function makeId(prefix) {
-      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-    }
-
     function slugify(text) {
       return String(text || "")
         .toLowerCase()
@@ -496,54 +520,6 @@
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "");
-    }
-
-    function defaultProfiles() {
-      return [
-        {
-          id: "prof-1",
-          title: "Sejarah STP AMPTA",
-          slug: "sejarah-stp-ampta",
-          content: "Sejarah singkat yayasan, perkembangan lembaga, dan kontribusi untuk pendidikan pariwisata.",
-          attachmentNames: [],
-          order: 0,
-          isActive: true,
-          updatedAt: "2026-03-27"
-        },
-        {
-          id: "prof-2",
-          title: "Struktur Organisasi STP AMPTA",
-          slug: "struktur-organisasi-stp-ampta",
-          content: "Profil struktur pengelolaan institusi, pembagian tugas, dan koordinasi unit kerja.",
-          attachmentNames: [],
-          order: 1,
-          isActive: true,
-          updatedAt: "2026-03-27"
-        },
-        {
-          id: "prof-3",
-          title: "Visi Misi STP AMPTA",
-          slug: "visi-misi-stp-ampta",
-          content: "Visi jangka panjang institusi, misi pengembangan kompetensi, dan arah strategis layanan.",
-          attachmentNames: [],
-          order: 2,
-          isActive: true,
-          updatedAt: "2026-03-27"
-        }
-      ];
-    }
-
-    function normalizeItem(item) {
-      return {
-        id: String(item && item.id ? item.id : makeId("prof")),
-        title: String(item && item.title ? item.title : "Profil Tanpa Judul"),
-        slug: String(item && item.slug ? item.slug : slugify(item && item.title ? item.title : "profil")),
-        content: String(item && item.content ? item.content : ""),
-        attachmentNames: Array.isArray(item && item.attachmentNames) ? item.attachmentNames.map(String) : [],
-        order: Number.isFinite(Number(item && item.order)) ? Number(item.order) : 0,
-        isActive: Boolean(item && item.isActive),
-        updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString().slice(0, 10))
-      };
     }
 
     function loadProfiles() {
@@ -572,8 +548,80 @@
         });
     }
 
-    function saveProfiles() {
-      // No longer needed - backend auto-saves
+    function isFilterActive() {
+      return Boolean(searchInput.value.trim()) || statusFilter.value !== "all";
+    }
+
+    function getOrderedProfiles() {
+      return profileContents
+        .slice()
+        .sort(function (a, b) {
+          if (a.order !== b.order) {
+            return a.order - b.order;
+          }
+          return String(b.updatedAt).localeCompare(String(a.updatedAt));
+        });
+    }
+
+    async function syncProfileOrder() {
+      if (isSyncingOrder) {
+        return;
+      }
+
+      isSyncingOrder = true;
+      const ordered = getOrderedProfiles();
+
+      try {
+        await Promise.all(ordered.map(function (item, index) {
+          return fetch('/api/profiles/' + encodeURIComponent(item.id), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: item.title,
+              description: item.content || item.description || "",
+              attachmentUrl: item.attachmentUrl || "",
+              order: index,
+              active: Boolean(item.isActive)
+            })
+          }).then(function (response) {
+            if (!response.ok) {
+              throw new Error('Gagal menyimpan urutan profil.');
+            }
+          });
+        }));
+
+        showNotify("Urutan profil berhasil disimpan.");
+      } catch (error) {
+        console.error(error);
+        showNotify("Gagal menyimpan urutan, memuat ulang data.");
+        loadProfiles();
+      } finally {
+        isSyncingOrder = false;
+      }
+    }
+
+    function reorderProfile(sourceId, targetId) {
+      const ordered = getOrderedProfiles();
+      const sourceIndex = ordered.findIndex(function (item) {
+        return String(item.id) === String(sourceId);
+      });
+      const targetIndex = ordered.findIndex(function (item) {
+        return String(item.id) === String(targetId);
+      });
+
+      if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+        return;
+      }
+
+      const moved = ordered.splice(sourceIndex, 1)[0];
+      ordered.splice(targetIndex, 0, moved);
+      ordered.forEach(function (item, index) {
+        item.order = index;
+      });
+
+      profileContents = ordered;
+      renderCards();
+      syncProfileOrder();
     }
 
     function formatDate(value) {
@@ -632,9 +680,12 @@
         const statusClass = item.isActive ? "active" : "draft";
         const statusLabel = item.isActive ? "Aktif" : "Draft";
         const excerpt = item.content.length > 110 ? item.content.slice(0, 110) + "..." : item.content || "-";
-        return '<article class="card">'
+        return '<article class="card" data-profile-id="' + escapeHtml(item.id) + '">'
           + '<div class="card-head">'
+          + '<div class="card-head-main">'
+          + '<span class="drag-handle" title="Tarik untuk ubah urutan">::</span>'
           + '<h3>' + escapeHtml(item.title) + '</h3>'
+          + '</div>'
           + '<span class="pill ' + statusClass + '">' + statusLabel + '</span>'
           + '</div>'
           + '<p class="meta">Slug: ' + escapeHtml(item.slug) + '</p>'
@@ -650,6 +701,74 @@
           + '</div>'
           + '</article>';
       }).join("");
+
+      cards.querySelectorAll('.card').forEach(function (card) {
+        const profileId = card.getAttribute('data-profile-id') || "";
+        const handle = card.querySelector('.drag-handle');
+        if (!handle || !profileId) {
+          return;
+        }
+
+        handle.addEventListener('mouseenter', function () {
+          if (isFilterActive()) {
+            card.setAttribute('draggable', 'false');
+            return;
+          }
+          card.setAttribute('draggable', 'true');
+        });
+
+        handle.addEventListener('mouseleave', function () {
+          card.setAttribute('draggable', 'false');
+        });
+
+        card.addEventListener('dragstart', function (event) {
+          if (isFilterActive()) {
+            event.preventDefault();
+            showNotify("Nonaktifkan search/filter untuk ubah urutan.");
+            return;
+          }
+          if (isSyncingOrder) {
+            event.preventDefault();
+            showNotify("Tunggu proses simpan urutan selesai.");
+            return;
+          }
+          draggingProfileId = profileId;
+          card.classList.add('dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+          }
+        });
+
+        card.addEventListener('dragend', function () {
+          draggingProfileId = "";
+          card.classList.remove('dragging');
+          cards.querySelectorAll('.card').forEach(function (target) {
+            target.classList.remove('drop-target');
+            target.setAttribute('draggable', 'false');
+          });
+        });
+
+        card.addEventListener('dragover', function (event) {
+          if (!draggingProfileId || draggingProfileId === profileId) {
+            return;
+          }
+          event.preventDefault();
+          card.classList.add('drop-target');
+        });
+
+        card.addEventListener('dragleave', function () {
+          card.classList.remove('drop-target');
+        });
+
+        card.addEventListener('drop', function (event) {
+          event.preventDefault();
+          card.classList.remove('drop-target');
+          if (!draggingProfileId || draggingProfileId === profileId) {
+            return;
+          }
+          reorderProfile(draggingProfileId, profileId);
+        });
+      });
     }
 
     function removeProfile(id) {
