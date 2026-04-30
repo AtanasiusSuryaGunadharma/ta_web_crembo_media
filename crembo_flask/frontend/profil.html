@@ -210,6 +210,7 @@
 			color: var(--ink-secondary);
 		}
 		.nav-dropdown-menu a:hover { background: var(--hover); color: var(--primary); }
+		.nav-dropdown-menu a.active { background: rgba(128, 0, 0, 0.08); color: var(--primary); font-weight: 700; }
 
 		.right-tools { display: flex; align-items: center; gap: 10px; }
 
@@ -790,67 +791,180 @@
 		const breadcrumbCurrent = document.getElementById("breadcrumbCurrent");
 		const profileNavItem = mainNav ? mainNav.querySelector(".nav-dropdown") : null;
 		const profileNavLink = profileNavItem ? profileNavItem.querySelector(".profile-parent-link") : null;
+		const PROFILE_API_URL = "/api/profiles";
 
-		const PROFILE_STORAGE_KEY = "crembo-profile-menu";
-
-		const defaultProfileItems = [
-			{ id: "sejarah", label: "Sejarah", title: "Sejarah Singkat Crembo", paragraphs: ["Crew Multimedia Baciro dibentuk untuk mendukung pelayanan liturgi dengan fokus pada siaran, dokumentasi, dan distribusi informasi digital.", "Dalam perjalanannya, tim ini berkembang dari layanan dokumentasi sederhana menjadi unit multimedia terstruktur yang melayani agenda mingguan dan perayaan besar."] },
-			{ id: "tentang-crembo", label: "Tentang Crembo", title: "Profil Singkat Crew Multimedia Baciro", paragraphs: ["Crew Multimedia Baciro adalah tim pelayanan multimedia yang mendukung pelaksanaan kegiatan liturgi dan agenda komunitas melalui pengelolaan siaran, dokumentasi visual, dan manajemen konten informasi.", "Konten deskripsi pada area ini dapat dikelola dari panel admin agar pengurus bisa memperbarui informasi profil secara mandiri."] },
-			{ id: "struktur", label: "Struktur", title: "Struktur Organisasi Pelayanan", paragraphs: ["Struktur pelayanan terdiri dari koordinator, tim operator, kameramen, editor konten, serta tim dukungan teknis sesuai kebutuhan pelayanan.", "Susunan ini dapat berubah mengikuti periode pelayanan dan kebijakan pengurus."] },
-			{ id: "visi-misi", label: "Visi & Misi", title: "Visi dan Misi Crembo", paragraphs: ["Visi Crembo adalah menghadirkan pelayanan multimedia yang andal, rapi, dan berdampak bagi umat.", "Misinya meliputi peningkatan kompetensi tim, standarisasi alur produksi, dan penguatan dokumentasi digital untuk kebutuhan komunitas."] }
+		const fallbackProfileItems = [
+			{ id: "sejarah", label: "Sejarah", title: "Sejarah Singkat Crembo", description: "<p>Crew Multimedia Baciro dibentuk untuk mendukung pelayanan liturgi dengan fokus pada siaran, dokumentasi, dan distribusi informasi digital.</p><p>Dalam perjalanannya, tim ini berkembang dari layanan dokumentasi sederhana menjadi unit multimedia terstruktur yang melayani agenda mingguan dan perayaan besar.</p>", order: 1, active: true },
+			{ id: "tentang-crembo", label: "Tentang Crembo", title: "Profil Singkat Crew Multimedia Baciro", description: "<p>Crew Multimedia Baciro adalah tim pelayanan multimedia yang mendukung pelaksanaan kegiatan liturgi dan agenda komunitas melalui pengelolaan siaran, dokumentasi visual, dan manajemen konten informasi.</p><p>Konten deskripsi pada area ini dapat dikelola dari panel admin agar pengurus bisa memperbarui informasi profil secara mandiri.</p>", order: 2, active: true },
+			{ id: "struktur", label: "Struktur", title: "Struktur Organisasi Pelayanan", description: "<p>Struktur pelayanan terdiri dari koordinator, tim operator, kameramen, editor konten, serta tim dukungan teknis sesuai kebutuhan pelayanan.</p><p>Susunan ini dapat berubah mengikuti periode pelayanan dan kebijakan pengurus.</p>", order: 3, active: true },
+			{ id: "visi-misi", label: "Visi & Misi", title: "Visi dan Misi Crembo", description: "<p>Visi Crembo adalah menghadirkan pelayanan multimedia yang andal, rapi, dan berdampak bagi umat.</p><p>Misinya meliputi peningkatan kompetensi tim, standarisasi alur produksi, dan penguatan dokumentasi digital untuk kebutuhan komunitas.</p>", order: 4, active: true }
 		];
+
+		let profileItems = [];
+		let activeProfileId = "";
 
 		function slugify(value) {
 			return String(value || "").trim().toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 		}
 
-		function normalizeProfileItem(item) {
-			if (typeof item === "string") {
-				const id = slugify(item);
-				return { id: id || "profil", label: item, title: item, paragraphs: ["Konten untuk kategori ini dapat diatur dari panel admin."] };
+		function escapeHtml(value) {
+			return String(value || "")
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/\"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+		}
+
+		function renderDescription(value) {
+			const raw = String(value || "").trim();
+			if (!raw) {
+				return "<p>Konten profil belum tersedia.</p>";
 			}
-			const label = item && item.label ? String(item.label) : "Profil";
-			const id = item && item.id ? slugify(item.id) : slugify(label);
-			const paragraphs = Array.isArray(item && item.paragraphs) ? item.paragraphs.map(function(text) { return String(text); }).filter(Boolean) : ["Konten untuk kategori ini dapat diatur dari panel admin."];
-			return { id: id || "profil", label: label, title: item && item.title ? String(item.title) : label, paragraphs: paragraphs };
+
+			if (/<[a-z][\s\S]*>/i.test(raw)) {
+				return raw;
+			}
+
+			return raw.split(/\n+/).map(function (text) {
+				const clean = text.trim();
+				return clean ? "<p>" + escapeHtml(clean) + "</p>" : "";
+			}).filter(Boolean).join("");
 		}
 
-		function readProfileItems() {
-			try {
-				const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-				if (!raw) return defaultProfileItems;
-				const parsed = JSON.parse(raw);
-				if (!Array.isArray(parsed) || parsed.length === 0) return defaultProfileItems;
-				return parsed.map(normalizeProfileItem);
-			} catch (err) { return defaultProfileItems; }
+		function normalizeProfileItem(item) {
+			if (!item) {
+				return null;
+			}
+
+			if (typeof item === "string") {
+				const title = item.trim();
+				if (!title) {
+					return null;
+				}
+				return {
+					id: slugify(title) || "profil",
+					label: title,
+					title: title,
+					description: "",
+					order: 0,
+					active: true
+				};
+			}
+
+			const title = String(item.title || item.label || "Profil").trim();
+			const id = String(item.id || "").trim() || slugify(title) || "profil";
+			return {
+				id: id,
+				label: title,
+				title: title,
+				description: String(item.description || "").trim(),
+				order: Number.isFinite(Number(item.order)) ? Number(item.order) : 0,
+				active: typeof item.active === "boolean" ? item.active : true
+			};
 		}
 
-		const profileItems = readProfileItems();
+		function getVisibleProfileItems() {
+			const visibleItems = profileItems.filter(function (item) {
+				return item.active !== false;
+			});
+			return visibleItems.length ? visibleItems : profileItems;
+		}
 
 		function getSelectedProfileId() {
 			const params = new URLSearchParams(window.location.search);
-			const requested = slugify(params.get("profil") || "");
-			const exists = profileItems.some(function(item) { return item.id === requested; });
-			return exists ? requested : profileItems[0].id;
+			const requested = String(params.get("profil") || params.get("id") || "").trim();
+			const items = getVisibleProfileItems();
+			if (!items.length) {
+				return "";
+			}
+
+			if (requested) {
+				const matched = items.find(function (item) {
+					return item.id === requested || slugify(item.label) === slugify(requested) || slugify(item.title) === slugify(requested);
+				});
+				if (matched) {
+					return matched.id;
+				}
+			}
+
+			return items[0].id;
+		}
+
+		function closeMobileMenu() {
+			if (mainNav && mainNav.classList.contains("open")) {
+				mainNav.classList.remove("open");
+				menuToggle.setAttribute("aria-expanded", "false");
+			}
+			if (profileNavItem && profileNavLink) {
+				profileNavItem.classList.remove("open");
+				profileNavLink.setAttribute("aria-expanded", "false");
+			}
 		}
 
 		function renderProfileMenu(activeId) {
-			profileDropdownList.innerHTML = profileItems.map(function(item) {
-				const activeClass = item.id === activeId ? "active" : "";
-				return '<a class="' + activeClass + '" href="profil.html?profil=' + encodeURIComponent(item.id) + '">' + item.label + '</a>';
-			}).join("");
+			const items = getVisibleProfileItems();
+			const currentId = activeId || (items[0] && items[0].id) || "";
 
-			profileCategoryList.innerHTML = profileItems.map(function(item) {
-				const activeClass = item.id === activeId ? "active" : "";
-				return '<li><a class="' + activeClass + '" href="profil.html?profil=' + encodeURIComponent(item.id) + '">' + item.label + '</a></li>';
-			}).join("");
+			if (profileDropdownList) {
+				profileDropdownList.innerHTML = items.map(function (item) {
+					const activeClass = item.id === currentId ? "active" : "";
+					return '<a class="' + activeClass + '" href="profil.html?profil=' + encodeURIComponent(item.id) + '">' + escapeHtml(item.label) + '</a>';
+				}).join("");
+
+				profileDropdownList.querySelectorAll("a").forEach(function (link) {
+					link.addEventListener("click", closeMobileMenu);
+				});
+			}
+
+			if (profileCategoryList) {
+				profileCategoryList.innerHTML = items.map(function (item) {
+					const activeClass = item.id === currentId ? "active" : "";
+					return '<li><a class="' + activeClass + '" href="profil.html?profil=' + encodeURIComponent(item.id) + '">' + escapeHtml(item.label) + '</a></li>';
+				}).join("");
+			}
 		}
 
 		function renderProfileContent(activeId) {
-			const current = profileItems.find(function(item) { return item.id === activeId; }) || profileItems[0];
-			profileTitle.textContent = current.title;
-			breadcrumbCurrent.textContent = current.label;
-			profileContent.innerHTML = current.paragraphs.map(function(text) { return '<p>' + text + '</p>'; }).join("");
+			const items = getVisibleProfileItems();
+			const current = items.find(function (item) {
+				return item.id === activeId;
+			}) || items[0];
+
+			if (!current) {
+				profileTitle.textContent = "Profil";
+				breadcrumbCurrent.textContent = "Profil";
+				profileContent.innerHTML = "<p>Belum ada profil yang dipublikasikan.</p>";
+				return;
+			}
+
+			profileTitle.textContent = current.title || current.label || "Profil";
+			breadcrumbCurrent.textContent = current.label || current.title || "Profil";
+			profileContent.innerHTML = renderDescription(current.description);
+		}
+
+		async function loadProfiles() {
+			try {
+				const response = await fetch(PROFILE_API_URL, { credentials: "same-origin" });
+				if (!response.ok) {
+					throw new Error("Gagal memuat profil");
+				}
+
+				const payload = await response.json();
+				const normalized = Array.isArray(payload)
+					? payload.map(normalizeProfileItem).filter(Boolean).sort(function (left, right) {
+						return (left.order || 0) - (right.order || 0);
+					})
+					: [];
+
+				profileItems = normalized.length ? normalized : fallbackProfileItems.map(normalizeProfileItem).filter(Boolean);
+			} catch (error) {
+				profileItems = fallbackProfileItems.map(normalizeProfileItem).filter(Boolean);
+			}
+
+			activeProfileId = getSelectedProfileId();
+			renderProfileMenu(activeProfileId);
+			renderProfileContent(activeProfileId);
 		}
 
 		function syncStickyOffset() {
@@ -864,9 +978,8 @@
 		menuToggle.addEventListener("click", function () {
 			const isOpen = mainNav.classList.toggle("open");
 			menuToggle.setAttribute("aria-expanded", String(isOpen));
-			if (!isOpen && profileNavItem && profileNavLink) {
-				profileNavItem.classList.remove("open");
-				profileNavLink.setAttribute("aria-expanded", "false");
+			if (!isOpen) {
+				closeMobileMenu();
 			}
 		});
 
@@ -880,108 +993,32 @@
 			});
 		}
 
-		mainNav.querySelectorAll("a").forEach(function (link) {
-			link.addEventListener("click", function () {
-				if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
-					return;
-				}
-				if (mainNav.classList.contains("open")) {
-					mainNav.classList.remove("open");
-					menuToggle.setAttribute("aria-expanded", "false");
-					if (profileNavItem && profileNavLink) {
-						profileNavItem.classList.remove("open");
-						profileNavLink.setAttribute("aria-expanded", "false");
+		if (mainNav) {
+			mainNav.querySelectorAll("a").forEach(function (link) {
+				link.addEventListener("click", function () {
+					if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+						return;
 					}
-				}
+					if (mainNav.classList.contains("open")) {
+						closeMobileMenu();
+					}
+				});
 			});
-		});
+		}
 
 		window.addEventListener("resize", function () {
-			if (!window.matchMedia("(max-width: 760px)").matches && profileNavItem && profileNavLink) {
-				profileNavItem.classList.remove("open");
-				profileNavLink.setAttribute("aria-expanded", "false");
+			if (!window.matchMedia("(max-width: 760px)").matches) {
+				closeMobileMenu();
 			}
 		});
 
-		const activeProfileId = getSelectedProfileId();
-		renderProfileMenu(activeProfileId);
-		renderProfileContent(activeProfileId);
-
-		searchForm.addEventListener("submit", function(event) {
+		searchForm.addEventListener("submit", function (event) {
 			event.preventDefault();
 			const keyword = searchInput.value.trim();
 			window.location.href = "search.html?q=" + encodeURIComponent(keyword);
 		});
 
-		(function() {
-			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";
-			const DEFAULT_PROFILE_MENU = [
-				{ id: "sejarah", label: "Sejarah" },
-				{ id: "tentang-crembo", label: "Tentang Crembo" },
-				{ id: "struktur", label: "Struktur" },
-				{ id: "visi-misi", label: "Visi & Misi" }
-			];
-
-			function readProfileMenuItems() {
-				try {
-					const raw = localStorage.getItem(PROFILE_MENU_STORAGE_KEY);
-					if (!raw) return DEFAULT_PROFILE_MENU;
-					const parsed = JSON.parse(raw);
-					if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PROFILE_MENU;
-					return parsed.map(function(item) {
-						if (typeof item === "string") return { id: item.toLowerCase().replace(/\s+/g, "-"), label: item };
-						return { id: item && item.id ? String(item.id) : String((item && item.label) || "profil").toLowerCase().replace(/\s+/g, "-"), label: item && item.label ? String(item.label) : "Profil" };
-					});
-				} catch (err) { return DEFAULT_PROFILE_MENU; }
-			}
-
-			function enhanceProfileHoverMenu() {
-				const navList = document.querySelector(".nav-row nav ul") || document.querySelector("nav ul");
-				if (!navList) return;
-				const profileAnchor = navList.querySelector('a[href="profil.html"]');
-				if (!profileAnchor) return;
-				const profileItem = profileAnchor.closest("li");
-				if (!profileItem || profileItem.querySelector(".profile-hover-menu, .nav-dropdown-menu")) return;
-
-				const menuItems = readProfileMenuItems();
-				profileItem.style.position = "relative";
-				profileItem.classList.add("nav-dropdown-enhanced");
-
-				if (!profileAnchor.hasAttribute("data-profile-menu-label")) {
-					profileAnchor.setAttribute("data-profile-menu-label", "true");
-				}
-
-				const dropdown = document.createElement("div");
-				dropdown.className = "profile-hover-menu";
-				Object.assign(dropdown.style, { position: "absolute", top: "calc(100% + 4px)", left: "0", minWidth: "200px", border: "1px solid rgba(128,0,0,0.15)", background: "#fff", boxShadow: "0 10px 30px rgba(128,0,0,0.12)", padding: "6px", display: "none", zIndex: "1300", borderRadius: "12px" });
-
-				dropdown.innerHTML = menuItems.map(function(item) {
-					return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;margin-bottom:2px;border-radius:8px;color:#4a4a4a;transition:all 0.2s;">' + item.label + '</a>';
-				}).join("");
-
-				dropdown.addEventListener("mouseover", function(event) {
-					const link = event.target.closest("a");
-					if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; }
-				});
-				dropdown.addEventListener("mouseout", function(event) {
-					const link = event.target.closest("a");
-					if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; }
-				});
-
-				profileItem.appendChild(dropdown);
-
-				dropdown.querySelectorAll("a").forEach(function (link) {
-					link.addEventListener("click", function () {
-						dropdown.style.display = "none";
-					});
-				});
-
-				profileItem.addEventListener("mouseenter", function() { dropdown.style.display = "block"; });
-				profileItem.addEventListener("mouseleave", function() { dropdown.style.display = "none"; });
-			}
-
-			enhanceProfileHoverMenu();
-		})();
+		loadProfiles();
 	</script>
 </body>
 </html>

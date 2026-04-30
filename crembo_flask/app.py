@@ -724,6 +724,42 @@ def load_carousel_slides():
     except Exception:
         return []
 
+
+def load_public_profile_menu_from_db() -> list[dict[str, str]]:
+    default_profile_menu = [
+        {"id": "sejarah", "label": "Sejarah"},
+        {"id": "tentang-crembo", "label": "Tentang Crembo"},
+        {"id": "struktur", "label": "Struktur"},
+        {"id": "visi-misi", "label": "Visi & Misi"},
+    ]
+
+    try:
+        ensure_auth_schema()
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT `id`, `title`
+            FROM `organization_profiles`
+            WHERE COALESCE(`is_visible`, 1) = 1
+            ORDER BY `order_index` ASC, `title` ASC
+            """
+        )
+        rows = cursor.fetchall() or []
+        cursor.close()
+        conn.close()
+
+        profile_menu = []
+        for row in rows:
+            profile_id = (row.get("id") or "").strip()
+            title = (row.get("title") or "").strip()
+            if profile_id and title:
+                profile_menu.append({"id": profile_id, "label": title})
+
+        return profile_menu or default_profile_menu
+    except Exception:
+        return default_profile_menu
+
 def build_home_page_data() -> dict[str, object]:
     # Ambil slide dari database
     db_slides = load_carousel_slides()
@@ -763,12 +799,7 @@ def build_home_page_data() -> dict[str, object]:
         "gmapsUrl": load_gmaps_url(),
         "bigMassSchedules": [],
         "instagramAutoSeconds": 4,
-        "profileMenu": [
-            {"id": "sejarah", "label": "Sejarah"},
-            {"id": "tentang-crembo", "label": "Tentang Crembo"},
-            {"id": "struktur", "label": "Struktur"},
-            {"id": "visi-misi", "label": "Visi & Misi"},
-        ],
+        "profileMenu": load_public_profile_menu_from_db(),
     }
 
 
