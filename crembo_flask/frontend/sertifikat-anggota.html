@@ -6,15 +6,15 @@
   <title>Unduh Sertifikat Anggota - Crembo Media</title>
   <style>
     :root {
-      --bg: #f2f5fb;
-      --line: #d8dee9;
+      --bg: #f5f0eb;
+      --line: #e5e7eb;
       --ink: #111827;
-      --muted: #5b6473;
-      --deep-1: #202020;
-      --deep-2: #2d2d2d;
-      --deep-3: #141414;
-      --radius: 14px;
-      --shadow: 0 10px 24px rgba(27, 43, 94, 0.16);
+      --muted: #6b7280;
+      --primary: #800000;
+      --primary-dark: #5c0000;
+      --primary-deeper: #3a0000;
+      --radius: 12px;
+      --shadow: 0 4px 14px rgba(128, 0, 0, 0.08);
     }
 
     * { box-sizing: border-box; }
@@ -34,10 +34,10 @@
     }
 
     .sidebar {
-      background: linear-gradient(180deg, var(--deep-1) 0%, var(--deep-2) 52%, var(--deep-3) 100%);
+      background: linear-gradient(180deg, var(--primary-deeper) 0%, var(--primary-dark) 52%, var(--primary) 100%);
       color: #f8fbff;
       padding: 14px 12px 16px;
-      border-right: 1px solid #26408f;
+      border-right: 1px solid var(--primary-deeper);
       position: sticky;
       top: 0;
       height: 100vh;
@@ -66,7 +66,7 @@
     }
 
     .brand strong { font-size: 1rem; }
-    .brand small { font-size: 0.79rem; color: #dbe7ff; }
+    .brand small { font-size: 0.79rem; color: #facc15; }
 
     .account {
       display: flex;
@@ -89,6 +89,7 @@
       border: 1px solid rgba(255, 255, 255, 0.4);
       font-size: 0.9rem;
       font-weight: 700;
+      color: #facc15;
     }
 
     .account-text {
@@ -150,6 +151,7 @@
       background: rgba(255, 255, 255, 0.2);
       border-color: rgba(255, 255, 255, 0.55);
       font-weight: 700;
+      color: #facc15;
     }
 
     .side-bottom {
@@ -175,7 +177,7 @@
     }
 
     .dashboard-headline-bar {
-      background: linear-gradient(135deg, var(--deep-3), var(--deep-2));
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
       border-radius: var(--radius);
       padding: 14px 20px;
       display: flex;
@@ -205,7 +207,7 @@
 
     .topbar {
       border: 1px solid transparent;
-      background: linear-gradient(135deg, var(--deep-3), var(--deep-2));
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
       border-radius: var(--radius);
       padding: 14px 18px;
       display: flex;
@@ -263,7 +265,7 @@
       max-width: 100%;
     }
 
-    .chip strong { color: #f8c15c; }
+    .chip strong { color: #facc15; }
 
     .content {
       padding: 0;
@@ -300,9 +302,9 @@
 
     .btn {
       text-decoration: none;
-      border: 1px solid #1f2937;
+      border: 1px solid var(--primary-deeper);
       border-radius: 9px;
-      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-deeper) 100%);
       color: #fff;
       font-weight: 700;
       padding: 8px 12px;
@@ -312,8 +314,8 @@
 
     .btn.ghost {
       background: #fff;
-      color: #1f2937;
-      border-color: #9ca3af;
+      color: var(--primary-deeper);
+      border-color: #cbd5e1;
       font-weight: 600;
     }
 
@@ -321,6 +323,7 @@
       padding: 14px;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      background: #f8f9fa;
     }
 
     .certificate {
@@ -508,7 +511,6 @@
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
@@ -522,7 +524,7 @@
         <div class="avatar" id="memberAvatar">AG</div>
         <div class="account-text">
           <strong id="memberName">Anggota</strong>
-          <small>Role: Anggota Multimedia</small>
+          <small id="sidebarRole">Role: Anggota</small>
         </div>
       </div>
 
@@ -530,15 +532,15 @@
         <button class="menu-toggle" type="button">Ringkasan <span>-</span></button>
         <div class="menu-items">
           <a class="menu-link" href="dashboard-anggota.html">Dashboard Utama</a>
-          <a class="menu-link" href="profil-anggota.html">Profil Anggota</a>
+          <a class="menu-link" href="profil.html">Profil Anggota</a>
           <a class="menu-link active" href="sertifikat-anggota.html">Unduh Sertifikat Anggota</a>
           <a class="menu-link" href="log-aktivitas.html?role=anggota">Log Aktivitas Saya</a>
         </div>
       </div>
 
       <div class="side-bottom">
-        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
-        <a class="side-action" href="login.html">Keluar</a>
+        <a class="side-action" href="dashboard-anggota.html">Kembali ke Dashboard Utama</a>
+        <a class="side-action" href="/logout">Keluar</a>
       </div>
     </aside>
     <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
@@ -549,8 +551,8 @@
         <h1>Unduh Sertifikat Anggota</h1>
         <div class="head-meta">
           <span id="liveDateTime">-</span>
-          <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <a class="world-link" href="home.html?session=active" style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.14); color:#fff; text-decoration:none;" title="Kembali ke Home">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:18px;height:18px;">
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
               <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
               <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
@@ -576,12 +578,11 @@
           <header class="panel-head">
             <div>
               <h2>Cetak Sertifikat Keanggotaan</h2>
-              <p class="helper">Nama anggota dan tanggal daftar diambil otomatis dari data akun sistem.</p>
+              <p class="helper">Nama anggota diambil otomatis dari data akun sistem, dan tanggal terdaftar menggunakan tanggal hari ini.</p>
             </div>
             <div class="btn-row">
               <button id="downloadPdfBtn" class="btn" type="button">Download PDF</button>
               <button id="downloadJpgBtn" class="btn ghost" type="button">Download JPG</button>
-              <a class="btn ghost" href="dashboard-anggota.html">Kembali Dashboard</a>
             </div>
           </header>
 
@@ -599,10 +600,10 @@
 
               <div class="cert-content">
                 Diberikan kepada:
-                <div id="certMemberName" class="member-name">ANGGOTA CREMBO</div>
+                <div id="certMemberName" class="member-name">Memuat...</div>
                 <div>
                   sebagai anggota aktif Crembo Media
-                  <br>sejak terdaftar pada <strong id="certRegisteredDate">-</strong>
+                  <!-- <br><strong id="certRegisteredDate">-</strong> -->
                 </div>
 
                 <div class="cert-meta">
@@ -613,12 +614,12 @@
 
               <div class="sign-grid">
                 <div class="sign-card">
-                  <div class="sign-box"><img id="ketuaSignPreview" alt="Tanda tangan ketua"></div>
+                  <div class="sign-box"><img id="ketuaSignPreview" alt="Tanda tangan ketua" crossorigin="anonymous"></div>
                   <strong id="ketuaNameText">Ketua Crembo Media</strong>
                   <div>Ketua Crembo Media</div>
                 </div>
                 <div class="sign-card">
-                  <div class="sign-box"><img id="pembinaSignPreview" alt="Tanda tangan pembina"></div>
+                  <div class="sign-box"><img id="pembinaSignPreview" alt="Tanda tangan pembina" crossorigin="anonymous"></div>
                   <strong id="pembinaNameText">Pembina Crembo Media</strong>
                   <div>Pembina Crembo Media</div>
                 </div>
@@ -632,30 +633,41 @@
   </div>
 
   <script>
-    const CERT_SETTINGS_KEY = "crembo-member-certificate-settings";
-    const MEMBER_STORAGE_KEY = "crembo-members";
-    const SESSION_KEY = "crembo-login-session";
+    // Ambil Data Session Server
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const sessionUser = window.CREMBO_CURRENT_USER || {};
     const CERT_LOGO_SRC = "logo crembo hitam.png";
 
+    // Setup Teks Sesuai User Aktif
+    const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
+    const memberRole = sessionUser.role === 'super_admin' ? 'Super Admin' : (sessionUser.role === 'admin' ? 'Admin' : 'Anggota');
+    
+    // Sidebar
+    document.getElementById("memberName").textContent = displayName;
+    document.getElementById("sidebarRole").textContent = "Role: " + memberRole;
+    document.getElementById("memberAvatar").textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
+
+    // HTML Elements Sertifikat
     const certMemberName = document.getElementById("certMemberName");
-    const certRegisteredDate = document.getElementById("certRegisteredDate");
+    // const certRegisteredDate = document.getElementById("certRegisteredDate");
     const certIssueDate = document.getElementById("certIssueDate");
     const certNumber = document.getElementById("certNumber");
-    const memberName = document.getElementById("memberName");
-    const memberAvatar = document.getElementById("memberAvatar");
     const registeredDateLabel = document.getElementById("registeredDateLabel");
-    const liveDateTime = document.getElementById("liveDateTime");
-    const sidebar = document.getElementById("sidebar");
-    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-    const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
+    
     const ketuaNameText = document.getElementById("ketuaNameText");
     const pembinaNameText = document.getElementById("pembinaNameText");
     const ketuaSignPreview = document.getElementById("ketuaSignPreview");
     const pembinaSignPreview = document.getElementById("pembinaSignPreview");
+    
     const statusBox = document.getElementById("statusBox");
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
     const downloadJpgBtn = document.getElementById("downloadJpgBtn");
+
+    // UI Toggles
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
 
     menuGroups.forEach(function (group) {
       const btn = group.querySelector(".menu-toggle");
@@ -663,9 +675,7 @@
       btn.addEventListener("click", function () {
         group.classList.toggle("open");
         const mark = btn.querySelector("span");
-        if (mark) {
-          mark.textContent = group.classList.contains("open") ? "-" : "+";
-        }
+        if (mark) mark.textContent = group.classList.contains("open") ? "-" : "+";
       });
     });
 
@@ -676,50 +686,17 @@
       document.body.style.overflow = isOpen ? "hidden" : "";
     }
 
-    mobileMenuBtn.addEventListener("click", function () {
-      setSidebarOpen(!sidebar.classList.contains("show"));
-    });
-
-    sidebarBackdrop.addEventListener("click", function () {
-      setSidebarOpen(false);
-    });
-
-    document.querySelectorAll(".sidebar a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        if (window.matchMedia("(max-width: 1080px)").matches) {
-          setSidebarOpen(false);
-        }
-      });
-    });
-
-    function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
-    }
+    mobileMenuBtn.addEventListener("click", () => setSidebarOpen(!sidebar.classList.contains("show")));
+    sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
 
     function showStatus(message) {
       statusBox.textContent = message;
-    }
-
-    function formatDateLong(value) {
-      if (!value) {
-        return "-";
-      }
-      const parsed = new Date(value);
-      if (Number.isNaN(parsed.getTime())) {
-        return "-";
-      }
-      return parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
     }
 
     function updateLiveDateTime() {
       const now = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-
       const day = dayNames[now.getDay()];
       const date = String(now.getDate()).padStart(2, "0");
       const month = monthNames[now.getMonth()];
@@ -727,94 +704,82 @@
       const hour = String(now.getHours()).padStart(2, "0");
       const minute = String(now.getMinutes()).padStart(2, "0");
       const second = String(now.getSeconds()).padStart(2, "0");
-
-      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
 
-    function toUpperName(value) {
-      return String(value || "ANGGOTA CREMBO").trim().toUpperCase();
-    }
+    // Persiapan Data Sertifikat
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    const cleanId = String(sessionUser.user_id || "UMUM").toUpperCase();
 
-    function normalizeDigits(value) {
-      return String(value || "").replace(/\D+/g, "");
-    }
+    let certData = {
+        memberName: displayName.toUpperCase(),
+        registeredDateText: dateStr, // Tanggal hari ini
+        issueDateText: dateStr, // Tanggal hari ini
+        certificateNumber: `CRM/SRT/${today.getFullYear()}/${cleanId}`,
+        ketuaName: "Ketua Crembo Media",
+        pembinaName: "Pembina Crembo Media",
+        ketuaSignDataUrl: "",
+        pembinaSignDataUrl: ""
+    };
 
-    function readSession() {
-      const raw = localStorage.getItem(SESSION_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      return parsed && typeof parsed === "object" ? parsed : {};
-    }
+    function renderPreview(data) {
+      certMemberName.textContent = data.memberName;
+      // certRegisteredDate.textContent = data.registeredDateText;
+      certIssueDate.textContent = data.issueDateText;
+      certNumber.textContent = data.certificateNumber;
+      registeredDateLabel.textContent = "Terdaftar: " + data.registeredDateText;
 
-    function readMembers() {
-      const raw = localStorage.getItem(MEMBER_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      return Array.isArray(parsed) ? parsed : [];
-    }
+      ketuaNameText.textContent = data.ketuaName;
+      pembinaNameText.textContent = data.pembinaName;
 
-    function findMember(session, members) {
-      if (!members.length) {
-        return null;
+      if (data.ketuaSignDataUrl) {
+        ketuaSignPreview.src = data.ketuaSignDataUrl;
+        ketuaSignPreview.classList.add("show");
+      } else {
+        ketuaSignPreview.removeAttribute("src");
+        ketuaSignPreview.classList.remove("show");
       }
 
-      const byId = String(session.memberId || "").trim();
-      if (byId) {
-        const matchedById = members.find(function (member) { return String(member.id || "") === byId; });
-        if (matchedById) {
-          return matchedById;
+      if (data.pembinaSignDataUrl) {
+        pembinaSignPreview.src = data.pembinaSignDataUrl;
+        pembinaSignPreview.classList.add("show");
+      } else {
+        pembinaSignPreview.removeAttribute("src");
+        pembinaSignPreview.classList.remove("show");
+      }
+    }
+
+    async function loadConfig() {
+        showStatus("Memuat pengaturan sertifikat dari server database...");
+        try {
+            const res = await fetch("/api/sertifikat/config");
+            const data = await res.json();
+            
+            certData.ketuaName = data.ketuaName || "Ketua Crembo Media";
+            certData.pembinaName = data.pembinaName || "Pembina Crembo Media";
+            certData.ketuaSignDataUrl = data.ketuaSignUrl || "";
+            certData.pembinaSignDataUrl = data.pembinaSignUrl || "";
+            
+            renderPreview(certData);
+            showStatus("Sertifikat siap diunduh.");
+        } catch(e) {
+            console.error(e);
+            showStatus("Gagal memuat konfigurasi. Menggunakan format default.");
+            renderPreview(certData);
         }
-      }
-
-      const identifier = String(session.identifier || "").trim().toLowerCase();
-      const sessionName = String(session.fullName || "").trim().toLowerCase();
-      const identifierDigits = normalizeDigits(identifier);
-
-      return members.find(function (member) {
-        const name = String(member && (member.name || member.fullName) ? (member.name || member.fullName) : "").trim().toLowerCase();
-        const email = String(member && member.email ? member.email : "").trim().toLowerCase();
-        const phoneDigits = normalizeDigits(member && member.phone ? member.phone : "");
-
-        return (sessionName && name === sessionName)
-          || (identifier && email === identifier)
-          || (identifier && name === identifier)
-          || (identifierDigits && phoneDigits && identifierDigits === phoneDigits);
-      }) || null;
     }
 
-    function readSettings() {
-      const raw = localStorage.getItem(CERT_SETTINGS_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      if (!parsed || typeof parsed !== "object") {
-        return {
-          ketuaName: "Ketua Crembo Media",
-          pembinaName: "Pembina Crembo Media",
-          ketuaSignDataUrl: "",
-          pembinaSignDataUrl: ""
-        };
-      }
-      return {
-        ketuaName: String(parsed.ketuaName || "Ketua Crembo Media"),
-        pembinaName: String(parsed.pembinaName || "Pembina Crembo Media"),
-        ketuaSignDataUrl: String(parsed.ketuaSignDataUrl || ""),
-        pembinaSignDataUrl: String(parsed.pembinaSignDataUrl || "")
-      };
-    }
-
-    function makeCertNumber(memberId, registeredAt) {
-      const year = new Date(registeredAt || Date.now()).getFullYear();
-      const cleanId = String(memberId || "anggota").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-      return "CRM/SRT/" + year + "/" + (cleanId || "UMUM");
-    }
-
-    function loadImage(dataUrl) {
+    function loadImage(url) {
       return new Promise(function (resolve) {
-        if (!dataUrl) {
-          resolve(null);
-          return;
-        }
+        if (!url) { resolve(null); return; }
         const img = new Image();
+        img.crossOrigin = "Anonymous"; // Hindari error canvas taint jika URL luar
         img.onload = function () { resolve(img); };
         img.onerror = function () { resolve(null); };
-        img.src = dataUrl;
+        img.src = url;
       });
     }
 
@@ -871,7 +836,7 @@
 
       ctx.font = "800 62px Segoe UI";
       ctx.fillStyle = "#111827";
-      ctx.fillText(toUpperName(data.memberName), canvas.width / 2, 512);
+      ctx.fillText(data.memberName, canvas.width / 2, 512);
       ctx.strokeStyle = "#64748b";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -893,9 +858,7 @@
       const pembinaImg = await loadImage(data.pembinaSignDataUrl);
 
       function drawSignature(image, x, y, w, h) {
-        if (!image) {
-          return;
-        }
+        if (!image) return;
         const ratio = Math.min(w / image.width, h / image.height);
         const dw = image.width * ratio;
         const dh = image.height * ratio;
@@ -943,124 +906,61 @@
       document.body.removeChild(anchor);
     }
 
-    function renderPreview(data) {
-      memberName.textContent = data.memberName;
-      memberAvatar.textContent = data.memberName.split(" ").map(function (word) {
-        return word.charAt(0).toUpperCase();
-      }).slice(0, 2).join("") || "AG";
-
-      certMemberName.textContent = toUpperName(data.memberName);
-      certRegisteredDate.textContent = data.registeredDateText;
-      certIssueDate.textContent = data.issueDateText;
-      certNumber.textContent = data.certificateNumber;
-      registeredDateLabel.textContent = "Terdaftar: " + data.registeredDateText;
-
-      ketuaNameText.textContent = data.ketuaName;
-      pembinaNameText.textContent = data.pembinaName;
-
-      if (data.ketuaSignDataUrl) {
-        ketuaSignPreview.src = data.ketuaSignDataUrl;
-        ketuaSignPreview.classList.add("show");
-      } else {
-        ketuaSignPreview.removeAttribute("src");
-        ketuaSignPreview.classList.remove("show");
-      }
-
-      if (data.pembinaSignDataUrl) {
-        pembinaSignPreview.src = data.pembinaSignDataUrl;
-        pembinaSignPreview.classList.add("show");
-      } else {
-        pembinaSignPreview.removeAttribute("src");
-        pembinaSignPreview.classList.remove("show");
-      }
-    }
-
-    function prepareCertificateData() {
-      const session = readSession();
-      const members = readMembers();
-      const found = findMember(session, members) || {};
-      const settings = readSettings();
-
-      const memberNameValue = String(
-        (found.name || found.fullName || session.fullName || session.identifier || "Anggota Crembo")
-      );
-      const registeredAt = String(
-        (found.registeredAt || found.createdAt || session.registeredAt || session.loginAt || new Date().toISOString())
-      );
-
-      return {
-        memberId: found.id || session.memberId || "anggota",
-        memberName: memberNameValue,
-        registeredAt: registeredAt,
-        registeredDateText: formatDateLong(registeredAt),
-        issueDateText: formatDateLong(new Date().toISOString()),
-        certificateNumber: makeCertNumber(found.id || session.memberId || "anggota", registeredAt),
-        ketuaName: settings.ketuaName,
-        pembinaName: settings.pembinaName,
-        ketuaSignDataUrl: settings.ketuaSignDataUrl,
-        pembinaSignDataUrl: settings.pembinaSignDataUrl
-      };
-    }
-
     async function downloadAsJpg(data) {
       showStatus("Menyiapkan file JPG...");
-      const canvas = await drawCertificateCanvas(data);
-      const fileSafeName = data.memberName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "anggota";
-      downloadFile(dataUrlFromCanvas(canvas, "jpg"), "sertifikat-anggota-" + fileSafeName + ".jpg");
-      showStatus("Download JPG dimulai.");
+      try {
+          const canvas = await drawCertificateCanvas(data);
+          const fileSafeName = data.memberName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "anggota";
+          downloadFile(dataUrlFromCanvas(canvas, "jpg"), "sertifikat-anggota-" + fileSafeName + ".jpg");
+          showStatus("Download JPG dimulai.");
+      } catch (err) {
+          showStatus("Gagal menghasilkan gambar. Periksa koneksi.");
+      }
     }
 
     async function downloadAsPdf(data) {
       showStatus("Menyiapkan PDF untuk dicetak...");
-      const canvas = await drawCertificateCanvas(data);
-      const imageUrl = dataUrlFromCanvas(canvas, "png");
-      const popup = window.open("", "_blank", "width=1200,height=820");
-      if (!popup) {
-        showStatus("Popup diblokir browser. Izinkan popup untuk download PDF.");
-        return;
+      try {
+          const canvas = await drawCertificateCanvas(data);
+          const imageUrl = dataUrlFromCanvas(canvas, "png");
+          const popup = window.open("", "_blank", "width=1200,height=820");
+          if (!popup) {
+            showStatus("Popup diblokir browser. Izinkan popup untuk download PDF.");
+            return;
+          }
+
+          popup.document.write(`
+            <!doctype html>
+            <html>
+            <head>
+              <title>Sertifikat Anggota - ${data.memberName}</title>
+              <style>
+                body { margin: 0; padding: 12px; background: #f3f4f6; font-family: Segoe UI, Tahoma, sans-serif; }
+                img { width: 100%; max-width: 1120px; display: block; margin: 0 auto; border: 1px solid #d1d5db; background: #fff; }
+                @media print {
+                  body { padding: 0; background: #fff; }
+                  img { max-width: none; border: 0; width: 100%; }
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${imageUrl}" alt="Sertifikat anggota">
+              <script>window.onload=function(){window.print();};<\/script>
+            </body>
+            </html>
+          `);
+          popup.document.close();
+          showStatus("Dialog print terbuka. Pilih Save as PDF untuk mengunduh PDF.");
+      } catch (err) {
+          showStatus("Gagal menghasilkan PDF.");
       }
-
-      popup.document.write(
-        `<!doctype html>
-<html>
-<head>
-  <title>Sertifikat Anggota</title>
-  <style>
-    body { margin: 0; padding: 12px; background: #f3f4f6; font-family: Segoe UI, Tahoma, sans-serif; }
-    img { width: 100%; max-width: 1120px; display: block; margin: 0 auto; border: 1px solid #d1d5db; background: #fff; }
-    @media print {
-      body { padding: 0; background: #fff; }
-      img { max-width: none; border: 0; width: 100%; }
-    }
-  </style>
-</head>
-<body>
-  <img src="${imageUrl}" alt="Sertifikat anggota">
-  <script>window.onload=function(){window.print();};<\/script>
-</body>
-</html>`
-      );
-      popup.document.close();
-      showStatus("Dialog print terbuka. Pilih Save as PDF untuk mengunduh PDF.");
     }
 
-    const certData = prepareCertificateData();
-    renderPreview(certData);
-    showStatus("Sertifikat siap diunduh.");
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    // Jalankan config pas halaman dibuka
+    loadConfig();
 
-    downloadJpgBtn.addEventListener("click", function () {
-      downloadAsJpg(certData).catch(function () {
-        showStatus("Terjadi kendala saat menyiapkan JPG.");
-      });
-    });
-
-    downloadPdfBtn.addEventListener("click", function () {
-      downloadAsPdf(certData).catch(function () {
-        showStatus("Terjadi kendala saat menyiapkan PDF.");
-      });
-    });
+    downloadJpgBtn.addEventListener("click", () => downloadAsJpg(certData));
+    downloadPdfBtn.addEventListener("click", () => downloadAsPdf(certData));
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

@@ -10,14 +10,13 @@
     :root {
       --bg: #ececec;
       --panel: #ffffff;
+      --panel-2: #f5f5f5;
       --line: #1f1f1f;
+      --muted: #5b5b5b;
       --text: #111111;
       --side-text: #f4f4f4;
       --radius: 16px;
       --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-      --ok: #116d3f;
-      --warn: #9b5b00;
-      --danger: #b42323;
     }
 
     * { box-sizing: border-box; }
@@ -58,6 +57,19 @@
     .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
     .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
 
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #ededed;
+      color: #0d0d0d;
+      border: 1px solid #0d0d0d;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
     .menu-group {
       border: 1px solid #656565;
       border-radius: 12px;
@@ -75,17 +87,20 @@
       font-weight: 700;
       font-size: 0.88rem;
       padding: 11px 12px;
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .group-items {
-      display: block;
+      display: none;
       border-top: 1px solid #525252;
       padding: 6px;
       background: rgba(255, 255, 255, 0.02);
     }
+
+    .menu-group.open .group-items { display: block; }
 
     .menu-link {
       display: block;
@@ -123,181 +138,121 @@
 
     .main { padding: 16px; }
 
-    main .dashboard-headline-bar {
-      border: 1px solid transparent;
-      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+    .headline {
+      border: 1px solid #cfcfcf;
+      background: #f3f3f3;
       border-radius: 12px;
       padding: 12px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      box-shadow: var(--shadow);
-    }
-
-    main .dashboard-headline-bar h1 {
-      margin: 0;
-      font-size: clamp(1.25rem, 2.2vw, 2.1rem);
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: 0.01em;
-    }
-
-    main .head-meta {
-      display: inline-flex;
-      align-items: center;
       gap: 10px;
-      color: rgba(255, 255, 255, 0.92);
-      font-size: clamp(0.82rem, 1.6vw, 0.98rem);
-      font-weight: 700;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
-    main .head-meta #liveDateTime {
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-      border-radius: 999px;
-      padding: 5px 10px;
+    .headline h2 { margin: 0; font-size: clamp(1.2rem, 2.1vw, 1.9rem); color: var(--text); }
+    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
+
+    .mobile-toggle {
+      display: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      margin-right: 8px;
     }
 
-    main .world-link {
+    .meta-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .world-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       width: 34px;
       height: 34px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
+      border: 1px solid #6b7280;
+      background: #fff;
+      color: #374151;
       text-decoration: none;
     }
 
-    main .world-link:hover {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.5);
+    .world-link:hover {
+      background: #e5e7eb;
     }
 
-    main .world-link svg {
+    .world-link svg {
       width: 18px;
       height: 18px;
     }
 
-    main .topbar {
-      border: 1px solid transparent;
-      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
-      border-radius: var(--radius);
-      padding: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      box-shadow: var(--shadow);
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      position: relative;
-      overflow: hidden;
-    }
-
-    main .topbar::before,
-    main .headline::before {
-      display: none !important;
-      content: none !important;
-    }
-
-    main .headline {
-      margin: 0;
-      font-size: clamp(1.05rem, 2.5vw, 1.5rem);
-      color: #fff;
-      font-weight: 800;
-    }
-
-    main .subhead {
-      margin: 3px 0 0;
-      color: rgba(255, 255, 255, 0.86);
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    main .role-chip {
-      border: 1px solid rgba(255, 255, 255, 0.34);
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
+    .chip {
+      border: 1px solid #1f1f1f;
+      background: #fafafa;
       border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      font-weight: 800;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text);
     }
 
-    .grid {
+    .content-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 16px;
       align-items: start;
     }
 
     .panel {
       border: 2px solid var(--line);
       border-radius: var(--radius);
-      background: #fff;
+      background: var(--panel);
       box-shadow: var(--shadow);
       overflow: hidden;
-      margin-bottom: 12px;
     }
 
     .panel-head {
       padding: 12px 14px;
       border-bottom: 1px solid #c8c8c8;
-      background: #f5f5f5;
+      background: var(--panel-2);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
-    .panel-head h2 {
-      margin: 0;
-      font-size: 1rem;
-    }
+    .panel-head h3 { margin: 0; font-size: 0.98rem; }
 
-    .panel-body {
-      padding: 12px;
-    }
-
-    .status {
-      margin-bottom: 8px;
-      padding: 10px 12px;
-      border: 1px solid #b7b7b7;
-      border-radius: 10px;
-      font-size: 0.84rem;
-      display: none;
-    }
-
-    .status.show { display: block; }
-    .status.ok { border-color: #a9d6b9; background: #eef8ef; color: var(--ok); }
-    .status.warn { border-color: #e3c188; background: #fff8ea; color: var(--warn); }
+    .panel-body { padding: 16px; }
 
     .form-grid {
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field label {
-      font-size: 0.84rem;
-      color: #515151;
-      font-weight: 600;
+    .label {
+      font-size: 0.79rem;
+      color: #374151;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: inline-block;
       text-transform: uppercase;
     }
 
-    input[type="text"],
-    input[type="file"] {
+    input[type="text"], input[type="file"] {
       width: 100%;
       border: 1px solid #bdbdbd;
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       font-size: 0.86rem;
       font-family: inherit;
       background: #fff;
@@ -305,8 +260,8 @@
 
     .file-note {
       margin: 4px 0 0;
-      color: #5e5e5e;
-      font-size: 0.74rem;
+      color: #6b7280;
+      font-size: 0.76rem;
     }
 
     .btn {
@@ -315,13 +270,10 @@
       background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
       color: #fff;
       font-weight: 700;
-      padding: 8px 12px;
+      padding: 9px 16px;
       font-size: 0.82rem;
       cursor: pointer;
       text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .btn.primary {
@@ -336,16 +288,34 @@
       font-weight: 600;
     }
 
-    .btn-row {
-      margin-top: 12px;
+    .inline-actions {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      margin-top: 10px;
     }
 
-    /* ═══════════════════════════════════════════
-       PREVIEW SERTIFIKAT
-       ═══════════════════════════════════════════ */
+    .notify {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 40;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+    .notify.warn { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+
+    /* Preview Sertifikat */
     .cert-preview-wrap {
       width: 100%;
       overflow-x: auto;
@@ -359,7 +329,8 @@
       border-radius: 12px;
       background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
       padding: 16px;
-      min-height: 430px;
+      min-width: 500px;
+      min-height: 400px;
     }
 
     .cert-head {
@@ -378,98 +349,51 @@
       object-fit: contain;
     }
 
-    .cert-head p {
-      margin: 6px 0 0;
-      font-size: 0.78rem;
-      color: #374151;
-    }
-
-    .cert-title {
-      margin: 10px 0 6px;
-      text-align: center;
-      font-size: 1.45rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: #0f172a;
-      text-transform: uppercase;
-    }
-
-    .cert-sub {
-      text-align: center;
-      margin: 0;
-      color: #334155;
-      font-size: 0.88rem;
-    }
-
-    .cert-body {
-      margin-top: 18px;
-      text-align: center;
-      color: #1f2937;
-      font-size: 0.9rem;
-      line-height: 1.7;
-    }
-
-    .cert-member {
-      margin: 8px 0;
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: #111827;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      border-bottom: 1px dashed #64748b;
-      display: inline-block;
-      padding: 0 10px 4px;
+    .cert-head p { margin: 6px 0 0; font-size: 0.78rem; color: #374151; }
+    .cert-title { margin: 10px 0 6px; text-align: center; font-size: 1.45rem; font-weight: 800; letter-spacing: 0.04em; color: #0f172a; text-transform: uppercase; }
+    .cert-sub { text-align: center; margin: 0; color: #334155; font-size: 0.88rem; }
+    .cert-body { margin-top: 18px; text-align: center; color: #1f2937; font-size: 0.9rem; line-height: 1.7; }
+    
+    .cert-member { 
+        margin: 8px 0; 
+        font-size: 1.45rem; 
+        font-weight: 800; 
+        color: #111827; 
+        letter-spacing: 0.03em; 
+        text-transform: uppercase; 
+        border-bottom: 1px dashed #64748b; 
+        display: inline-block; 
+        padding: 0 10px 4px; 
     }
 
     .sign-grid {
       margin-top: 26px;
       display: grid;
-      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
       gap: 18px;
     }
 
-    .sign-card {
-      text-align: center;
-      font-size: 0.8rem;
-      color: #1f2937;
-    }
-
-    .sign-box {
-      height: 68px;
-      border-bottom: 1px solid #334155;
-      display: grid;
-      place-items: end center;
-      margin-bottom: 5px;
-    }
-
-    .sign-box img {
-      max-height: 64px;
-      max-width: 90%;
-      object-fit: contain;
-      display: none;
-    }
-
-    .sign-box img.show {
-      display: block;
-    }
+    .sign-card { text-align: center; font-size: 0.8rem; color: #1f2937; }
+    .sign-box { height: 68px; border-bottom: 1px solid #334155; display: grid; place-items: end center; margin-bottom: 5px; position: relative;}
+    .sign-box img { max-height: 64px; max-width: 90%; object-fit: contain; display: none; }
+    .sign-box img.show { display: block; }
 
     @media (max-width: 1080px) {
-      .layout { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; }
-      .grid { grid-template-columns: 1fr; }
+      .content-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 860px) {
-      .cert-preview {
-        min-width: 600px;
-      }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; position: static; height: auto; }
+      .sidebar.show { display: block; }
+      .mobile-toggle { display: inline-block; }
+      .cert-preview { min-width: 600px; }
     }
 
     @media (max-width: 760px) {
       .main { padding: 10px; }
-      .dashboard-headline-bar, .topbar, .panel-head, .panel-body { padding: 10px; }
-      .btn-row { display: grid; grid-template-columns: 1fr; }
-      .btn-row .btn { width: 100%; }
+      .inline-actions { display: grid; grid-template-columns: 1fr; }
+      .inline-actions .btn { width: 100%; }
     }
   </style>
 </head>
@@ -478,7 +402,8 @@
     <aside id="sidebar" class="sidebar" aria-label="Sidebar admin">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Konfigurasi sertifikat anggota otomatis</p>
+        <p>Halaman khusus pengaturan sertifikat otomatis</p>
+        <span id="roleBadge" class="role-chip">Role: -</span>
       </div>
 
       <div class="menu-group open">
@@ -497,66 +422,64 @@
     </aside>
 
     <main class="main">
-      <header class="dashboard-headline-bar">
-        <h1>Setting Sertifikat Anggota</h1>
-        <div class="head-meta">
-          <span id="liveDateTime">-</span>
+      <header class="headline">
+        <div>
+          <button id="mobileSidebarBtn" class="mobile-toggle" type="button">Menu</button>
+          <h2>Setting Sertifikat Anggota</h2>
+          <p>Admin mengatur pejabat penandatangan dan file tanda tangan. Nama anggota dan tanggal daftar akan diambil otomatis dari data akun masing-masing saat mereka mencetak.</p>
+        </div>
+        <div class="meta-badges">
+          <span id="liveDateTime" class="chip">-</span>
           <a class="world-link" href="home.html?session=active" title="Kembali ke Home">
             <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path><path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path><path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path></svg>
           </a>
         </div>
       </header>
 
-      <header class="topbar">
-        <div>
-          <h2 class="headline">Kelola Format Sertifikat</h2>
-          <p class="subhead">Admin mengatur pejabat penandatangan dan file tanda tangan. Nama anggota dan tanggal daftar akan diambil otomatis dari data akun masing-masing.</p>
-        </div>
-        <span id="roleBadge" class="role-chip">Role: -</span>
-      </header>
-
-      <section class="grid" aria-label="Form dan preview sertifikat">
+      <section class="content-grid" aria-label="Form dan preview sertifikat">
         <article class="panel">
           <header class="panel-head">
-            <h2>Form Pengaturan</h2>
+            <h3>Form Pengaturan</h3>
           </header>
           <div class="panel-body">
             <form id="settingsForm" class="form-grid">
               <div class="field">
-                <label for="ketuaNameInput">Nama Ketua Crembo</label>
-                <input id="ketuaNameInput" type="text" placeholder="Contoh: Atanasius Surya Gunadharma, S.Kom., M.Kom." required>
+                <label class="label" for="ketuaNameInput">Nama Ketua Crembo</label>
+                <input id="ketuaNameInput" type="text" placeholder="Contoh: Atanasius Surya Gunadharma" required>
               </div>
 
               <div class="field">
-                <label for="pembinaNameInput">Nama Pembina</label>
+                <label class="label" for="pembinaNameInput">Nama Pembina</label>
                 <input id="pembinaNameInput" type="text" placeholder="Contoh: Aloysius Hadi, S.Fil." required>
               </div>
 
               <div class="field">
-                <label for="ketuaSignInput">File Tanda Tangan Ketua (PNG/JPG)</label>
+                <label class="label" for="ketuaSignInput">Tanda Tangan Ketua (PNG/JPG)</label>
                 <input id="ketuaSignInput" type="file" accept="image/png,image/jpeg,image/jpg">
                 <p id="ketuaSignFile" class="file-note">Belum ada file dipilih.</p>
               </div>
 
               <div class="field">
-                <label for="pembinaSignInput">File Tanda Tangan Pembina (PNG/JPG)</label>
+                <label class="label" for="pembinaSignInput">Tanda Tangan Pembina (PNG/JPG)</label>
                 <input id="pembinaSignInput" type="file" accept="image/png,image/jpeg,image/jpg">
                 <p id="pembinaSignFile" class="file-note">Belum ada file dipilih.</p>
               </div>
 
-              <div class="btn-row">
+              <div class="inline-actions">
                 <button class="btn primary" type="submit">Simpan Pengaturan</button>
-                <button id="resetDefaultBtn" class="btn ghost" type="button">Reset Default</button>
+                <button id="resetDefaultBtn" class="btn ghost" type="button">Reset TTD</button>
               </div>
-
-              <div id="notify" class="status" role="status" aria-live="polite"></div>
             </form>
           </div>
         </article>
 
         <article class="panel">
           <header class="panel-head">
-            <h2>Preview Template Sertifikat</h2>
+            <h3>Preview Template Sertifikat</h3>
+            <div class="inline-actions" style="margin-top: 0;">
+                <button id="downloadPdfBtn" class="btn ghost" type="button">Test PDF</button>
+                <button id="downloadJpgBtn" class="btn ghost" type="button">Test JPG</button>
+            </div>
           </header>
           <div class="panel-body">
             <div class="cert-preview-wrap">
@@ -570,21 +493,28 @@
 
                 <div class="cert-body">
                   Diberikan kepada:
-                  <div class="cert-member">Nama Anggota Otomatis</div>
+                  <div class="cert-member" id="previewMemberName">NAMA ANGGOTA OTOMATIS</div>
                   <div>
-                    sebagai anggota aktif Crembo Media<br>
-                    sejak terdaftar pada <strong id="previewDate">20 Agustus 2025</strong>
+                    sebagai anggota aktif Crembo Media
+                  </div>
+                  <div style="margin-top: 8px; font-size: 0.8rem; color: #334155;">
+                    <span id="previewCertNumber">No. Sertifikat: CRM/SRT/2026/ANGGOTA</span> &nbsp;&nbsp; 
+                    <span id="previewDate">Tanggal Terbit: 30 April 2026</span>
                   </div>
                 </div>
 
                 <div class="sign-grid">
                   <div class="sign-card">
-                    <div class="sign-box"><img id="previewKetuaSign" alt="Tanda tangan ketua"></div>
+                    <div class="sign-box">
+                        <img id="previewKetuaSign" alt="Tanda tangan ketua" crossorigin="anonymous">
+                    </div>
                     <strong id="previewKetuaName">Ketua Crembo Media</strong><br>
                     Ketua Crembo Media
                   </div>
                   <div class="sign-card">
-                    <div class="sign-box"><img id="previewPembinaSign" alt="Tanda tangan pembina"></div>
+                    <div class="sign-box">
+                        <img id="previewPembinaSign" alt="Tanda tangan pembina" crossorigin="anonymous">
+                    </div>
                     <strong id="previewPembinaName">Pembina Crembo Media</strong><br>
                     Pembina Crembo Media
                   </div>
@@ -596,61 +526,41 @@
       </section>
     </main>
   </div>
+  
+  <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const CERT_SETTINGS_KEY = "crembo-member-certificate-settings";
-    const DEFAULT_SETTINGS = {
-      ketuaName: "Ketua Crembo Media",
-      pembinaName: "Pembina Crembo Media",
-      ketuaSignDataUrl: "",
-      pembinaSignDataUrl: "",
-      updatedAt: ""
-    };
-
-    const settingsForm = document.getElementById("settingsForm");
+    // Ambil Data Session Server
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const sessionUser = window.CREMBO_CURRENT_USER || {};
+    const CERT_LOGO_SRC = "logo crembo hitam.png";
+    
+    // HTML Elements
     const ketuaNameInput = document.getElementById("ketuaNameInput");
     const pembinaNameInput = document.getElementById("pembinaNameInput");
     const ketuaSignInput = document.getElementById("ketuaSignInput");
     const pembinaSignInput = document.getElementById("pembinaSignInput");
     const ketuaSignFile = document.getElementById("ketuaSignFile");
     const pembinaSignFile = document.getElementById("pembinaSignFile");
+    
     const previewKetuaName = document.getElementById("previewKetuaName");
     const previewPembinaName = document.getElementById("previewPembinaName");
     const previewKetuaSign = document.getElementById("previewKetuaSign");
     const previewPembinaSign = document.getElementById("previewPembinaSign");
+    const previewMemberName = document.getElementById("previewMemberName");
+    const previewDate = document.getElementById("previewDate");
+    const previewCertNumber = document.getElementById("previewCertNumber");
+    
+    const settingsForm = document.getElementById("settingsForm");
+    const resetDefaultBtn = document.getElementById("resetDefaultBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const downloadJpgBtn = document.getElementById("downloadJpgBtn");
     const liveDateTime = document.getElementById("liveDateTime");
     const notify = document.getElementById("notify");
-    const resetDefaultBtn = document.getElementById("resetDefaultBtn");
     const roleBadge = document.getElementById("roleBadge");
 
     let draftKetuaSign = "";
     let draftPembinaSign = "";
-
-    function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function getCurrentRole() {
-      const params = new URLSearchParams(window.location.search);
-      const roleFromQuery = params.get("role");
-
-      let roleFromStorage = "";
-      const storedSessionRaw = localStorage.getItem("crembo-login-session");
-      if (storedSessionRaw) {
-        try {
-          const sessionObj = JSON.parse(storedSessionRaw);
-          roleFromStorage = sessionObj && sessionObj.role ? String(sessionObj.role) : "";
-        } catch (error) {
-          roleFromStorage = "";
-        }
-      }
-
-      return roleFromQuery || roleFromStorage || "admin";
-    }
 
     function formatRole(role) {
       if (role === "super_admin") return "Super Admin";
@@ -658,30 +568,356 @@
       return "Anggota";
     }
 
-    function readSettings() {
-      const raw = localStorage.getItem(CERT_SETTINGS_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      if (!parsed || typeof parsed !== "object") {
-        return Object.assign({}, DEFAULT_SETTINGS);
-      }
-      return {
-        ketuaName: String(parsed.ketuaName || DEFAULT_SETTINGS.ketuaName),
-        pembinaName: String(parsed.pembinaName || DEFAULT_SETTINGS.pembinaName),
-        ketuaSignDataUrl: String(parsed.ketuaSignDataUrl || ""),
-        pembinaSignDataUrl: String(parsed.pembinaSignDataUrl || ""),
-        updatedAt: String(parsed.updatedAt || "")
-      };
-    }
-
-    function saveSettings(value) {
-      localStorage.setItem(CERT_SETTINGS_KEY, JSON.stringify(value));
-    }
-
     function showNotify(message, kind) {
       notify.textContent = message;
-      notify.className = "status show " + (kind || "ok");
-      setTimeout(() => { notify.className = "status"; }, 3000);
+      notify.className = "notify show " + (kind || "");
+      setTimeout(() => { notify.className = "notify"; }, 3000);
     }
+
+    function updatePreviewFromDraft() {
+        // Teks Setup
+        previewKetuaName.textContent = ketuaNameInput.value.trim() || "Ketua Crembo Media";
+        previewPembinaName.textContent = pembinaNameInput.value.trim() || "Pembina Crembo Media";
+
+        // Dynamic Name (Sesuai sesi)
+        const displayName = sessionUser.nama || sessionUser.username || "Nama Anggota Otomatis";
+        previewMemberName.textContent = displayName.toUpperCase();
+
+        // Tanggal Hari Ini & Nomor Sertifikat
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        const cleanId = String(sessionUser.user_id || "UMUM").toUpperCase();
+        
+        previewDate.textContent = `Tanggal Terbit: ${dateStr}`;
+        previewCertNumber.textContent = `No. Sertifikat: CRM/SRT/${today.getFullYear()}/${cleanId}`;
+
+        // Image Setup
+        if (draftKetuaSign) {
+            previewKetuaSign.src = draftKetuaSign;
+            previewKetuaSign.classList.add("show");
+        } else {
+            previewKetuaSign.removeAttribute("src");
+            previewKetuaSign.classList.remove("show");
+        }
+
+        if (draftPembinaSign) {
+            previewPembinaSign.src = draftPembinaSign;
+            previewPembinaSign.classList.add("show");
+        } else {
+            previewPembinaSign.removeAttribute("src");
+            previewPembinaSign.classList.remove("show");
+        }
+    }
+
+    async function fetchSettings() {
+        try {
+            const res = await fetch("/api/sertifikat/config");
+            const data = await res.json();
+            
+            ketuaNameInput.value = data.ketuaName || "Ketua Crembo Media";
+            pembinaNameInput.value = data.pembinaName || "Pembina Crembo Media";
+            draftKetuaSign = data.ketuaSignUrl || "";
+            draftPembinaSign = data.pembinaSignUrl || "";
+            
+            ketuaSignFile.textContent = draftKetuaSign ? "File tersimpan dari database" : "Belum ada file dipilih.";
+            pembinaSignFile.textContent = draftPembinaSign ? "File tersimpan dari database" : "Belum ada file dipilih.";
+            
+            updatePreviewFromDraft();
+        } catch (error) {
+            console.error("Gagal load setting API Database:", error);
+        }
+    }
+
+    async function uploadSignFile(file, target) {
+        const formData = new FormData();
+        formData.append("file", file);
+        try {
+            showNotify("Mengunggah file...");
+            const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+            const json = await res.json();
+            
+            if (json.success) {
+                if (target === "ketua") {
+                    draftKetuaSign = json.url;
+                    ketuaSignFile.textContent = "File diunggah: " + file.name;
+                } else {
+                    draftPembinaSign = json.url;
+                    pembinaSignFile.textContent = "File diunggah: " + file.name;
+                }
+                updatePreviewFromDraft();
+                showNotify("File berhasil diunggah. Silakan klik Simpan Pengaturan.");
+            } else {
+                showNotify("Gagal upload gambar: " + json.error, "warn");
+            }
+        } catch(err) {
+            showNotify("Kesalahan Jaringan saat upload.", "warn");
+        }
+    }
+
+    ketuaSignInput.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if(file) uploadSignFile(file, "ketua");
+    });
+
+    pembinaSignInput.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if(file) uploadSignFile(file, "pembina");
+    });
+
+    ketuaNameInput.addEventListener("input", updatePreviewFromDraft);
+    pembinaNameInput.addEventListener("input", updatePreviewFromDraft);
+
+    settingsForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const payload = {
+            ketuaName: ketuaNameInput.value.trim(),
+            pembinaName: pembinaNameInput.value.trim(),
+            ketuaSignUrl: draftKetuaSign,
+            pembinaSignUrl: draftPembinaSign
+        };
+
+        try {
+            const res = await fetch("/api/sertifikat/config", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                showNotify("✓ Pengaturan Sertifikat berhasil disimpan!", "ok");
+            } else {
+                showNotify("Gagal menyimpan ke server.", "warn");
+            }
+        } catch(err) {
+            showNotify("Terjadi kesalahan jaringan.", "warn");
+        }
+    });
+
+    resetDefaultBtn.addEventListener("click", function () {
+        if(confirm("Yakin ingin mereset tanda tangan? Anda harus klik Simpan setelah ini.")) {
+            draftKetuaSign = "";
+            draftPembinaSign = "";
+            ketuaSignInput.value = "";
+            pembinaSignInput.value = "";
+            ketuaSignFile.textContent = "Belum ada file dipilih.";
+            pembinaSignFile.textContent = "Belum ada file dipilih.";
+            updatePreviewFromDraft();
+            showNotify("Tanda tangan direset di form. Klik Simpan untuk konfirmasi.", "warn");
+        }
+    });
+
+    /* ==============================================================
+       LOGIKA GENERATE CANVAS & DOWNLOAD (Diadopsi dari Panel Anggota)
+       ============================================================== */
+    function loadImage(url) {
+      return new Promise(function (resolve) {
+        if (!url) { resolve(null); return; }
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Hindari error canvas taint jika URL luar
+        img.onload = function () { resolve(img); };
+        img.onerror = function () { resolve(null); };
+        img.src = url;
+      });
+    }
+
+    async function drawCertificateCanvas() {
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+      const cleanId = String(sessionUser.user_id || "UMUM").toUpperCase();
+      const displayName = sessionUser.nama || sessionUser.username || "Nama Anggota Otomatis";
+      const certNumberText = `CRM/SRT/${today.getFullYear()}/${cleanId}`;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1600;
+      canvas.height = 1130;
+      const ctx = canvas.getContext("2d");
+
+      // Background Gradient
+      const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grad.addColorStop(0, "#ffffff");
+      grad.addColorStop(1, "#edf3ff");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Border luar
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = 6;
+      ctx.strokeRect(34, 34, canvas.width - 68, canvas.height - 68);
+      
+      // Border dalam (dashed)
+      ctx.setLineDash([10, 7]);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "#94a3b8";
+      ctx.strokeRect(58, 58, canvas.width - 116, canvas.height - 116);
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.textAlign = "center";
+
+      // Logo
+      const logoImg = await loadImage(CERT_LOGO_SRC);
+      if (logoImg) {
+        const targetWidth = 170;
+        const ratio = targetWidth / logoImg.width;
+        const targetHeight = logoImg.height * ratio;
+        ctx.drawImage(logoImg, (canvas.width - targetWidth) / 2, 58, targetWidth, targetHeight);
+      }
+
+      ctx.font = "700 40px Segoe UI";
+      ctx.fillText("CREMBO MEDIA BACIRO", canvas.width / 2, 156);
+
+      ctx.font = "500 24px Segoe UI";
+      ctx.fillStyle = "#334155";
+      ctx.fillText("Komunitas Multimedia Paroki Baciro - Yogyakarta", canvas.width / 2, 196);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "800 64px Segoe UI";
+      ctx.fillText("SERTIFIKAT KEANGGOTAAN", canvas.width / 2, 284);
+
+      ctx.font = "600 30px Segoe UI";
+      ctx.fillStyle = "#334155";
+      ctx.fillText("Crew Multimedia Baciro", canvas.width / 2, 328);
+
+      ctx.fillStyle = "#1f2937";
+      ctx.font = "500 34px Segoe UI";
+      ctx.fillText("Diberikan kepada:", canvas.width / 2, 420);
+
+      // Nama Member
+      ctx.font = "800 62px Segoe UI";
+      ctx.fillStyle = "#111827";
+      ctx.fillText(displayName.toUpperCase(), canvas.width / 2, 512);
+      
+      // Garis bawah nama
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(320, 536);
+      ctx.lineTo(canvas.width - 320, 536);
+      ctx.stroke();
+
+      ctx.fillStyle = "#1f2937";
+      ctx.font = "500 31px Segoe UI";
+      ctx.fillText("sebagai anggota aktif Crembo Media", canvas.width / 2, 592);
+
+      ctx.font = "600 23px Segoe UI";
+      ctx.fillStyle = "#334155";
+      ctx.fillText(`No. Sertifikat: ${certNumberText}    Tanggal Terbit: ${dateStr}`, canvas.width / 2, 660);
+
+      // Tanda Tangan
+      const ketuaImg = await loadImage(draftKetuaSign);
+      const pembinaImg = await loadImage(draftPembinaSign);
+
+      function drawSignature(image, x, y, w, h) {
+        if (!image) return;
+        const ratio = Math.min(w / image.width, h / image.height);
+        const dw = image.width * ratio;
+        const dh = image.height * ratio;
+        ctx.drawImage(image, x + (w - dw) / 2, y + (h - dh), dw, dh);
+      }
+
+      drawSignature(ketuaImg, 250, 760, 430, 150);
+      drawSignature(pembinaImg, 920, 760, 430, 150);
+
+      // Garis Tanda Tangan
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(250, 915);
+      ctx.lineTo(680, 915);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(920, 915);
+      ctx.lineTo(1350, 915);
+      ctx.stroke();
+
+      // Nama Pejabat
+      ctx.fillStyle = "#1f2937";
+      ctx.font = "700 28px Segoe UI";
+      ctx.fillText(ketuaNameInput.value.trim() || "Ketua Crembo Media", 465, 957);
+      ctx.fillText(pembinaNameInput.value.trim() || "Pembina Crembo Media", 1135, 957);
+
+      ctx.font = "500 22px Segoe UI";
+      ctx.fillStyle = "#334155";
+      ctx.fillText("Ketua Crembo Media", 465, 991);
+      ctx.fillText("Pembina Crembo Media", 1135, 991);
+
+      return canvas;
+    }
+
+    function dataUrlFromCanvas(canvas, type) {
+      return canvas.toDataURL(type === "jpg" ? "image/jpeg" : "image/png", 0.95);
+    }
+
+    function downloadFile(dataUrl, fileName) {
+      const anchor = document.createElement("a");
+      anchor.href = dataUrl;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    }
+
+    downloadJpgBtn.addEventListener("click", async function() {
+      showNotify("Menyiapkan file JPG preview...", "ok");
+      try {
+          const canvas = await drawCertificateCanvas();
+          downloadFile(dataUrlFromCanvas(canvas, "jpg"), "preview-sertifikat-crembo.jpg");
+          showNotify("Download JPG Preview selesai.", "ok");
+      } catch (err) {
+          showNotify("Gagal menghasilkan gambar preview.", "warn");
+      }
+    });
+
+    downloadPdfBtn.addEventListener("click", async function() {
+      showNotify("Menyiapkan PDF preview...", "ok");
+      try {
+          const canvas = await drawCertificateCanvas();
+          const imageUrl = dataUrlFromCanvas(canvas, "png");
+          const popup = window.open("", "_blank", "width=1200,height=820");
+          if (!popup) {
+            showNotify("Popup diblokir browser. Izinkan popup untuk download PDF.", "warn");
+            return;
+          }
+
+          popup.document.write(`
+            <!doctype html>
+            <html>
+            <head>
+              <title>Preview Sertifikat Anggota</title>
+              <style>
+                body { margin: 0; padding: 12px; background: #f3f4f6; font-family: Segoe UI, Tahoma, sans-serif; }
+                img { width: 100%; max-width: 1120px; display: block; margin: 0 auto; border: 1px solid #d1d5db; background: #fff; }
+                @media print {
+                  body { padding: 0; background: #fff; }
+                  img { max-width: none; border: 0; width: 100%; }
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${imageUrl}" alt="Sertifikat anggota">
+              <script>window.onload=function(){window.print();};<\/script>
+            </body>
+            </html>
+          `);
+          popup.document.close();
+          showNotify("Dialog print terbuka. Pilih Save as PDF untuk menyimpan.", "ok");
+      } catch (err) {
+          showNotify("Gagal menghasilkan PDF preview.", "warn");
+      }
+    });
+
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const marker = button.querySelector("span");
+        if(marker) marker.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    document.getElementById("mobileSidebarBtn").addEventListener("click", function() {
+        document.getElementById("sidebar").classList.toggle("show");
+    });
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -697,129 +933,12 @@
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
-    function updatePreview(settings) {
-      previewKetuaName.textContent = settings.ketuaName || DEFAULT_SETTINGS.ketuaName;
-      previewPembinaName.textContent = settings.pembinaName || DEFAULT_SETTINGS.pembinaName;
-
-      if (settings.ketuaSignDataUrl) {
-        previewKetuaSign.src = settings.ketuaSignDataUrl;
-        previewKetuaSign.classList.add("show");
-      } else {
-        previewKetuaSign.removeAttribute("src");
-        previewKetuaSign.classList.remove("show");
-      }
-
-      if (settings.pembinaSignDataUrl) {
-        previewPembinaSign.src = settings.pembinaSignDataUrl;
-        previewPembinaSign.classList.add("show");
-      } else {
-        previewPembinaSign.removeAttribute("src");
-        previewPembinaSign.classList.remove("show");
-      }
-    }
-
-    function readAsDataUrl(file) {
-      return new Promise(function (resolve, reject) {
-        const reader = new FileReader();
-        reader.onload = function () { resolve(String(reader.result || "")); };
-        reader.onerror = function () { reject(new Error("Gagal membaca file.")); };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function handleSignChange(event, target) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) {
-        return;
-      }
-      if (!/^image\/(png|jpeg|jpg)$/i.test(file.type)) {
-        showNotify("File tanda tangan harus PNG atau JPG.", "warn");
-        event.target.value = "";
-        return;
-      }
-
-      const dataUrl = await readAsDataUrl(file);
-      if (target === "ketua") {
-        draftKetuaSign = dataUrl;
-        ketuaSignFile.textContent = "File dipilih: " + file.name;
-      } else {
-        draftPembinaSign = dataUrl;
-        pembinaSignFile.textContent = "File dipilih: " + file.name;
-      }
-
-      const next = {
-        ketuaName: ketuaNameInput.value.trim() || DEFAULT_SETTINGS.ketuaName,
-        pembinaName: pembinaNameInput.value.trim() || DEFAULT_SETTINGS.pembinaName,
-        ketuaSignDataUrl: draftKetuaSign,
-        pembinaSignDataUrl: draftPembinaSign,
-        updatedAt: new Date().toISOString()
-      };
-      updatePreview(next);
-      showNotify("Preview diperbarui. Klik Simpan untuk memastikan data tidak hilang.", "warn");
-    }
-
-    function bootstrap() {
-      roleBadge.textContent = "Role: " + formatRole(getCurrentRole());
-      const settings = readSettings();
-      ketuaNameInput.value = settings.ketuaName;
-      pembinaNameInput.value = settings.pembinaName;
-      draftKetuaSign = settings.ketuaSignDataUrl;
-      draftPembinaSign = settings.pembinaSignDataUrl;
-      ketuaSignFile.textContent = settings.ketuaSignDataUrl ? "File tersimpan: tanda_tangan_ketua.png/jpg" : "Belum ada file dipilih.";
-      pembinaSignFile.textContent = settings.pembinaSignDataUrl ? "File tersimpan: tanda_tangan_pembina.png/jpg" : "Belum ada file dipilih.";
-      updatePreview(settings);
-    }
-
-    settingsForm.addEventListener("submit", function (event) {
-      event.preventDefault();
-      const payload = {
-        ketuaName: ketuaNameInput.value.trim(),
-        pembinaName: pembinaNameInput.value.trim(),
-        ketuaSignDataUrl: draftKetuaSign,
-        pembinaSignDataUrl: draftPembinaSign,
-        updatedAt: new Date().toISOString()
-      };
-
-      if (!payload.ketuaName || !payload.pembinaName) {
-        showNotify("Nama ketua dan pembina wajib diisi.", "warn");
-        return;
-      }
-
-      saveSettings(payload);
-      updatePreview(payload);
-      showNotify("✓ Pengaturan Sertifikat Anggota berhasil disimpan.", "ok");
-    });
-
-    ketuaSignInput.addEventListener("change", function (event) {
-      handleSignChange(event, "ketua").catch(function () {
-        showNotify("Gagal membaca file tanda tangan ketua.", "danger");
-      });
-    });
-
-    pembinaSignInput.addEventListener("change", function (event) {
-      handleSignChange(event, "pembina").catch(function () {
-        showNotify("Gagal membaca file tanda tangan pembina.", "danger");
-      });
-    });
-
-    resetDefaultBtn.addEventListener("click", function () {
-      const payload = Object.assign({}, DEFAULT_SETTINGS, { updatedAt: new Date().toISOString() });
-      draftKetuaSign = "";
-      draftPembinaSign = "";
-      ketuaNameInput.value = payload.ketuaName;
-      pembinaNameInput.value = payload.pembinaName;
-      ketuaSignInput.value = "";
-      pembinaSignInput.value = "";
-      ketuaSignFile.textContent = "Belum ada file dipilih.";
-      pembinaSignFile.textContent = "Belum ada file dipilih.";
-      saveSettings(payload);
-      updatePreview(payload);
-      showNotify("Pengaturan dikembalikan ke awal (default).", "ok");
-    });
-
-    bootstrap();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
+    roleBadge.textContent = "Role: " + formatRole(sessionUser.role || "admin");
+    
+    // Load config dari server
+    fetchSettings();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>
