@@ -1,533 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Form Berita - Crembo Media</title>
-  <style>
-    :root {
-      --bg: #ececec;
-      --panel: #ffffff;
-      --line: #1f1f1f;
-      --muted: #5b5b5b;
-      --text: #111111;
-      --side-text: #f4f4f4;
-      --radius: 16px;
-      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-      --blue: #2f66d8;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
-      min-height: 100vh;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
-      color: var(--side-text);
-      border-right: 2px solid var(--line);
-      padding: 18px 14px;
-      overflow-y: auto;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-    }
-
-    .brand { border: 1px solid #838383; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 12px; margin-bottom: 16px; }
-    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
-    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
-
-    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255, 255, 255, 0.03); margin-bottom: 10px; overflow: hidden; }
-    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: 0.88rem; padding: 11px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255, 255, 255, 0.02); }
-    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; }
-    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
-
-    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
-    .side-actions a { text-decoration: none; border: 1px solid #8d8d8d; color: #ebebeb; text-align: center; padding: 9px 10px; border-radius: 10px; font-size: 0.82rem; }
-
-    .main { padding: 16px; }
-    .headline { border: 1px solid #cfcfcf; background: #f3f3f3; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-    .headline h2 { margin: 0; font-size: 1.4rem; }
-    .headline p { margin: 4px 0 0; color: #4b5563; font-size: 0.86rem; }
-
-    .panel { border: 1px solid #d1d5db; border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); padding: 12px; display: grid; gap: 12px; margin-bottom: 12px; }
-    .panel h3 { margin: 0; font-size: 1.1rem; }
-
-    .field { display: grid; gap: 6px; }
-    .label { font-size: 0.82rem; font-weight: 700; color: #374151; }
-    input, textarea, select { width: 100%; border: 1px solid #bdbdbd; border-radius: 10px; padding: 8px 10px; font-size: 0.86rem; font-family: inherit; background: #fff; }
-    textarea { min-height: 150px; resize: vertical; }
-
-    .editor-toolbar { display: flex; gap: 6px; flex-wrap: wrap; background: #f5f5f5; padding: 8px; border-radius: 10px; border: 1px solid #e5e5e5; margin-bottom: 8px; }
-    .editor-toolbar button { background: #fff; border: 1px solid #d0d0d0; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #333; transition: all 0.2s; }
-    .editor-toolbar button:hover { background: #2f66d8; color: #fff; border-color: #2f66d8; }
-
-    .categories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
-    .category-check { display: flex; align-items: center; gap: 6px; }
-    .category-check input { margin: 0; width: 16px; height: 16px; cursor: pointer; }
-    .category-check label { margin: 0; cursor: pointer; font-size: 0.9rem; }
-
-    .carousel { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; background: #f9f9f9; position: relative; margin-top: 8px; }
-    .carousel-inner { position: relative; min-height: 200px; border-radius: 8px; overflow: hidden; background: #eee; }
-    .carousel-inner img { width: 100%; height: 200px; object-fit: cover; }
-    .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; cursor: pointer; }
-    .dot.active { background: var(--blue); }
-
-    .attachments { display: grid; gap: 8px; margin-top: 8px; }
-    .attachment-item { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; background: #f9f9f9; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .attachment-info { flex: 1; min-width: 0; }
-    .attachment-name { font-weight: 600; font-size: 0.9rem; word-break: break-word; }
-    .attachment-size { font-size: 0.8rem; color: #666; }
-    .attachment-actions { display: flex; gap: 6px; }
-    .attachment-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--blue); font-size: 0.8rem; font-weight: 600; }
-    .attachment-btn.delete { color: #dc2626; }
-
-    .btn { border: 1px solid #1f2937; border-radius: 9px; background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%); color: #fff; padding: 10px 16px; font-size: 0.9rem; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-    .btn:hover { background: linear-gradient(180deg, #5a6575 0%, #2a3844 100%); }
-    .btn.primary { background: linear-gradient(180deg, #2f66d8 0%, #1d3aa8 100%); }
-    .btn.danger { background: #dc2626; border-color: #dc2626; }
-    .btn.ghost { background: transparent; border-color: #6b7280; color: #374151; }
-
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-
-    .notify { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; padding: 12px 16px; border-radius: 10px; z-index: 1000; opacity: 0; transform: translateY(20px); transition: all 0.3s; }
-    .notify.show { opacity: 1; transform: translateY(0); }
-    .notify.error { background: #dc2626; }
-    .notify.success { background: #059669; }
-
-    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
-  </style>
-  <link rel="stylesheet" href="_admin-theme.css">
-</head>
-<body>
-  <div class="layout">
-    <aside id="sidebar" class="sidebar" aria-label="Sidebar">
-      <div class="brand">
-        <h1>Crembo Media</h1>
-        <p>Admin Dashboard</p>
-      </div>
-      <div class="menu-group">
-        <button class="group-toggle">Menu <span>▼</span></button>
-        <div class="group-items">
-          <a href="/dashboard" class="menu-link">Dashboard</a>
-          <a href="/manajemen-profil" class="menu-link">Profil Organisasi</a>
-          <a href="/kelola-berita" class="menu-link">Kelola Berita</a>
-          <a href="/kelola-kategori-berita" class="menu-link">Kategori Berita</a>
-        </div>
-      </div>
-      <div class="side-actions">
-        <a href="/logout">Logout</a>
-      </div>
-    </aside>
-
-    <main class="main">
-      <div class="headline">
-        <div>
-          <h2 id="pageTitle">Tambah Berita Baru</h2>
-          <p id="pageDesc">Isi form di bawah untuk membuat berita baru</p>
-        </div>
-        <div id="liveDateTime" style="font-size: 0.85rem; color: #666;"></div>
-      </div>
-
-      <form id="newsForm" onsubmit="return false">
-        <div class="panel">
-          <h3>Informasi Dasar</h3>
-          <div class="field">
-            <label class="label">Judul Berita *</label>
-            <input id="titleInput" type="text" placeholder="Masukkan judul berita" required>
-          </div>
-          <div class="field">
-            <label class="label">Slug (URL)</label>
-            <input id="slugInput" type="text" placeholder="Auto-generate jika kosong">
-          </div>
-          <div class="field">
-            <label class="label">Ringkasan Berita</label>
-            <textarea id="summaryInput" placeholder="Ringkasan singkat untuk preview..."></textarea>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Konten</h3>
-          <div class="editor-toolbar" id="editorToolbar">
-            <button type="button" data-command="bold">Bold</button>
-            <button type="button" data-command="italic">Italic</button>
-            <button type="button" data-command="underline">Underline</button>
-          </div>
-          <textarea id="contentInput" placeholder="Tulis konten berita..." style="min-height: 300px;" required></textarea>
-        </div>
-
-        <div class="panel">
-          <h3>Status & Kategori</h3>
-          <div class="field">
-            <label class="label">Status</label>
-            <select id="statusInput">
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="label">Kategori</label>
-            <div id="categoriesContainer" class="categories-grid"></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Thumbnail (Gambar Sampul) - Carousel Otomatis</h3>
-          <div style="margin-bottom: 8px;">
-            <button type="button" id="addThumbnailBtn" class="btn">Upload Thumbnail</button>
-            <input type="file" id="thumbnailInput" accept="image/*" multiple style="display: none;">
-          </div>
-          <div id="thumbnailCarousel" class="carousel"></div>
-        </div>
-
-        <div class="panel">
-          <h3>Lampiran (File)</h3>
-          <div style="margin-bottom: 8px;">
-            <button type="button" id="addAttachmentBtn" class="btn">Upload File</button>
-            <input type="file" id="attachmentInput" multiple style="display: none;">
-          </div>
-          <div id="attachmentList" class="attachments"></div>
-        </div>
-
-        <div class="panel">
-          <div class="actions">
-            <button type="submit" class="btn primary">Simpan Berita</button>
-            <button type="button" id="deleteBtn" class="btn danger" style="display: none;">Hapus Berita</button>
-            <button type="button" class="btn ghost" onclick="window.location.href='/kelola-berita'">Batal</button>
-          </div>
-        </div>
-      </form>
-    </main>
-  </div>
-
-  <div id="notify" class="notify" role="status" aria-live="polite"></div>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const editId = params.get("id") || "";
-
-    const pageTitle = document.getElementById("pageTitle");
-    const pageDesc = document.getElementById("pageDesc");
-    const newsForm = document.getElementById("newsForm");
-    const titleInput = document.getElementById("titleInput");
-    const slugInput = document.getElementById("slugInput");
-    const summaryInput = document.getElementById("summaryInput");
-    const contentInput = document.getElementById("contentInput");
-    const statusInput = document.getElementById("statusInput");
-    const categoriesContainer = document.getElementById("categoriesContainer");
-    const editorToolbar = document.getElementById("editorToolbar");
-    const thumbnailInput = document.getElementById("thumbnailInput");
-    const addThumbnailBtn = document.getElementById("addThumbnailBtn");
-    const thumbnailCarousel = document.getElementById("thumbnailCarousel");
-    const attachmentInput = document.getElementById("attachmentInput");
-    const addAttachmentBtn = document.getElementById("addAttachmentBtn");
-    const attachmentList = document.getElementById("attachmentList");
-    const deleteBtn = document.getElementById("deleteBtn");
-    const liveDateTime = document.getElementById("liveDateTime");
-    const notify = document.getElementById("notify");
-
-    let categories = [];
-    let thumbnails = [];
-    let attachments = [];
-    let currentCarouselIndex = 0;
-    let carouselInterval = null;
-
-    function showNotify(msg, type = "info") {
-      notify.textContent = msg;
-      notify.className = "notify " + type + " show";
-      setTimeout(() => notify.classList.remove("show"), 3000);
-    }
-
-    function updateLiveDateTime() {
-      const now = new Date();
-      liveDateTime.textContent = now.toLocaleDateString('id-ID', { 
-        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
-    }
-
-    function slugify(text) {
-      return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
-    }
-
-    function escapeHtml(text) {
-      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-      return (text || '').replace(/[&<>"']/g, m => map[m]);
-    }
-
-    function formatFileSize(bytes) {
-      if (bytes === 0) return '0 B';
-      const k = 1024;
-      const sizes = ['B', 'KB', 'MB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
-    }
-
-    async function loadCategories() {
-      try {
-        const res = await fetch("/api/news-categories");
-        categories = await res.json();
-        renderCategoryChecks();
-      } catch (err) {
-        showNotify("Error loading categories: " + err.message, "error");
-      }
-    }
-
-    function renderCategoryChecks() {
-      categoriesContainer.innerHTML = categories.map(cat => `
-        <div class="category-check">
-          <input type="checkbox" id="cat-${cat.id}" value="${cat.id}">
-          <label for="cat-${cat.id}">${escapeHtml(cat.name)}</label>
-        </div>
-      `).join('');
-    }
-
-    function renderThumbnailCarousel() {
-      if (!thumbnails.length) {
-        thumbnailCarousel.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No thumbnails yet</div>';
-        clearInterval(carouselInterval);
-        return;
-      }
-
-      const thumb = thumbnails[currentCarouselIndex];
-      thumbnailCarousel.innerHTML = `
-        <div class="carousel-inner">
-          <img src="${escapeHtml(thumb.url)}" alt="Thumbnail">
-        </div>
-        <div class="carousel-dots">
-          ${thumbnails.map((_, i) => `
-            <span class="dot ${i === currentCarouselIndex ? 'active' : ''}" data-index="${i}"></span>
-          `).join('')}
-        </div>
-        <div style="margin-top: 8px;">
-          <button type="button" class="btn" data-action="remove-thumb" data-index="${currentCarouselIndex}">Remove</button>
-        </div>
-      `;
-
-      // Auto-scroll carousel
-      if (!carouselInterval) {
-        carouselInterval = setInterval(() => {
-          currentCarouselIndex = (currentCarouselIndex + 1) % thumbnails.length;
-          renderThumbnailCarousel();
-        }, 3000);
-      }
-
-      // Dot click handlers
-      thumbnailCarousel.querySelectorAll('.dot').forEach(dot => {
-        dot.addEventListener('click', () => {
-          currentCarouselIndex = parseInt(dot.getAttribute('data-index'));
-          clearInterval(carouselInterval);
-          carouselInterval = null;
-          renderThumbnailCarousel();
-        });
-      });
-    }
-
-    function renderAttachments() {
-      attachmentList.innerHTML = attachments.map((att, i) => `
-        <div class="attachment-item">
-          <div class="attachment-info">
-            <div class="attachment-name">${escapeHtml(att.name)}</div>
-            <div class="attachment-size">${formatFileSize(att.size)}</div>
-          </div>
-          <div class="attachment-actions">
-            ${att.previewable ? `<a href="${escapeHtml(att.url)}" target="_blank" class="attachment-btn">Preview</a>` : ''}
-            <a href="${escapeHtml(att.url)}" download class="attachment-btn">Download</a>
-            <button type="button" class="attachment-btn delete" data-index="${i}">Delete</button>
-          </div>
-        </div>
-      `).join('');
-
-      attachmentList.querySelectorAll('[data-index]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          attachments.splice(parseInt(btn.getAttribute('data-index')), 1);
-          renderAttachments();
-        });
-      });
-    }
-
-    async function loadNewsData() {
-      if (!editId) return;
-
-      try {
-        const res = await fetch(`/api/news/${editId}`);
-        if (!res.ok) throw new Error("News not found");
-        const news = await res.json();
-
-        pageTitle.textContent = "Edit Berita";
-        pageDesc.textContent = "Update informasi berita";
-        deleteBtn.style.display = "block";
-
-        titleInput.value = news.title;
-        slugInput.value = news.slug;
-        summaryInput.value = news.summary || '';
-        contentInput.value = news.content;
-        statusInput.value = news.status;
-        thumbnails = news.thumbnails || [];
-        attachments = news.attachments || [];
-
-        // Set categories
-        const catIds = news.categories ? news.categories.map(c => c.id) : [];
-        categoriesContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-          cb.checked = catIds.includes(cb.value);
-        });
-
-        renderThumbnailCarousel();
-        renderAttachments();
-      } catch (err) {
-        showNotify("Error loading news: " + err.message, "error");
-      }
-    }
-
-    addThumbnailBtn.addEventListener("click", () => thumbnailInput.click());
-    thumbnailInput.addEventListener("change", async function() {
-      for (const file of this.files) {
-        if (!file.type.startsWith('image/')) {
-          showNotify("Only image files allowed", "error");
-          continue;
-        }
-
-        try {
-          const formData = new FormData();
-          formData.append("file", file);
-          const res = await fetch("/api/upload_image", { method: "POST", body: formData });
-          const result = await res.json();
-          if (result && result.url) {
-            thumbnails.push(result);
-            renderThumbnailCarousel();
-          }
-        } catch (err) {
-          showNotify("Upload failed: " + err.message, "error");
-        }
-      }
-      this.value = "";
-    });
-
-    thumbnailCarousel.addEventListener("click", function(e) {
-      if (e.target.getAttribute("data-action") === "remove-thumb") {
-        const idx = parseInt(e.target.getAttribute("data-index"));
-        thumbnails.splice(idx, 1);
-        currentCarouselIndex = Math.min(currentCarouselIndex, thumbnails.length - 1);
-        renderThumbnailCarousel();
-      }
-    });
-
-    addAttachmentBtn.addEventListener("click", () => attachmentInput.click());
-    attachmentInput.addEventListener("change", async function() {
-      for (const file of this.files) {
-        try {
-          const formData = new FormData();
-          formData.append("file", file);
-          const res = await fetch("/api/upload_image", { method: "POST", body: formData });
-          const result = await res.json();
-          if (result && result.url) {
-            attachments.push(result);
-            renderAttachments();
-          }
-        } catch (err) {
-          showNotify("Upload failed: " + err.message, "error");
-        }
-      }
-      this.value = "";
-    });
-
-    editorToolbar.addEventListener("click", function(e) {
-      e.preventDefault();
-      if (e.target.tagName !== "BUTTON") return;
-      const cmd = e.target.getAttribute("data-command");
-      document.execCommand(cmd, false, null);
-      contentInput.focus();
-    });
-
-    newsForm.addEventListener("submit", async function(e) {
-      e.preventDefault();
-
-      const title = titleInput.value.trim();
-      const summary = summaryInput.value.trim();
-      const content = contentInput.value.trim();
-
-      if (!title || !summary || !content) {
-        showNotify("Title, summary, and content are required", "error");
-        return;
-      }
-
-      const selectedCats = Array.from(categoriesContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-
-      const payload = {
-        title: title,
-        slug: slugInput.value.trim() || slugify(title),
-        summary: summary,
-        content: content,
-        status: statusInput.value,
-        thumbnails: thumbnails,
-        attachments: attachments,
-        categoryIds: selectedCats
-      };
-
-      try {
-        const url = editId ? `/api/news/${editId}` : "/api/news";
-        const method = editId ? "PUT" : "POST";
-        const res = await fetch(url, {
-          method: method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-
-        if (result.success) {
-          showNotify(editId ? "Berita berhasil diperbarui" : "Berita berhasil ditambahkan", "success");
-          setTimeout(() => window.location.href = "/kelola-berita", 1500);
-        } else {
-          showNotify("Error: " + (result.error || "Failed to save"), "error");
-        }
-      } catch (err) {
-        showNotify("Error: " + err.message, "error");
-      }
-    });
-
-    deleteBtn.addEventListener("click", async function() {
-      if (!confirm("Hapus berita ini?")) return;
-      try {
-        const res = await fetch(`/api/news/${editId}`, { method: "DELETE" });
-        const result = await res.json();
-        if (result.success) {
-          showNotify("Berita berhasil dihapus", "success");
-          setTimeout(() => window.location.href = "/kelola-berita", 1500);
-        } else {
-          showNotify("Error: " + (result.error || "Failed to delete"), "error");
-        }
-      } catch (err) {
-        showNotify("Error: " + err.message, "error");
-      }
-    });
-
-    titleInput.addEventListener("input", function() {
-      if (!slugInput.value) {
-        slugInput.value = slugify(this.value);
-      }
-    });
-
-    loadCategories();
-    loadNewsData();
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
-  </script>
-  <script src="_sidebar-fix.js"></script>
-</body>
-</html>
   <style>
     :root {
       --bg: #ececec;
@@ -540,6 +16,8 @@
       --radius: 16px;
       --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
       --blue: #2f66d8;
+      --blue-2: #1d3aa8;
+      --danger: #dc2626;
     }
 
     * { box-sizing: border-box; }
@@ -647,7 +125,7 @@
     .main { padding: 16px; }
 
     .headline {
-      width: min(100%, 980px);
+      width: min(100%, 1120px);
       margin-bottom: 12px;
     }
 
@@ -657,10 +135,16 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
     }
 
     .headline-copy {
       min-width: 0;
+      flex: 1;
     }
 
     .headline h2 {
@@ -673,7 +157,7 @@
 
     .headline p {
       margin: 4px 0 0;
-      color: rgba(255, 255, 255, 0.78);
+      color: rgba(255, 255, 255, 0.82);
       font-size: 0.84rem;
     }
 
@@ -712,13 +196,28 @@
       height: 18px;
     }
 
+    .headline-right .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .content {
+      display: grid;
+      gap: 12px;
+      width: min(100%, 1120px);
+    }
+
     .panel {
       border: 2px solid var(--line);
       border-radius: var(--radius);
       background: var(--panel);
       box-shadow: var(--shadow);
       overflow: hidden;
-      max-width: 980px;
     }
 
     .panel-head {
@@ -727,12 +226,15 @@
       background: var(--panel-2);
     }
 
-    .panel-head h3 { margin: 0; font-size: 1.05rem; }
+    .panel-head h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
 
     .panel-body {
       padding: 14px;
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
 
     .field {
@@ -746,9 +248,15 @@
       color: #374151;
     }
 
+    .helper {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
     input, textarea, select {
       width: 100%;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #bdbdbd;
       border-radius: 9px;
       padding: 9px 10px;
       font-size: 0.88rem;
@@ -757,14 +265,8 @@
     }
 
     textarea {
-      min-height: 260px;
+      min-height: 220px;
       resize: vertical;
-    }
-
-    .helper {
-      margin: 0;
-      font-size: 0.75rem;
-      color: #6b7280;
     }
 
     .editor-toolbar {
@@ -776,12 +278,10 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      font-size: 0.78rem;
-      color: #4b5563;
       align-items: center;
     }
 
-    .editor-toolbar .toolbar-group {
+    .toolbar-group {
       display: inline-flex;
       gap: 4px;
       flex-wrap: wrap;
@@ -790,7 +290,7 @@
       border-right: 1px solid #d0d0d0;
     }
 
-    .editor-toolbar .toolbar-group:last-child {
+    .toolbar-group:last-child {
       border-right: 0;
       padding-right: 0;
       margin-right: 0;
@@ -805,6 +305,9 @@
       cursor: pointer;
       font: inherit;
       line-height: 1;
+      font-size: 0.78rem;
+      font-weight: 700;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
     }
 
     .editor-toolbar button:hover {
@@ -812,22 +315,18 @@
       border-color: #9fb7e6;
     }
 
-    .editor-toolbar button:active {
-      transform: translateY(1px);
-    }
-
     .editor-toolbar button[data-command="bold"] { font-weight: 800; }
     .editor-toolbar button[data-command="italic"] { font-style: italic; }
     .editor-toolbar button[data-command="underline"] { text-decoration: underline; }
 
     .editor-content {
-      min-height: 240px;
+      min-height: 280px;
       border: 1px solid #d0d0d0;
       border-radius: 0 0 10px 10px;
       padding: 12px 12px 16px;
       background: #fff;
       outline: none;
-      line-height: 1.6;
+      line-height: 1.65;
       overflow: auto;
     }
 
@@ -842,10 +341,17 @@
       box-shadow: 0 0 0 3px rgba(59, 125, 248, 0.12);
     }
 
+    .editor-content h2,
+    .editor-content h3 {
+      margin: 0.85rem 0 0.5rem;
+      line-height: 1.25;
+    }
+
+    .editor-content p { margin: 0.55rem 0; }
     .editor-content ul,
     .editor-content ol {
       padding-left: 1.5rem;
-      margin: 0.4rem 0;
+      margin: 0.45rem 0;
     }
 
     .editor-content blockquote {
@@ -862,75 +368,100 @@
       border-radius: 10px;
     }
 
-    .editor-content p:first-child {
-      margin-top: 0;
+    .inline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
     }
 
-    .editor-content p:last-child {
-      margin-bottom: 0;
-    }
-
-    .actions {
-      margin-top: 6px;
-      display: flex;
+    .categories-grid {
+      display: grid;
       gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-start;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 
-    .notify {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      border: 1px solid #cfe0ff;
-      background: #f1f6ff;
-      color: #1e3a8a;
-      padding: 10px 12px;
+    .category-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #d7dce5;
+      background: linear-gradient(180deg, #fcfdff 0%, #f5f9ff 100%);
       border-radius: 10px;
-      font-size: 0.82rem;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(8px);
-      transition: opacity 180ms ease, transform 180ms ease;
-      z-index: 40;
+      padding: 10px 12px;
     }
 
-    .notify.show { opacity: 1; transform: translateY(0); }
+    .category-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+      flex: 0 0 auto;
+      margin: 0;
+    }
 
-    .carousel-container {
-      position: relative;
+    .category-option label {
+      flex: 1;
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      color: #1f2937;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .upload-box {
+      border: 2px dashed #93c5fd;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      text-align: center;
+      padding: 16px;
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .upload-box strong { font-size: 0.92rem; }
+
+    .thumb-preview {
       border: 1px solid #d1d5db;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #f9fafb;
-      height: 240px;
+      border-radius: 10px;
+      padding: 8px;
+      background: #f8fafc;
+      display: grid;
+      gap: 6px;
+      max-width: 380px;
+    }
+
+    .thumb-preview img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
     }
 
     .carousel {
-      display: grid;
-      grid-auto-flow: column;
-      width: 100%;
-      height: 100%;
-      scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      background: #f9fafb;
       overflow: hidden;
+      position: relative;
+      min-height: 220px;
     }
 
-    .carousel-slide {
-      width: 100%;
-      height: 100%;
+    .carousel-inner {
+      min-height: 180px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f0f0f0;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
+      background: #f2f2f2;
     }
 
-    .carousel-slide img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
+    .carousel-inner img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
     }
 
     .carousel-controls {
@@ -955,12 +486,12 @@
     }
 
     .carousel-dot.active {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
     }
 
     .empty-carousel {
       width: 100%;
-      height: 100%;
+      height: 220px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -968,61 +499,20 @@
       font-size: 0.88rem;
     }
 
-    .categories-grid {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    }
-
-    .category-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid #d7dce5;
-      background: linear-gradient(180deg, #fcfdff 0%, #f5f9ff 100%);
-      border-radius: 10px;
-      padding: 10px 12px;
-    }
-
-    .category-option input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--blue);
-      flex: 0 0 auto;
-    }
-
-    .category-option label {
-      flex: 1;
-      margin: 0;
-      font-size: 0.9rem;
-      color: #1f2937;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    .attachment-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
     .files {
       display: grid;
-      gap: 6px;
+      gap: 8px;
     }
 
     .file-item {
       border: 1px solid #d1d5db;
       border-radius: 10px;
       background: #f9fafb;
-      padding: 10px 10px 9px;
+      padding: 10px;
       display: flex;
       justify-content: space-between;
       gap: 8px;
       align-items: center;
-      font-size: 0.82rem;
-      color: #374151;
       flex-wrap: wrap;
     }
 
@@ -1095,12 +585,31 @@
       color: #b91c1c;
     }
 
-    .file-actions .preview-disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 9px 13px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .btn.secondary {
+    .btn:hover {
+      background: linear-gradient(180deg, #5a6575 0%, #2a3844 100%);
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, var(--blue-2) 100%);
+      border-color: var(--blue);
+    }
+
+    .btn.ghost {
       background: #fff;
       color: #1f2937;
       border-color: #9ca3af;
@@ -1108,42 +617,70 @@
     }
 
     .btn.danger {
-      background: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
+      background: #dc2626;
       border-color: #dc2626;
     }
 
-    @media (max-width: 860px) {
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .notify {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1f2937;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      max-width: 340px;
+    }
+
+    .notify.show { opacity: 1; transform: translateY(0); }
+    .notify.error { background: #dc2626; }
+    .notify.success { background: #059669; }
+
+    @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
-      .sidebar {
-        display: none;
-        position: static;
-        height: auto;
-      }
-      .sidebar.show { display: block; }
-      .categories-grid {
-        grid-template-columns: 1fr;
-      }
+      .sidebar { display: none; }
+      .headline.dashboard-headline-bar { align-items: flex-start; }
+    }
+
+    @media (max-width: 640px) {
+      .main { padding: 12px; }
+      .panel-head, .panel-body { padding-left: 12px; padding-right: 12px; }
+      .editor-content { min-height: 240px; }
+      .file-item { align-items: flex-start; }
     }
   </style>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
-  <div class="layout">
   <div class="layout">
     <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Form tambah atau edit berita dan pengumuman</p>
+        <p>Form tambah atau edit konten berita</p>
       </div>
 
-      <div class="menu-group">
+      <div class="menu-group open">
         <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
-        <div class="group-items">
-          <a class="menu-link" href="manajemen-profil.html">Profil</a>
-          <a class="menu-link active" href="kelola-berita.html">Pengumuman</a>
-          <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
-          <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
-        </div>
+            <div class="group-items">
+            <a class="menu-link" href="manajemen-profil.html">Profil</a>
+            <a class="menu-link active" href="kelola-berita.html">Pengumuman</a>
+            <a class="menu-link" href="manajemen-agenda.html">Agenda Kegiatan</a>
+            <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
+            </div>
       </div>
 
       <div class="side-actions">
@@ -1156,10 +693,10 @@
       <header class="headline dashboard-headline-bar">
         <div class="headline-copy">
           <h2 id="pageTitle">Tambah Berita Baru</h2>
-          <p id="pageDesc">Buat konten berita baru dengan pengaturan kategori, thumbnail, dan status publikasi.</p>
+          <p id="pageDesc">Lengkapi judul, kategori, konten, thumbnail, lampiran, dan status publikasi.</p>
         </div>
         <div class="headline-right">
-          <span id="liveDateTime">-</span>
+          <span id="liveDateTime" class="chip">-</span>
           <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
@@ -1171,101 +708,118 @@
         </div>
       </header>
 
-      <article class="panel">
-        <header class="panel-head">
-          <h3>Form Konten Berita</h3>
-        </header>
-
-        <form id="newsForm" class="panel-body">
-          <div class="field">
-            <label class="label" for="titleInput">Judul Berita</label>
-            <input id="titleInput" type="text" placeholder="Contoh: Kegiatan Natal dan Tahun Baru 2024" required>
-            <p class="helper">Judul wajib diisi. Slug akan dibuat otomatis dari judul saat disimpan.</p>
-          </div>
-
-          <div class="field">
-            <label class="label" for="slugInput">Slug (URL friendly)</label>
-            <input id="slugInput" type="text" placeholder="contoh-berita-judul">
-            <p class="helper">Jika kosong, slug akan dibuat otomatis dari judul. Hanya gunakan huruf kecil, angka, dan tanda hubung.</p>
-          </div>
-
-          <div class="field">
-            <label class="label" for="summaryInput">Ringkasan / Preview</label>
-            <textarea id="summaryInput" placeholder="Tulis ringkasan singkat berita untuk preview..." style="min-height: 80px; resize: vertical;"></textarea>
-            <p class="helper">Ringkasan singkat yang akan ditampilkan sebagai preview di halaman daftar berita.</p>
-          </div>
-
-          <div class="field">
-            <label class="label" for="contentInput">Konten Berita</label>
-            <div id="editorToolbar" class="editor-toolbar" role="toolbar" aria-label="Toolbar editor konten">
-              <div class="toolbar-group">
-                <button type="button" data-command="formatBlock" data-value="<p>">Normal</button>
-                <button type="button" data-command="formatBlock" data-value="<h2>">H2</button>
-                <button type="button" data-command="formatBlock" data-value="<blockquote>">Quote</button>
+      <section class="content">
+        <article class="panel">
+          <header class="panel-head">
+            <h3>Informasi Dasar</h3>
+          </header>
+          <form id="newsForm" class="panel-body">
+            <div class="inline-grid">
+              <div class="field">
+                <label class="label" for="titleInput">Judul Berita</label>
+                <input id="titleInput" type="text" placeholder="Masukkan judul berita" required>
               </div>
-              <div class="toolbar-group">
-                <button type="button" data-command="bold" title="Bold">B</button>
-                <button type="button" data-command="italic" title="Italic">I</button>
-                <button type="button" data-command="underline" title="Underline">U</button>
-              </div>
-              <div class="toolbar-group">
-                <button type="button" data-command="insertUnorderedList" title="Bullet list">List</button>
-                <button type="button" data-command="insertOrderedList" title="Numbered list">1.</button>
-                <button type="button" data-command="createLink" title="Tambah link">Link</button>
-                <button type="button" data-command="insertImage" title="Sisipkan gambar via URL">Image</button>
-                <button type="button" data-command="removeFormat" title="Hapus format">Clear</button>
+              <div class="field">
+                <label class="label" for="slugInput">Slug (URL)</label>
+                <input id="slugInput" type="text" placeholder="Auto-generate jika kosong">
+                <p class="helper">Kosongkan jika ingin dibuat otomatis dari judul.</p>
               </div>
             </div>
-            <div id="contentInput" class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Tulis konten berita di sini..."></div>
-            <p class="helper">Gunakan toolbar untuk format teks, daftar, kutipan, link, dan gambar.</p>
-          </div>
 
-          <div class="field">
-            <label class="label">Kategori Berita</label>
-            <div id="categoriesContainer" class="categories-grid">
-              <p class="helper">Memuat kategori...</p>
+            <div class="field">
+              <label class="label" for="summaryInput">Ringkasan Berita</label>
+              <textarea id="summaryInput" placeholder="Ringkasan singkat untuk preview..." rows="4"></textarea>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel">
+          <header class="panel-head">
+            <h3>Konten</h3>
+          </header>
+          <div class="panel-body">
+            <div class="editor-toolbar" id="editorToolbar" role="toolbar" aria-label="Toolbar editor konten">
+              <div class="toolbar-group">
+                <button type="button" data-command="bold">Bold</button>
+                <button type="button" data-command="italic">Italic</button>
+                <button type="button" data-command="underline">Underline</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" data-command="formatBlock" data-value="h2">H2</button>
+                <button type="button" data-command="formatBlock" data-value="h3">H3</button>
+                <button type="button" data-command="insertUnorderedList">List</button>
+                <button type="button" data-command="insertOrderedList">O-List</button>
+                <button type="button" data-command="formatBlock" data-value="blockquote">Quote</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" data-command="createLink">Link</button>
+                <button type="button" data-command="insertImage">Image</button>
+                <button type="button" data-command="removeFormat">Clear</button>
+              </div>
+            </div>
+            <div id="contentEditor" class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Tulis konten berita di sini..."></div>
+            <p class="helper">Gunakan H2, H3, list, quote, link, dan gambar supaya isi lebih rapi seperti form profil.</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <header class="panel-head">
+            <h3>Status & Kategori</h3>
+          </header>
+          <div class="panel-body">
+            <div class="field">
+              <label class="label" for="statusInput">Status</label>
+              <select id="statusInput" required>
+                <option value="draft">Draft</option>
+                <option value="published">Publikasi</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Kategori</label>
+              <div id="categoriesContainer" class="categories-grid"></div>
             </div>
           </div>
+        </article>
 
-          <div class="field">
-            <label class="label" for="statusInput">Status Publikasi</label>
-            <select id="statusInput">
-              <option value="Published">Publikasikan</option>
-              <option value="Draft">Simpan sebagai Draft</option>
-            </select>
-            <p class="helper">Pilih apakah berita langsung dipublikasikan atau disimpan sebagai draft.</p>
-          </div>
-
-          <div class="field">
-            <label class="label">Thumbnail / Gambar Utama</label>
-            <div class="attachment-row">
-              <input id="thumbnailInput" type="file" multiple accept="image/*" style="display:none;">
-              <button id="addThumbnailBtn" class="btn primary" type="button">+ Tambah Thumbnail</button>
-              <span class="helper">Upload gambar untuk carousel otomatis. Hanya file gambar yang diterima.</span>
+        <article class="panel">
+          <header class="panel-head">
+            <h3>Thumbnail</h3>
+          </header>
+          <div class="panel-body">
+            <input id="thumbnailInput" type="file" accept="image/*" multiple style="display:none;">
+            <div id="thumbnailDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload thumbnail">
+              <strong>Klik untuk upload thumbnail</strong>
+              <span>Format gambar JPG, PNG, WEBP. Bisa lebih dari satu untuk carousel.</span>
             </div>
-            <div id="thumbnailCarousel" class="carousel-container">
-              <div class="empty-carousel">Belum ada thumbnail</div>
-            </div>
-            <p class="helper" style="margin-top: 8px;">Carousel akan otomatis berganti setiap 3 detik.</p>
+            <div id="thumbnailPreview" class="thumb-preview" style="display:none;"></div>
+            <div id="thumbnailCarousel" class="carousel"></div>
           </div>
+        </article>
 
-          <div class="field">
-            <label class="label">Lampiran Tambahan</label>
-            <div class="attachment-row">
-              <input id="attachmentInput" type="file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv" style="display:none;">
-              <button id="addAttachmentBtn" class="btn primary" type="button">+ Tambah File</button>
-              <span class="helper">Upload file tambahan seperti PDF, Word, Excel, atau ZIP. Maks 10MB per file.</span>
+        <article class="panel">
+          <header class="panel-head">
+            <h3>Lampiran</h3>
+          </header>
+          <div class="panel-body">
+            <input id="attachmentInput" type="file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv" style="display:none;">
+            <div id="attachmentDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload lampiran">
+              <strong>Klik untuk upload lampiran</strong>
+              <span>PDF, DOC, XLS, ZIP, gambar, dan file lain yang didukung.</span>
             </div>
-            <div id="fileList" class="files"></div>
+            <div id="attachmentList" class="files"></div>
           </div>
+        </article>
 
-          <div class="actions">
-            <button class="btn primary" type="submit">Simpan Berita</button>
-            <button id="deleteBtn" class="btn danger" type="button" style="display:none;">Hapus Berita</button>
-            <a class="btn secondary" href="kelola-berita.html">Batal</a>
+        <article class="panel">
+          <div class="panel-body">
+            <div class="actions">
+              <button class="btn primary" type="submit" form="newsForm">Simpan Berita</button>
+              <button id="deleteBtn" class="btn danger" type="button" style="display:none;">Hapus Berita</button>
+              <a class="btn ghost" href="kelola-berita.html">Batal</a>
+            </div>
           </div>
-        </form>
-      </article>
+        </article>
+      </section>
     </main>
   </div>
 
@@ -1278,87 +832,84 @@
     const pageTitle = document.getElementById("pageTitle");
     const pageDesc = document.getElementById("pageDesc");
     const newsForm = document.getElementById("newsForm");
-
     const titleInput = document.getElementById("titleInput");
     const slugInput = document.getElementById("slugInput");
     const summaryInput = document.getElementById("summaryInput");
-    const contentInput = document.getElementById("contentInput");
-    const editorToolbar = document.getElementById("editorToolbar");
-    const categoriesContainer = document.getElementById("categoriesContainer");
     const statusInput = document.getElementById("statusInput");
+    const categoriesContainer = document.getElementById("categoriesContainer");
+    const editorToolbar = document.getElementById("editorToolbar");
+    const contentEditor = document.getElementById("contentEditor");
     const thumbnailInput = document.getElementById("thumbnailInput");
-    const addThumbnailBtn = document.getElementById("addThumbnailBtn");
+    const thumbnailDrop = document.getElementById("thumbnailDrop");
+    const thumbnailPreview = document.getElementById("thumbnailPreview");
     const thumbnailCarousel = document.getElementById("thumbnailCarousel");
     const attachmentInput = document.getElementById("attachmentInput");
-    const addAttachmentBtn = document.getElementById("addAttachmentBtn");
-    const fileList = document.getElementById("fileList");
+    const attachmentDrop = document.getElementById("attachmentDrop");
+    const attachmentList = document.getElementById("attachmentList");
     const deleteBtn = document.getElementById("deleteBtn");
-    const notify = document.getElementById("notify");
     const liveDateTime = document.getElementById("liveDateTime");
+    const notify = document.getElementById("notify");
 
+    let categories = [];
     let thumbnails = [];
     let attachments = [];
-    let allCategories = [];
-    let selectedCategories = [];
-    let isLoading = false;
-    let carouselIndex = 0;
-    let carouselTimer = null;
+    let currentCarouselIndex = 0;
+    let carouselInterval = null;
 
-    function showNotify(message) {
+    function showNotify(message, type = "info") {
       notify.textContent = message;
-      notify.classList.add("show");
+      notify.className = "notify " + type + " show";
       window.clearTimeout(showNotify.timer);
       showNotify.timer = window.setTimeout(function () {
         notify.classList.remove("show");
-      }, 2200);
-    }
-
-    function escapeHtml(text) {
-      return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function stripHtml(html) {
-      const wrapper = document.createElement("div");
-      wrapper.innerHTML = String(html || "");
-      return (wrapper.textContent || wrapper.innerText || "").replace(/\u200B/g, "").trim();
+      }, 2800);
     }
 
     function slugify(text) {
       return String(text || "")
         .toLowerCase()
         .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
         .replace(/\s+/g, "-")
-        .replace(/[^\w\-]/g, "")
-        .replace(/\-+/g, "-")
-        .replace(/^\-+|\-+$/g, "");
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(text || "").replace(/[&<>"']/g, function (match) {
+        return map[match] || match;
+      });
+    }
+
+    function stripHtml(value) {
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = String(value || "");
+      return (wrapper.textContent || wrapper.innerText || "").replace(/\u200B/g, "").trim();
     }
 
     function formatFileSize(bytes) {
-      if (!Number.isFinite(bytes) || bytes <= 0) {
+      const size = Number(bytes) || 0;
+      if (size <= 0) {
         return "0 B";
       }
       const units = ["B", "KB", "MB", "GB"];
-      let size = bytes;
+      let value = size;
       let unitIndex = 0;
-      while (size >= 1024 && unitIndex < units.length - 1) {
-        size /= 1024;
+      while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
         unitIndex += 1;
       }
-      return size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1) + " " + units[unitIndex];
+      return value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1) + " " + units[unitIndex];
     }
 
-    function attachmentBadge(item) {
-      const name = String(item && item.name ? item.name : "");
-      const extension = name.includes(".") ? name.split(".").pop() : (String(item && item.url ? item.url : "").split(".").pop() || "file");
-      return extension.slice(0, 5).toUpperCase();
+    function fileBadge(item) {
+      const name = String(item && item.name ? item.name : item && item.url ? item.url : "file");
+      const ext = name.includes(".") ? name.split(".").pop() : "file";
+      return ext.slice(0, 5).toUpperCase();
     }
 
-    function normalizeAttachment(item) {
+    function normalizeFileItem(item) {
       if (!item) {
         return null;
       }
@@ -1371,7 +922,6 @@
         return {
           url: url,
           name: url.split("/").pop() || "lampiran",
-          mimeType: "",
           size: 0,
           previewable: /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url),
           kind: /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url) ? "image" : (/\.pdf$/i.test(url) ? "pdf" : "file")
@@ -1388,26 +938,21 @@
       }
 
       const name = String(item.name || item.filename || url.split("/").pop() || "lampiran");
-      const previewable = typeof item.previewable === "boolean"
-        ? item.previewable
-        : /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(name) || /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url);
-
       return {
         url: url,
         name: name,
-        mimeType: String(item.mimeType || item.mime_type || ""),
         size: Number(item.size || 0) || 0,
-        previewable: previewable,
+        previewable: typeof item.previewable === "boolean" ? item.previewable : /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(name) || /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url),
         kind: String(item.kind || (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name) ? "image" : (/\.pdf$/i.test(name) ? "pdf" : "file")))
       };
     }
 
-    function normalizeAttachmentList(value) {
+    function normalizeFileList(value) {
       if (!value) {
         return [];
       }
 
-      let rawItems = value;
+      let raw = value;
       if (typeof value === "string") {
         const trimmed = value.trim();
         if (!trimmed) {
@@ -1415,27 +960,158 @@
         }
         try {
           const parsed = JSON.parse(trimmed);
-          rawItems = Array.isArray(parsed) ? parsed : [trimmed];
+          raw = Array.isArray(parsed) ? parsed : [trimmed];
         } catch (error) {
-          rawItems = [trimmed];
+          raw = [trimmed];
         }
       }
 
-      if (!Array.isArray(rawItems)) {
-        rawItems = [rawItems];
+      if (!Array.isArray(raw)) {
+        raw = [raw];
       }
 
-      return rawItems.map(normalizeAttachment).filter(Boolean);
+      return raw.map(normalizeFileItem).filter(Boolean);
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      liveDateTime.textContent = now.toLocaleDateString("id-ID", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function renderCategoryChecks() {
+      categoriesContainer.innerHTML = categories.map(function (cat) {
+        return '<label class="category-option">'
+          + '<input type="checkbox" value="' + escapeHtml(cat.id) + '" data-category-id="' + escapeHtml(cat.id) + '">'
+          + '<span>' + escapeHtml(cat.name) + '</span>'
+          + '</label>';
+      }).join("");
+    }
+
+    function renderThumbnailPreview() {
+      if (!thumbnails.length) {
+        thumbnailPreview.style.display = "none";
+        thumbnailPreview.innerHTML = "";
+        return;
+      }
+
+      const thumb = thumbnails[currentCarouselIndex] || thumbnails[0];
+      thumbnailPreview.style.display = "grid";
+      thumbnailPreview.innerHTML = '<img src="' + escapeHtml(thumb.url) + '" alt="Thumbnail berita">'
+        + '<strong>' + escapeHtml(thumb.name || "Thumbnail") + '</strong>';
+    }
+
+    function startCarouselAutoScroll() {
+      window.clearInterval(carouselInterval);
+      if (thumbnails.length <= 1) {
+        carouselInterval = null;
+        return;
+      }
+
+      carouselInterval = window.setInterval(function () {
+        currentCarouselIndex = (currentCarouselIndex + 1) % thumbnails.length;
+        renderThumbnailCarousel();
+      }, 3500);
+    }
+
+    function renderThumbnailCarousel() {
+      if (!thumbnails.length) {
+        thumbnailCarousel.innerHTML = '<div class="empty-carousel">Belum ada thumbnail</div>';
+        window.clearInterval(carouselInterval);
+        carouselInterval = null;
+        renderThumbnailPreview();
+        return;
+      }
+
+      const thumb = thumbnails[currentCarouselIndex] || thumbnails[0];
+      thumbnailCarousel.innerHTML = '<div class="carousel-inner">'
+        + '<img src="' + escapeHtml(thumb.url) + '" alt="Thumbnail">'
+        + '</div>'
+        + '<div class="carousel-controls">'
+        + thumbnails.map(function (_, index) {
+          return '<button type="button" class="carousel-dot ' + (index === currentCarouselIndex ? 'active' : '') + '" data-thumb-index="' + String(index) + '" aria-label="Pilih thumbnail ' + String(index + 1) + '"></button>';
+        }).join("")
+        + '</div>'
+        + '<div style="padding: 10px 12px; display:flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items:center;">'
+        + '<strong style="font-size: 0.86rem;">' + escapeHtml(thumb.name || "Thumbnail") + '</strong>'
+        + '<div style="display:flex; gap:6px; flex-wrap:wrap;">'
+        + '<span style="border:1px solid #c7d2fe; background:#fff; color:#1d4ed8; border-radius:8px; padding:5px 8px; font-size:0.76rem; font-weight:700;">' + escapeHtml(thumb.kind || "image") + '</span>'
+        + '<button type="button" class="btn ghost" data-remove-thumb="' + String(currentCarouselIndex) + '">Hapus</button>'
+        + '</div>'
+        + '</div>';
+
+      thumbnailCarousel.querySelectorAll("[data-thumb-index]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          currentCarouselIndex = Number(button.getAttribute("data-thumb-index")) || 0;
+          renderThumbnailCarousel();
+        });
+      });
+
+      const removeThumbButton = thumbnailCarousel.querySelector("[data-remove-thumb]");
+      if (removeThumbButton) {
+        removeThumbButton.addEventListener("click", function () {
+          const index = Number(removeThumbButton.getAttribute("data-remove-thumb"));
+          if (!Number.isFinite(index)) {
+            return;
+          }
+          thumbnails.splice(index, 1);
+          currentCarouselIndex = Math.max(0, Math.min(currentCarouselIndex, thumbnails.length - 1));
+          renderThumbnailCarousel();
+          startCarouselAutoScroll();
+        });
+      }
+
+      renderThumbnailPreview();
+      startCarouselAutoScroll();
+    }
+
+    function renderAttachmentList() {
+      if (!attachments.length) {
+        attachmentList.innerHTML = '<p class="helper">Belum ada lampiran.</p>';
+        return;
+      }
+
+      attachmentList.innerHTML = attachments.map(function (item, index) {
+        return '<div class="file-item">'
+          + '<div class="file-main">'
+          + '<div class="file-badge">' + escapeHtml(fileBadge(item)) + '</div>'
+          + '<div class="file-meta">'
+          + '<strong>' + escapeHtml(item.name || "lampiran") + '</strong>'
+          + '<span>' + escapeHtml((item.kind === "image" ? "Gambar" : (item.kind === "pdf" ? "PDF" : "Lampiran file"))) + ' • ' + escapeHtml(formatFileSize(item.size)) + '</span>'
+          + '</div>'
+          + '</div>'
+          + '<div class="file-actions">'
+          + (item.previewable ? '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Preview</a>' : '<span class="preview-disabled">Preview</span>')
+          + '<a href="' + escapeHtml(item.url) + '" download>Download</a>'
+          + '<button class="danger" type="button" data-remove-attachment-index="' + String(index) + '">Hapus</button>'
+          + '</div>'
+          + '</div>';
+      }).join("");
+    }
+
+    function setEditorHtml(value) {
+      contentEditor.innerHTML = String(value || "");
+    }
+
+    function getEditorHtml() {
+      return contentEditor.innerHTML.trim();
     }
 
     function emptyEditorIfNeeded() {
-      if (!stripHtml(contentInput.innerHTML)) {
-        contentInput.innerHTML = "";
+      if (!stripHtml(contentEditor.innerHTML)) {
+        contentEditor.innerHTML = "";
       }
     }
 
     function executeEditorCommand(command, value) {
-      contentInput.focus();
+      contentEditor.focus();
 
       if (command === "createLink") {
         const url = window.prompt("Masukkan URL link:", "https://");
@@ -1467,389 +1143,170 @@
       document.execCommand(command, false, value || null);
     }
 
-    function autoScrollCarousel() {
-      if (!thumbnails.length) return;
-      
-      carouselIndex = (carouselIndex + 1) % thumbnails.length;
-      const carousel = thumbnailCarousel.querySelector(".carousel");
-      if (carousel) {
-        carousel.scrollLeft = carouselIndex * thumbnailCarousel.offsetWidth;
+    async function uploadFiles(files) {
+      if (!files || !files.length) {
+        return [];
       }
-      updateCarouselDots();
-    }
 
-    function startCarouselAutoScroll() {
-      window.clearInterval(carouselTimer);
-      if (thumbnails.length > 1) {
-        carouselTimer = window.setInterval(autoScrollCarousel, 3000);
-      }
-    }
-
-    function updateCarouselDots() {
-      const dots = thumbnailCarousel.querySelectorAll(".carousel-dot");
-      dots.forEach((dot, idx) => {
-        if (idx === carouselIndex) {
-          dot.classList.add("active");
-        } else {
-          dot.classList.remove("active");
-        }
+      const formData = new FormData();
+      files.forEach(function (file) {
+        formData.append("files", file);
       });
-    }
 
-    function renderThumbnails() {
-      if (!thumbnails.length) {
-        thumbnailCarousel.innerHTML = '<div class="empty-carousel">Belum ada thumbnail</div>';
-        window.clearInterval(carouselTimer);
-        return;
+      const response = await fetch("/api/upload_image", { method: "POST", body: formData });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Gagal upload file");
       }
 
-      const dotsHtml = thumbnails.map((_, idx) => 
-        '<button type="button" class="carousel-dot' + (idx === 0 ? ' active' : '') + '" data-carousel-index="' + idx + '"></button>'
-      ).join("");
+      return Array.isArray(result.files) ? result.files.map(normalizeFileItem).filter(Boolean) : [];
+    }
 
-      thumbnailCarousel.innerHTML = 
-        '<div class="carousel">' +
-        thumbnails.map((thumb) => 
-          '<div class="carousel-slide"><img src="' + escapeHtml(thumb.url) + '" alt="Thumbnail" loading="lazy"></div>'
-        ).join("") +
-        '</div>' +
-        '<div class="carousel-controls">' + dotsHtml + '</div>';
-
-      carouselIndex = 0;
-      updateCarouselDots();
-      startCarouselAutoScroll();
-
-      const dots = thumbnailCarousel.querySelectorAll(".carousel-dot");
-      dots.forEach(dot => {
-        dot.addEventListener("click", function () {
-          carouselIndex = Number(this.getAttribute("data-carousel-index"));
-          const carousel = thumbnailCarousel.querySelector(".carousel");
-          if (carousel) {
-            carousel.scrollLeft = carouselIndex * thumbnailCarousel.offsetWidth;
-          }
-          updateCarouselDots();
-          startCarouselAutoScroll();
-        });
+    function pickCategoriesFromNews(newsItem) {
+      const categoryIds = Array.isArray(newsItem.categories) ? newsItem.categories.map(function (item) { return String(item.id); }) : [];
+      categoriesContainer.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+        checkbox.checked = categoryIds.includes(checkbox.value);
       });
-    }
-
-    function renderAttachments() {
-      if (!attachments.length) {
-        fileList.innerHTML = '<p class="helper">Belum ada lampiran. Klik tombol tambah file untuk upload banyak file sekaligus.</p>';
-        return;
-      }
-
-      fileList.innerHTML = attachments.map(function (item, index) {
-        const fileName = item.name || item.url.split('/').pop() || "lampiran";
-        const previewLink = item.previewable
-          ? '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Preview</a>'
-          : '<span title="Preview tidak tersedia">Preview</span>';
-
-        return '<div class="file-item">'
-          + '<div class="file-main">'
-          + '<div class="file-badge">' + escapeHtml(attachmentBadge(item)) + '</div>'
-          + '<div class="file-meta">'
-          + '<strong>' + escapeHtml(fileName) + '</strong>'
-          + '<span>' + escapeHtml(item.kind === "image" ? "Gambar" : (item.kind === "pdf" ? "PDF" : "Lampiran file")) + ' • ' + escapeHtml(formatFileSize(item.size)) + '</span>'
-          + '</div>'
-          + '</div>'
-          + '<div class="file-actions">'
-          + previewLink
-          + '<a href="' + escapeHtml(item.url) + '" download>Download</a>'
-          + '<button class="danger" type="button" data-remove-attachment-index="' + String(index) + '">Hapus</button>'
-          + '</div>'
-          + '</div>';
-      }).join("");
     }
 
     async function loadCategories() {
       try {
-        const res = await fetch('/api/news-categories');
-        const data = await res.json();
-        allCategories = Array.isArray(data) ? data : (data.categories || []);
-
-        if (!allCategories.length) {
-          categoriesContainer.innerHTML = '<p class="helper">Tidak ada kategori tersedia.</p>';
-          return;
-        }
-
-        categoriesContainer.innerHTML = allCategories.map(cat => {
-          const catId = String(cat.id || cat._id || "");
-          const catName = String(cat.name || cat.title || "");
-          return '<div class="category-option">'
-            + '<input type="checkbox" id="cat-' + escapeHtml(catId) + '" value="' + escapeHtml(catId) + '" class="category-checkbox">'
-            + '<label for="cat-' + escapeHtml(catId) + '">' + escapeHtml(catName) + '</label>'
-            + '</div>';
-        }).join("");
-
-        const checkboxes = categoriesContainer.querySelectorAll(".category-checkbox");
-        checkboxes.forEach(cb => {
-          cb.addEventListener("change", function () {
-            updateSelectedCategories();
-          });
-        });
-
-        updateSelectedCategories();
-      } catch (err) {
-        console.error("Error loading categories:", err);
-        categoriesContainer.innerHTML = '<p class="helper">Error memuat kategori.</p>';
+        const response = await fetch("/api/news-categories");
+        const data = await response.json();
+        categories = Array.isArray(data) ? data : [];
+        renderCategoryChecks();
+      } catch (error) {
+        showNotify("Error loading categories: " + error.message, "error");
       }
-    }
-
-    function updateSelectedCategories() {
-      const checkboxes = categoriesContainer.querySelectorAll(".category-checkbox:checked");
-      selectedCategories = Array.from(checkboxes).map(cb => String(cb.value));
     }
 
     async function loadNewsData() {
-      if (!editId) return;
-
-      try {
-        const res = await fetch('/api/news');
-        const newsList = await res.json();
-        const news = newsList.find(n => n.id === editId);
-
-        if (!news) {
-          showNotify("Data berita tidak ditemukan. Anda diarahkan ke daftar.");
-          setTimeout(() => window.location.href = "kelola-berita.html", 700);
-          return;
-        }
-
-        pageTitle.textContent = "Edit Berita";
-        pageDesc.textContent = "Perbarui konten berita yang sudah ada. Data sebelumnya sudah dimuat ke form.";
-        
-        titleInput.value = news.title || "";
-        slugInput.value = news.slug || "";
-        summaryInput.value = news.summary || "";
-        contentInput.innerHTML = news.content || "";
-        statusInput.value = news.status || "Draft";
-        
-        thumbnails = normalizeAttachmentList(news.thumbnails || news.thumbnailUrl || []);
-        attachments = normalizeAttachmentList(news.attachments || news.attachmentUrl || []);
-        
-        renderThumbnails();
-        renderAttachments();
-        emptyEditorIfNeeded();
-
-        deleteBtn.style.display = "inline-flex";
-
-        if (news.categories && Array.isArray(news.categories)) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          const newsCatIds = news.categories.map(c => String(c.id || c._id || c));
-          const checkboxes = categoriesContainer.querySelectorAll(".category-checkbox");
-          checkboxes.forEach(cb => {
-            if (newsCatIds.includes(String(cb.value))) {
-              cb.checked = true;
-            }
-          });
-          updateSelectedCategories();
-        }
-      } catch (err) {
-        console.error("Error loading news:", err);
-        showNotify("Gagal memuat data berita.");
-      }
-    }
-
-    function updateLiveDateTime() {
-      const now = new Date();
-      liveDateTime.textContent = now.toLocaleString("id-ID", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      }) + " WIB";
-    }
-
-    async function saveForm(event) {
-      event.preventDefault();
-
-      const title = titleInput.value.trim();
-      let slug = slugInput.value.trim();
-      const summary = summaryInput.value.trim();
-      const content = contentInput.innerHTML.trim();
-      const status = statusInput.value;
-
-      if (!title || !stripHtml(content) || !summary) {
-        showNotify("Judul, ringkasan, dan konten wajib diisi.");
+      if (!editId) {
         return;
       }
 
-      if (!slug) {
-        slug = slugify(title);
+      try {
+        const response = await fetch("/api/news/" + encodeURIComponent(editId));
+        if (!response.ok) {
+          throw new Error("Data berita tidak ditemukan");
+        }
+        const newsItem = await response.json();
+
+        pageTitle.textContent = "Edit Berita";
+        pageDesc.textContent = "Perbarui data berita yang sudah ada.";
+        deleteBtn.style.display = "inline-flex";
+
+        titleInput.value = newsItem.title || "";
+        slugInput.value = newsItem.slug || "";
+        summaryInput.value = newsItem.summary || "";
+        setEditorHtml(newsItem.content || "");
+        statusInput.value = newsItem.status || "draft";
+        thumbnails = normalizeFileList(newsItem.thumbnails || []);
+        attachments = normalizeFileList(newsItem.attachments || []);
+
+        renderThumbnailCarousel();
+        renderAttachmentList();
+        pickCategoriesFromNews(newsItem);
+        emptyEditorIfNeeded();
+      } catch (error) {
+        showNotify("Error loading news: " + error.message, "error");
+      }
+    }
+
+    function getSelectedCategoryIds() {
+      return Array.from(categoriesContainer.querySelectorAll('input[type="checkbox"]:checked')).map(function (checkbox) {
+        return checkbox.value;
+      });
+    }
+
+    function buildSummary(text, fallbackHtml) {
+      const baseText = String(text || stripHtml(fallbackHtml || "")).replace(/\s+/g, " ").trim();
+      if (!baseText) {
+        return "";
+      }
+      return baseText.length > 180 ? baseText.slice(0, 180) + "..." : baseText;
+    }
+
+    async function saveNews(event) {
+      event.preventDefault();
+
+      const title = titleInput.value.trim();
+      const contentHtml = getEditorHtml();
+      const summary = summaryInput.value.trim() || buildSummary("", contentHtml);
+      const selectedCategories = getSelectedCategoryIds();
+
+      if (!title || !stripHtml(contentHtml)) {
+        showNotify("Judul dan konten wajib diisi.", "error");
+        return;
       }
 
-      if (isLoading) return;
-      isLoading = true;
+      if (!selectedCategories.length) {
+        showNotify("Pilih minimal 1 kategori.", "error");
+        return;
+      }
 
       const payload = {
         title: title,
-        slug: slug,
+        slug: slugInput.value.trim() || slugify(title),
         summary: summary,
-        content: content,
-        status: status,
-        categories: selectedCategories,
+        content: contentHtml,
+        status: statusInput.value === "published" ? "published" : "draft",
         thumbnails: thumbnails,
-        thumbnailUrl: thumbnails[0] ? thumbnails[0].url : "",
         attachments: attachments,
-        attachmentUrl: attachments[0] ? attachments[0].url : ""
+        categoryIds: selectedCategories
       };
 
       try {
-        const url = editId ? `/api/news/${editId}` : '/api/news';
-        const method = editId ? 'PUT' : 'POST';
-
-        const res = await fetch(url, {
+        const url = editId ? "/api/news/" + encodeURIComponent(editId) : "/api/news";
+        const method = editId ? "PUT" : "POST";
+        const response = await fetch(url, {
           method: method,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
+        const result = await response.json();
 
-        if (!res.ok) {
-          const err = await res.json();
-          showNotify("Gagal menyimpan: " + (err.error || "Error tidak diketahui"));
-          isLoading = false;
-          return;
+        if (result.success) {
+          showNotify(editId ? "Berita berhasil diperbarui" : "Berita berhasil ditambahkan", "success");
+          window.setTimeout(function () {
+            window.location.href = "kelola-berita.html";
+          }, 700);
+        } else {
+          showNotify("Error: " + (result.error || "Gagal menyimpan"), "error");
         }
-
-        showNotify(editId ? "Berita berhasil diperbarui." : "Berita baru berhasil ditambahkan.");
-        setTimeout(() => window.location.href = "kelola-berita.html", 450);
-      } catch (err) {
-        console.error("Save error:", err);
-        showNotify("Error jaringan saat menyimpan.");
-        isLoading = false;
+      } catch (error) {
+        showNotify("Error: " + error.message, "error");
       }
     }
 
     async function deleteNews() {
-      if (!editId) return;
-      
-      if (!window.confirm("Apakah Anda yakin ingin menghapus berita ini? Tindakan ini tidak dapat diundo.")) {
+      if (!editId) {
+        return;
+      }
+      if (!window.confirm("Hapus berita ini?")) {
         return;
       }
 
-      if (isLoading) return;
-      isLoading = true;
-
       try {
-        const res = await fetch(`/api/news/${editId}`, { method: 'DELETE' });
-
-        if (!res.ok) {
-          const err = await res.json();
-          showNotify("Gagal menghapus: " + (err.error || "Error tidak diketahui"));
-          isLoading = false;
-          return;
+        const response = await fetch("/api/news/" + encodeURIComponent(editId), { method: "DELETE" });
+        const result = await response.json();
+        if (result.success) {
+          showNotify("Berita berhasil dihapus", "success");
+          window.setTimeout(function () {
+            window.location.href = "kelola-berita.html";
+          }, 550);
+        } else {
+          showNotify("Error: " + (result.error || "Gagal menghapus"), "error");
         }
-
-        showNotify("Berita berhasil dihapus.");
-        setTimeout(() => window.location.href = "kelola-berita.html", 450);
-      } catch (err) {
-        console.error("Delete error:", err);
-        showNotify("Error saat menghapus berita.");
-        isLoading = false;
+      } catch (error) {
+        showNotify("Error: " + error.message, "error");
       }
     }
 
     titleInput.addEventListener("input", function () {
       if (!slugInput.value.trim()) {
-        slugInput.value = slugify(titleInput.value);
+        slugInput.value = slugify(this.value);
       }
-    });
-
-    addThumbnailBtn.addEventListener("click", function () {
-      thumbnailInput.click();
-    });
-
-    thumbnailInput.addEventListener("change", async function () {
-      const selectedFiles = Array.from(thumbnailInput.files || []);
-      if (!selectedFiles.length) {
-        return;
-      }
-
-      const tooLargeFile = selectedFiles.find(function (file) {
-        return file.size > 10 * 1024 * 1024;
-      });
-      if (tooLargeFile) {
-        showNotify("File terlalu besar (max 10MB per file)");
-        thumbnailInput.value = "";
-        return;
-      }
-
-      const formData = new FormData();
-      selectedFiles.forEach(function (file) {
-        formData.append('files', file);
-      });
-
-      try {
-        const res = await fetch('/api/upload_image', { method: 'POST', body: formData });
-        const json = await res.json();
-        const uploadedFiles = Array.isArray(json.files) ? json.files : (json.url ? [normalizeAttachment(json.url)] : []);
-        if (uploadedFiles.length) {
-          thumbnails = thumbnails.concat(uploadedFiles.map(normalizeAttachment).filter(Boolean));
-          renderThumbnails();
-          showNotify(uploadedFiles.length > 1 ? "Beberapa thumbnail berhasil di-upload." : "Thumbnail berhasil di-upload.");
-        } else {
-          showNotify("Gagal upload: " + (json.error || "Error"));
-        }
-      } catch (err) {
-        console.error("Upload error:", err);
-        showNotify("Error saat upload thumbnail.");
-      }
-      thumbnailInput.value = "";
-    });
-
-    addAttachmentBtn.addEventListener("click", function () {
-      attachmentInput.click();
-    });
-
-    attachmentInput.addEventListener("change", async function () {
-      const selectedFiles = Array.from(attachmentInput.files || []);
-      if (!selectedFiles.length) {
-        return;
-      }
-
-      const tooLargeFile = selectedFiles.find(function (file) {
-        return file.size > 10 * 1024 * 1024;
-      });
-      if (tooLargeFile) {
-        showNotify("File terlalu besar (max 10MB per file)");
-        attachmentInput.value = "";
-        return;
-      }
-
-      const formData = new FormData();
-      selectedFiles.forEach(function (file) {
-        formData.append('files', file);
-      });
-
-      try {
-        const res = await fetch('/api/upload_image', { method: 'POST', body: formData });
-        const json = await res.json();
-        const uploadedFiles = Array.isArray(json.files) ? json.files : (json.url ? [normalizeAttachment(json.url)] : []);
-        if (uploadedFiles.length) {
-          attachments = attachments.concat(uploadedFiles.map(normalizeAttachment).filter(Boolean));
-          renderAttachments();
-          showNotify(uploadedFiles.length > 1 ? "Beberapa file berhasil di-upload." : "File berhasil di-upload.");
-        } else {
-          showNotify("Gagal upload: " + (json.error || "Error"));
-        }
-      } catch (err) {
-        console.error("Upload error:", err);
-        showNotify("Error saat upload file.");
-      }
-      attachmentInput.value = "";
-    });
-
-    fileList.addEventListener("click", function (event) {
-      const button = event.target.closest("button[data-remove-attachment-index]");
-      if (!button) return;
-      const removeIndex = Number(button.getAttribute("data-remove-attachment-index"));
-      if (Number.isFinite(removeIndex)) {
-        attachments.splice(removeIndex, 1);
-      }
-      renderAttachments();
     });
 
     editorToolbar.addEventListener("mousedown", function (event) {
@@ -1864,33 +1321,129 @@
         return;
       }
       executeEditorCommand(button.getAttribute("data-command") || "", button.getAttribute("data-value") || "");
-      contentInput.focus();
+      contentEditor.focus();
     });
 
-    contentInput.addEventListener("input", function () {
-      emptyEditorIfNeeded();
+    contentEditor.addEventListener("input", emptyEditorIfNeeded);
+    contentEditor.addEventListener("blur", emptyEditorIfNeeded);
+
+    thumbnailDrop.addEventListener("click", function () {
+      thumbnailInput.click();
     });
 
-    contentInput.addEventListener("blur", emptyEditorIfNeeded);
-
-    deleteBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      deleteNews();
+    thumbnailDrop.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        thumbnailInput.click();
+      }
     });
 
-    newsForm.addEventListener("submit", saveForm);
+    thumbnailInput.addEventListener("change", async function () {
+      try {
+        const selectedFiles = Array.from(thumbnailInput.files || []);
+        if (!selectedFiles.length) {
+          return;
+        }
 
-    Promise.all([
-      loadCategories(),
-      loadNewsData()
-    ]).then(() => {
-      renderThumbnails();
-      renderAttachments();
+        const imageFiles = selectedFiles.filter(function (file) {
+          return file.type.startsWith("image/");
+        });
+
+        if (!imageFiles.length) {
+          showNotify("Thumbnail hanya mendukung file gambar.", "error");
+          thumbnailInput.value = "";
+          return;
+        }
+
+        const uploaded = await uploadFiles(imageFiles);
+        thumbnails = thumbnails.concat(uploaded);
+        renderThumbnailCarousel();
+        showNotify("Thumbnail berhasil di-upload.", "success");
+      } catch (error) {
+        showNotify(error.message, "error");
+      } finally {
+        thumbnailInput.value = "";
+      }
+    });
+
+    thumbnailCarousel.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-remove-thumb]");
+      if (!button) {
+        return;
+      }
+
+      const index = Number(button.getAttribute("data-remove-thumb"));
+      if (!Number.isFinite(index)) {
+        return;
+      }
+
+      thumbnails.splice(index, 1);
+      currentCarouselIndex = Math.max(0, Math.min(currentCarouselIndex, thumbnails.length - 1));
+      renderThumbnailCarousel();
+      showNotify("Thumbnail dihapus.", "success");
+    });
+
+    attachmentDrop.addEventListener("click", function () {
+      attachmentInput.click();
+    });
+
+    attachmentDrop.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        attachmentInput.click();
+      }
+    });
+
+    attachmentInput.addEventListener("change", async function () {
+      try {
+        const selectedFiles = Array.from(attachmentInput.files || []);
+        if (!selectedFiles.length) {
+          return;
+        }
+
+        const uploaded = await uploadFiles(selectedFiles);
+        attachments = attachments.concat(uploaded);
+        renderAttachmentList();
+        showNotify("Lampiran berhasil di-upload.", "success");
+      } catch (error) {
+        showNotify(error.message, "error");
+      } finally {
+        attachmentInput.value = "";
+      }
+    });
+
+    attachmentList.addEventListener("click", function (event) {
+      const button = event.target.closest("button[data-remove-attachment-index]");
+      if (!button) {
+        return;
+      }
+
+      const index = Number(button.getAttribute("data-remove-attachment-index"));
+      if (!Number.isFinite(index)) {
+        return;
+      }
+
+      attachments.splice(index, 1);
+      renderAttachmentList();
+      showNotify("Lampiran dihapus.", "success");
+    });
+
+    newsForm.addEventListener("submit", saveNews);
+    deleteBtn.addEventListener("click", deleteNews);
+
+    loadCategories().then(function () {
+      renderCategoryChecks();
+      return loadNewsData();
+    }).then(function () {
+      if (!editId) {
+        renderThumbnailCarousel();
+        renderAttachmentList();
+      }
     });
 
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
-<script src="_sidebar-fix.js"></script>
+  <script src="_sidebar-fix.js"></script>
 </body>
 </html>
