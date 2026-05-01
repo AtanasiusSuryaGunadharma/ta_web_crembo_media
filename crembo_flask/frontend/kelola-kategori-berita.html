@@ -317,6 +317,15 @@
       gap: 6px;
     }
 
+    .card.dragging {
+      opacity: 0.56;
+    }
+
+    .card.drop-target {
+      border-color: #8bb3ff;
+      box-shadow: 0 0 0 2px rgba(59, 125, 248, 0.26);
+    }
+
     .card-head {
       display: flex;
       justify-content: space-between;
@@ -324,7 +333,34 @@
       align-items: flex-start;
     }
 
+    .card-head-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-width: 0;
+    }
+
     .card h3 { margin: 0; font-size: 1.2rem; }
+
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #b8b8b8;
+      border-radius: 6px;
+      background: #f8f8f8;
+      cursor: grab;
+      user-select: none;
+      font-size: 0.9rem;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
 
     .slug { color: #6b7280; font-size: 0.82rem; }
     .desc { color: #374151; font-size: 0.88rem; margin: 0; }
@@ -344,6 +380,38 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .actions .link-btn {
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 9px;
+      border: 1px solid #cbd5e1;
+      background: linear-gradient(180deg, #f8fbff 0%, #e8eefc 100%);
+      color: #1d4ed8;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
+    }
+
+    .actions .link-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
+      border-color: #93c5fd;
+      background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
+    }
+
+    .actions .link-btn.delete {
+      border-color: #fecaca;
+      background: linear-gradient(180deg, #fff6f6 0%, #ffe4e6 100%);
+      color: #dc2626;
+    }
+
+    .actions .link-btn.delete:hover {
+      border-color: #fca5a5;
+      box-shadow: 0 6px 14px rgba(220, 38, 38, 0.12);
+      background: linear-gradient(180deg, #ffffff 0%, #fee2e2 100%);
     }
 
     .link-btn {
@@ -519,13 +587,17 @@
 
     function renderCards() {
       categoryCards.innerHTML = categories.map(cat => `
-        <div class="card">
+        <div class="card" data-category-id="${escapeHtml(cat.id)}" draggable="true">
           <div class="card-head">
-            <div>
-              <h3>${escapeHtml(cat.name)}</h3>
-              <p class="slug">${escapeHtml(cat.slug)}</p>
-              ${cat.description ? `<p class="desc">${escapeHtml(cat.description)}</p>` : ''}
+            <div class="card-head-main">
+              <span class="drag-handle" title="Tarik untuk ubah urutan">::</span>
+              <div>
+                <h3>${escapeHtml(cat.name)}</h3>
+                <p class="slug">${escapeHtml(cat.slug)}</p>
+                ${cat.description ? `<p class="desc">${escapeHtml(cat.description)}</p>` : ''}
+              </div>
             </div>
+            <span class="order">Urutan: ${escapeHtml(String(cat.order ?? 0))}</span>
           </div>
           <div class="actions">
             <button type="button" class="link-btn" data-edit="${cat.id}">Edit</button>
@@ -534,12 +606,122 @@
         </div>
       `).join('');
 
+      bindDragAndDrop();
+
       categoryCards.querySelectorAll('[data-edit]').forEach(btn => {
         btn.addEventListener('click', () => openEdit(btn.getAttribute('data-edit')));
       });
 
       categoryCards.querySelectorAll('[data-delete]').forEach(btn => {
         btn.addEventListener('click', () => deleteCategory(btn.getAttribute('data-delete')));
+      });
+    }
+
+    function getOrderedCategories() {
+      return categories
+        .slice()
+        .sort((a, b) => {
+          if (a.order !== b.order) {
+            return a.order - b.order;
+          }
+          return String(a.name || "").localeCompare(String(b.name || ""));
+        });
+    }
+
+    async function syncCategoryOrder() {
+      const ordered = getOrderedCategories();
+
+      try {
+        await Promise.all(ordered.map((cat, index) => fetch(`/api/news-categories/${encodeURIComponent(cat.id)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: cat.name,
+            slug: cat.slug,
+            description: cat.description || "",
+            order: index
+          })
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error("Gagal menyimpan urutan kategori.");
+          }
+        })));
+
+        categories = ordered.map((cat, index) => ({ ...cat, order: index }));
+        showNotify("Urutan kategori berhasil disimpan");
+      } catch (err) {
+        console.error(err);
+        showNotify("Gagal menyimpan urutan kategori");
+        loadCategories();
+      }
+    }
+
+    function reorderCategory(sourceId, targetId) {
+      const ordered = getOrderedCategories();
+      const sourceIndex = ordered.findIndex(cat => String(cat.id) === String(sourceId));
+      const targetIndex = ordered.findIndex(cat => String(cat.id) === String(targetId));
+
+      if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+        return;
+      }
+
+      const moved = ordered.splice(sourceIndex, 1)[0];
+      ordered.splice(targetIndex, 0, moved);
+      ordered.forEach((cat, index) => {
+        cat.order = index;
+      });
+
+      categories = ordered;
+      renderCards();
+      syncCategoryOrder();
+    }
+
+    function bindDragAndDrop() {
+      let draggingCategoryId = "";
+
+      categoryCards.querySelectorAll('.card').forEach(card => {
+        const categoryId = card.getAttribute('data-category-id') || "";
+        const handle = card.querySelector('.drag-handle');
+        if (!handle || !categoryId) {
+          return;
+        }
+
+        card.addEventListener('dragstart', event => {
+          draggingCategoryId = categoryId;
+          card.classList.add('dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+          }
+        });
+
+        card.addEventListener('dragend', () => {
+          draggingCategoryId = "";
+          card.classList.remove('dragging');
+          categoryCards.querySelectorAll('.card').forEach(target => {
+            target.classList.remove('drop-target');
+          });
+        });
+
+        card.addEventListener('dragover', event => {
+          if (!draggingCategoryId || draggingCategoryId === categoryId) {
+            return;
+          }
+          event.preventDefault();
+          card.classList.add('drop-target');
+        });
+
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drop-target');
+        });
+
+        card.addEventListener('drop', event => {
+          event.preventDefault();
+          card.classList.remove('drop-target');
+          if (!draggingCategoryId || draggingCategoryId === categoryId) {
+            return;
+          }
+          reorderCategory(draggingCategoryId, categoryId);
+        });
       });
     }
 

@@ -388,6 +388,43 @@
       border-radius: 8px;
     }
 
+    .inline-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 32px;
+      padding: 6px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f8fbff 0%, #e8eefc 100%);
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: 0.76rem;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
+    }
+
+    .inline-action:hover {
+      transform: translateY(-1px);
+      border-color: #93c5fd;
+      background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
+    }
+
+    .inline-action.danger {
+      border-color: #fecaca;
+      background: linear-gradient(180deg, #fff6f6 0%, #ffe4e6 100%);
+      color: #dc2626;
+    }
+
+    .inline-action.danger:hover {
+      border-color: #fca5a5;
+      background: linear-gradient(180deg, #ffffff 0%, #fee2e2 100%);
+      box-shadow: 0 6px 14px rgba(220, 38, 38, 0.12);
+    }
+
     .empty {
       text-align: center;
       color: #4b5563;
