@@ -329,6 +329,39 @@ def ensure_news_schema() -> None:
         conn.close()
 
 
+def ensure_agenda_schema() -> None:
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `agendas` (
+              `id` varchar(100) NOT NULL,
+              `title` varchar(255) NOT NULL,
+              `description` longtext DEFAULT NULL,
+              `start_date` date NOT NULL,
+              `start_time` time NOT NULL,
+              `end_date` date DEFAULT NULL,
+              `end_time` time DEFAULT NULL,
+              `location` varchar(255) DEFAULT NULL,
+              `registration_link` varchar(500) DEFAULT NULL,
+              `image_url` text DEFAULT NULL,
+              `image_name` varchar(255) DEFAULT NULL,
+              `attachments` longtext DEFAULT NULL,
+              `status` varchar(20) NOT NULL DEFAULT 'active',
+              `order_index` int(11) NOT NULL DEFAULT 0,
+              `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -1456,6 +1489,227 @@ def delete_profile(profile_id):
         cursor.close()
         conn.close()
 
+
+# --- AGENDA ENDPOINTS ---
+
+def agenda_row_to_dict(row):
+    attachments_raw = row.get("attachments") or "[]"
+    try:
+        attachments = json.loads(attachments_raw) if isinstance(attachments_raw, str) else (attachments_raw or [])
+    except (TypeError, ValueError):
+        attachments = []
+
+    return {
+        "id": row.get("id"),
+        "title": row.get("title") or "Agenda",
+        "description": row.get("description") or "",
+        "startDate": str(row.get("start_date") or ""),
+        "startTime": str(row.get("start_time") or "")[:5],
+        "endDate": str(row.get("end_date") or ""),
+        "endTime": str(row.get("end_time") or "")[:5],
+        "location": row.get("location") or "",
+        "registrationLink": row.get("registration_link") or "",
+        "imageUrl": row.get("image_url") or "",
+        "imageName": row.get("image_name") or "",
+        "attachments": attachments if isinstance(attachments, list) else [],
+        "status": "active" if (row.get("status") or "active") == "active" else "inactive",
+        "order": int(row.get("order_index") or 0),
+        "createdAt": row.get("created_at") or "",
+        "updatedAt": row.get("updated_at") or "",
+    }
+
+
+def agenda_payload_to_db_values(data, existing=None):
+    source = existing or {}
+    attachments = normalize_attachment_payload(data.get("attachments", source.get("attachments", [])))
+
+    def value_for(*keys, default=""):
+        for key in keys:
+            current = data.get(key)
+            if current not in (None, ""):
+                return current
+            current = source.get(key)
+            if current not in (None, ""):
+                return current
+        return default
+
+    order_value = data.get("order")
+    if order_value in (None, ""):
+        order_value = data.get("orderIndex")
+    if order_value in (None, ""):
+        order_value = source.get("order_index") or 0
+
+    status_value = str(value_for("status", default="active")).lower()
+
+    return {
+        "title": str(value_for("title")).strip(),
+        "description": str(value_for("description")).strip(),
+        "start_date": str(value_for("startDate", "start_date")).strip(),
+        "start_time": str(value_for("startTime", "start_time")).strip(),
+        "end_date": str(value_for("endDate", "end_date")).strip() or None,
+        "end_time": str(value_for("endTime", "end_time")).strip() or None,
+        "location": str(value_for("location")).strip(),
+        "registration_link": str(value_for("registrationLink", "registration_link")).strip(),
+        "image_url": str(value_for("imageUrl", "image_url")).strip(),
+        "image_name": str(value_for("imageName", "image_name")).strip(),
+        "attachments": json.dumps(attachments, ensure_ascii=False),
+        "status": "inactive" if status_value == "inactive" else "active",
+        "order_index": int(order_value or 0),
+    }
+
+
+@app.route("/api/agendas", methods=["GET"])
+def get_agendas():
+    ensure_agenda_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `agendas` ORDER BY `order_index` ASC, `updated_at` DESC")
+        rows = cursor.fetchall() or []
+        return jsonify([agenda_row_to_dict(row) for row in rows])
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/agendas/<agenda_id>", methods=["GET"])
+def get_agenda_detail(agenda_id):
+    ensure_agenda_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `agendas` WHERE `id` = %s LIMIT 1", (agenda_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "Agenda not found"}), 404
+        return jsonify(agenda_row_to_dict(row))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/agendas", methods=["POST"])
+def create_agenda():
+    ensure_agenda_schema()
+    data = request.json or {}
+    values = agenda_payload_to_db_values(data)
+    if not values["title"] or not values["start_date"] or not values["start_time"]:
+        return jsonify({"success": False, "error": "Judul, tanggal mulai, dan waktu mulai wajib diisi."}), 400
+
+    agenda_id = f"agenda-{int(time.time() * 1000)}"
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO `agendas`
+            (`id`, `title`, `description`, `start_date`, `start_time`, `end_date`, `end_time`, `location`, `registration_link`, `image_url`, `image_name`, `attachments`, `status`, `order_index`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                agenda_id,
+                values["title"],
+                values["description"],
+                values["start_date"],
+                values["start_time"],
+                values["end_date"],
+                values["end_time"],
+                values["location"],
+                values["registration_link"],
+                values["image_url"],
+                values["image_name"],
+                values["attachments"],
+                values["status"],
+                values["order_index"],
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True, "id": agenda_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/agendas/<agenda_id>", methods=["PUT"])
+def update_agenda(agenda_id):
+    ensure_agenda_schema()
+    data = request.json or {}
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `agendas` WHERE `id` = %s LIMIT 1", (agenda_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Agenda not found"}), 404
+
+        values = agenda_payload_to_db_values(data, existing)
+        if not values["title"] or not values["start_date"] or not values["start_time"]:
+            return jsonify({"success": False, "error": "Judul, tanggal mulai, dan waktu mulai wajib diisi."}), 400
+
+        cursor.execute(
+            """
+            UPDATE `agendas`
+            SET `title` = %s,
+                `description` = %s,
+                `start_date` = %s,
+                `start_time` = %s,
+                `end_date` = %s,
+                `end_time` = %s,
+                `location` = %s,
+                `registration_link` = %s,
+                `image_url` = %s,
+                `image_name` = %s,
+                `attachments` = %s,
+                `status` = %s,
+                `order_index` = %s
+            WHERE `id` = %s
+            """,
+            (
+                values["title"],
+                values["description"],
+                values["start_date"],
+                values["start_time"],
+                values["end_date"],
+                values["end_time"],
+                values["location"],
+                values["registration_link"],
+                values["image_url"],
+                values["image_name"],
+                values["attachments"],
+                values["status"],
+                values["order_index"],
+                agenda_id,
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/agendas/<agenda_id>", methods=["DELETE"])
+def delete_agenda(agenda_id):
+    ensure_agenda_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM `agendas` WHERE `id` = %s", (agenda_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
 # --- NEWS & CATEGORIES ENDPOINTS ---
 
 @app.route("/api/news-categories", methods=["GET"])
@@ -1748,6 +2002,7 @@ if __name__ == "__main__":
     try:
         ensure_auth_schema()
         ensure_news_schema()
+        ensure_agenda_schema()
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)
