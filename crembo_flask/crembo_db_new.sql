@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 01 Bulan Mei 2026 pada 07.04
+-- Waktu pembuatan: 01 Bulan Mei 2026 pada 07.17
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -20,6 +20,38 @@ SET time_zone = "+00:00";
 --
 -- Database: `crembo_db_new`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `agendas`
+--
+
+CREATE TABLE `agendas` (
+  `id` varchar(100) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext DEFAULT NULL,
+  `start_date` date NOT NULL,
+  `start_time` time NOT NULL,
+  `end_date` date DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `registration_link` varchar(500) DEFAULT NULL,
+  `image_url` text DEFAULT NULL,
+  `image_name` varchar(255) DEFAULT NULL,
+  `attachments` longtext DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `order_index` int(11) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `agendas`
+--
+
+INSERT INTO `agendas` (`id`, `title`, `description`, `start_date`, `start_time`, `end_date`, `end_time`, `location`, `registration_link`, `image_url`, `image_name`, `attachments`, `status`, `order_index`, `created_at`, `updated_at`) VALUES
+('agenda-1777612459330', 'aaasdasd', 'asdasdasd', '2026-05-02', '16:13:00', '2026-06-01', '12:13:00', 'asdasd', 'https://www.google.com/maps', '/uploads/Tanda_Tangan_Mick_Schumacher_41971d95e5d0460ca6060bc64a6f1dd2.png', 'Tanda_Tangan_Mick_Schumacher.png', '[{\"url\": \"/uploads/template-import-anggota_6d989233e1194d1cb594f689b2a1484e.csv\", \"name\": \"template-import-anggota.csv\", \"mimeType\": \"\", \"size\": 197, \"previewable\": false, \"kind\": \"file\"}, {\"url\": \"/uploads/Hasil_Pengujian_User_Flow_f5711524e2234b218cada04b822f498f.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]', 'active', 0, '2026-05-01 12:14:19', '2026-05-01 12:14:19');
 
 -- --------------------------------------------------------
 
@@ -1976,6 +2008,12 @@ INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indeks untuk tabel `agendas`
+--
+ALTER TABLE `agendas`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indeks untuk tabel `anggota`
