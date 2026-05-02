@@ -1030,7 +1030,7 @@
       const label = escapeHtml(field.label);
 
       if (type === "textarea") {
-        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><textarea name="' + escapeHtml(field.id) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>' + escapeHtml(value) + '</textarea></div>';
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><textarea id="' + escapeHtml(field.id) + '" name="' + escapeHtml(field.id) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>' + escapeHtml(value) + '</textarea></div>';
       }
       if (type === "select") {
         const options = field.options.length ? field.options : ["Pilihan 1", "Pilihan 2"];
@@ -1038,7 +1038,7 @@
           const selected = String(value) === String(opt) ? ' selected' : '';
           return '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt) + '</option>';
         })).join("");
-        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><select name="' + escapeHtml(field.id) + '" ' + requiredAttr + '>' + optionHtml + '</select></div>';
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><select id="' + escapeHtml(field.id) + '" name="' + escapeHtml(field.id) + '" ' + requiredAttr + '>' + optionHtml + '</select></div>';
       }
       if (type === "radio" || type === "checkbox") {
         const options = field.options.length ? field.options : ["Pilihan 1", "Pilihan 2"];
@@ -1050,10 +1050,10 @@
             }).join("") + '</div></div>';
       }
       if (type === "file") {
-        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><input type="file" name="' + escapeHtml(field.id) + '" ' + requiredAttr + ' multiple></div>';
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><input type="file" id="' + escapeHtml(field.id) + '" name="' + escapeHtml(field.id) + '" ' + requiredAttr + ' multiple></div>';
       }
       const htmlType = ["text", "email", "number", "date", "time", "tel"].indexOf(type) !== -1 ? type : "text";
-      return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><input type="' + htmlType + '" name="' + escapeHtml(field.id) + '" value="' + escapeHtml(value) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '></div>';
+      return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><input type="' + htmlType + '" id="' + escapeHtml(field.id) + '" name="' + escapeHtml(field.id) + '" value="' + escapeHtml(value) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '></div>';
     }
 
     function getFieldAnswerFromSubmission(submission, field) {
@@ -1159,7 +1159,7 @@
             let value = "";
 
             if (type === "file") {
-                const fileInput = formElement.querySelector('input[name="' + field.id + '"]');
+                const fileInput = document.getElementById(field.id);
                 if (fileInput && fileInput.files.length > 0) {
                     const formData = new FormData();
                     for (let i = 0; i < fileInput.files.length; i++) {
@@ -1183,7 +1183,7 @@
               value = selected ? selected.value : "";
               if (field.required && !value) throw new Error("Mohon isi: " + field.label);
             } else {
-              const input = formElement.querySelector('[name="' + field.id + '"]');
+              const input = document.getElementById(field.id);
               value = input ? String(input.value || "").trim() : "";
               if (field.required && !value) throw new Error("Mohon isi: " + field.label);
             }
