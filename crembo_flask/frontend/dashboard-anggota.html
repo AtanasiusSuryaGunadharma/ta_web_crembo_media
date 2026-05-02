@@ -1057,7 +1057,7 @@
               <path d="M6 9C6 5.7 8.7 3 12 3C15.3 3 18 5.7 18 9V12.2L19.6 15.4C19.8 15.8 19.7 16.3 19.4 16.6C19.2 16.9 18.8 17 18.4 17H5.6C5.2 17 4.8 16.9 4.6 16.6C4.3 16.3 4.2 15.8 4.4 15.4L6 12.2V9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
               <path d="M9.5 17C9.8 18.2 10.9 19 12 19C13.1 19 14.2 18.2 14.5 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
             </svg>
-            <span id="notificationCount" class="notification-count">5</span>
+            <span id="notificationCount" class="notification-count">0</span>
           </button>
           <span id="liveDateTime">-</span>
           <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
@@ -1079,7 +1079,7 @@
         <div class="quick-filter" aria-label="Ringkasan cepat anggota">
           <span class="chip"><strong id="metricQuickLabel">Jadwal:</strong> Minggu Ini</span>
           <span class="chip"><strong>Task:</strong> Aktif</span>
-          <span class="chip"><strong>Notifikasi:</strong> <span id="notificationCountChip">5</span></span>
+          <span class="chip"><strong>Notifikasi:</strong> <span id="notificationCountChip">0</span></span>
         </div>
       </header>
 
@@ -1366,15 +1366,6 @@
     let taskFilterYear = "2026";
     let notificationTab = "all";
 
-    const DEFAULT_NOTIFICATIONS = [
-      { id: "notif-1", type: "tugas", title: "Jadwal tugas baru tersedia", message: "Ada request tugas harian yang bisa diambil untuk minggu ini.", date: "2026-04-10 08:15", status: "unread" },
-      { id: "notif-2", type: "tukar", title: "Pengajuan tukar jadwal menunggu", message: "Permintaan tukar jadwal Anda belum diproses oleh petugas lain.", date: "2026-04-09 16:30", status: "read" },
-      { id: "notif-3", type: "peminjaman", title: "Barang pinjaman siap diambil", message: "Pengajuan peminjaman barang sudah disetujui dan siap diambil di gudang.", date: "2026-04-09 12:05", status: "unread" },
-      { id: "notif-4", type: "agenda", title: "Agenda kegiatan baru ditambahkan", message: "Agenda latihan pelayanan streaming sudah dijadwalkan pada akhir pekan.", date: "2026-04-08 19:20", status: "read" },
-      { id: "notif-5", type: "keanggotaan", title: "Status keanggotaan aktif", message: "Status keanggotaan Anda tetap aktif untuk periode ini.", date: "2026-04-07 07:45", status: "unread" },
-      { id: "notif-6", type: "tugas", title: "Pengingat evaluasi streaming", message: "Silakan isi evaluasi streaming untuk sesi yang sudah selesai malam ini.", date: "2026-04-10 20:10", status: "read" }
-    ];
-
     function titleByRange(range) {
       if (range === "week") {
         return "Minggu Ini";
@@ -1442,7 +1433,7 @@
         const data = await res.json();
         return Array.isArray(data) ? data : [];
       } catch (e) {
-        return DEFAULT_NOTIFICATIONS.slice();
+        return [];
       }
     }
 
@@ -1466,13 +1457,17 @@
       const filtered = items.filter(function (item) {
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
-        const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-        const text = [item.title, item.message, notificationTypeLabel(item.type), item.date].join(" ").toLowerCase();
+        // Penyesuaian agar filter status berdasarkan item.read
+        const itemStatus = item.read ? "read" : "unread";
+        const matchesStatus = statusFilter === "all" || itemStatus === statusFilter;
+        
+        const text = [item.title, item.body, notificationTypeLabel(item.type), item.createdAt].join(" ").toLowerCase();
         const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
+        
         return matchesTab && matchesType && matchesStatus && matchesKeyword;
       });
 
-      const unreadCount = String(items.filter(function (item) { return item.read === false || item.read === 'false' || item.status === 'unread'; }).length);
+      const unreadCount = String(items.filter(function (item) { return !item.read; }).length);
       notificationCount.textContent = unreadCount;
       if (notificationCountChip) {
         notificationCountChip.textContent = unreadCount;
@@ -1484,10 +1479,11 @@
       }
 
       notificationList.innerHTML = filtered.map(function (item) {
-        const isUnread = (item.read === false || item.read === 'false' || item.status === 'unread');
+        const isUnread = !item.read;
         const badgeClass = isUnread ? 'status-warn' : 'status-ok';
         const openClass = isUnread ? ' unread' : '';
-        const dateText = item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : (item.date || '');
+        const dateText = item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '';
+        
         return '<article class="notification-item' + openClass + '">'
           + '<div class="notification-top">'
           + '<div>'
@@ -1497,7 +1493,7 @@
           + '<span class="' + badgeClass + '">' + (isUnread ? 'Baru' : 'Dibaca') + '</span>'
           + '</div>'
           + '<div>' + (item.body || '') + '</div>'
-          + '<div class="notification-meta"><span>' + dateText + '</span><span>ID: ' + (item.id || '') + '</span></div>'
+          + '<div class="notification-meta"><span>' + dateText + '</span></div>'
           + '<div class="notification-actions">'
           + '<button class="mini-btn ghost" type="button" data-notif-action="open" data-notif-id="' + (item.id || '') + '" data-notif-url="' + (item.url || '') + '">Buka</button>'
           + '<button class="mini-btn ghost" type="button" data-notif-action="toggle" data-notif-id="' + (item.id || '') + '">' + (isUnread ? 'Tandai Dibaca' : 'Tandai Baru') + '</button>'
@@ -1518,8 +1514,9 @@
             if (url) { window.location.href = url; }
             else { renderNotifications(); }
           } else if (action === 'toggle') {
+            // Memanggil endpoint toggle_read untuk mengganti status dibaca/baru
             try {
-              await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' });
+              await fetch('/api/notifications/' + encodeURIComponent(nid) + '/toggle_read', { method: 'POST', credentials: 'same-origin' });
             } catch (e) {}
             renderNotifications();
           }
@@ -1608,7 +1605,6 @@
         return parsed;
       }
 
-      // Fallback demo data bila modul request belum menyimpan data ke localStorage.
       return [
         { requestDate: "2026-04-01", startDate: "2026-04-12", status: "Menunggu Mulai" },
         { requestDate: "2026-04-03", startDate: "2026-04-18", status: "Menunggu Mulai" },
@@ -1866,7 +1862,6 @@
     }
 
     seedMemberTasksIfEmpty();
-    seedNotificationsIfEmpty();
     renderRegisteredTaskSection();
 
     renderScheduleMetric();
