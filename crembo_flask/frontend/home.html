@@ -1494,6 +1494,24 @@
 			z-index: 1;
 		}
 
+		/* FORM CARD COMPONENT SPECIFIC (Untuk halaman home) */
+		.form-status-badge {
+			position: absolute;
+			top: 12px;
+			right: 12px;
+			font-size: 0.72rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.4px;
+			padding: 4px 12px;
+			border-radius: 999px;
+			z-index: 5;
+		}
+		.status-open { background: rgba(34,197,94,0.9); color: #fff; }
+		.status-soon { background: rgba(212,160,23,0.9); color: #fff; }
+		.status-closed { background: rgba(128,0,0,0.85); color: #fff; }
+		.status-draft { background: rgba(100,100,100,0.8); color: #fff; }
+
 		/* ═══════════════════════════════════════════
 		   RESPONSIVE
 		   ═══════════════════════════════════════════ */
@@ -1599,8 +1617,8 @@
 <body>
 	<header class="top-header" id="topHeader">
 		<div class="container">
-			<a href="#" class="logo-box" aria-label="Halaman utama Crembo Media">
-				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			<a href="/home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 			</a>
 			<div class="brand">
 				<h1>Crew Multimedia Baciro</h1>
@@ -1614,12 +1632,12 @@
 			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
 			<nav id="mainNav" aria-label="Navigasi utama">
 				<ul>
-					<li><a href="#" style="color: var(--primary); font-weight: 700;">Home</a></li>
-					<li><a href="profil.html">Profil</a></li>
-					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a href="agenda.html">Agenda</a></li>
-					<li><a href="pengumuman.html">Pengumuman</a></li>
-					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a href="/home.html" style="color: var(--primary); font-weight: 700;">Home</a></li>
+					<li><a href="/profil.html">Profil</a></li>
+					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="/agenda">Agenda</a></li>
+					<li><a href="/pengumuman">Pengumuman</a></li>
+					<li><a href="/form-pendaftaran">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -1640,14 +1658,14 @@
 							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
 						</div>
 						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
+							<a href="/dashboard.html">Dashboard</a>
 							<a href="/profil">Pengaturan Profil</a>
 							<a href="/logout" style="color: var(--accent);">Keluar</a>
 						</div>
 					</div>
 				</div>
 				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
+				<a class="btn-login" href="/login.html">Login</a>
 				{% endif %}
 			</div>
 		</div>
@@ -1674,7 +1692,7 @@
 						Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan
 						liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah login.
 					</div>
-					<a id="aboutLearnMoreBtn" class="btn-ghost" href="profil.html">Pelajari Lebih Lanjut →</a>
+					<a id="aboutLearnMoreBtn" class="btn-ghost" href="/profil.html">Pelajari Lebih Lanjut →</a>
 				</div>
 				<div>
 					<div class="about-media-carousel">
@@ -1929,6 +1947,11 @@
 	</footer>
 
 	<script>
+		// Inject Session Variable from Python (Mirip seperti di form-pendaftaran.html)
+		window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+		const sessionUser = window.CREMBO_CURRENT_USER || {};
+		const sessionData = sessionUser.user_id ? { logged_in: true, ...sessionUser } : null;
+
 		window.CREMBO_HOME_DATA = {{ home_page_data | default({}, true) | tojson }};
 
 		const topHeader = document.getElementById("topHeader");
@@ -1965,7 +1988,7 @@
 				title: "Jadwal Misa Mingguan",
 				slug: "jadwal-misa",
 				description: "Lihat jadwal pelayanan streaming mingguan terbaru dari tim multimedia.",
-				link: "jadwal-streaming.html",
+				link: "/jadwal-streaming.html",
 				buttonText: "Lihat Jadwal",
 				backgroundImage: "",
 				order: 1,
@@ -1976,7 +1999,7 @@
 				title: "Open Recruitment Petugas",
 				slug: "open-recruitment",
 				description: "Bergabung sebagai petugas multimedia untuk mendukung pelayanan misa.",
-				link: "form-pendaftaran.html",
+				link: "/form-pendaftaran",
 				buttonText: "Daftar Sekarang",
 				backgroundImage: "",
 				order: 2,
@@ -1987,7 +2010,7 @@
 				title: "Pengumuman Agenda",
 				slug: "agenda-terbaru",
 				description: "Pantau agenda dan pengumuman terbaru komunitas Crembo Media.",
-				link: "agenda.html",
+				link: "/agenda",
 				buttonText: "Lihat Agenda",
 				backgroundImage: "",
 				order: 3,
@@ -1998,7 +2021,7 @@
 		const DEFAULT_ABOUT_CONTENT = {
 			description: "Ringkasan profil organisasi, visi pelayanan multimedia, serta peran Crembo dalam mendukung kegiatan liturgi dan agenda komunitas. Konten ini nantinya diatur dari panel admin setelah login.",
 			buttonText: "Pelajari Lebih Lanjut",
-			buttonLink: "profil.html",
+			buttonLink: "/profil.html",
 			autoSeconds: 5,
 			images: []
 		};
@@ -2072,7 +2095,7 @@
 		searchForm.addEventListener("submit", function (event) {
 			event.preventDefault();
 			const keyword = searchInput.value.trim();
-			window.location.href = "search.html?q=" + encodeURIComponent(keyword);
+			window.location.href = "/search.html?q=" + encodeURIComponent(keyword);
 		});
 
 		if (scrollTopBtn) {
@@ -2615,6 +2638,27 @@
             }
         }
 
+		// ----- PERBAIKAN PADA RENDER HOME FORMS -----
+		// Menyamakan fungsi getFormState seperti di file `form-pendaftaran.html` agar logikanya akurat
+		function getFormState(item, submissionCount = 0) {
+			const now = new Date();
+			const openDate = item.openDate ? new Date(item.openDate + "T00:00:00") : null;
+			const closeDate = item.closeDate ? new Date(item.closeDate + "T23:59:59") : null;
+			
+			if (item.visibility === "draft") return { open: false, label: "Draft", statusClass: "status-draft" };
+			
+			// LOGIC LOGIN UNTUK FORM INTERNAL
+			if (item.target === "internal" && (!sessionData || !sessionData.logged_in)) {
+				return { open: false, label: "Khusus Internal", statusClass: "status-soon", requiresLogin: true };
+			}
+
+			if (openDate && now < openDate) return { open: false, label: "Belum Dibuka", statusClass: "status-soon" };
+			if (closeDate && now > closeDate) return { open: false, label: "Ditutup", statusClass: "status-closed" };
+			if (item.quota > 0 && submissionCount >= item.quota) return { open: false, label: "Quota Penuh", statusClass: "status-closed" };
+			
+			return { open: true, label: "Aktif", statusClass: "status-open" };
+		}
+
         async function loadHomeForms() {
             const grid = document.getElementById("homeFormsGrid");
             if (!grid) return;
@@ -2629,9 +2673,18 @@
                 }
                 grid.innerHTML = items.map((item) => {
                     const isInternal = item.target === 'internal';
+					const subCount = Number(item.submissionCount) || 0;
+					
+					// Dapatkan state dari form (buka/tutup/belum)
+					const state = getFormState(item, subCount);
+					
+					// URL perbaikan menuju path yang benar: /form-pendaftaran/{id}
+					const detailUrl = `/form-pendaftaran/${encodeURIComponent(item.id)}`;
+
                     return `
                     <article class="card">
                         <div class="thumb frame">
+							<span class="form-status-badge ${state.statusClass}">${state.label}</span>
                             Form Pendaftaran ${isInternal ? 'Internal' : 'Umum'}
                         </div>
                         <div class="body">
@@ -2645,8 +2698,13 @@
                             <div class="card-footer-meta">
                                 <span class="author-date">Formulir</span>
                                 <div style="display:flex; gap:6px;">
-                                    <a class="btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;" href="/form-pendaftaran/${escapeHtml(item.id)}">Detail</a>
-                                    <a class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" href="/form-pendaftaran/${escapeHtml(item.id)}">Isi Form</a>
+                                    <a class="btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;" href="${detailUrl}">Detail</a>
+									${state.requiresLogin 
+										? `<a class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background: var(--muted); box-shadow:none;" href="/login.html">Login</a>` 
+										: state.open 
+											? `<a class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" href="${detailUrl}">Isi Form</a>`
+											: `<span class="btn-primary disabled" style="padding: 6px 12px; font-size: 0.8rem; background: #c0c0c0; cursor:not-allowed; box-shadow:none;">Tertutup</span>`
+									}
                                 </div>
                             </div>
                         </div>
@@ -2761,7 +2819,7 @@
           return;
         }
 
-        const profileAnchor = navList.querySelector('a[href="profil.html"]');
+        const profileAnchor = navList.querySelector('a[href="/profil.html"]');
         if (!profileAnchor) {
           return;
         }
@@ -2801,7 +2859,7 @@
 		dropdown.style.pointerEvents = "auto";
 
         dropdown.innerHTML = menuItems.map(function (item) {
-          return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:9px 14px;border:1px solid transparent;font-size:0.87rem;margin-bottom:2px;border-radius:8px;font-weight:500;color:#4a4a4a;transition:all 0.2s;">' + item.label + '</a>';
+          return '<a href="/profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:9px 14px;border:1px solid transparent;font-size:0.87rem;margin-bottom:2px;border-radius:8px;font-weight:500;color:#4a4a4a;transition:all 0.2s;">' + item.label + '</a>';
         }).join("");
 
         dropdown.addEventListener("mouseover", function (event) {
