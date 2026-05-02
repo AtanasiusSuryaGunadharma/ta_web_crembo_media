@@ -706,35 +706,15 @@
       return matched ? normalizePermissions(matched.permissions) : defaultPermissions();
     }
 
-    function seedNotificationsIfEmpty() {
-      const existing = readNotifications();
-      const mapById = {};
-
-      existing.forEach(function (item) {
-        const key = String(item && item.id ? item.id : "");
-        if (!key) {
-          return;
-        }
-        mapById[key] = item;
-      });
-
-      DEFAULT_NOTIFICATIONS.forEach(function (item) {
-        if (!mapById[item.id]) {
-          existing.push(item);
-        }
-      });
-
-      saveNotifications(existing);
-    }
-
-    function readNotifications() {
-      const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      return Array.isArray(parsed) ? parsed : DEFAULT_NOTIFICATIONS.slice();
-    }
-
-    function saveNotifications(items) {
-      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(items));
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('Gagal memuat notifikasi');
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        return DEFAULT_NOTIFICATIONS.slice();
+      }
     }
 
     function notificationTypeLabel(type) {
@@ -746,11 +726,11 @@
       return "Notifikasi";
     }
 
-    function renderNotifications() {
+    async function renderNotifications() {
       const keyword = String(notificationSearch.value || "").trim().toLowerCase();
       const typeFilter = notificationTypeFilter.value;
       const statusFilter = notificationStatusFilter.value;
-      const items = readNotifications();
+      const items = await fetchNotifications();
 
       const filtered = items.filter(function (item) {
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
@@ -761,7 +741,8 @@
         return matchesTab && matchesType && matchesStatus && matchesKeyword;
       });
 
-      notificationCount.textContent = String(items.filter(function (item) { return item.status === "unread"; }).length);
+      const unreadCount = String(items.filter(function (item) { return item.read === false || item.read === 'false' || item.status === 'unread'; }).length);
+      notificationCount.textContent = unreadCount;
 
       if (!filtered.length) {
         notificationList.innerHTML = '<div class="notification-empty">Tidak ada notifikasi sesuai filter.</div>';
@@ -769,25 +750,42 @@
       }
 
       notificationList.innerHTML = filtered.map(function (item) {
-        const badgeClass = item.status === "unread" ? "status" : "status";
-        const badgeLabel = item.status === "unread" ? "Baru" : "Dibaca";
-        const openClass = item.status === "unread" ? " unread" : "";
-        const toggleLabel = item.status === "unread" ? "Tandai Dibaca" : "Tandai Baru";
+        const isUnread = (item.read === false || item.read === 'false' || item.status === 'unread');
+        const badgeClass = isUnread ? 'status' : 'status';
+        const badgeLabel = isUnread ? 'Baru' : 'Dibaca';
+        const openClass = isUnread ? ' unread' : '';
+        const dateText = item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : (item.date || '');
         return '<article class="notification-item' + openClass + '">'
           + '<div class="notification-top">'
           + '<div>'
-          + '<h4>' + item.title + '</h4>'
+          + '<h4>' + (item.title || '') + '</h4>'
           + '<small>' + notificationTypeLabel(item.type) + '</small>'
           + '</div>'
           + '<span class="' + badgeClass + '">' + badgeLabel + '</span>'
           + '</div>'
-          + '<div>' + item.message + '</div>'
-          + '<div class="notification-meta"><span>' + item.date + '</span><span>ID: ' + item.id + '</span></div>'
+          + '<div>' + (item.body || '') + '</div>'
+          + '<div class="notification-meta"><span>' + dateText + '</span><span>ID: ' + (item.id || '') + '</span></div>'
           + '<div class="notification-actions">'
-          + '<button class="mini-btn ghost" type="button" data-notif-action="toggle" data-notif-id="' + item.id + '">' + toggleLabel + '</button>'
+          + '<button class="mini-btn ghost" type="button" data-notif-action="open" data-notif-id="' + (item.id || '') + '" data-notif-url="' + (item.url || '') + '">Buka</button>'
+          + '<button class="mini-btn ghost" type="button" data-notif-action="toggle" data-notif-id="' + (item.id || '') + '">' + (isUnread ? 'Tandai Dibaca' : 'Tandai Baru') + '</button>'
           + '</div>'
           + '</article>';
       }).join("");
+
+      Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+          const action = btn.getAttribute('data-notif-action');
+          const nid = btn.getAttribute('data-notif-id');
+          if (action === 'open') {
+            const url = btn.getAttribute('data-notif-url') || '';
+            try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
+            if (url) { window.location.href = url; } else { renderNotifications(); }
+          } else if (action === 'toggle') {
+            try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
+            renderNotifications();
+          }
+        });
+      });
     }
 
     function activateNotificationTab(tabValue) {

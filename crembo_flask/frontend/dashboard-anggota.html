@@ -1431,18 +1431,15 @@
       localStorage.setItem(MEMBER_TASK_STORAGE_KEY, JSON.stringify(items));
     }
 
-    function seedNotificationsIfEmpty() {
-      if (!localStorage.getItem(MEMBER_NOTIFICATION_STORAGE_KEY)) {
-        localStorage.setItem(MEMBER_NOTIFICATION_STORAGE_KEY, JSON.stringify(DEFAULT_NOTIFICATIONS));
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('Gagal memuat notifikasi');
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        return DEFAULT_NOTIFICATIONS.slice();
       }
-    }
-
-    function readNotifications() {
-      return safeParse(localStorage.getItem(MEMBER_NOTIFICATION_STORAGE_KEY), DEFAULT_NOTIFICATIONS.slice());
-    }
-
-    function saveNotifications(items) {
-      localStorage.setItem(MEMBER_NOTIFICATION_STORAGE_KEY, JSON.stringify(items));
     }
 
     function notificationTypeLabel(type) {
@@ -1454,11 +1451,11 @@
       return "Notifikasi";
     }
 
-    function renderNotifications() {
+    async function renderNotifications() {
       const keyword = String(notificationSearch.value || "").trim().toLowerCase();
       const typeFilter = notificationTypeFilter.value;
       const statusFilter = notificationStatusFilter.value;
-      const items = readNotifications();
+      const items = await fetchNotifications();
 
       const filtered = items.filter(function (item) {
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
@@ -1469,7 +1466,7 @@
         return matchesTab && matchesType && matchesStatus && matchesKeyword;
       });
 
-      const unreadCount = String(items.filter(function (item) { return item.status === "unread"; }).length);
+      const unreadCount = String(items.filter(function (item) { return item.read === false || item.read === 'false' || item.status === 'unread'; }).length);
       notificationCount.textContent = unreadCount;
       if (notificationCountChip) {
         notificationCountChip.textContent = unreadCount;
@@ -1481,23 +1478,47 @@
       }
 
       notificationList.innerHTML = filtered.map(function (item) {
-        const badgeClass = item.status === "unread" ? 'status-warn' : 'status-ok';
-        const openClass = item.status === "unread" ? ' unread' : '';
+        const isUnread = (item.read === false || item.read === 'false' || item.status === 'unread');
+        const badgeClass = isUnread ? 'status-warn' : 'status-ok';
+        const openClass = isUnread ? ' unread' : '';
+        const dateText = item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : (item.date || '');
         return '<article class="notification-item' + openClass + '">'
           + '<div class="notification-top">'
           + '<div>'
-          + '<h4>' + item.title + '</h4>'
+          + '<h4>' + (item.title || '') + '</h4>'
           + '<small>' + notificationTypeLabel(item.type) + '</small>'
           + '</div>'
-          + '<span class="' + badgeClass + '">' + (item.status === "unread" ? 'Baru' : 'Dibaca') + '</span>'
+          + '<span class="' + badgeClass + '">' + (isUnread ? 'Baru' : 'Dibaca') + '</span>'
           + '</div>'
-          + '<div>' + item.message + '</div>'
-          + '<div class="notification-meta"><span>' + item.date + '</span><span>ID: ' + item.id + '</span></div>'
+          + '<div>' + (item.body || '') + '</div>'
+          + '<div class="notification-meta"><span>' + dateText + '</span><span>ID: ' + (item.id || '') + '</span></div>'
           + '<div class="notification-actions">'
-          + '<button class="mini-btn ghost" type="button" data-notif-action="toggle" data-notif-id="' + item.id + '">' + (item.status === "unread" ? 'Tandai Dibaca' : 'Tandai Baru') + '</button>'
+          + '<button class="mini-btn ghost" type="button" data-notif-action="open" data-notif-id="' + (item.id || '') + '" data-notif-url="' + (item.url || '') + '">Buka</button>'
+          + '<button class="mini-btn ghost" type="button" data-notif-action="toggle" data-notif-id="' + (item.id || '') + '">' + (isUnread ? 'Tandai Dibaca' : 'Tandai Baru') + '</button>'
           + '</div>'
           + '</article>';
       }).join('');
+
+      // Attach click handlers for actions
+      Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+          const action = btn.getAttribute('data-notif-action');
+          const nid = btn.getAttribute('data-notif-id');
+          if (action === 'open') {
+            const url = btn.getAttribute('data-notif-url') || '';
+            try {
+              await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' });
+            } catch (e) {}
+            if (url) { window.location.href = url; }
+            else { renderNotifications(); }
+          } else if (action === 'toggle') {
+            try {
+              await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' });
+            } catch (e) {}
+            renderNotifications();
+          }
+        });
+      });
     }
 
     function renderRegisteredTaskSection() {
