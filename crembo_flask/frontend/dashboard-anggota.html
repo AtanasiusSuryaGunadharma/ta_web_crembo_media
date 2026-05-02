@@ -985,10 +985,10 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div class="avatar" id="sidebarAvatar">U</div>
         <div class="account-text">
-          <strong id="memberName">{{ current_user.nama if current_user and current_user.nama else 'Atanasius Surya Guna' }}</strong>
-          <small>Role: {{ (current_user.role if current_user and current_user.role else 'user') | replace('_', ' ') | title }}</small>
+          <strong id="memberName">Memuat...</strong>
+          <small id="sidebarRole">Role: -</small>
         </div>
       </div>
 
@@ -1265,7 +1265,26 @@
   </div>
 
   <script>
+    // Inject Session Variable from Python
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const sessionUser = window.CREMBO_CURRENT_USER || {};
+    
+    const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
+    
+    let roleDisplay = "Anggota Multimedia";
+    if (sessionUser.role === 'super_admin') roleDisplay = 'Super Admin';
+    else if (sessionUser.role === 'admin') roleDisplay = 'Admin';
+    else if (sessionUser.role === 'user') roleDisplay = 'Anggota';
+    
+    document.getElementById("memberName").textContent = displayName;
+    const sidebarRoleEl = document.getElementById("sidebarRole");
+    if (sidebarRoleEl) sidebarRoleEl.textContent = "Role: " + roleDisplay;
+    
+    const sidebarAvatar = document.getElementById("sidebarAvatar");
+    if (sidebarAvatar) {
+        sidebarAvatar.textContent = displayName.split(" ").map(function(w) { return w.charAt(0).toUpperCase(); }).slice(0, 2).join("");
+    }
+
     const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
     menuGroups.forEach(function (group) {
       const btn = group.querySelector(".menu-toggle");
@@ -1309,25 +1328,6 @@
         }
       });
     });
-
-    const memberName = document.getElementById("memberName");
-    const serverUser = window.CREMBO_CURRENT_USER || {};
-    if (serverUser.nama || serverUser.username || serverUser.email) {
-      memberName.textContent = serverUser.nama || serverUser.username || serverUser.email;
-    } else {
-      const sessionRaw = localStorage.getItem("crembo-login-session");
-      if (sessionRaw) {
-        try {
-          const session = JSON.parse(sessionRaw);
-          if (session.fullName) {
-            memberName.textContent = session.fullName;
-          } else if (session.identifier) {
-            memberName.textContent = session.identifier;
-          }
-        } catch (error) {
-        }
-      }
-    }
 
     const liveDateTime = document.getElementById("liveDateTime");
     const metricScheduleRange = document.getElementById("metricScheduleRange");

@@ -585,10 +585,10 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div class="avatar" id="sidebarAvatar">U</div>
         <div class="account-text">
-          <strong id="memberName">Atanasius Surya Guna</strong>
-          <small>Role: Anggota Multimedia</small>
+          <strong id="memberName">Memuat...</strong>
+          <small id="sidebarRole">Role: -</small>
         </div>
       </div>
 
@@ -600,8 +600,8 @@
       </div>
 
       <div class="side-bottom">
-        <a class="side-action" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard Utama</a>
-        <a id="authAction" class="side-action" href="login.html">Keluar</a>
+        <a class="side-action" href="dashboard-anggota.html">Kembali ke Dashboard Utama</a>
+        <a id="authAction" class="side-action" href="/logout">Keluar</a>
       </div>
     </aside>
 
@@ -675,6 +675,18 @@
     </main>
   </div>
   <script>
+    // Ambil Data Session Server
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const sessionUser = window.CREMBO_CURRENT_USER || {};
+    
+    const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
+    const memberRole = sessionUser.role === 'super_admin' ? 'Super Admin' : (sessionUser.role === 'admin' ? 'Admin' : 'Anggota');
+    
+    // Perbarui Identitas Sidebar
+    document.getElementById("memberName").textContent = displayName;
+    document.getElementById("sidebarRole").textContent = "Role: " + memberRole;
+    document.getElementById("sidebarAvatar").textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
+
     const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
     menuGroups.forEach(function (group) {
       const btn = group.querySelector(".menu-toggle");
@@ -708,19 +720,6 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    const memberName = document.getElementById("memberName");
-    if (sessionRaw) {
-      try {
-        const sessionData = JSON.parse(sessionRaw);
-        if (sessionData.fullName) {
-          memberName.textContent = sessionData.fullName;
-        } else if (sessionData.identifier) {
-          memberName.textContent = sessionData.identifier;
-        }
-      } catch (error) {
-      }
-    }
     const FORM_STORAGE_KEY = "crembo-registration-forms";
     const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
     const SESSION_STORAGE_KEY = "crembo-login-session";
@@ -792,15 +791,7 @@
     }
 
     async function readData() {
-      const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
-      const parsedSession = rawSession ? safeParse(rawSession) : null;
-      try {
-        const sessionResponse = await fetch("/api/session", { credentials: "same-origin" });
-        currentUser = sessionResponse.ok ? await sessionResponse.json() : null;
-      } catch (error) {
-        currentUser = null;
-      }
-      session = currentUser || (parsedSession && typeof parsedSession === "object" ? parsedSession : null);
+      session = sessionUser && sessionUser.user_id ? { logged_in: true, ...sessionUser } : null;
 
       try {
         const formsResponse = await fetch("/api/registration/forms", { credentials: "same-origin" });
@@ -821,13 +812,9 @@
         const parsedSubmissions = await submissionsResponse.json();
         submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
       } catch (error) {
-        const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
-        const parsedForms = rawForms ? safeParse(rawForms, []) : [];
-        forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
-
-        const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-        const parsedSubmissions = rawSubmissions ? safeParse(rawSubmissions, []) : [];
-        submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+        // Fallback kosong jika gagal (diasumsikan backend yang utama)
+        forms = [];
+        submissions = [];
       }
     }
 
@@ -908,6 +895,12 @@
       if (form.visibility === "draft") {
         return { open: false, reason: "draft", text: "Draft" };
       }
+      
+      // LOGIC LOGIN UNTUK INTERNAL
+      if (form.target === "internal" && (!session || !session.logged_in)) {
+          return { open: false, reason: "login_required", text: "Khusus Internal (Login)", requiresLogin: true };
+      }
+      
       if (openDate && now < openDate) {
         return { open: false, reason: "not_open", text: "Belum dibuka" };
       }
@@ -921,16 +914,9 @@
     }
 
     function applyAccessRules(list) {
-      const viewer = getViewerContext();
-
       return list.filter(function (form) {
-        if (form.visibility === "draft") {
-          return false;
-        }
-        if (!viewer.isLoggedIn && form.target === "internal") {
-          return false;
-        }
-        return true;
+        if (form.visibility === "draft") return false;
+        return true; // Jangan blokir internal form lagi, biarkan tampil tapi dikunci
       });
     }
 
@@ -938,7 +924,6 @@
       const keyword = searchInput.value.trim().toLowerCase();
       const selectedTarget = targetFilter.value;
       const sortBy = sortFilter.value;
-      const viewer = getViewerContext();
 
       const filtered = applyAccessRules(forms)
         .filter(function (form) {
@@ -978,11 +963,11 @@
       if (accessChip) {
         accessChip.textContent = viewer.isLoggedIn
           ? "Login: " + viewer.identifier
-          : "Mode Pengunjung (Hanya Form Umum)";
+          : "Mode Pengunjung (Beberapa form memerlukan login)";
       }
       if (authAction) {
         authAction.textContent = viewer.isLoggedIn ? "Keluar" : "Login";
-        authAction.href = "login.html";
+        authAction.href = viewer.isLoggedIn ? "/logout" : "login.html";
       }
     }
 
@@ -1010,7 +995,9 @@
 
         let actionHtml = '<button class="btn ghost" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Lihat Detail</button>';
 
-        if (mySubmission) {
+        if (state.requiresLogin) {
+          actionHtml = '<a class="btn" style="background:#4b5563; text-decoration:none;" href="login.html">Login untuk Akses</a>';
+        } else if (mySubmission) {
           actionHtml = '<button class="btn" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Review Jawaban</button>';
         } else if (!state.open) {
           actionHtml = '<button class="btn ghost" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">' + escapeHtml(state.text) + '</button>';
@@ -1127,6 +1114,14 @@
       rightBadge.className = "badge";
       rightBadge.textContent = state.text;
 
+      if (state.requiresLogin) {
+        formWrap.innerHTML = '<div class="hint">Form ini khusus internal. Anda bisa melihat daftar pertanyaan di sini tetapi harus <a href="login.html" style="color:var(--accent); font-weight:bold;">Login</a> untuk mengisinya.</div>';
+        // Tampilkan field hanya sebagai pratinjau (disabled)
+        const fieldsHtml = form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("");
+        formWrap.innerHTML += '<div style="opacity: 0.6; pointer-events:none;">' + fieldsHtml + '</div>';
+        return;
+      }
+
       if (!state.open) {
         formWrap.innerHTML = '<div class="hint">Form ini belum bisa diisi. Status saat ini: <strong>' + escapeHtml(state.text) + '</strong>.</div>';
         return;
@@ -1148,10 +1143,12 @@
         + '</form>';
 
       const dynamicForm = document.getElementById("dynamicForm");
-      dynamicForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        submitForm(form);
-      });
+      if(dynamicForm) {
+          dynamicForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            submitForm(form);
+          });
+      }
     }
 
     async function submitForm(form) {
@@ -1281,8 +1278,14 @@
     function initTargetFilterByAccess() {
       const viewer = getViewerContext();
       if (!viewer.isLoggedIn) {
-        targetFilter.value = "public";
-        targetFilter.innerHTML = '<option value="public">Umum</option>';
+        // Bebaskan untuk bisa melihat opsi Internal, namun tidak diblokir mutlak
+        if (targetFilter.options.length <= 1) {
+            targetFilter.innerHTML = ''
+              + '<option value="all">Semua Target</option>'
+              + '<option value="public">Umum</option>'
+              + '<option value="internal">Internal</option>';
+            targetFilter.value = "all";
+        }
         return;
       }
 

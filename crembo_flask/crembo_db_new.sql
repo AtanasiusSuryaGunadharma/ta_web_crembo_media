@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 02 Bulan Mei 2026 pada 08.17
+-- Waktu pembuatan: 02 Bulan Mei 2026 pada 09.19
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -412,7 +412,9 @@ CREATE TABLE `registration_forms` (
 --
 
 INSERT INTO `registration_forms` (`id`, `title`, `description`, `target`, `visibility`, `open_date`, `close_date`, `quota`, `fields_json`, `created_by`, `created_by_name`, `created_by_role`, `created_at`, `updated_at`) VALUES
-('form-1777702105881-4ah4tw', 'Test 1 Oprec', 'Test Buat web', 'internal', 'visible', '2026-05-01', '2027-01-02', 10, '[{\"id\": \"field-1777701904892-6pnqs0\", \"label\": \"Nama Lengkap\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777701922394-syja2o\", \"label\": \"Nomor wa\", \"type\": \"tel\", \"required\": true, \"placeholder\": \"Nomor wanya berapa?\", \"options\": []}, {\"id\": \"field-1777702061700-pwmj2l\", \"label\": \"Tanggal Lahir\", \"type\": \"date\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777702024038-yaz9v6\", \"label\": \"paroki mana (Drodown)\", \"type\": \"select\", \"required\": true, \"placeholder\": \"\", \"options\": [\"paroki baciro\", \"paroki luar\"]}, {\"id\": \"field-1777702046377-g18u19\", \"label\": \"Paroki mana (Radio)\", \"type\": \"radio\", \"required\": true, \"placeholder\": \"\", \"options\": [\"baciro\", \"luar\"]}, {\"id\": \"field-1777702102054-0juqgj\", \"label\": \"Paroki Mana\", \"type\": \"checkbox\", \"required\": true, \"placeholder\": \"\", \"options\": [\"baciro\", \"luar\"]}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 13:08:25', '2026-05-02 13:14:20');
+('form-1777702105881-4ah4tw', 'Test 1 Oprec (Umum)', 'Test Buat web', 'public', 'visible', '2026-04-01', '2027-01-01', 10, '[{\"id\": \"field-1777701904892-6pnqs0\", \"label\": \"Nama Lengkap\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777701922394-syja2o\", \"label\": \"Nomor wa\", \"type\": \"tel\", \"required\": true, \"placeholder\": \"Nomor wanya berapa?\", \"options\": []}, {\"id\": \"field-1777702061700-pwmj2l\", \"label\": \"Tanggal Lahir\", \"type\": \"date\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777702024038-yaz9v6\", \"label\": \"paroki mana (Drodown)\", \"type\": \"select\", \"required\": true, \"placeholder\": \"\", \"options\": [\"paroki baciro\", \"paroki luar\"]}, {\"id\": \"field-1777702046377-g18u19\", \"label\": \"Paroki mana (Radio)\", \"type\": \"radio\", \"required\": true, \"placeholder\": \"\", \"options\": [\"baciro\", \"luar\"]}, {\"id\": \"field-1777702102054-0juqgj\", \"label\": \"Paroki Mana\", \"type\": \"checkbox\", \"required\": true, \"placeholder\": \"\", \"options\": [\"baciro\", \"luar\"]}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 13:08:25', '2026-05-02 14:03:22'),
+('form-1777705345286-pbygc2', 'Test 2 Oprec (Internal', '', 'internal', 'visible', '2026-04-01', '2026-05-01', 0, '[{\"id\": \"field-1777705335086-84j8qz\", \"label\": \"Nama LEngkap\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777705343475-fstovq\", \"label\": \"Tanggal Lahior\", \"type\": \"date\", \"required\": true, \"placeholder\": \"\", \"options\": []}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 14:02:25', '2026-05-02 14:04:04'),
+('form-1777706259281-axrzsh', 'asdasd', 'asdasdasd', 'internal', 'visible', '2026-05-02', '2026-05-16', 0, '[{\"id\": \"field-1777706256352-flr1ru\", \"label\": \"aaaaa\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 14:17:39', '2026-05-02 14:17:39');
 
 -- --------------------------------------------------------
 

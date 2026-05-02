@@ -1810,8 +1810,8 @@ def get_registration_forms():
         for form in forms:
             if form.get("visibility") == "draft":
                 continue
-            if form.get("target") == "internal" and not viewer.get("logged_in"):
-                continue
+            # if form.get("target") == "internal" and not viewer.get("logged_in"):
+            #     continue
             accessible_forms.append(form)
         return jsonify(accessible_forms)
     finally:
@@ -1832,8 +1832,8 @@ def get_registration_form_detail(form_id):
         viewer = current_user_context()
         if form.get("visibility") == "draft" and not can_manage_registration_forms():
             return jsonify({"success": False, "error": "Forbidden"}), 403
-        if form.get("target") == "internal" and not viewer.get("logged_in") and not can_manage_registration_forms():
-            return jsonify({"success": False, "error": "Forbidden"}), 403
+        # if form.get("target") == "internal" and not viewer.get("logged_in") and not can_manage_registration_forms():
+        #     return jsonify({"success": False, "error": "Forbidden"}), 403
 
         return jsonify(form)
     finally:

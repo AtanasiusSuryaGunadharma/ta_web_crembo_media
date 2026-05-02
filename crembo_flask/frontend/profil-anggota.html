@@ -584,10 +584,10 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div class="avatar" id="sidebarAvatar">U</div>
         <div class="account-text">
-          <strong id="memberName">{{ current_user.nama if current_user and current_user.nama else 'Atanasius Surya Guna' }}</strong>
-          <small>Role: {{ (current_user.role if current_user and current_user.role else 'user') | replace('_', ' ') | title }}</small>
+          <strong id="memberName">Memuat...</strong>
+          <small id="sidebarRole">Role: -</small>
         </div>
       </div>
 
@@ -631,6 +631,23 @@
           <p class="subhead">Pengaturan profil, password, dan status keanggotaan tampil dalam satu halaman.</p>
           <script>
             window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+            const sessionUser = window.CREMBO_CURRENT_USER || {};
+
+            const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
+            
+            let roleDisplay = "Anggota Multimedia";
+            if (sessionUser.role === 'super_admin') roleDisplay = 'Super Admin';
+            else if (sessionUser.role === 'admin') roleDisplay = 'Admin';
+            else if (sessionUser.role === 'user') roleDisplay = 'Anggota';
+            
+            document.getElementById("memberName").textContent = displayName;
+            const sidebarRoleEl = document.getElementById("sidebarRole");
+            if (sidebarRoleEl) sidebarRoleEl.textContent = "Role: " + roleDisplay;
+            
+            const sidebarAvatar = document.getElementById("sidebarAvatar");
+            if (sidebarAvatar) {
+                sidebarAvatar.textContent = displayName.split(" ").map(function(w) { return w.charAt(0).toUpperCase(); }).slice(0, 2).join("");
+            }
           </script>
         </div>
         <div class="quick-filter" aria-label="Ringkasan cepat anggota">
