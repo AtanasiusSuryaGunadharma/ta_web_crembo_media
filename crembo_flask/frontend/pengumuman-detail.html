@@ -470,47 +470,68 @@
 		const pdfPreviewGrid = document.getElementById("pdfPreviewGrid");
 		const postHeaderPreview = document.getElementById("postHeaderPreview");
 
-		const ANNOUNCEMENT_STORAGE_KEY = "crembo-announcements";
+		function escapeHtml(text) {
+			return String(text == null ? "" : text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+		}
 
-		function safeJsonParse(raw) { try { return JSON.parse(raw); } catch (err) { return null; } }
-		function normalizeCategory(value) { return String(value || "Umum").trim() || "Umum"; }
-		function normalizeAttachment(att) {
-			if (typeof att === "string") return { id: "att-" + Date.now(), name: att, type: "", dataUrl: "" };
-			return { id: String(att && att.id ? att.id : "att-" + Date.now()), name: String(att && att.name ? att.name : "lampiran"), type: String(att && att.type ? att.type : ""), dataUrl: String(att && att.dataUrl ? att.dataUrl : "") };
+		function escapeAttr(value) {
+			return escapeHtml(value).replace(/`/g, "&#96;");
 		}
-		function normalizeAnnouncement(item, index) {
-			const categories = Array.isArray(item && item.categories) ? item.categories.map(normalizeCategory) : [normalizeCategory(item && item.category)];
-			const statusRaw = String(item && item.status ? item.status : "published").toLowerCase();
-			const status = statusRaw === "draft" ? "draft" : "published";
-			const content = String(item && (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : "")) ? (item.content || (Array.isArray(item.body) ? item.body.join("\n\n") : "")) : (item && item.summary ? item.summary : "Isi belum tersedia."));
-			return { id: String(item && item.id ? item.id : "pengumuman-" + (index + 1)), categories: categories, category: categories[0], date: String(item && item.date ? item.date : "2026-01-01"), title: String(item && item.title ? item.title : "Judul pengumuman"), content: content, summary: String(item && item.summary ? item.summary : content.slice(0, 180)), attachments: Array.isArray(item && item.attachments) ? item.attachments.map(normalizeAttachment) : [], author: String(item && item.author ? item.author : "Admin"), status: status };
+
+		function slugify(value) {
+			return String(value || "")
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, "-")
+				.replace(/^-+|-+$/g, "");
 		}
-		function readAnnouncements() {
-			const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-			const parsed = raw ? safeJsonParse(raw) : null;
-			if (!Array.isArray(parsed) || parsed.length === 0) return [];
-			return parsed.map(normalizeAnnouncement).filter(function(item) { return item.status === "published"; });
+
+		function parseNewsId() {
+			const params = new URLSearchParams(window.location.search);
+			const queryId = params.get("id");
+			if (queryId) return queryId;
+			const parts = window.location.pathname.split("/").filter(Boolean);
+			if (parts.length >= 2 && parts[0] === "pengumuman") return decodeURIComponent(parts[1]);
+			return "";
 		}
-		function formatDate(dateValue) {
-			const parsed = new Date(dateValue + "T00:00:00");
-			if (Number.isNaN(parsed.getTime())) return dateValue;
+
+		function formatDate(value) {
+			if (!value) return "";
+			const parsed = new Date(String(value).slice(0, 10) + "T00:00:00");
+			if (Number.isNaN(parsed.getTime())) return String(value);
 			return parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
 		}
-		function readCurrentAnnouncement(announcements) {
-			const params = new URLSearchParams(window.location.search);
-			const id = params.get("id");
-			if (!id) return announcements[0] || null;
-			const found = announcements.find(function(item) { return item.id === id; });
-			return found || announcements[0] || null;
+
+		function renderRichText(value) {
+			const raw = String(value || "").trim();
+			if (!raw) return "<p>Isi belum tersedia.</p>";
+			if (/<[a-z][\s\S]*>/i.test(raw)) return raw;
+			return raw.split(/\n\n+/).map(function(paragraph) {
+				return "<p>" + escapeHtml(paragraph.trim()) + "</p>";
+			}).join("");
 		}
-		function escapeHtml(text) {
-			return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+		function getPrimaryCategory(item) {
+			const categories = Array.isArray(item && item.categories) && item.categories.length ? item.categories : [{ name: "Umum", slug: "umum" }];
+			return categories[0];
 		}
+
+		function getCategoryRoute(category) {
+			const slug = String((category && (category.slug || slugify(category.name || category.id))) || "umum").toLowerCase();
+			return "pengumuman/kategori/" + encodeURIComponent(slug);
+		}
+
+		function getThumbnailUrl(item) {
+			const thumbnail = Array.isArray(item && item.thumbnails) ? item.thumbnails[0] : null;
+			return thumbnail && thumbnail.url ? thumbnail.url : "";
+		}
+
 		function isPdfAttachment(att) {
 			const name = String(att && att.name ? att.name : "").toLowerCase();
-			const type = String(att && att.type ? att.type : "").toLowerCase();
-			return name.endsWith(".pdf") || type.indexOf("pdf") >= 0;
+			const kind = String(att && att.kind ? att.kind : "").toLowerCase();
+			const mimeType = String(att && att.mimeType ? att.mimeType : "").toLowerCase();
+			return name.endsWith(".pdf") || kind === "pdf" || mimeType.indexOf("pdf") >= 0;
 		}
+
 		function renderAttachmentSection(attachments) {
 			if (!attachments.length) {
 				attachmentGrid.innerHTML = '<div class="attachment-item"><span class="att-icon">—</span>Belum ada lampiran.</div>';
@@ -518,21 +539,29 @@
 				pdfPreviewGrid.innerHTML = "";
 				return;
 			}
+
 			attachmentGrid.innerHTML = attachments.map(function(att) {
-				const ext = String(att.name).split(".").pop().toUpperCase().slice(0, 4) || "DOC";
-				if (att.dataUrl) {
-					return '<div class="attachment-item"><span class="att-icon">' + ext + '</span><a class="attachment-link" href="' + att.dataUrl + '" download="' + escapeHtml(att.name) + '">' + escapeHtml(att.name) + '</a></div>';
-				}
-				return '<div class="attachment-item"><span class="att-icon">' + ext + '</span>' + escapeHtml(att.name) + '</div>';
+				const ext = String(att.name || "lampiran").split(".").pop().toUpperCase().slice(0, 4) || "DOC";
+				const url = escapeAttr(att.url || "");
+				const label = att.previewable ? "Preview" : "Download";
+				const linkAttrs = att.previewable ? ' target="_blank" rel="noopener noreferrer"' : ' download';
+				return '<div class="attachment-item"><span class="att-icon">' + ext + '</span><a class="attachment-link" href="' + url + '"' + linkAttrs + '>' + escapeHtml(att.name || "lampiran") + '</a><span style="margin-left:auto;font-size:0.75rem;color:var(--muted);">' + label + '</span></div>';
 			}).join("");
+
 			const pdfAttachments = attachments.filter(isPdfAttachment);
-			if (!pdfAttachments.length) { pdfPreviewWrap.style.display = "none"; pdfPreviewGrid.innerHTML = ""; return; }
+			if (!pdfAttachments.length) {
+				pdfPreviewWrap.style.display = "none";
+				pdfPreviewGrid.innerHTML = "";
+				return;
+			}
+
 			pdfPreviewWrap.style.display = "block";
 			pdfPreviewGrid.innerHTML = pdfAttachments.map(function(att) {
-				if (!att.dataUrl) return '<article class="pdf-card"><strong>' + escapeHtml(att.name) + '</strong><div class="pdf-empty">Preview PDF belum tersedia karena file sumber belum diunggah ulang dari modul admin.</div></article>';
-				return '<article class="pdf-card"><strong>' + escapeHtml(att.name) + '</strong><iframe src="' + att.dataUrl + '#toolbar=1&navpanes=0"></iframe></article>';
+				if (!att.url) return '<article class="pdf-card"><strong>' + escapeHtml(att.name || "lampiran.pdf") + '</strong><div class="pdf-empty">Preview PDF belum tersedia.</div></article>';
+				return '<article class="pdf-card"><strong>' + escapeHtml(att.name || "lampiran.pdf") + '</strong><iframe src="' + escapeAttr(att.url) + '#toolbar=1&navpanes=0"></iframe></article>';
 			}).join("");
 		}
+
 		function renderAnnouncementDetail(item) {
 			if (!item) {
 				articleTitle.textContent = "Pengumuman tidak ditemukan";
@@ -541,25 +570,47 @@
 				pdfPreviewWrap.style.display = "none";
 				return;
 			}
-			heroBadge.textContent = item.category;
-			heroTitle.textContent = item.title;
-			heroMeta.textContent = item.author + " \u2022 " + formatDate(item.date);
-			breadcrumbCategory.textContent = item.category;
-			breadcrumbCategory.href = "pengumuman.html?kategori=" + encodeURIComponent(item.category);
-			articleTitle.textContent = item.title;
-			articleCatTag.textContent = item.category;
-			articleAuthDate.textContent = item.author + " \u2022 " + formatDate(item.date);
-			postHeaderPreview.textContent = "Preview Dokumentasi Header " + item.category;
 
-			const paragraphs = item.content.split(/\n\n+/).map(function(x) { return x.trim(); }).filter(Boolean);
-			articleBody.innerHTML = paragraphs.map(function(paragraph, index) {
-				const pHtml = "<p>" + escapeHtml(paragraph) + "</p>";
-				if (index === 1) return pHtml + '<div class="inline-image">Preview Dokumentasi Kegiatan 1</div>';
-				if (index === 2) return pHtml + '<div class="inline-image">Preview Dokumentasi Kegiatan 2</div>';
-				return pHtml;
-			}).join("");
+			const primaryCategory = getPrimaryCategory(item);
+			const publishedLabel = formatDate(item.publishedAt || item.createdAt || "");
+			const thumbnailUrl = getThumbnailUrl(item);
 
-			renderAttachmentSection(item.attachments);
+			heroBadge.textContent = primaryCategory.name || "Pengumuman";
+			heroTitle.textContent = item.title || "Pengumuman";
+			heroMeta.textContent = "Admin • " + publishedLabel;
+			breadcrumbCategory.textContent = primaryCategory.name || "Kategori";
+			breadcrumbCategory.href = getCategoryRoute(primaryCategory);
+			articleTitle.textContent = item.title || "Pengumuman";
+			articleCatTag.textContent = primaryCategory.name || "Umum";
+			articleAuthDate.textContent = "Admin • " + publishedLabel;
+			postHeaderPreview.textContent = thumbnailUrl ? "Preview Dokumentasi Header " + (primaryCategory.name || "Pengumuman") : "Preview Dokumentasi Header Pengumuman";
+			postHeaderPreview.style.backgroundImage = thumbnailUrl ? 'url("' + escapeAttr(thumbnailUrl) + '")' : "";
+			postHeaderPreview.style.backgroundSize = thumbnailUrl ? "cover" : "";
+			postHeaderPreview.style.backgroundPosition = thumbnailUrl ? "center" : "";
+
+			articleBody.innerHTML = renderRichText(item.content || item.summary || "");
+			renderAttachmentSection(Array.isArray(item.attachments) ? item.attachments : []);
+		}
+
+		async function loadAnnouncementDetail() {
+			try {
+				const newsId = parseNewsId();
+				if (newsId) {
+					const response = await fetch("/api/news/" + encodeURIComponent(newsId), { credentials: "same-origin" });
+					if (response.ok) {
+						renderAnnouncementDetail(await response.json());
+						return;
+					}
+				}
+
+				const listResponse = await fetch("/api/news", { credentials: "same-origin" });
+				if (!listResponse.ok) throw new Error("Gagal memuat pengumuman");
+				const newsItems = await listResponse.json();
+				const firstPublished = Array.isArray(newsItems) ? (newsItems.find(function(item) { return String(item.status || "published").toLowerCase() !== "draft"; }) || newsItems[0] || null) : null;
+				renderAnnouncementDetail(firstPublished);
+			} catch (error) {
+				renderAnnouncementDetail(null);
+			}
 		}
 
 		function syncStickyOffset() {
@@ -592,7 +643,7 @@
 			window.location.href = "search.html?q=" + encodeURIComponent(q);
 		});
 
-		renderAnnouncementDetail(readCurrentAnnouncement(readAnnouncements()));
+		loadAnnouncementDetail();
 
 		(function() {
 			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";

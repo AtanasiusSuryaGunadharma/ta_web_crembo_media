@@ -1381,6 +1381,37 @@ def render_mockup_page(page: str):
     abort(404)
 
 
+def render_public_page(template_name: str, **context):
+    if not template_exists(template_name):
+        abort(404)
+    return render_template(template_name, current_user=current_user_context(), **context)
+
+
+@app.route("/agenda")
+def public_agenda_page():
+    return render_public_page("agenda.html")
+
+
+@app.route("/agenda/<agenda_id>")
+def public_agenda_detail_page(agenda_id):
+    return render_public_page("agenda-detail.html", agenda_id=agenda_id)
+
+
+@app.route("/pengumuman")
+def public_news_page():
+    return render_public_page("pengumuman.html")
+
+
+@app.route("/pengumuman/kategori/<category_slug>")
+def public_news_category_page(category_slug):
+    return render_public_page("pengumuman.html", category_slug=category_slug)
+
+
+@app.route("/pengumuman/<news_id>")
+def public_news_detail_page(news_id):
+    return render_public_page("pengumuman-detail.html", news_id=news_id)
+
+
 # --- TENTANG CREMBO ENDPOINTS ---
 
 @app.route("/api/tentang/config", methods=["GET"])

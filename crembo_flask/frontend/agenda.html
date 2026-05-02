@@ -633,6 +633,19 @@
 		const mainNav = document.getElementById("mainNav");
 		const searchForm = document.getElementById("searchForm");
 		const searchInput = document.getElementById("searchInput");
+		const agendaGrid = document.getElementById("agendaGrid");
+		const searchAgenda = document.getElementById("searchAgenda");
+		const sortAgenda = document.getElementById("sortAgenda");
+		const filterStatus = document.getElementById("filterStatus");
+		const sectionNote = document.querySelector(".section-note");
+		const paginationWrap = document.querySelector(".pagination-wrap");
+
+		const agendaState = {
+			items: [],
+			filtered: [],
+			page: 1,
+			pageSize: 6,
+		};
 
 		function syncStickyOffset() {
 			const h = topHeader ? topHeader.offsetHeight : 104;
@@ -641,35 +654,220 @@
 		syncStickyOffset();
 		window.addEventListener("resize", syncStickyOffset);
 
-		menuToggle.addEventListener("click", function () {
-			const isOpen = mainNav.classList.toggle("open");
-			menuToggle.setAttribute("aria-expanded", String(isOpen));
-		});
-
-		mainNav.querySelectorAll("a").forEach(function (link) {
-			link.addEventListener("click", function () {
-				if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
-					return;
-				}
-				if (mainNav.classList.contains("open")) {
-					mainNav.classList.remove("open");
-					menuToggle.setAttribute("aria-expanded", "false");
-				}
+		if (menuToggle && mainNav) {
+			menuToggle.addEventListener("click", function () {
+				const isOpen = mainNav.classList.toggle("open");
+				menuToggle.setAttribute("aria-expanded", String(isOpen));
 			});
-		});
+		}
 
-		searchForm.addEventListener("submit", function(e) {
-			e.preventDefault();
-			const q = searchInput.value.trim();
-			window.location.href = "search.html?q=" + encodeURIComponent(q);
-		});
-
-		document.querySelectorAll(".pagination-wrap button").forEach(function(btn) {
-			btn.addEventListener("click", function() {
-				document.querySelectorAll(".pagination-wrap button").forEach(function(b) { b.classList.remove("active"); });
-				btn.classList.add("active");
+		if (mainNav) {
+			mainNav.querySelectorAll("a").forEach(function (link) {
+				link.addEventListener("click", function () {
+					if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+						return;
+					}
+					if (mainNav.classList.contains("open")) {
+						mainNav.classList.remove("open");
+						menuToggle.setAttribute("aria-expanded", "false");
+					}
+				});
 			});
-		});
+		}
+
+		if (searchForm && searchInput) {
+			searchForm.addEventListener("submit", function(e) {
+				e.preventDefault();
+				const q = searchInput.value.trim();
+				window.location.href = "search.html?q=" + encodeURIComponent(q);
+			});
+		}
+
+		function escapeHtml(value) {
+			return String(value == null ? "" : value)
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/\"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+		}
+
+		function parseDateTime(dateValue, timeValue) {
+			if (!dateValue) return null;
+			const parsed = new Date(String(dateValue).slice(0, 10) + "T" + String(timeValue || "00:00:00").slice(0, 8));
+			return Number.isNaN(parsed.getTime()) ? null : parsed;
+		}
+
+		function formatDateRange(item) {
+			const startDate = item.startDate ? new Date(String(item.startDate).slice(0, 10) + "T00:00:00") : null;
+			const endDate = item.endDate ? new Date(String(item.endDate).slice(0, 10) + "T00:00:00") : null;
+			if (!startDate || Number.isNaN(startDate.getTime())) return "";
+			const startLabel = startDate.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+			if (!endDate || Number.isNaN(endDate.getTime()) || endDate.getTime() === startDate.getTime()) return startLabel;
+			const endLabel = endDate.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+			return startLabel + " - " + endLabel;
+		}
+
+		function formatTimeRange(item) {
+			const startTime = String(item.startTime || "").slice(0, 5);
+			const endTime = String(item.endTime || "").slice(0, 5);
+			if (startTime && endTime) return startTime + " - " + endTime + " WIB";
+			if (startTime) return startTime + " WIB";
+			return "";
+		}
+
+		function getAgendaStatus(item) {
+			if (!item || String(item.status || "active").toLowerCase() !== "active") return "closed";
+			const now = new Date();
+			const endPoint = parseDateTime(item.endDate || item.startDate, item.endTime || item.startTime);
+			if (endPoint && endPoint.getTime() < now.getTime()) return "closed";
+			const startPoint = parseDateTime(item.startDate, item.startTime);
+			if (startPoint && startPoint.getTime() - now.getTime() <= 3 * 24 * 60 * 60 * 1000) return "soon";
+			return item.registrationLink ? "open" : "soon";
+		}
+
+		function getAgendaStatusLabel(status) {
+			if (status === "open") return "Buka";
+			if (status === "soon") return "Segera";
+			return "Selesai";
+		}
+
+		function getThumbStyle(item, index) {
+			if (item.imageUrl) {
+				return ' style="background-image:url(\'' + escapeHtml(item.imageUrl) + '\');background-size:cover;background-position:center;"';
+			}
+			const palettes = [
+				"linear-gradient(135deg, #6b0000 0%, #9f1d1d 45%, #c74646 100%)",
+				"linear-gradient(135deg, #1d4e1d 0%, #2f6b2f 45%, #4b8a4b 100%)",
+				"linear-gradient(135deg, #1a1d4e 0%, #30407a 45%, #596cc0 100%)",
+				"linear-gradient(135deg, #4e2a00 0%, #8c4b00 45%, #c67a17 100%)",
+				"linear-gradient(135deg, #3a0b4e 0%, #6b1e7a 45%, #9d40a8 100%)",
+			];
+			return ' style="background: ' + palettes[index % palettes.length] + ';"';
+		}
+
+		function getAgendaDetailUrl(item) {
+			return item && item.id ? "agenda/" + encodeURIComponent(item.id) : "agenda-detail.html";
+		}
+
+		function renderAgendaCards(items) {
+			if (!agendaGrid) return;
+			if (!items.length) {
+				agendaGrid.innerHTML = '<div class="empty-state"><strong>Belum ada agenda yang tersedia.</strong><p>Data agenda akan muncul setelah admin menambahkan agenda ke database.</p></div>';
+				return;
+			}
+
+			agendaGrid.innerHTML = items.map(function(item, index) {
+				const status = getAgendaStatus(item);
+				const statusLabel = getAgendaStatusLabel(status);
+				const dateLabel = formatDateRange(item);
+				const timeLabel = formatTimeRange(item);
+				const locationLabel = String(item.location || "").trim();
+				const registerButton = item.registrationLink ? '<a class="btn-primary" href="' + escapeHtml(item.registrationLink) + '" target="_blank" rel="noopener noreferrer">Daftar</a>' : "";
+				return ''
+					+ '<article class="agenda-card">'
+					+ '<div class="agenda-thumb"' + getThumbStyle(item, index) + '>'
+					+ '<span class="agenda-status status-' + status + '">' + statusLabel + '</span>'
+					+ '<span class="thumb-text">Preview Gambar Agenda</span>'
+					+ '</div>'
+					+ '<div class="agenda-body">'
+					+ '<div class="agenda-date">' + escapeHtml(dateLabel) + '</div>'
+					+ '<h4>' + escapeHtml(item.title || "Agenda") + '</h4>'
+					+ '<p>' + escapeHtml(item.description || "") + '</p>'
+					+ '<div class="agenda-meta">'
+					+ (timeLabel ? '<span class="agenda-meta-item">⏰ ' + escapeHtml(timeLabel) + '</span>' : "")
+					+ (locationLabel ? '<span class="agenda-meta-item">📍 ' + escapeHtml(locationLabel) + '</span>' : "")
+					+ '</div>'
+					+ '<div class="card-actions">'
+					+ '<a class="btn-ghost" href="' + getAgendaDetailUrl(item) + '">Detail</a>'
+					+ registerButton
+					+ '</div>'
+					+ '</div>'
+					+ '</article>';
+			}).join("");
+		}
+
+		function renderAgendaPagination() {
+			if (!paginationWrap) return;
+			const totalPages = Math.max(1, Math.ceil(agendaState.filtered.length / agendaState.pageSize));
+			agendaState.page = Math.min(Math.max(agendaState.page, 1), totalPages);
+			if (agendaState.filtered.length <= agendaState.pageSize) {
+				paginationWrap.innerHTML = "";
+				return;
+			}
+
+			const buttons = [];
+			for (let page = 1; page <= totalPages; page += 1) {
+				buttons.push('<button type="button" class="' + (page === agendaState.page ? 'active' : '') + '" data-page="' + page + '">' + page + '</button>');
+			}
+			paginationWrap.innerHTML = buttons.join("");
+			paginationWrap.querySelectorAll("button").forEach(function(button) {
+				button.addEventListener("click", function() {
+					agendaState.page = Number(button.getAttribute("data-page")) || 1;
+					renderAgendaView();
+				});
+			});
+		}
+
+		function applyAgendaFilters() {
+			const query = String(searchAgenda && searchAgenda.value ? searchAgenda.value : "").trim().toLowerCase();
+			const sortValue = sortAgenda ? sortAgenda.value : "terbaru";
+			const statusValue = filterStatus ? filterStatus.value : "";
+
+			agendaState.filtered = agendaState.items.filter(function(item) {
+				const displayStatus = getAgendaStatus(item);
+				if (statusValue && displayStatus !== statusValue) return false;
+				if (!query) return true;
+				const haystack = [item.title, item.description, item.location, item.registrationLink].join(" ").toLowerCase();
+				return haystack.indexOf(query) >= 0;
+			});
+
+			agendaState.filtered.sort(function(a, b) {
+				if (sortValue === "az") return String(a.title || "").localeCompare(String(b.title || ""), "id");
+				const aStart = parseDateTime(a.startDate, a.startTime);
+				const bStart = parseDateTime(b.startDate, b.startTime);
+				if (sortValue === "terlama") return (aStart ? aStart.getTime() : 0) - (bStart ? bStart.getTime() : 0);
+				return (bStart ? bStart.getTime() : 0) - (aStart ? aStart.getTime() : 0);
+			});
+
+			if (sectionNote) {
+				sectionNote.textContent = agendaState.filtered.length
+					? "Menampilkan " + agendaState.filtered.length + " agenda dari database"
+					: "Tidak ada agenda yang cocok dengan filter";
+			}
+
+			agendaState.page = 1;
+			renderAgendaView();
+		}
+
+		function renderAgendaView() {
+			const startIndex = (agendaState.page - 1) * agendaState.pageSize;
+			const pageItems = agendaState.filtered.slice(startIndex, startIndex + agendaState.pageSize);
+			renderAgendaCards(pageItems);
+			renderAgendaPagination();
+		}
+
+		async function loadAgendas() {
+			if (!agendaGrid) return;
+			agendaGrid.innerHTML = '<div class="empty-state"><strong>Memuat agenda...</strong><p>Mohon tunggu sebentar.</p></div>';
+			try {
+				const response = await fetch("/api/agendas", { credentials: "same-origin" });
+				if (!response.ok) throw new Error("Gagal memuat agenda");
+				agendaState.items = await response.json();
+				if (!Array.isArray(agendaState.items)) agendaState.items = [];
+				applyAgendaFilters();
+			} catch (error) {
+				agendaGrid.innerHTML = '<div class="empty-state"><strong>Agenda belum bisa dimuat.</strong><p>Pastikan server dan database aktif, lalu muat ulang halaman.</p></div>';
+				if (paginationWrap) paginationWrap.innerHTML = "";
+				if (sectionNote) sectionNote.textContent = "Gagal memuat data agenda";
+			}
+		}
+
+		if (searchAgenda) searchAgenda.addEventListener("input", applyAgendaFilters);
+		if (sortAgenda) sortAgenda.addEventListener("change", applyAgendaFilters);
+		if (filterStatus) filterStatus.addEventListener("change", applyAgendaFilters);
+
+		loadAgendas();
 
 		(function() {
 			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";

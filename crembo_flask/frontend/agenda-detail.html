@@ -511,6 +511,8 @@
 		const mainNav = document.getElementById("mainNav");
 		const searchForm = document.getElementById("searchForm");
 		const searchInput = document.getElementById("searchInput");
+		const articleCard = document.querySelector(".article-card");
+		const sidebar = document.querySelector(".sidebar");
 
 		function syncStickyOffset() {
 			const h = topHeader ? topHeader.offsetHeight : 104;
@@ -519,28 +521,175 @@
 		syncStickyOffset();
 		window.addEventListener("resize", syncStickyOffset);
 
-		menuToggle.addEventListener("click", function () {
-			const isOpen = mainNav.classList.toggle("open");
-			menuToggle.setAttribute("aria-expanded", String(isOpen));
-		});
-
-		mainNav.querySelectorAll("a").forEach(function (link) {
-			link.addEventListener("click", function () {
-				if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
-					return;
-				}
-				if (mainNav.classList.contains("open")) {
-					mainNav.classList.remove("open");
-					menuToggle.setAttribute("aria-expanded", "false");
-				}
+		if (menuToggle && mainNav) {
+			menuToggle.addEventListener("click", function () {
+				const isOpen = mainNav.classList.toggle("open");
+				menuToggle.setAttribute("aria-expanded", String(isOpen));
 			});
-		});
+		}
 
-		searchForm.addEventListener("submit", function(e) {
-			e.preventDefault();
-			const q = searchInput.value.trim();
-			window.location.href = "search.html?q=" + encodeURIComponent(q);
-		});
+		if (mainNav) {
+			mainNav.querySelectorAll("a").forEach(function (link) {
+				link.addEventListener("click", function () {
+					if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
+						return;
+					}
+					if (mainNav.classList.contains("open")) {
+						mainNav.classList.remove("open");
+						menuToggle.setAttribute("aria-expanded", "false");
+					}
+				});
+			});
+		}
+
+		if (searchForm && searchInput) {
+			searchForm.addEventListener("submit", function(e) {
+				e.preventDefault();
+				const q = searchInput.value.trim();
+				window.location.href = "search.html?q=" + encodeURIComponent(q);
+			});
+		}
+
+		function escapeHtml(value) {
+			return String(value == null ? "" : value)
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/\"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+		}
+
+		function escapeAttr(value) {
+			return escapeHtml(value).replace(/`/g, "&#96;");
+		}
+
+		function parseAgendaId() {
+			const params = new URLSearchParams(window.location.search);
+			const queryId = params.get("id");
+			if (queryId) return queryId;
+			const pathParts = window.location.pathname.split("/").filter(Boolean);
+			if (pathParts.length >= 2 && pathParts[0] === "agenda") return decodeURIComponent(pathParts[1]);
+			return "";
+		}
+
+		function formatDate(value) {
+			if (!value) return "";
+			const parsed = new Date(String(value).slice(0, 10) + "T00:00:00");
+			if (Number.isNaN(parsed.getTime())) return String(value);
+			return parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+		}
+
+		function formatTimeRange(item) {
+			const startTime = String(item.startTime || "").slice(0, 5);
+			const endTime = String(item.endTime || "").slice(0, 5);
+			if (startTime && endTime) return startTime + " - " + endTime + " WIB";
+			if (startTime) return startTime + " WIB";
+			return "";
+		}
+
+		function parseDateTime(dateValue, timeValue) {
+			if (!dateValue) return null;
+			const parsed = new Date(String(dateValue).slice(0, 10) + "T" + String(timeValue || "00:00:00").slice(0, 8));
+			return Number.isNaN(parsed.getTime()) ? null : parsed;
+		}
+
+		function getAgendaStatus(item) {
+			if (!item || String(item.status || "active").toLowerCase() !== "active") return "closed";
+			const now = new Date();
+			const endPoint = parseDateTime(item.endDate || item.startDate, item.endTime || item.startTime);
+			if (endPoint && endPoint.getTime() < now.getTime()) return "closed";
+			const startPoint = parseDateTime(item.startDate, item.startTime);
+			if (startPoint && startPoint.getTime() - now.getTime() <= 3 * 24 * 60 * 60 * 1000) return "soon";
+			return item.registrationLink ? "open" : "soon";
+		}
+
+		function getStatusLabel(status) {
+			if (status === "open") return "Pendaftaran Buka";
+			if (status === "soon") return "Segera";
+			return "Selesai";
+		}
+
+		function renderRichText(value) {
+			const raw = String(value || "").trim();
+			if (!raw) return "<p>Detail agenda belum tersedia.</p>";
+			if (/<[a-z][\s\S]*>/i.test(raw)) return raw;
+			return raw.split(/\n\n+/).map(function(paragraph) {
+				return "<p>" + escapeHtml(paragraph.trim()) + "</p>";
+			}).join("");
+		}
+
+		function renderAgendaDetail(item) {
+			if (!articleCard || !sidebar) return;
+			if (!item) {
+				articleCard.innerHTML = '<h3>Agenda tidak ditemukan</h3><p>Data agenda belum tersedia atau sudah dihapus dari database.</p><div class="back-wrap"><a class="btn-ghost" href="agenda.html">← Kembali ke Daftar Agenda</a></div>';
+				sidebar.innerHTML = '<section class="side-card"><h4>Detail Agenda</h4><p style="margin:0;color:var(--muted);">Data detail agenda tidak ditemukan.</p></section>';
+				return;
+			}
+
+			const status = getAgendaStatus(item);
+			const heroImageStyle = item.imageUrl ? ' style="background-image:url(\'' + escapeAttr(item.imageUrl) + '\');background-size:cover;background-position:center;"' : "";
+			const timeLabel = formatTimeRange(item);
+			const startLabel = formatDate(item.startDate);
+			const endLabel = item.endDate ? formatDate(item.endDate) : "";
+			const statusLabel = getStatusLabel(status);
+			const registerButton = item.registrationLink ? '<a class="btn-primary" href="' + escapeAttr(item.registrationLink) + '" target="_blank" rel="noopener noreferrer">Daftar Sekarang</a>' : "";
+			const attachmentItems = Array.isArray(item.attachments) ? item.attachments : [];
+			const attachmentMarkup = attachmentItems.length ? attachmentItems.map(function(att) {
+				const name = escapeHtml(att && att.name ? att.name : "lampiran");
+				const url = escapeAttr(att && att.url ? att.url : "");
+				const kind = String(att && att.kind ? att.kind : "file").toUpperCase();
+				const actionLabel = att && att.previewable ? "Preview" : "Download";
+				const linkAttr = att && att.previewable ? ' target="_blank" rel="noopener noreferrer"' : ' download';
+				return '<li class="lampiran-item"><a href="' + url + '"' + linkAttr + '><span class="lampiran-icon">' + kind.slice(0, 3) + '</span><span style="flex:1;">' + name + '</span><span style="font-size:0.75rem;color:var(--muted);">' + actionLabel + '</span></a></li>';
+			}).join("") : '<li class="lampiran-item"><span class="lampiran-icon">-</span>Belum ada lampiran.</li>';
+
+			articleCard.innerHTML = ''
+				+ '<h3>' + escapeHtml(item.title || "Agenda") + '</h3>'
+				+ '<div class="hero-image" aria-hidden="true"' + heroImageStyle + '>' + 'Preview Gambar Utama Agenda' + '</div>'
+				+ renderRichText(item.description)
+				+ '<p class="source">Sumber: Admin Crembo Media &bull; ' + escapeHtml(endLabel || startLabel || "") + '</p>'
+				+ '<div class="back-wrap"><a class="btn-ghost" href="agenda.html">← Kembali ke Daftar Agenda</a></div>';
+
+			sidebar.innerHTML = ''
+				+ '<section class="side-card" aria-label="Detail agenda">'
+				+ '<h4>Detail Agenda</h4>'
+				+ '<ul class="detail-list">'
+				+ '<li><strong>Tanggal</strong> ' + escapeHtml(endLabel && endLabel !== startLabel ? startLabel + ' - ' + endLabel : startLabel) + '</li>'
+				+ (timeLabel ? '<li><strong>Waktu</strong> ' + escapeHtml(timeLabel) + '</li>' : '')
+				+ (item.location ? '<li><strong>Lokasi</strong> ' + escapeHtml(item.location) + '</li>' : '')
+				+ '<li><strong>Status</strong> <span style="color:' + (status === 'open' ? '#22c55e' : status === 'soon' ? '#d4a017' : '#800000') + ';font-weight:700;">' + statusLabel + '</span></li>'
+				+ '</ul>'
+				+ registerButton
+				+ '</section>'
+				+ '<section class="side-card" aria-label="Lampiran agenda">'
+				+ '<h4>Lampiran</h4>'
+				+ '<ul class="lampiran-list">' + attachmentMarkup + '</ul>'
+				+ '</section>';
+		}
+
+		async function loadAgendaDetail() {
+			if (!articleCard || !sidebar) return;
+			const agendaId = parseAgendaId();
+			try {
+				if (agendaId) {
+					const detailResponse = await fetch("/api/agendas/" + encodeURIComponent(agendaId), { credentials: "same-origin" });
+					if (detailResponse.ok) {
+						renderAgendaDetail(await detailResponse.json());
+						return;
+					}
+				}
+
+				const listResponse = await fetch("/api/agendas", { credentials: "same-origin" });
+				if (!listResponse.ok) throw new Error("Gagal memuat agenda");
+				const agendas = await listResponse.json();
+				const firstAgenda = Array.isArray(agendas) ? (agendas.find(function(item) { return String(item.status || "active").toLowerCase() === "active"; }) || agendas[0] || null) : null;
+				renderAgendaDetail(firstAgenda);
+			} catch (error) {
+				renderAgendaDetail(null);
+			}
+		}
+
+		loadAgendaDetail();
 
 		(function() {
 			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";
