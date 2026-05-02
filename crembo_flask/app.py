@@ -250,6 +250,7 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
         cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
 
 def ensure_news_schema() -> None:
+    """Ensure news/article tables exist in database."""
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
@@ -1728,8 +1729,13 @@ def update_profile(profile_id):
         attachments = normalize_attachment_payload(data.get("attachmentUrl"))
 
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        cursor.execute("SELECT `attachment_url` FROM `organization_profiles` WHERE `id` = %s LIMIT 1", (profile_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Profile not found"}), 404
+
         cursor.execute("""
             UPDATE `organization_profiles`
             SET `title` = %s, `description` = %s, `attachment_url` = %s, `order_index` = %s, `is_visible` = %s
@@ -1743,6 +1749,20 @@ def update_profile(profile_id):
             profile_id
         ))
         conn.commit()
+
+        # Cleanup file lama yang sudah dihapus/diganti saat Edit
+        if existing:
+            try:
+                old_atts_raw = existing.get("attachment_url") or "[]"
+                old_atts = json.loads(old_atts_raw) if isinstance(old_atts_raw, str) else (old_atts_raw or [])
+                new_att_urls = [a.get("url") for a in attachments if isinstance(a, dict) and a.get("url")]
+                
+                for oa in old_atts:
+                    if isinstance(oa, dict) and oa.get("url") and oa.get("url") not in new_att_urls:
+                        remove_physical_file(oa["url"])
+            except Exception as e:
+                print(f"[WARN] Failed to cleanup replaced files for profile {profile_id}: {e}")
+
         return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
@@ -1755,10 +1775,29 @@ def update_profile(profile_id):
 def delete_profile(profile_id):
     ensure_auth_schema()
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        # 1. Fetch data profil untuk mendapatkan list file yang harus dihapus
+        cursor.execute("SELECT `attachment_url` FROM `organization_profiles` WHERE `id` = %s LIMIT 1", (profile_id,))
+        profile = cursor.fetchone()
+        
+        if not profile:
+            return jsonify({"success": False, "error": "Profile not found"}), 404
+
+        # 2. Hapus record dari database
         cursor.execute("DELETE FROM `organization_profiles` WHERE `id` = %s", (profile_id,))
         conn.commit()
+
+        # 3. Clean up physical files di folder
+        try:
+            atts_raw = profile.get("attachment_url") or "[]"
+            atts = json.loads(atts_raw) if isinstance(atts_raw, str) else (atts_raw or [])
+            for att in atts:
+                if isinstance(att, dict) and att.get("url"):
+                    remove_physical_file(att["url"])
+        except Exception as e:
+            print(f"[WARN] Error during physical file cleanup for profile {profile_id}: {e}")
+
         return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
