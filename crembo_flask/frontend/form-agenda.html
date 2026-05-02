@@ -19,7 +19,6 @@
       --accent: #facc15;
       --danger: #dc2626;
       --blue: #2f66d8;
-      --blue-hover: #1d4ed8;
     }
 
     * { box-sizing: border-box; }
@@ -101,8 +100,6 @@
       margin-bottom: 4px;
     }
 
-    .menu-link:hover { background: rgba(255, 255, 255, 0.1); }
-
     .menu-link.active {
       border-color: #cfcfcf;
       background: #e9e9e9;
@@ -126,23 +123,21 @@
       font-size: 0.82rem;
     }
 
-    .side-actions a:hover { background: rgba(255, 255, 255, 0.2); }
-
     .main { padding: 16px; }
 
-    /* New Consistent Form Header */
+    /* HEADER STYLE SAMA DENGAN FORM BERITA */
     .headline.dashboard-headline-bar {
-      border: 1px solid transparent;
-      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
-      border-radius: 12px;
-      padding: 12px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
       flex-wrap: wrap;
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
       box-shadow: var(--shadow);
+      margin-bottom: 12px;
     }
 
     .headline-copy {
@@ -165,6 +160,7 @@
       font-size: clamp(1.15rem, 2vw, 1.55rem);
       font-weight: 800;
       color: #fff;
+      line-height: 1.2;
     }
 
     .headline p {
@@ -199,7 +195,9 @@
       transition: background 0.2s;
     }
     
-    .btn-kembali-header:hover { background: #f8fafc; }
+    .btn-kembali-header:hover {
+      background: #f8fafc;
+    }
 
     .world-link {
       display: inline-flex;
@@ -212,9 +210,13 @@
       background: rgba(255, 255, 255, 0.12);
       color: #fff;
       text-decoration: none;
+      flex: 0 0 auto;
     }
 
-    .world-link svg { width: 18px; height: 18px; }
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
 
     .container {
       display: grid;
@@ -232,7 +234,7 @@
     }
 
     .field { display: grid; gap: 6px; }
-    .label { font-size: 0.82rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; }
+    .label { font-size: 0.82rem; font-weight: 700; color: #374151; }
 
     input, textarea, select {
       width: 100%;
@@ -244,25 +246,15 @@
       background: #fff;
       outline: none;
     }
-    
+
     input:focus, textarea:focus, select:focus { border-color: var(--blue); }
 
-    textarea {
-      min-height: 230px;
-      resize: vertical;
-    }
-
-    .helper {
-      margin: 0;
-      font-size: 0.75rem;
-      color: #6b7280;
-    }
-
+    /* EDITOR STYLES */
     .editor-toolbar {
       border: 1px solid #d0d0d0;
       border-bottom: 0;
-      border-radius: 10px 10px 0 0;
-      background: #f7f7f7;
+      border-radius: 9px 9px 0 0;
+      background: #f8fafc;
       padding: 8px;
       display: flex;
       flex-wrap: wrap;
@@ -283,11 +275,43 @@
 
     .editor-area {
       border: 1px solid #d0d0d0;
-      border-radius: 0 0 10px 10px;
+      border-radius: 0 0 9px 9px;
       overflow: hidden;
     }
     
-    .editor-area textarea { border: none; border-radius: 0; }
+    .editor-content {
+      min-height: 120px;
+      padding: 12px 12px 16px;
+      background: #fff;
+      outline: none;
+      line-height: 1.6;
+      overflow: auto;
+      font-size: 0.88rem;
+    }
+
+    .editor-content:empty::before {
+      content: attr(data-placeholder);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+
+    .editor-content:focus {
+      background: #fff;
+      box-shadow: 0 0 0 1px var(--blue) inset;
+    }
+    
+    .editor-content ul,
+    .editor-content ol {
+      padding-left: 1.5rem;
+      margin: 0.4rem 0;
+    }
+
+    /* OTHERS */
+    .helper {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
 
     .split-2 {
       display: grid;
@@ -305,13 +329,10 @@
       display: grid;
       gap: 6px;
       cursor: pointer;
-      transition: background 0.2s;
     }
-    
-    .upload-box:hover { background: #e0f2fe; }
 
     .image-preview {
-      border: 1px solid #d1d5db;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 8px;
       background: #f8fafc;
@@ -329,10 +350,13 @@
       background: #fff;
     }
 
-    .attachments { display: grid; gap: 8px; }
+    .attachments {
+      display: grid;
+      gap: 8px;
+    }
 
     .attachment-item {
-      border: 1px solid #d1d5db;
+      border: 1px solid #cbd5e1;
       border-radius: 9px;
       background: #f8fafc;
       padding: 8px;
@@ -352,7 +376,6 @@
       font-size: 0.74rem;
       padding: 4px 7px;
       cursor: pointer;
-      font-weight: bold;
     }
 
     .actions {
@@ -375,24 +398,19 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: 0.2s;
     }
 
     .btn.primary {
-      background: linear-gradient(180deg, #3b7df8 0%, var(--blue) 100%);
-      border-color: var(--blue);
-      color: #fff;
+      background: linear-gradient(180deg, #3b7df8 0%, #2f66d8 100%);
+      border-color: #2f66d8;
     }
-    
-    .btn.primary:hover { filter: brightness(1.1); }
 
     .btn.ghost {
-      color: var(--text);
       background: #fff;
+      color: #1f2937;
       border-color: #9ca3af;
+      font-weight: 600;
     }
-    
-    .btn.ghost:hover { background: #f9fafb; border-color: #6b7280; }
 
     .notify {
       position: fixed;
@@ -404,12 +422,11 @@
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 0.82rem;
-      font-weight: 600;
       opacity: 0;
       pointer-events: none;
       transform: translateY(8px);
       transition: opacity 180ms ease, transform 180ms ease;
-      z-index: 50;
+      z-index: 40;
     }
 
     .notify.show { opacity: 1; transform: translateY(0); }
@@ -448,6 +465,7 @@
     </aside>
 
     <main class="main">
+      <!-- HEADER STYLE SAMA DENGAN FORM BERITA -->
       <header class="headline dashboard-headline-bar">
         <div class="headline-copy">
           <span>AGENDA CRUD</span>
@@ -456,9 +474,9 @@
         </div>
         <div class="headline-right">
           <!-- <a class="btn-kembali-header" href="manajemen-agenda.html">Kembali</a> -->
-          <span id="liveDateTime" class="chip" style="background: transparent; border: none; font-weight: 400; padding: 0;">-</span>
-          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)" style="background: transparent; border: none;">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <span id="liveDateTime" style="margin-left: 8px;">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)" style="margin-left: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width: 18px; height: 18px;">
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
               <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
               <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
@@ -471,7 +489,7 @@
       <section class="container">
 
         <article class="panel">
-          <form id="agendaForm" style="display:grid;gap:16px;">
+          <form id="agendaForm" style="display:grid;gap:10px;">
             <div class="field">
               <label class="label" for="titleInput">Judul Agenda *</label>
               <input id="titleInput" type="text" placeholder="Judul agenda" required>
@@ -489,11 +507,16 @@
 
             <div class="field">
               <label class="label" for="descriptionInput">Deskripsi</label>
-              <div class="editor-toolbar" aria-hidden="true">
-                <span>B</span><span>I</span><span>U</span><span>List</span><span>Link</span>
+              <!-- EDITOR SEPERTI FORM PROFIL -->
+              <div class="editor-toolbar" id="editorToolbar" aria-hidden="true">
+                <span data-command="bold">B</span>
+                <span data-command="italic">I</span>
+                <span data-command="underline">U</span>
+                <span data-command="insertUnorderedList">List</span>
+                <span data-command="createLink">Link</span>
               </div>
               <div class="editor-area">
-                <textarea id="descriptionInput" placeholder="Tulis deskripsi agenda di sini..."></textarea>
+                <div id="descriptionInput" class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Tulis deskripsi agenda di sini..."></div>
               </div>
             </div>
 
@@ -576,6 +599,8 @@
 
     const titleInput = document.getElementById("titleInput");
     const descriptionInput = document.getElementById("descriptionInput");
+    const editorToolbar = document.getElementById("editorToolbar");
+    
     const startDateInput = document.getElementById("startDateInput");
     const startTimeInput = document.getElementById("startTimeInput");
     const endDateInput = document.getElementById("endDateInput");
@@ -599,17 +624,8 @@
     let currentImage = { name: "", dataUrl: "" };
     let currentAttachments = [];
 
-    function showNotify(message, type) {
+    function showNotify(message) {
       notify.textContent = message;
-      if (type === "error") {
-        notify.style.borderColor = "#fca5a5";
-        notify.style.background = "#fef2f2";
-        notify.style.color = "#991b1b";
-      } else {
-        notify.style.borderColor = "#cfe0ff";
-        notify.style.background = "#f1f6ff";
-        notify.style.color = "#1e3a8a";
-      }
       notify.classList.add("show");
       window.clearTimeout(showNotify.timer);
       showNotify.timer = window.setTimeout(function () {
@@ -619,15 +635,6 @@
 
     function makeId(prefix) {
       return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-    }
-
-    function readAsDataUrl(file) {
-      return new Promise(function (resolve, reject) {
-        const reader = new FileReader();
-        reader.onload = function () { resolve(String(reader.result || "")); };
-        reader.onerror = function () { reject(new Error("Gagal membaca file")); };
-        reader.readAsDataURL(file);
-      });
     }
 
     function renderImage() {
@@ -651,13 +658,45 @@
 
       attachmentList.innerHTML = currentAttachments.map(function (att, index) {
         const label = att.type && att.type.indexOf("pdf") >= 0 ? "PDF" : "FILE";
-        const viewLink = att.url || att.dataUrl ? '<a href="' + (att.url || att.dataUrl) + '" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:700;text-decoration:none;">Lihat</a>' : '<span style="color:#6b7280;">Tidak bisa dipreview</span>';
+        const viewLink = att.dataUrl ? '<a href="' + att.dataUrl + '" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:700;text-decoration:none;">Lihat</a>' : '<span style="color:#6b7280;">Tidak bisa dipreview</span>';
         return '<div class="attachment-item">'
           + '<span><strong>[' + label + ']</strong> ' + att.name + '</span>'
           + '<div style="display:flex;gap:12px;align-items:center;">' + viewLink + '<button type="button" data-remove-index="' + String(index) + '">Hapus</button></div>'
           + '</div>';
       }).join("");
     }
+
+    // FUNGSI UNTUK TOOLBAR EDITOR KONTEN
+    function executeEditorCommand(command) {
+      descriptionInput.focus();
+      if (command === "createLink") {
+        const url = window.prompt("Masukkan URL link:", "https://");
+        if (url && url.trim()) {
+          document.execCommand("createLink", false, url.trim());
+        }
+        return;
+      }
+      document.execCommand(command, false, null);
+    }
+
+    function emptyEditorIfNeeded() {
+      if (!descriptionInput.innerHTML.replace(/<[^>]*>?/gm, '').trim()) {
+        descriptionInput.innerHTML = "";
+      }
+    }
+
+    editorToolbar.addEventListener("mousedown", function (event) {
+      if (event.target.closest("span")) event.preventDefault();
+    });
+
+    editorToolbar.addEventListener("click", function (event) {
+      const btn = event.target.closest("span[data-command]");
+      if (!btn) return;
+      executeEditorCommand(btn.getAttribute("data-command"));
+    });
+
+    descriptionInput.addEventListener("input", emptyEditorIfNeeded);
+    descriptionInput.addEventListener("blur", emptyEditorIfNeeded);
 
     async function fillEditData() {
       if (!editId) {
@@ -677,7 +716,7 @@
         saveBtn.textContent = "Simpan Perubahan";
 
         titleInput.value = target.title || "";
-        descriptionInput.value = target.description || "";
+        descriptionInput.innerHTML = target.description || "";
         startDateInput.value = target.startDate || "";
         startTimeInput.value = (target.startTime || "").substring(0,5);
         endDateInput.value = target.endDate || "";
@@ -705,8 +744,9 @@
 
         renderImage();
         renderAttachments();
+        emptyEditorIfNeeded();
       } catch(err) {
-        showNotify("Data agenda tidak ditemukan.", "error");
+        showNotify("Data agenda tidak ditemukan.");
         window.setTimeout(function () {
           window.location.href = "manajemen-agenda.html";
         }, 1500);
@@ -734,7 +774,7 @@
               throw new Error(result.error || "Gagal upload");
           }
       } catch (err) {
-          showNotify("Error upload gambar: " + err.message, "error");
+          showNotify("Error upload gambar: " + err.message);
       }
     }
 
@@ -765,7 +805,7 @@
               throw new Error(result.error || "Gagal upload");
           }
       } catch (err) {
-          showNotify("Error upload lampiran: " + err.message, "error");
+          showNotify("Error upload lampiran: " + err.message);
       }
     }
 
@@ -791,14 +831,16 @@
       const startTime = startTimeInput.value;
 
       if (!title || !startDate || !startTime) {
-        showNotify("Judul, tanggal mulai, dan waktu mulai wajib diisi.", "error");
+        showNotify("Judul, tanggal mulai, dan waktu mulai wajib diisi.");
         return;
       }
 
-      // Pastikan property-nya cocok dengan payload yang diharapkan di backend
+      // Ambil dari Editor Area HTML
+      const descriptionContent = descriptionInput.innerHTML.trim();
+
       const payload = {
         title: title,
-        description: descriptionInput.value.trim(),
+        description: descriptionContent,
         startDate: startDate,
         startTime: startTime,
         endDate: endDateInput.value || "",
@@ -842,55 +884,33 @@
         }, 800);
       } catch(err) {
         console.error("Save Error:", err);
-        showNotify("Error: " + err.message, "error");
+        showNotify("Error: " + err.message);
         saveBtn.textContent = "Simpan Agenda";
         saveBtn.disabled = false;
       }
     }
 
-    imageDrop.addEventListener("click", function () {
-      imageInput.click();
-    });
-
+    imageDrop.addEventListener("click", function () { imageInput.click(); });
     imageDrop.addEventListener("keydown", function (event) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        imageInput.click();
-      }
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); imageInput.click(); }
     });
-
     imageInput.addEventListener("change", function () {
-      handleImageUpload(Array.from(imageInput.files || [])).then(function () {
-        imageInput.value = "";
-      });
+      handleImageUpload(Array.from(imageInput.files || [])).then(function () { imageInput.value = ""; });
     });
 
-    attachmentDrop.addEventListener("click", function () {
-      attachmentInput.click();
-    });
-
+    attachmentDrop.addEventListener("click", function () { attachmentInput.click(); });
     attachmentDrop.addEventListener("keydown", function (event) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        attachmentInput.click();
-      }
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); attachmentInput.click(); }
     });
-
     attachmentInput.addEventListener("change", function () {
-      handleAttachmentUpload(Array.from(attachmentInput.files || [])).then(function () {
-        attachmentInput.value = "";
-      });
+      handleAttachmentUpload(Array.from(attachmentInput.files || [])).then(function () { attachmentInput.value = ""; });
     });
 
     attachmentList.addEventListener("click", function (event) {
       const button = event.target.closest("button[data-remove-index]");
-      if (!button) {
-        return;
-      }
+      if (!button) return;
       const index = Number(button.getAttribute("data-remove-index"));
-      if (!Number.isFinite(index)) {
-        return;
-      }
+      if (!Number.isFinite(index)) return;
       currentAttachments = currentAttachments.filter(function (_, idx) { return idx !== index; });
       renderAttachments();
     });
