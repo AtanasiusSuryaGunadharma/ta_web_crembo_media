@@ -2110,6 +2110,7 @@ def create_registration_form():
             try:
                 # create a broadcast notification for new registration form
                 create_notification(nc, "form", f"Form Pendaftaran Baru: {values['title']}", values.get('description') or "Terdapat form pendaftaran baru.", url_for('get_registration_form_detail', form_id=form_id), {"form_id": form_id})
+                conn.commit()
             finally:
                 nc.close()
         except Exception:
@@ -2692,6 +2693,7 @@ def create_agenda():
             nc = conn.cursor()
             try:
                 create_notification(nc, "agenda", f"Agenda Baru: {values['title']}", values.get('description') or "Terdapat agenda kegiatan baru.", url_for('get_agendas') if False else f"/agenda/{agenda_id}", {"agenda_id": agenda_id})
+                conn.commit()
             finally:
                 nc.close()
         except Exception:
@@ -3045,6 +3047,7 @@ def create_news():
             nc = conn.cursor()
             try:
                 create_notification(nc, "news", f"Pengumuman Baru: {title}", summary or "Terdapat pengumuman baru.", f"/pengumuman/{news_id}", {"news_id": news_id})
+                conn.commit()
             finally:
                 nc.close()
         except Exception:
