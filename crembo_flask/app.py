@@ -1,12 +1,14 @@
 from pathlib import Path
 import json
+from datetime import datetime
+from io import BytesIO
 import os
 import re
 import time
 import uuid
 
 import mysql.connector
-from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -362,6 +364,61 @@ def ensure_agenda_schema() -> None:
         conn.close()
 
 
+def ensure_registration_form_schema() -> None:
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `registration_forms` (
+              `id` varchar(100) NOT NULL,
+              `title` varchar(255) NOT NULL,
+              `description` longtext DEFAULT NULL,
+              `target` varchar(20) NOT NULL DEFAULT 'public',
+              `visibility` varchar(20) NOT NULL DEFAULT 'visible',
+              `open_date` date DEFAULT NULL,
+              `close_date` date DEFAULT NULL,
+              `quota` int(11) NOT NULL DEFAULT 0,
+              `fields_json` longtext DEFAULT NULL,
+              `created_by` varchar(100) DEFAULT NULL,
+              `created_by_name` varchar(255) DEFAULT NULL,
+              `created_by_role` varchar(50) DEFAULT NULL,
+              `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_registration_forms_target` (`target`),
+              KEY `idx_registration_forms_visibility` (`visibility`),
+              KEY `idx_registration_forms_dates` (`open_date`, `close_date`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `registration_form_submissions` (
+              `id` varchar(100) NOT NULL,
+              `form_id` varchar(100) NOT NULL,
+              `submitter_key` varchar(255) NOT NULL,
+              `submitter_identifier` varchar(255) NOT NULL DEFAULT '',
+              `submitter_role` varchar(50) NOT NULL DEFAULT 'public',
+              `submitter_user_id` varchar(100) DEFAULT NULL,
+              `submitter_source` varchar(20) NOT NULL DEFAULT 'public',
+              `answers_json` longtext NOT NULL,
+              `submitted_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `uniq_registration_submission` (`form_id`, `submitter_key`),
+              KEY `idx_registration_submissions_form` (`form_id`),
+              KEY `idx_registration_submissions_submitter` (`submitter_key`),
+              CONSTRAINT `fk_registration_submissions_form`
+                FOREIGN KEY (`form_id`) REFERENCES `registration_forms` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -586,6 +643,231 @@ def fetch_member(identifier: str):
 
 def can_manage_members() -> bool:
     return bool(session.get("logged_in")) and (session.get("role") or "") in {"admin", "super_admin"}
+
+
+def can_manage_registration_forms() -> bool:
+    return bool(session.get("logged_in")) and (session.get("role") or "") in {"admin", "super_admin"}
+
+
+def registration_form_field_to_dict(item, index):
+    return {
+        "id": str(item and item.get("id") or f"field-{index + 1}"),
+        "label": str(item and item.get("label") or f"Pertanyaan {index + 1}"),
+        "type": str(item and item.get("type") or "text"),
+        "required": bool(item and item.get("required")),
+        "placeholder": str(item and item.get("placeholder") or ""),
+        "options": [str(value) for value in (item and item.get("options") or []) if str(value).strip()],
+    }
+
+
+def normalize_registration_fields(value) -> list[dict[str, object]]:
+    if value in (None, "", []):
+        return []
+
+    raw_items = value
+    if isinstance(value, str):
+        raw_text = value.strip()
+        if not raw_text:
+            return []
+        try:
+            parsed = json.loads(raw_text)
+            raw_items = parsed if isinstance(parsed, list) else [parsed]
+        except (TypeError, ValueError):
+            raw_items = [raw_text]
+
+    if isinstance(raw_items, dict):
+        raw_items = [raw_items]
+
+    normalized_items: list[dict[str, object]] = []
+    for index, item in enumerate(raw_items or []):
+        if not isinstance(item, dict):
+            continue
+        normalized_items.append(registration_form_field_to_dict(item, index))
+    return normalized_items
+
+
+def registration_form_row_to_dict(row: dict[str, object], submission_count: int = 0) -> dict[str, object]:
+    fields_raw = row.get("fields_json") or row.get("fields") or "[]"
+    try:
+        fields = json.loads(fields_raw) if isinstance(fields_raw, str) else (fields_raw or [])
+    except (TypeError, ValueError):
+        fields = []
+
+    return {
+        "id": row.get("id"),
+        "title": row.get("title") or "Form Pendaftaran",
+        "description": row.get("description") or "",
+        "target": "internal" if (row.get("target") or "public") == "internal" else "public",
+        "visibility": "draft" if (row.get("visibility") or "visible") == "draft" else "visible",
+        "openDate": str(row.get("open_date") or ""),
+        "closeDate": str(row.get("close_date") or ""),
+        "quota": int(row.get("quota") or 0),
+        "fields": normalize_registration_fields(fields),
+        "submissionCount": int(submission_count or 0),
+        "createdAt": row.get("created_at") or "",
+        "updatedAt": row.get("updated_at") or "",
+    }
+
+
+def registration_form_payload_to_db_values(data, existing=None):
+    source = existing or {}
+    fields = normalize_registration_fields(data.get("fields", source.get("fields_json", source.get("fields", []))))
+
+    def value_for(*keys, default=""):
+        for key in keys:
+            current = data.get(key)
+            if current not in (None, ""):
+                return current
+            current = source.get(key)
+            if current not in (None, ""):
+                return current
+        return default
+
+    quota_value = data.get("quota")
+    if quota_value in (None, ""):
+        quota_value = source.get("quota") or 0
+
+    return {
+        "title": str(value_for("title")).strip(),
+        "description": str(value_for("description")).strip(),
+        "target": "internal" if str(value_for("target", default="public")).strip().lower() == "internal" else "public",
+        "visibility": "draft" if str(value_for("visibility", default="visible")).strip().lower() == "draft" else "visible",
+        "open_date": str(value_for("openDate", "open_date")).strip() or None,
+        "close_date": str(value_for("closeDate", "close_date")).strip() or None,
+        "quota": int(quota_value or 0),
+        "fields_json": json.dumps(fields, ensure_ascii=False),
+    }
+
+
+def registration_form_status(form: dict[str, object], submission_count: int) -> dict[str, object]:
+    now = datetime.now().date()
+    if form.get("visibility") == "draft":
+        return {"open": False, "reason": "draft", "text": "Draft"}
+
+    open_date_value = str(form.get("openDate") or "").strip()
+    close_date_value = str(form.get("closeDate") or "").strip()
+    open_date = datetime.strptime(open_date_value, "%Y-%m-%d").date() if open_date_value else None
+    close_date = datetime.strptime(close_date_value, "%Y-%m-%d").date() if close_date_value else None
+
+    if open_date and now < open_date:
+        return {"open": False, "reason": "not_open", "text": "Belum dibuka"}
+    if close_date and now > close_date:
+        return {"open": False, "reason": "closed", "text": "Sudah ditutup"}
+    if int(form.get("quota") or 0) > 0 and int(submission_count or 0) >= int(form.get("quota") or 0):
+        return {"open": False, "reason": "quota", "text": "Kuota penuh"}
+    return {"open": True, "reason": "open", "text": "Aktif"}
+
+
+def registration_form_submission_counts(cursor) -> dict[str, int]:
+    cursor.execute("SELECT `form_id`, COUNT(*) AS `count` FROM `registration_form_submissions` GROUP BY `form_id`")
+    counts: dict[str, int] = {}
+    for row in cursor.fetchall() or []:
+        counts[str(row.get("form_id") or "")] = int(row.get("count") or 0)
+    return counts
+
+
+def registration_submission_row_to_dict(row: dict[str, object]) -> dict[str, object]:
+    answers_raw = row.get("answers_json") or "[]"
+    try:
+        answers = json.loads(answers_raw) if isinstance(answers_raw, str) else (answers_raw or [])
+    except (TypeError, ValueError):
+        answers = []
+    return {
+        "id": row.get("id"),
+        "formId": row.get("form_id"),
+        "submittedAt": row.get("submitted_at") or "",
+        "submitter": {
+            "key": row.get("submitter_key") or "",
+            "identifier": row.get("submitter_identifier") or "",
+            "role": row.get("submitter_role") or "public",
+            "userId": row.get("submitter_user_id") or "",
+            "source": row.get("submitter_source") or "public",
+        },
+        "answers": answers if isinstance(answers, list) else [],
+    }
+
+
+def registration_submitter_context(form: dict[str, object], payload_submitter) -> tuple[dict[str, object] | None, tuple[dict[str, object], int] | None]:
+    viewer = current_user_context()
+    submitter_data = payload_submitter if isinstance(payload_submitter, dict) else {}
+
+    if form.get("target") == "internal":
+        if not viewer.get("logged_in"):
+            return None, ({"success": False, "error": "Form internal hanya bisa diisi setelah login."}, 401)
+        submitter_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'internal'}"
+        return {
+            "key": submitter_key,
+            "identifier": viewer.get("nama") or viewer.get("username") or viewer.get("email") or "Anggota",
+            "role": viewer.get("role") or "user",
+            "user_id": viewer.get("user_id") or "",
+            "source": "internal",
+        }, None
+
+    if viewer.get("logged_in"):
+        submitter_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'public'}"
+        return {
+            "key": submitter_key,
+            "identifier": viewer.get("nama") or viewer.get("username") or viewer.get("email") or "Pengguna",
+            "role": viewer.get("role") or "user",
+            "user_id": viewer.get("user_id") or "",
+            "source": "logged_in",
+        }, None
+
+    client_key = str(submitter_data.get("key") or submitter_data.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
+    if not client_key:
+        client_key = f"guest:{uuid.uuid4().hex}"
+    return {
+        "key": client_key,
+        "identifier": str(submitter_data.get("identifier") or "Pengunjung").strip() or "Pengunjung",
+        "role": str(submitter_data.get("role") or "public").strip() or "public",
+        "user_id": "",
+        "source": "public",
+    }, None
+
+
+def registration_submission_payload_to_rows(form: dict[str, object], answers_payload):
+    fields = form.get("fields") if isinstance(form.get("fields"), list) else []
+    answers_list = answers_payload if isinstance(answers_payload, list) else []
+    answer_map = {}
+    for item in answers_list:
+        if not isinstance(item, dict):
+            continue
+        field_id = str(item.get("fieldId") or item.get("field_id") or "").strip()
+        if not field_id:
+            continue
+        answer_map[field_id] = item.get("value")
+
+    normalized_answers: list[dict[str, object]] = []
+    for field in fields:
+        if not isinstance(field, dict):
+            continue
+        field_id = str(field.get("id") or "").strip()
+        field_label = str(field.get("label") or field_id or "Pertanyaan").strip()
+        field_type = str(field.get("type") or "text").strip().lower()
+        value = answer_map.get(field_id)
+
+        if field_type == "checkbox":
+            if isinstance(value, list):
+                normalized_value = [str(item).strip() for item in value if str(item).strip()]
+            elif value in (None, ""):
+                normalized_value = []
+            else:
+                normalized_value = [str(value).strip()]
+            if field.get("required") and not normalized_value:
+                return None, f'Mohon isi: {field_label}'
+        else:
+            normalized_value = str(value or "").strip()
+            if field.get("required") and not normalized_value:
+                return None, f'Mohon isi: {field_label}'
+
+        normalized_answers.append({
+            "fieldId": field_id,
+            "label": field_label,
+            "type": field_type,
+            "value": normalized_value,
+        })
+
+    return normalized_answers, None
 
 
 def read_members_for_admin() -> list[dict[str, object]]:
@@ -1488,6 +1770,491 @@ def delete_profile(profile_id):
     finally:
         cursor.close()
         conn.close()
+
+
+# --- REGISTRATION FORM ENDPOINTS ---
+
+
+def registration_form_lookup(cursor, form_id: str, include_counts: bool = False):
+    cursor.execute("SELECT * FROM `registration_forms` WHERE `id` = %s LIMIT 1", (form_id,))
+    row = cursor.fetchone()
+    if not row:
+        return None
+    submission_count = 0
+    if include_counts:
+        cursor.execute("SELECT COUNT(*) AS `count` FROM `registration_form_submissions` WHERE `form_id` = %s", (form_id,))
+        count_row = cursor.fetchone() or {}
+        submission_count = int(count_row.get("count") or 0)
+    return registration_form_row_to_dict(row, submission_count)
+
+
+@app.route("/api/registration/forms", methods=["GET"])
+def get_registration_forms():
+    ensure_registration_form_schema()
+    scope = (request.args.get("scope") or "public").strip().lower()
+    viewer = current_user_context()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `registration_forms` ORDER BY `updated_at` DESC, `created_at` DESC")
+        rows = cursor.fetchall() or []
+        counts = registration_form_submission_counts(cursor)
+        forms = [registration_form_row_to_dict(row, counts.get(str(row.get("id") or ""), 0)) for row in rows]
+
+        if scope == "admin":
+            if not can_manage_registration_forms():
+                return jsonify({"success": False, "error": "Forbidden"}), 403
+            return jsonify(forms)
+
+        accessible_forms = []
+        for form in forms:
+            if form.get("visibility") == "draft":
+                continue
+            if form.get("target") == "internal" and not viewer.get("logged_in"):
+                continue
+            accessible_forms.append(form)
+        return jsonify(accessible_forms)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms/<form_id>", methods=["GET"])
+def get_registration_form_detail(form_id):
+    ensure_registration_form_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        form = registration_form_lookup(cursor, form_id, include_counts=True)
+        if not form:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+
+        viewer = current_user_context()
+        if form.get("visibility") == "draft" and not can_manage_registration_forms():
+            return jsonify({"success": False, "error": "Forbidden"}), 403
+        if form.get("target") == "internal" and not viewer.get("logged_in") and not can_manage_registration_forms():
+            return jsonify({"success": False, "error": "Forbidden"}), 403
+
+        return jsonify(form)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms", methods=["POST"])
+def create_registration_form():
+    ensure_registration_form_schema()
+    if not can_manage_registration_forms():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    data = request.json or {}
+    values = registration_form_payload_to_db_values(data)
+    if not values["title"] or not values["open_date"] or not values["close_date"]:
+        return jsonify({"success": False, "error": "Judul, tanggal pembukaan, dan tanggal penutupan wajib diisi."}), 400
+    if not values["fields_json"] or values["fields_json"] == "[]":
+        return jsonify({"success": False, "error": "Tambahkan minimal 1 pertanyaan."}), 400
+
+    try:
+        open_date = datetime.strptime(values["open_date"], "%Y-%m-%d").date()
+        close_date = datetime.strptime(values["close_date"], "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"success": False, "error": "Format tanggal tidak valid."}), 400
+    if close_date < open_date:
+        return jsonify({"success": False, "error": "Tanggal penutupan harus sama atau setelah tanggal pembukaan."}), 400
+
+    form_id = data.get("id") or f"registration-form-{int(time.time() * 1000)}"
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO `registration_forms`
+            (`id`, `title`, `description`, `target`, `visibility`, `open_date`, `close_date`, `quota`, `fields_json`, `created_by`, `created_by_name`, `created_by_role`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                form_id,
+                values["title"],
+                values["description"],
+                values["target"],
+                values["visibility"],
+                values["open_date"],
+                values["close_date"],
+                values["quota"],
+                values["fields_json"],
+                str(session.get("user_id") or ""),
+                str(session.get("nama") or session.get("username") or ""),
+                str(session.get("role") or ""),
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True, "id": form_id})
+    except mysql.connector.IntegrityError:
+        conn.rollback()
+        return jsonify({"success": False, "error": "ID form sudah digunakan."}), 409
+    except Exception as error:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(error)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms/<form_id>", methods=["PUT"])
+def update_registration_form(form_id):
+    ensure_registration_form_schema()
+    if not can_manage_registration_forms():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    data = request.json or {}
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `registration_forms` WHERE `id` = %s LIMIT 1", (form_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+
+        values = registration_form_payload_to_db_values(data, existing)
+        if not values["title"] or not values["open_date"] or not values["close_date"]:
+            return jsonify({"success": False, "error": "Judul, tanggal pembukaan, dan tanggal penutupan wajib diisi."}), 400
+        if not values["fields_json"] or values["fields_json"] == "[]":
+            return jsonify({"success": False, "error": "Tambahkan minimal 1 pertanyaan."}), 400
+
+        try:
+            open_date = datetime.strptime(values["open_date"], "%Y-%m-%d").date()
+            close_date = datetime.strptime(values["close_date"], "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"success": False, "error": "Format tanggal tidak valid."}), 400
+        if close_date < open_date:
+            return jsonify({"success": False, "error": "Tanggal penutupan harus sama atau setelah tanggal pembukaan."}), 400
+
+        cursor.execute(
+            """
+            UPDATE `registration_forms`
+            SET `title` = %s,
+                `description` = %s,
+                `target` = %s,
+                `visibility` = %s,
+                `open_date` = %s,
+                `close_date` = %s,
+                `quota` = %s,
+                `fields_json` = %s
+            WHERE `id` = %s
+            """,
+            (
+                values["title"],
+                values["description"],
+                values["target"],
+                values["visibility"],
+                values["open_date"],
+                values["close_date"],
+                values["quota"],
+                values["fields_json"],
+                form_id,
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True, "id": form_id})
+    except Exception as error:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(error)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms/<form_id>", methods=["DELETE"])
+def delete_registration_form(form_id):
+    ensure_registration_form_schema()
+    if not can_manage_registration_forms():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM `registration_forms` WHERE `id` = %s", (form_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as error:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(error)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms/<form_id>/submissions", methods=["GET"])
+def get_registration_form_submissions(form_id):
+    ensure_registration_form_schema()
+    if not can_manage_registration_forms():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        form = registration_form_lookup(cursor, form_id, include_counts=True)
+        if not form:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+
+        cursor.execute("SELECT * FROM `registration_form_submissions` WHERE `form_id` = %s ORDER BY `submitted_at` DESC", (form_id,))
+        submissions = [registration_submission_row_to_dict(row) for row in cursor.fetchall() or []]
+        return jsonify({"form": form, "submissions": submissions, "submissionCount": len(submissions)})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def registration_export_rows(form: dict[str, object], submissions: list[dict[str, object]]):
+    fields = form.get("fields") if isinstance(form.get("fields"), list) else []
+    headers = ["No", "Waktu Submit", "Identitas", "Role"] + [str(field.get("label") or "Pertanyaan") for field in fields if isinstance(field, dict)]
+    rows = []
+
+    for index, submission in enumerate(submissions, start=1):
+        answer_map = {}
+        for answer in submission.get("answers") if isinstance(submission.get("answers"), list) else []:
+            if not isinstance(answer, dict):
+                continue
+            answer_map[str(answer.get("fieldId") or "")] = answer.get("value")
+
+        row_values = [
+            index,
+            submission.get("submittedAt") or "",
+            submission.get("submitter", {}).get("identifier") or "",
+            submission.get("submitter", {}).get("role") or "public",
+        ]
+        for field in fields:
+            if not isinstance(field, dict):
+                continue
+            value = answer_map.get(str(field.get("id") or ""))
+            if isinstance(value, list):
+                row_values.append(", ".join(str(item) for item in value))
+            else:
+                row_values.append(str(value or ""))
+        rows.append(row_values)
+
+    return headers, rows
+
+
+def registration_export_filename(form: dict[str, object], extension: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", str(form.get("title") or "form-pendaftaran").lower()).strip("-") or "form-pendaftaran"
+    return f"pendaftar-{slug}.{extension}"
+
+
+@app.route("/api/registration/forms/<form_id>/export.xlsx", methods=["GET"])
+def export_registration_form_excel(form_id):
+    ensure_registration_form_schema()
+    if not can_manage_registration_forms():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        form = registration_form_lookup(cursor, form_id, include_counts=True)
+        if not form:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+        cursor.execute("SELECT * FROM `registration_form_submissions` WHERE `form_id` = %s ORDER BY `submitted_at` DESC", (form_id,))
+        submissions = [registration_submission_row_to_dict(row) for row in cursor.fetchall() or []]
+
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+
+        headers, rows = registration_export_rows(form, submissions)
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Pendaftar"
+        worksheet.append(headers)
+        for row in rows:
+            worksheet.append(row)
+
+        header_fill = PatternFill("solid", fgColor="7F0000")
+        header_font = Font(color="FFFFFF", bold=True)
+        for cell in worksheet[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+            for cell in column_cells:
+                try:
+                    cell_value = str(cell.value or "")
+                    if len(cell_value) > max_length:
+                        max_length = len(cell_value)
+                except Exception:
+                    continue
+            worksheet.column_dimensions[column_letter].width = min(max_length + 4, 40)
+
+        buffer = BytesIO()
+        workbook.save(buffer)
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=registration_export_filename(form, "xlsx"),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms/<form_id>/export.pdf", methods=["GET"])
+def export_registration_form_pdf(form_id):
+    ensure_registration_form_schema()
+    if not can_manage_registration_forms():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        form = registration_form_lookup(cursor, form_id, include_counts=True)
+        if not form:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+        cursor.execute("SELECT * FROM `registration_form_submissions` WHERE `form_id` = %s ORDER BY `submitted_at` DESC", (form_id,))
+        submissions = [registration_submission_row_to_dict(row) for row in cursor.fetchall() or []]
+
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+
+        headers, rows = registration_export_rows(form, submissions)
+        buffer = BytesIO()
+        document = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=8 * mm, leftMargin=8 * mm, topMargin=10 * mm, bottomMargin=10 * mm)
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("RegistrationTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.HexColor("#7F0000"))
+        normal_style = ParagraphStyle("RegistrationNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=8, leading=10)
+
+        elements = [
+            Paragraph(f"Data Pendaftar: {form.get('title')}", title_style),
+            Spacer(1, 4 * mm),
+            Paragraph(f"Total pendaftar: {len(submissions)}", normal_style),
+            Spacer(1, 4 * mm),
+        ]
+
+        table_data = [headers] + rows if rows else [headers, ["-", "-", "-", "-"] + ["" for _ in headers[4:]]]
+        table = Table(table_data, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7F0000")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D5DB")),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor("#FFFFFF")]),
+                ]
+            )
+        )
+        elements.append(table)
+        document.build(elements)
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=registration_export_filename(form, "pdf"),
+            mimetype="application/pdf",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/forms/<form_id>/submit", methods=["POST"])
+def submit_registration_form(form_id):
+    ensure_registration_form_schema()
+    data = request.json or {}
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        form = registration_form_lookup(cursor, form_id, include_counts=True)
+        if not form:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+
+        submission_count = int(form.get("submissionCount") or 0)
+        state = registration_form_status(form, submission_count)
+        if not state["open"]:
+            return jsonify({"success": False, "error": state["text"]}), 400
+
+        submitter, error_payload = registration_submitter_context(form, data.get("submitter"))
+        if error_payload:
+            error_body, status_code = error_payload
+            return jsonify(error_body), status_code
+
+        answers, error_message = registration_submission_payload_to_rows(form, data.get("answers"))
+        if error_message:
+            return jsonify({"success": False, "error": error_message}), 400
+
+        cursor.execute(
+            "SELECT 1 FROM `registration_form_submissions` WHERE `form_id` = %s AND `submitter_key` = %s LIMIT 1",
+            (form_id, submitter["key"]),
+        )
+        if cursor.fetchone():
+            return jsonify({"success": False, "error": "Anda sudah pernah mengirim jawaban untuk form ini."}), 409
+
+        submission_id = f"submission-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
+        cursor.execute(
+            """
+            INSERT INTO `registration_form_submissions`
+            (`id`, `form_id`, `submitter_key`, `submitter_identifier`, `submitter_role`, `submitter_user_id`, `submitter_source`, `answers_json`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                submission_id,
+                form_id,
+                submitter["key"],
+                submitter["identifier"],
+                submitter["role"],
+                submitter["user_id"],
+                submitter["source"],
+                json.dumps(answers, ensure_ascii=False),
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True, "id": submission_id})
+    except Exception as error:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(error)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/registration/submissions/me", methods=["GET"])
+def get_my_registration_submissions():
+    ensure_registration_form_schema()
+    viewer = current_user_context()
+    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
+
+    if viewer.get("logged_in"):
+        submitter_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'public'}"
+    else:
+        if not client_key:
+            return jsonify([])
+        submitter_key = client_key
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT * FROM `registration_form_submissions` WHERE `submitter_key` = %s ORDER BY `submitted_at` DESC",
+            (submitter_key,),
+        )
+        submissions = [registration_submission_row_to_dict(row) for row in cursor.fetchall() or []]
+        return jsonify(submissions)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/session", methods=["GET"])
+def get_session_context():
+    return jsonify(current_user_context())
 
 
 # --- AGENDA ENDPOINTS ---

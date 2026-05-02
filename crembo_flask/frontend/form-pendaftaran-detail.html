@@ -513,8 +513,10 @@
 		let forms = [];
 		let submissions = [];
 		let members = [];
+		let currentUser = null;
 		let session = null;
 		let currentForm = null;
+		let accessDenied = false;
 
 		function syncStickyOffset() {
 			const h = topHeader ? topHeader.offsetHeight : 104;
@@ -537,34 +539,40 @@
 			return { id: String(item && item.id ? item.id : "form-" + (index + 1)), title: String(item && item.title ? item.title : "Form Pendaftaran"), description: String(item && item.description ? item.description : ""), target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public", visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible", openDate: String(item && item.openDate ? item.openDate : ""), closeDate: String(item && item.closeDate ? item.closeDate : ""), quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0, fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [], updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString()) };
 		}
 
-		function loadData() {
-			const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
-			const parsedForms = rawForms ? safeParse(rawForms) : null;
-			forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
-			const rawSubs = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-			const parsedSubs = rawSubs ? safeParse(rawSubs) : null;
-			submissions = Array.isArray(parsedSubs) ? parsedSubs : [];
-			const rawMembers = localStorage.getItem(MEMBER_STORAGE_KEY);
-			const parsedMembers = rawMembers ? safeParse(rawMembers) : null;
-			members = Array.isArray(parsedMembers) ? parsedMembers.map(normalizeMember) : [];
+		async function loadData() {
 			const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
 			const parsedSession = rawSession ? safeParse(rawSession) : null;
-			session = parsedSession && typeof parsedSession === "object" ? parsedSession : null;
+			try {
+				const sessionResponse = await fetch("/api/session", { credentials: "same-origin" });
+				currentUser = sessionResponse.ok ? await sessionResponse.json() : null;
+			} catch (error) {
+				currentUser = null;
+			}
+			session = currentUser || (parsedSession && typeof parsedSession === "object" ? parsedSession : null);
+
+			try {
+				const response = await fetch("/api/registration/forms/" + encodeURIComponent(formId), { credentials: "same-origin" });
+				accessDenied = response.status === 403;
+				if (!response.ok) {
+					throw new Error("Form tidak tersedia");
+				}
+				const parsed = await response.json();
+				currentForm = normalizeForm(parsed, 0);
+				forms = [currentForm];
+				return currentForm;
+			} catch (error) {
+				const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
+				const parsedForms = rawForms ? safeParse(rawForms) : null;
+				forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
+				currentForm = forms.find(function(item) { return item.id === formId; }) || null;
+				return currentForm;
+			}
 		}
 
-		function countSubmissions(id) { return submissions.filter(function(item) { return item && item.formId === id; }).length; }
+		function countSubmissions(id) { return currentForm && currentForm.id === id && Number.isFinite(Number(currentForm.submissionCount)) ? Number(currentForm.submissionCount) : submissions.filter(function(item) { return item && item.formId === id; }).length; }
 
 		function isRegisteredMember() {
-			if (!session || !session.identifier) return false;
-			if (session.role === "admin" || session.role === "super_admin") return true;
-			const identifier = String(session.identifier || "").toLowerCase();
-			const identifierType = String(session.identifierType || "");
-			return members.some(function(member) {
-				if (String(member.status || "").toLowerCase() !== "aktif") return false;
-				if (identifierType === "email") return member.email === identifier;
-				if (identifierType === "no_hp") return member.phone === identifier.replace(/\s+/g, "");
-				return false;
-			});
+			return Boolean(session && session.logged_in);
 		}
 
 		function formatDate(value) {
@@ -616,9 +624,13 @@
 			return '<input id="' + id + '" type="' + field.type + '"' + placeholder + req + '>';
 		}
 
-		function renderForm() {
-			loadData();
-			currentForm = forms.find(function(item) { return item.id === formId; }) || null;
+		async function renderForm() {
+			await loadData();
+
+			if (accessDenied) {
+				renderLocked("Form ini khusus internal. Silakan login terlebih dahulu.");
+				return;
+			}
 
 			if (!currentForm) {
 				heroTitle.textContent = "Form Tidak Ditemukan";
@@ -643,8 +655,8 @@
 			formMetaPeriod.innerHTML = "<strong>Periode:</strong> " + formatDate(currentForm.openDate) + " – " + formatDate(currentForm.closeDate);
 
 			if (!state.open) { renderLocked(state.text + "."); return; }
-			if (currentForm.target === "internal" && !session) { renderLocked("Form ini khusus internal. Silakan login terlebih dahulu."); return; }
-			if (currentForm.target === "internal" && !isRegisteredMember()) { renderLocked("Form ini hanya untuk anggota internal yang terdaftar dan aktif."); return; }
+			if (currentForm.target === "internal" && (!session || !session.logged_in)) { renderLocked("Form ini khusus internal. Silakan login terlebih dahulu."); return; }
+			if (currentForm.target === "internal" && !isRegisteredMember()) { renderLocked("Form ini hanya untuk anggota internal yang login."); return; }
 
 			const fieldsHtml = currentForm.fields.map(function(field) {
 				const labelClass = field.required ? "required" : "";
@@ -678,7 +690,7 @@
 			return String(value || "").trim().length > 0;
 		}
 
-		function submitForm(event) {
+		async function submitForm(event) {
 			event.preventDefault();
 			if (!currentForm) return;
 			const state = getFormState(currentForm);
@@ -695,17 +707,22 @@
 			}
 
 			const payload = {
-				id: makeId("submit"),
-				formId: currentForm.id,
-				submittedAt: new Date().toISOString(),
-				submitter: session ? { identifier: session.identifier || "", identifierType: session.identifierType || "", role: session.role || "" } : { identifier: "public", identifierType: "public", role: "public" },
-				answers: answers
+				answers: answers,
+				submitter: session ? { key: session.user_id ? "member:" + session.user_id : "member:" + (session.username || session.email || "member"), identifier: session.nama || session.username || session.email || "Anggota", role: session.role || "user" } : { key: "guest:" + getOrCreateGuestId(), identifier: "public", role: "public" }
 			};
 
-			submissions.push(payload);
-			localStorage.setItem(SUBMISSION_STORAGE_KEY, JSON.stringify(submissions));
+			const response = await fetch("/api/registration/forms/" + encodeURIComponent(currentForm.id) + "/submit", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "same-origin",
+				body: JSON.stringify(payload)
+			});
+			const result = await response.json();
+			if (!response.ok || !result.success) {
+				alert(result.error || "Gagal mengirim pendaftaran.");
+				return;
+			}
 
-			// Show success state
 			dynamicForm.innerHTML =
 				'<div class="form-success">' +
 				'<div class="success-icon">✅</div>' +

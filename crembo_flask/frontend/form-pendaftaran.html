@@ -447,6 +447,7 @@
 		const searchInput = document.getElementById("searchInput");
 		const formsGrid = document.getElementById("formsGrid");
 		const formSectionNote = document.getElementById("formSectionNote");
+		let formsCache = [];
 
 		// ─── SEED DUMMY DATA ───────────────────────────────────────
 		(function seedDummyForms() {
@@ -540,20 +541,28 @@
 			};
 		}
 
-		function loadForms() {
-			const raw = localStorage.getItem(FORM_STORAGE_KEY);
-			const parsed = raw ? safeParse(raw) : null;
-			return Array.isArray(parsed) ? parsed.map(normalizeForm) : [];
-		}
-
-		function loadSubmissions() {
-			const raw = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-			const parsed = raw ? safeParse(raw) : null;
-			return Array.isArray(parsed) ? parsed : [];
+		async function loadForms() {
+			try {
+				const response = await fetch("/api/registration/forms", { credentials: "same-origin" });
+				if (!response.ok) {
+					throw new Error("Gagal memuat form dari server");
+				}
+				const parsed = await response.json();
+				formsCache = Array.isArray(parsed) ? parsed.map(normalizeForm) : [];
+				localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formsCache));
+				return formsCache;
+			} catch (error) {
+				const raw = localStorage.getItem(FORM_STORAGE_KEY);
+				const parsed = raw ? safeParse(raw) : null;
+				formsCache = Array.isArray(parsed) ? parsed.map(normalizeForm) : [];
+				localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formsCache));
+				return formsCache;
+			}
 		}
 
 		function countSubmissions(formId) {
-			return loadSubmissions().filter(function(item) { return item && item.formId === formId; }).length;
+			const target = formsCache.find(function (item) { return item && item.id === formId; });
+			return target && Number.isFinite(Number(target.submissionCount)) ? Number(target.submissionCount) : 0;
 		}
 
 		function formatDate(value) {
@@ -581,7 +590,7 @@
 		}
 
 		function renderForms() {
-			const forms = loadForms().filter(function(f) { return f.visibility !== "draft"; });
+			const forms = formsCache.filter(function(f) { return f.visibility !== "draft"; });
 			if (!forms.length) {
 				formSectionNote.textContent = "Belum ada form tersedia.";
 				formsGrid.innerHTML = '<div class="empty-state"><p>Belum ada form pendaftaran yang aktif.</p></div>';
@@ -658,7 +667,9 @@
 			window.location.href = "search.html?q=" + encodeURIComponent(q);
 		});
 
-		renderForms();
+		loadForms().then(function () {
+			renderForms();
+		});
 
 		(function() {
 			const PROFILE_MENU_STORAGE_KEY = "crembo-profile-menu";

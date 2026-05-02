@@ -726,6 +726,8 @@
     const SESSION_STORAGE_KEY = "crembo-login-session";
     const GUEST_KEY = "crembo-form-guest-id";
 
+    let currentUser = null;
+
     const accessChip = document.getElementById("accessChip");
     const authAction = document.getElementById("authAction");
     const searchInput = document.getElementById("searchInput");
@@ -789,71 +791,44 @@
         .replace(/'/g, "&#39;");
     }
 
-    function readData() {
-      const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
-      const parsedForms = safeParse(rawForms, []);
-      
-      // Default dummy data dengan periode panjang (jika kosong)
-      const DEMO_FORMS = [
-        {
-          id: "form-registrasi-2024",
-          title: "Form Registrasi Anggota Baru 2024-2025",
-          description: "Form registrasi untuk calon anggota baru tahun 2024-2025. Periode pendaftaran panjang untuk memastikan semua calon bisa mendaftar.",
-          target: "public",
-          visibility: "visible",
-          openDate: "2024-03-01",
-          closeDate: "2025-12-31",
-          quota: 50,
-          fields: [
-            { id: "field-1", label: "Nama Lengkap", type: "text", required: true, placeholder: "Masukkan nama lengkap Anda" },
-            { id: "field-2", label: "Nomor Anggota", type: "text", required: true, placeholder: "Nomor anggota dari pengurus" },
-            { id: "field-3", label: "Email", type: "email", required: true, placeholder: "Email aktif Anda" },
-            { id: "field-4", label: "Nomor Telepon", type: "tel", required: true, placeholder: "+62 8xxx xxxx xxx" },
-            { id: "field-5", label: "Divisi", type: "select", required: true, options: ["Multimedia", "Musik", "Liturgi", "Pengurus"] }
-          ]
-        },
-        {
-          id: "form-survey-2024",
-          title: "Survei Kepuasan Anggota Q2 2024",
-          description: "Survei kepuasan anggota untuk meningkatkan pelayanan di tahun 2024. Jawaban Anda sangat berharga bagi kemajuan organisasi.",
-          target: "internal",
-          visibility: "visible",
-          openDate: "2024-04-15",
-          closeDate: "2025-06-30",
-          quota: 0,
-          fields: [
-            { id: "field-6", label: "Berapa kepuasan Anda terhadap organisasi?", type: "radio", required: true, options: ["Sangat Puas", "Puas", "Cukup", "Kurang Puas"] },
-            { id: "field-7", label: "Aspek apa yang perlu ditingkatkan?", type: "checkbox", required: false, options: ["Program kegiatan", "Komunikasi", "Transparansi keuangan", "Fasilitas", "Lainnya"] },
-            { id: "field-8", label: "Saran dan masukan", type: "textarea", required: false, placeholder: "Tuliskan saran Anda di sini..." }
-          ]
-        },
-        {
-          id: "form-talent-show",
-          title: "Pendaftaran Talent Show Tahunan 2025",
-          description: "Daftarkan diri Anda untuk mengikuti talent show tahunan. Periode panjang memastikan semua anggota berkesempatan.",
-          target: "public",
-          visibility: "visible",
-          openDate: "2025-01-01",
-          closeDate: "2025-11-30",
-          quota: 100,
-          fields: [
-            { id: "field-9", label: "Nama Peserta", type: "text", required: true, placeholder: "Nama lengkap" },
-            { id: "field-10", label: "Kategori Bakat", type: "select", required: true, options: ["Musik Vokal", "Musik Instrumen", "Tari", "Drama", "Komedi", "Lainnya"] },
-            { id: "field-11", label: "Judul Penampilan", type: "text", required: true, placeholder: "Judul lagu/pertunjukan" },
-            { id: "field-12", label: "Durasi (menit)", type: "number", required: true, placeholder: "Estimasi durasi" }
-          ]
-        }
-      ];
-      
-      forms = Array.isArray(parsedForms) && parsedForms.length > 0 ? parsedForms.map(normalizeForm) : DEMO_FORMS.map(normalizeForm);
-
-      const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-      const parsedSubmissions = safeParse(rawSubmissions, []);
-      submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
-
+    async function readData() {
       const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
-      const parsedSession = safeParse(rawSession, null);
-      session = parsedSession && typeof parsedSession === "object" ? parsedSession : null;
+      const parsedSession = rawSession ? safeParse(rawSession) : null;
+      try {
+        const sessionResponse = await fetch("/api/session", { credentials: "same-origin" });
+        currentUser = sessionResponse.ok ? await sessionResponse.json() : null;
+      } catch (error) {
+        currentUser = null;
+      }
+      session = currentUser || (parsedSession && typeof parsedSession === "object" ? parsedSession : null);
+
+      try {
+        const formsResponse = await fetch("/api/registration/forms", { credentials: "same-origin" });
+        if (!formsResponse.ok) {
+          throw new Error("Gagal memuat form pendaftaran");
+        }
+        const parsedForms = await formsResponse.json();
+        forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
+
+        const viewer = getViewerContext();
+        const mySubmissionsUrl = viewer.isLoggedIn
+          ? "/api/registration/submissions/me"
+          : "/api/registration/submissions/me?clientKey=" + encodeURIComponent(getOrCreateGuestId());
+        const submissionsResponse = await fetch(mySubmissionsUrl, { credentials: "same-origin" });
+        if (!submissionsResponse.ok) {
+          throw new Error("Gagal memuat jawaban pendaftaran");
+        }
+        const parsedSubmissions = await submissionsResponse.json();
+        submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+      } catch (error) {
+        const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
+        const parsedForms = rawForms ? safeParse(rawForms, []) : [];
+        forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
+
+        const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+        const parsedSubmissions = rawSubmissions ? safeParse(rawSubmissions, []) : [];
+        submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+      }
     }
 
     function getOrCreateGuestId() {
@@ -867,46 +842,49 @@
     }
 
     function getViewerContext() {
-      if (session && session.identifier) {
-        const idType = session.identifierType ? String(session.identifierType) : "identifier";
-        const identifier = String(session.identifier || "").trim().toLowerCase();
-        const guestId = getOrCreateGuestId();
+      if (session && session.logged_in) {
+        const key = "member:" + String(session.user_id || session.username || session.email || "member");
         return {
           isLoggedIn: true,
-          key: "login:" + idType + ":" + identifier,
-          aliasKeys: ["login:" + idType + ":" + identifier, "guest:" + guestId],
-          identifier: String(session.fullName || session.identifier || "Pengguna"),
+          key: key,
+          aliasKeys: [key],
+          identifier: String(session.nama || session.username || session.email || "Pengguna"),
           role: String(session.role || "anggota")
         };
       }
 
       const guestId = getOrCreateGuestId();
+      const guestKey = "guest:" + guestId;
       return {
         isLoggedIn: false,
-        key: "guest:" + guestId,
-        aliasKeys: ["guest:" + guestId],
+        key: guestKey,
+        aliasKeys: [guestKey],
         identifier: "Pengunjung",
         role: "public"
       };
     }
 
     function countSubmissionByForm(formId) {
+      const form = forms.find(function (item) {
+        return item && item.id === formId;
+      });
+      if (form && Number.isFinite(Number(form.submissionCount))) {
+        return Number(form.submissionCount);
+      }
       return submissions.filter(function (item) {
         return item && item.formId === formId;
       }).length;
     }
 
     function getMySubmission(formId) {
-      const viewer = getViewerContext();
-      const keys = Array.isArray(viewer.aliasKeys) && viewer.aliasKeys.length ? viewer.aliasKeys : [viewer.key];
       return submissions.find(function (item) {
-        return item && item.formId === formId && item.submitter && keys.indexOf(String(item.submitter.key || "")) !== -1;
+        return item && item.formId === formId;
       }) || null;
     }
 
-    function refreshDataAndRender() {
+    async function refreshDataAndRender() {
       const previousActiveId = activeFormId;
-      readData();
+      await readData();
       updateAccessHeader();
       initTargetFilterByAccess();
       renderCards();
@@ -1176,7 +1154,7 @@
       });
     }
 
-    function submitForm(form) {
+    async function submitForm(form) {
       const viewer = getViewerContext();
       if (getMySubmission(form.id)) {
         renderRightPanel();
@@ -1219,22 +1197,26 @@
         };
       });
 
-      const entry = {
-        id: makeId("sub"),
-        formId: form.id,
-        submittedAt: new Date().toISOString(),
-        submitter: {
-          key: viewer.key,
-          identifier: viewer.identifier,
-          role: viewer.role
-        },
-        answers: answers
-      };
+      const response = await fetch("/api/registration/forms/" + encodeURIComponent(form.id) + "/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          answers: answers,
+          submitter: {
+            key: viewer.key,
+            identifier: viewer.identifier,
+            role: viewer.role
+          }
+        })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        alert(result.error || "Gagal mengirim pendaftaran.");
+        return;
+      }
 
-      submissions.push(entry);
-      localStorage.setItem(SUBMISSION_STORAGE_KEY, JSON.stringify(submissions));
-
-      renderCards();
+      await refreshDataAndRender();
       renderRightPanel();
       alert("Jawaban berhasil disimpan. Submit ulang tidak diperbolehkan.");
     }

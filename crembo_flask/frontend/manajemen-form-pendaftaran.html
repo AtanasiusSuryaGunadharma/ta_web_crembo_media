@@ -527,17 +527,25 @@
       ];
     }
 
-    function loadForms() {
-      const raw = localStorage.getItem(FORM_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      forms = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeForm) : defaultForms().map(normalizeForm);
-      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+    async function loadForms() {
+      try {
+        const response = await fetch("/api/registration/forms?scope=admin", { credentials: "same-origin" });
+        if (!response.ok) {
+          throw new Error("Gagal memuat form dari server");
+        }
+        const parsed = await response.json();
+        forms = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeForm) : [];
+        localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+      } catch (error) {
+        const raw = localStorage.getItem(FORM_STORAGE_KEY);
+        const parsed = raw ? safeParse(raw) : null;
+        forms = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeForm) : defaultForms().map(normalizeForm);
+        localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+      }
     }
 
     function loadSubmissions() {
-      const raw = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      submissions = Array.isArray(parsed) ? parsed : [];
+      submissions = [];
     }
 
     function saveForms() {
@@ -545,6 +553,12 @@
     }
 
     function getSubmissionCount(formId) {
+      const fromForm = forms.find(function (item) {
+        return item && item.id === formId;
+      });
+      if (fromForm && Number.isFinite(Number(fromForm.submissionCount))) {
+        return Number(fromForm.submissionCount);
+      }
       return submissions.filter(function (item) {
         return item && item.formId === formId;
       }).length;
@@ -621,13 +635,23 @@
       }).join("");
     }
 
-    function removeForm(id) {
+    async function removeForm(id) {
       const target = forms.find(function (item) { return item.id === id; });
       if (!target) {
         return;
       }
       const ok = window.confirm('Hapus form "' + target.title + '"?');
       if (!ok) {
+        return;
+      }
+
+      const response = await fetch("/api/registration/forms/" + encodeURIComponent(id), {
+        method: "DELETE",
+        credentials: "same-origin"
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        showNotify(result.error || "Gagal menghapus form.");
         return;
       }
 
@@ -662,11 +686,12 @@
     searchInput.addEventListener("input", renderRows);
     targetFilter.addEventListener("change", renderRows);
 
-    loadForms();
-    loadSubmissions();
-    renderRows();
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    loadForms().then(function () {
+      loadSubmissions();
+      renderRows();
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    });
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

@@ -664,15 +664,45 @@
       };
     }
 
-    function loadForms() {
-      const raw = localStorage.getItem(FORM_STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      forms = Array.isArray(parsed) ? parsed.map(normalizeForm) : [];
-      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+    async function loadForms() {
+      try {
+        const response = await fetch("/api/registration/forms?scope=admin", { credentials: "same-origin" });
+        if (!response.ok) {
+          throw new Error("Gagal memuat form dari server");
+        }
+        const parsed = await response.json();
+        forms = Array.isArray(parsed) ? parsed.map(normalizeForm) : [];
+        localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+        return forms;
+      } catch (error) {
+        const raw = localStorage.getItem(FORM_STORAGE_KEY);
+        const parsed = raw ? safeParse(raw) : null;
+        forms = Array.isArray(parsed) ? parsed.map(normalizeForm) : [];
+        localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+        return forms;
+      }
     }
 
     function saveForms() {
       localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+    }
+
+    async function persistForm(payload) {
+      const method = editId ? "PUT" : "POST";
+      const url = editId ? "/api/registration/forms/" + encodeURIComponent(editId) : "/api/registration/forms";
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "same-origin",
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Gagal menyimpan form.");
+      }
+      return result;
     }
 
     function requiresOptions(type) {
@@ -919,7 +949,7 @@
       renderFieldList();
     }
 
-    function saveForm() {
+    async function saveForm() {
       const title = titleInput.value.trim();
       const openDate = openDateInput.value;
       const closeDate = closeDateInput.value;
@@ -952,19 +982,25 @@
         updatedAt: new Date().toISOString()
       };
 
-      const index = forms.findIndex(function (item) { return item.id === payload.id; });
-      if (index >= 0) {
-        forms[index] = payload;
-        showNotify("Form berhasil diperbarui.");
-      } else {
-        forms.push(payload);
-        showNotify("Form berhasil dibuat.");
+      try {
+        const result = await persistForm(payload);
+        const savedId = String(result.id || payload.id);
+        payload.id = savedId;
+        const index = forms.findIndex(function (item) { return item.id === savedId; });
+        if (index >= 0) {
+          forms[index] = payload;
+          showNotify("Form berhasil diperbarui.");
+        } else {
+          forms.push(payload);
+          showNotify("Form berhasil dibuat.");
+        }
+        saveForms();
+        window.setTimeout(function () {
+          window.location.href = "manajemen-form-pendaftaran.html";
+        }, 500);
+      } catch (error) {
+        showNotify(error.message || "Gagal menyimpan form.");
       }
-
-      saveForms();
-      window.setTimeout(function () {
-        window.location.href = "manajemen-form-pendaftaran.html";
-      }, 500);
     }
 
     function updateLiveDateTime() {
@@ -1022,11 +1058,12 @@
       }
     });
 
-    loadForms();
-    renderFieldList();
-    fillEditData();
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    loadForms().then(function () {
+      renderFieldList();
+      fillEditData();
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    });
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

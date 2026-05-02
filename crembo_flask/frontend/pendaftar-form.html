@@ -550,15 +550,25 @@
       return day + "/" + month + "/" + year + " " + hour + ":" + minute;
     }
 
-    function loadData() {
-      const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
-      const parsedForms = rawForms ? safeParse(rawForms) : null;
-      const forms = Array.isArray(parsedForms) ? parsedForms : [];
-      currentForm = forms.find(function (item) { return item && item.id === formId; }) || null;
+    async function loadData() {
+      try {
+        const response = await fetch("/api/registration/forms/" + encodeURIComponent(formId) + "/submissions", { credentials: "same-origin" });
+        if (!response.ok) {
+          throw new Error("Gagal memuat data pendaftar dari server");
+        }
+        const parsed = await response.json();
+        currentForm = parsed && parsed.form ? normalizeForm(parsed.form, 0) : null;
+        allSubmissions = Array.isArray(parsed && parsed.submissions) ? parsed.submissions : [];
+      } catch (error) {
+        const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
+        const parsedForms = rawForms ? safeParse(rawForms) : null;
+        const forms = Array.isArray(parsedForms) ? parsedForms : [];
+        currentForm = forms.find(function (item) { return item && item.id === formId; }) || null;
 
-      const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-      const parsedSubmissions = rawSubmissions ? safeParse(rawSubmissions) : null;
-      allSubmissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+        const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+        const parsedSubmissions = rawSubmissions ? safeParse(rawSubmissions) : null;
+        allSubmissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+      }
     }
 
     function submissionToSearchText(item) {
@@ -671,31 +681,26 @@
       if (!currentForm) {
         return;
       }
-      const filename = "pendaftar-" + currentForm.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".xls";
-
-      const html = "<html><head><meta charset='utf-8'></head><body>"
-        + "<h2>Data Pendaftar: " + escapeHtml(currentForm.title) + "</h2>"
-        + submissionTable.outerHTML
-        + "</body></html>";
-
-      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
+      link.href = "/api/registration/forms/" + encodeURIComponent(formId) + "/export.xlsx";
+      link.download = "";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      URL.revokeObjectURL(url);
-      showNotify("File Excel berhasil diunduh.");
+      showNotify("File Excel sedang diunduh.");
     }
 
     function exportPdf() {
       if (!currentForm) {
         return;
       }
-      window.print();
-      showNotify("Gunakan Save as PDF pada dialog print untuk mengunduh PDF.");
+      const link = document.createElement("a");
+      link.href = "/api/registration/forms/" + encodeURIComponent(formId) + "/export.pdf";
+      link.download = "";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showNotify("File PDF sedang diunduh.");
     }
 
     function updateLiveDateTime() {
@@ -718,10 +723,11 @@
     downloadExcelBtn.addEventListener("click", exportExcel);
     downloadPdfBtn.addEventListener("click", exportPdf);
 
-    loadData();
-    renderRows();
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    loadData().then(function () {
+      renderRows();
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    });
   </script>
   <script src="_sidebar-fix.js"></script>
 </body>
