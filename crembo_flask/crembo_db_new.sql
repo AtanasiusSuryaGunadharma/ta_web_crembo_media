@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 01 Bulan Mei 2026 pada 07.17
+-- Waktu pembuatan: 02 Bulan Mei 2026 pada 08.17
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -51,7 +51,8 @@ CREATE TABLE `agendas` (
 --
 
 INSERT INTO `agendas` (`id`, `title`, `description`, `start_date`, `start_time`, `end_date`, `end_time`, `location`, `registration_link`, `image_url`, `image_name`, `attachments`, `status`, `order_index`, `created_at`, `updated_at`) VALUES
-('agenda-1777612459330', 'aaasdasd', 'asdasdasd', '2026-05-02', '16:13:00', '2026-06-01', '12:13:00', 'asdasd', 'https://www.google.com/maps', '/uploads/Tanda_Tangan_Mick_Schumacher_41971d95e5d0460ca6060bc64a6f1dd2.png', 'Tanda_Tangan_Mick_Schumacher.png', '[{\"url\": \"/uploads/template-import-anggota_6d989233e1194d1cb594f689b2a1484e.csv\", \"name\": \"template-import-anggota.csv\", \"mimeType\": \"\", \"size\": 197, \"previewable\": false, \"kind\": \"file\"}, {\"url\": \"/uploads/Hasil_Pengujian_User_Flow_f5711524e2234b218cada04b822f498f.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]', 'active', 0, '2026-05-01 12:14:19', '2026-05-01 12:14:19');
+('agenda-1777612459330', 'aaasdasd', 'asdasdasd', '2026-05-02', '16:13:00', '2026-06-01', '12:13:00', 'asdasd', 'https://www.google.com/maps', '/uploads/Tanda_Tangan_Mick_Schumacher_41971d95e5d0460ca6060bc64a6f1dd2.png', 'Tanda_Tangan_Mick_Schumacher.png', '[{\"url\": \"/uploads/template-import-anggota_6d989233e1194d1cb594f689b2a1484e.csv\", \"name\": \"template-import-anggota.csv\", \"mimeType\": \"\", \"size\": 197, \"previewable\": false, \"kind\": \"file\"}, {\"url\": \"/uploads/Hasil_Pengujian_User_Flow_f5711524e2234b218cada04b822f498f.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]', 'active', 0, '2026-05-01 12:14:19', '2026-05-02 12:51:57'),
+('agenda-1777701095247', 'Tes Agenda 1', 'asdadasda', '2026-05-02', '16:50:00', '2026-05-09', NULL, 'asdasdasd', 'https://bimbingan.uajy.ac.id/', '/uploads/foto_baju_koki_56c2574608704394916b6d47043ff550.jpg', 'foto_baju_koki.jpg', '[{\"url\": \"/uploads/Hasil_Pengujian_User_Flow_e082ff24fdc04572b32a1d3b9416a0fd.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}, {\"url\": \"/uploads/fake-signature-word-vector_e8d296625001474eacbe720139ce4f25.jpg\", \"name\": \"fake-signature-word-vector.jpg\", \"mimeType\": \"\", \"size\": 21672, \"previewable\": true, \"kind\": \"image\"}]', 'active', 1, '2026-05-02 12:51:35', '2026-05-02 12:51:57');
 
 -- --------------------------------------------------------
 
@@ -190,78 +191,72 @@ CREATE TABLE `google_maps_embed` (
   `url` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `google_maps_embed`
+--
 
-  CREATE TABLE `tugas_form_audit` (
-    `id` int(11) NOT NULL,
-    `form_id` int(11) NOT NULL,
-    `slot_id` int(11) NOT NULL,
-    `actor_username` varchar(150) DEFAULT NULL,
-    `actor_role` varchar(50) DEFAULT NULL,
-    `actor_ip` varchar(50) DEFAULT NULL,
-    `actor_route` varchar(255) DEFAULT NULL,
-    `old_operator` varchar(150) DEFAULT NULL,
-    `old_kameramen` varchar(150) DEFAULT NULL,
-    `old_supervisor` varchar(150) DEFAULT NULL,
-    `new_operator` varchar(150) DEFAULT NULL,
-    `new_kameramen` varchar(150) DEFAULT NULL,
-    `new_supervisor` varchar(150) DEFAULT NULL,
-    `note` text DEFAULT NULL,
-    `created_at` varchar(50) DEFAULT NULL
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `google_maps_embed` (`id`, `url`) VALUES
+(1, 'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14308.98777372105!2d110.389635!3d-7.791248!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a59d773957dad%3A0xae048b4c2addab14!2sGereja%20Katolik%20Paroki%20Kristus%20Raja%2C%20Baciro!5e1!3m2!1sid!2sid!4v1777498907792!5m2!1sid!2sid');
 
-  -- --------------------------------------------------------
+-- --------------------------------------------------------
 
-  --
-  -- Struktur dari tabel `registration_forms`
-  --
+--
+-- Struktur dari tabel `instagram_posts`
+--
 
-  CREATE TABLE `registration_forms` (
-    `id` varchar(100) NOT NULL,
-    `title` varchar(255) NOT NULL,
-    `description` longtext DEFAULT NULL,
-    `target` varchar(20) NOT NULL DEFAULT 'public',
-    `visibility` varchar(20) NOT NULL DEFAULT 'visible',
-    `open_date` date DEFAULT NULL,
-    `close_date` date DEFAULT NULL,
-    `quota` int(11) NOT NULL DEFAULT 0,
-    `fields_json` longtext DEFAULT NULL,
-    `created_by` varchar(100) DEFAULT NULL,
-    `created_by_name` varchar(255) DEFAULT NULL,
-    `created_by_role` varchar(50) DEFAULT NULL,
-    `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-    `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    PRIMARY KEY (`id`),
-    KEY `idx_registration_forms_target` (`target`),
-    KEY `idx_registration_forms_visibility` (`visibility`),
-    KEY `idx_registration_forms_dates` (`open_date`, `close_date`)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `instagram_posts` (
+  `id_instagram` varchar(100) NOT NULL,
+  `judul_instagram` varchar(200) NOT NULL,
+  `url_instagram` varchar(255) NOT NULL,
+  `urutan` int(11) NOT NULL DEFAULT 0,
+  `tgl_instagram` datetime DEFAULT current_timestamp(),
+  `ip` varchar(25) DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-  -- --------------------------------------------------------
+--
+-- Dumping data untuk tabel `instagram_posts`
+--
 
-  --
-  -- Struktur dari tabel `registration_form_submissions`
-  --
+INSERT INTO `instagram_posts` (`id_instagram`, `judul_instagram`, `url_instagram`, `urutan`, `tgl_instagram`, `ip`, `status`) VALUES
+('ig-1777491045898', 'Oprec Crembo 2025', 'https://www.instagram.com/p/DLM-_zlzR2Q/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 1, '2026-04-30 02:56:49', '127.0.0.1', 1),
+('ig-1777491111872', 'Tipe-tipe petugas Crembo waktu Misa', 'https://www.instagram.com/reel/DWszMKVDd4H/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 2, '2026-04-30 02:56:49', '127.0.0.1', 1),
+('ig-1777491154924', 'Dokum Tablo 2025', 'https://www.instagram.com/p/DIwR16YSqQf/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 3, '2026-04-30 02:56:49', '127.0.0.1', 1),
+('ig-1777492609498', 'Iklan EKM', 'https://www.instagram.com/p/DN2a-xE5p0C/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 4, '2026-04-30 02:56:49', '127.0.0.1', 1);
 
-  CREATE TABLE `registration_form_submissions` (
-    `id` varchar(100) NOT NULL,
-    `form_id` varchar(100) NOT NULL,
-    `submitter_key` varchar(255) NOT NULL,
-    `submitter_identifier` varchar(255) NOT NULL DEFAULT '',
-    `submitter_role` varchar(50) NOT NULL DEFAULT 'public',
-    `submitter_user_id` varchar(100) DEFAULT NULL,
-    `submitter_source` varchar(20) NOT NULL DEFAULT 'public',
-    `answers_json` longtext NOT NULL,
-    `submitted_at` datetime NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_registration_submission` (`form_id`, `submitter_key`),
-    KEY `idx_registration_submissions_form` (`form_id`),
-    KEY `idx_registration_submissions_submitter` (`submitter_key`),
-    CONSTRAINT `fk_registration_submissions_form`
-      FOREIGN KEY (`form_id`) REFERENCES `registration_forms` (`id`) ON DELETE CASCADE
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-    CONSTRAINT `fk_registration_submissions_form`
-      FOREIGN KEY (`form_id`) REFERENCES `registration_forms` (`id`) ON DELETE CASCADE
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `kegiatan`
+--
+
+CREATE TABLE `kegiatan` (
+  `id` int(11) NOT NULL,
+  `judul` varchar(255) NOT NULL,
+  `tanggal` varchar(50) NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'draft',
+  `misa_json` longtext NOT NULL,
+  `created_at` varchar(50) NOT NULL,
+  `updated_at` varchar(50) NOT NULL,
+  `misa_ke` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `kegiatan`
+--
+
+INSERT INTO `kegiatan` (`id`, `judul`, `tanggal`, `status`, `misa_json`, `created_at`, `updated_at`, `misa_ke`) VALUES
+(1, 'Misa Rabu Abu', '2026-02-18', 'deleted', '[]', '2026-01-24 10:03:33', '2026-01-25 22:18:20', NULL),
+(2, 'Misa Rabu Abu', '2026-02-18', 'deleted', '[]', '2026-01-24 10:46:01', '2026-01-25 22:18:28', NULL),
+(3, 'Misa Rabu Abu', '2026-02-18', 'deleted', '[{\"misa_ke\": 1, \"jam\": \"17:00\", \"dp_username\": \"Daflo\", \"op_username\": \"Christoforus Tadeus\", \"vmix_username\": \"Claire\", \"kamera\": [\"Chris\", \"Chessa\", \"Callista\"], \"supervisor\": [\"Botun\", \"Bima\", \"Bian\"], \"fotografer\": [\"Belinda\", \"Babe\", \"Aurel\"]}, {\"misa_ke\": 2, \"jam\": \"19:01\", \"dp_username\": \"Daflo\", \"op_username\": \"Claire\", \"vmix_username\": \"Christoforus Tadeus\", \"kamera\": [\"Chris\", \"Chessa\", \"Callista\", \"Aurel\"], \"supervisor\": [\"Botun\", \"Bima\", \"Bian\"], \"fotografer\": [\"Belinda\", \"Babe\"]}]', '2026-01-25 02:01:08', '2026-01-25 22:18:05', NULL),
+(4, 'Misa Rabu Abu', '2026-02-17', 'deleted', '[{\"misa_ke\": 1, \"jam\": \"18:00\", \"dp_username\": \"Vio\", \"op_username\": \"Vio\", \"vmix_username\": \"\", \"kamera\": [\"Wima\", \"Orel\", \"Lisa\"], \"supervisor\": [\"There\", \"Callista\"], \"fotografer\": [\"Stella\", \"Ketrin\"]}]', '2026-01-25 21:10:54', '2026-01-25 22:18:15', NULL),
+(5, 'Misa Rabu Abu', '2026-02-17', 'publish', '[{\"misa_ke\": 1, \"jam\": \"18:00\", \"dp_username\": \"Vio\", \"op_username\": \"Lisa\", \"vmix_username\": \"\", \"kamera\": [\"Wima\", \"Orel\", \"Dhani\"], \"supervisor\": [\"There\", \"Callista\"], \"fotografer\": [\"Stella\", \"Ketrin\"]}]', '2026-01-25 22:46:53', '2026-01-31 12:50:45', NULL),
+(6, 'Misa Rabu Abu', '2026-02-18', 'publish', '[{\"misa_ke\": 1, \"jam\": \"16:30\", \"dp_username\": \"Belinda\", \"op_username\": \"Christoforus Tadeus\", \"vmix_username\": \"\", \"kamera\": [\"Reva\", \"Luciana Tyas\", \"Asha\"], \"supervisor\": [\"Pria\", \"Jose\"], \"fotografer\": [\"Naresh\", \"Aruna\"]}, {\"misa_ke\": 2, \"jam\": \"18:30\", \"dp_username\": \"Aura\", \"op_username\": \"Ata Surya\", \"vmix_username\": \"\", \"kamera\": [\"Rikha\", \"Chessa\", \"Jeni\"], \"supervisor\": [\"Evan\", \"Panji\"], \"fotografer\": [\"Weka\", \"Egi\"]}]', '2026-01-25 22:52:51', '2026-01-31 12:47:44', NULL),
+(7, 'Misa Minggu Palma', '2026-03-28', 'publish', '[{\"misa_ke\": 1, \"jam\": \"18:00\", \"dp_username\": \"Ata Surya\", \"op_username\": \"Aura\", \"vmix_username\": \"Regio\", \"kamera\": [\"Rikha\", \"Tita\", \"Rossa\", \"Jeni\"], \"supervisor\": [\"Claire\", \"Dhani\", \"Ifa\"], \"fotografer\": [\"Aurel\", \"Nawung\"]}]', '2026-02-22 17:56:38', '2026-02-25 18:26:03', NULL),
+(8, 'Misa Minggu Palma', '2026-03-29', 'publish', '[{\"misa_ke\": 2, \"jam\": \"07:30\", \"dp_username\": \"Ketrin\", \"op_username\": \"Deva\", \"vmix_username\": \"Florencia\", \"kamera\": [\"Jeni\", \"Rikha\", \"Jose\", \"Callista\"], \"supervisor\": [\"Nadia\", \"Luciana Tyas\", \"Kanes\"], \"fotografer\": [\"Aoki\", \"Aruna\"]}, {\"misa_ke\": 3, \"jam\": \"10:00\", \"dp_username\": \"rieanaditya\", \"op_username\": \"Rafael\", \"vmix_username\": \"Wima\", \"kamera\": [\"Ata Surya\", \"Satrio\", \"Jeje\", \"Regio\"], \"supervisor\": [\"Pria\", \"Christoforus Tadeus\", \"Noel\", \"Dewi\"], \"fotografer\": [\"Paul\", \"Weka\"]}, {\"misa_ke\": 4, \"jam\": \"16:30\", \"dp_username\": \"Vio\", \"op_username\": \"Lisa\", \"vmix_username\": \"Aurel\", \"kamera\": [\"Reva\", \"Kane\", \"Arya\", \"Dhani\"], \"supervisor\": [\"Evan\", \"There\", \"Panji\"], \"fotografer\": [\"Belinda\", \"Bian\"]}, {\"misa_ke\": 5, \"jam\": \"18:30\", \"dp_username\": \"Wima\", \"op_username\": \"Orel\", \"vmix_username\": \"Asha\", \"kamera\": [\"Kanes\", \"Jose\", \"Aura\", \"Stella\"], \"supervisor\": [\"Tyas\", \"Regio\", \"Ata Surya\"], \"fotografer\": [\"Jeje\", \"Chessa\"]}]', '2026-02-22 17:59:19', '2026-03-04 16:16:34', NULL),
+(9, 'Misa Kamis Putih', '2026-04-02', 'publish', '[{\"misa_ke\": 1, \"jam\": \"17:00\", \"dp_username\": \"Bian\", \"op_username\": \"Belinda\", \"vmix_username\": \"There\", \"kamera\": [\"Lisa\", \"Reva\", \"Vio\", \"Kane\"], \"supervisor\": [\"Panji\", \"Arya\", \"Evan\"], \"fotografer\": [\"Aurel\", \"Dhani\"]}, {\"misa_ke\": 2, \"jam\": \"19:30\", \"dp_username\": \"Christoforus Tadeus\", \"op_username\": \"Tita\", \"vmix_username\": \"Rossa\", \"kamera\": [\"Chessa\", \"Rikha\", \"Jeni\", \"Ifa\"], \"supervisor\": [\"Stella\", \"Arya\", \"Botun\"], \"fotografer\": [\"Claire\", \"Nawung\"]}]', '2026-02-22 18:12:11', '2026-02-25 18:25:47', NULL),
+(10, 'Ibadat Jalan Salib Meditatif', '2026-04-03', 'publish', '[{\"misa_ke\": 1, \"jam\": \"09:00\", \"dp_username\": \"Shehan\", \"op_username\": \"Jeje\", \"vmix_username\": \"\", \"kamera\": [\"Nadia\", \"Lisa\"], \"supervisor\": [\"Pria\", \"Noel\"], \"fotografer\": [\"Ketrin\", \"Rafael\"]}]', '2026-02-22 18:14:17', '2026-03-04 15:16:23', NULL),
+(11, 'Ibadat Jumat Agung', '2026-04-03', 'publish', '[{\"misa_ke\": 1, \"jam\": \"15:00\", \"dp_username\": \"Jeje\", \"op_username\": \"Ketrin\", \"vmix_username\": \"Deva\", \"kamera\": [\"Rafael\", \"Florencia\", \"Claire\", \"Callista\"], \"supervisor\": [\"Chessa\", \"Noel\", \"Nadia\"], \"fotografer\": [\"Regio\", \"Nawung\"]}, {\"misa_ke\": 2, \"jam\": \"18:30\", \"dp_username\": \"Orel\", \"op_username\": \"Asha\", \"vmix_username\": \"Wima\", \"kamera\": [\"Luciana Tyas\", \"Aruna\", \"Kanes\", \"Jose\"], \"supervisor\": [\"Tyas\", \"Naresh\", \"Noel\"], \"fotografer\": [\"Aura\", \"Stella\"]}]', '2026-02-22 18:18:00', '2026-03-12 18:57:33', NULL),
 (12, 'Misa Malam Paskah', '2026-04-04', 'publish', '[{\"misa_ke\": 1, \"jam\": \"17:00\", \"dp_username\": \"Niko\", \"op_username\": \"Vio\", \"vmix_username\": \"Lisa\", \"kamera\": [\"Dhani\", \"Evan\", \"Bian\", \"Belinda\"], \"supervisor\": [\"Panji\", \"There\", \"Arya\"], \"fotografer\": [\"Weka\", \"Kane\"]}, {\"misa_ke\": 2, \"jam\": \"20:30\", \"dp_username\": \"Pria\", \"op_username\": \"Asha\", \"vmix_username\": \"Orel\", \"kamera\": [\"Wima\", \"Rafael\", \"Nadia\", \"Naresh\"], \"supervisor\": [\"Panji\", \"Egi\", \"Tyas\"], \"fotografer\": [\"Nawung\", \"Paul\"]}]', '2026-02-22 18:21:51', '2026-02-25 18:25:35', NULL),
 (13, 'Misa Minggu Paskah', '2026-04-05', 'publish', '[{\"misa_ke\": 1, \"jam\": \"08:00\", \"dp_username\": \"Aura\", \"op_username\": \"Claire\", \"vmix_username\": \"Christoforus Tadeus\", \"kamera\": [\"Callista\", \"Kanes\", \"Chessa\", \"Botun\"], \"supervisor\": [\"Jose\", \"Aruna\", \"There\"], \"fotografer\": [\"Luciana Tyas\", \"Aoki\"]}, {\"misa_ke\": 2, \"jam\": \"18:00\", \"dp_username\": \"Deva\", \"op_username\": \"Florencia\", \"vmix_username\": \"Pria\", \"kamera\": [\"Tita\", \"Ifa\", \"Rossa\", \"Egi\"], \"supervisor\": [\"Botun\", \"Stella\", \"Naresh\"], \"fotografer\": [\"Tyas\", \"Satrio\"]}]', '2026-02-22 18:33:01', '2026-03-12 18:43:21', NULL),
 (14, 'Ibadat Sabtu Suci', '2026-04-04', 'publish', '[{\"misa_ke\": 1, \"jam\": \"05:30\", \"dp_username\": \"Shehan\", \"op_username\": \"Weka\", \"vmix_username\": \"\", \"kamera\": [\"Dewi\", \"Christoforus Tadeus\"], \"supervisor\": [\"Tyas\"], \"fotografer\": [\"Paul\"]}]', '2026-03-04 15:17:21', '2026-03-14 20:57:32', NULL);
@@ -388,6 +383,62 @@ INSERT INTO `organization_profiles` (`id`, `title`, `description`, `attachment_u
 ('profile-1777561298872', 'Test 1 Oprec', 'aSsSA', '[{\"url\": \"uploads/fake-signature-word-vector_1777561296.jpg\", \"name\": \"fake-signature-word-vector_1777561296.jpg\", \"mimeType\": \"\", \"size\": 0, \"previewable\": true, \"kind\": \"image\"}]', 2, 1, '2026-04-30 22:01:38', '2026-05-01 05:52:10'),
 ('profile-1777561628347', 'asdasaaaaaaa', 'asdasdASas', '[]', 0, 1, '2026-04-30 22:07:08', '2026-05-01 04:03:52'),
 ('profile-1777582943778', 'Test Upload FIX', '<p style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; margin: 0px 0px 1rem; color: rgb(0, 0, 0); font-family: Poppins, Poppins;\"><span style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ;\"><b>Departemen Informatika Fakultas Teknologi Industri (FTI) Universitas Atma Jaya Yogyakarta (UAJY) </b><br><br>bekerja sama dengan BlockDevID menyelenggarakan Seminar dan Workshop Blockchain &amp; Web3 Development yang bertempat di Ruang Auditorium Kampus III Gedung St. Bonaventura, pada Senin (9/2/2026). Kegiatan ini bertujuan untuk memperkenalkan teknologi blockchain dan Web3 kepada sivitas akademika serta masyarakat umum melalui pemaparan materi dan bimbingan teknis secara langsung oleh praktisi industri. Seminar dan workshop ini diikuti oleh peserta yang berasal dari lingkungan UAJY maupun luar UAJY. Selain itu, kegiatan ini juga dihadiri oleh peserta dari komunitas tuli dan dengar Daerah Istimewa Yogyakarta sebagai wujud komitmen terhadap inklusivitas dalam pengembangan teknologi. Seminar dan workshop ini mengusung tema “From Zero to Builder - Empowering Local Talents in a Decentralized Future” dan terdiri atas tiga sesi utama. Sesi pertama disampaikan oleh Dennis selaku Head of Community BlockDevID dengan materi Blockchain 101 &amp; Career Opportunity yang membahas pengenalan dasar teknologi blockchain serta peluang karir di bidang Web3. Sesi kedua dibawakan oleh Yanzero, Founder DevWeb3 Jogja, dengan topik How Web3 Products Are Actually Built yang mengulas proses pengembangan produk Web3 secara nyata. Sesi ketiga berupa coding workshop yang dipandu oleh Alex dari DevRel Base Indonesia, yang memberikan pendampingan teknis kepada peserta melalui praktik langsung pengembangan aplikasi berbasis Web3.</span></p><figure style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; margin: 1rem auto; text-align: center; width: 1152px; color: rgb(0, 0, 0); font-family: Poppins, Poppins;\"><img src=\"https://inf.uajy.ac.id/be/uploads/716c2bc4-9559-44c6-9418-2c7c45ec7c9e?r=1774503605000\" alt=\"\" width=\"512\" style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; display: block; vertical-align: middle; max-height: 70vh; width: 1152px; object-fit: contain; margin: auto;\"></figure><p style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; margin: 0px 0px 1rem; color: rgb(0, 0, 0); font-family: Poppins, Poppins;\"><span style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ;\">Dekan Fakultas Teknologi Industri (FTI) UAJY, Prof. Dr. Ir. Parama Kartika Dewa, S.P., S.T., M.T., IPU., dalam sambutannya menyampaikan apresiasi atas terselenggaranya kegiatan ini. Ia menekankan pentingnya kolaborasi antara perguruan tinggi dan industri dalam mempersiapkan sumber daya manusia yang adaptif terhadap perkembangan teknologi digital. Sementara itu, Ketua Departemen Informatika UAJY, Paulus Mudjihartono, S.T., M.T., Ph.D., menyampaikan bahwa pengenalan teknologi blockchain dan Web3 menjadi langkah strategis dalam memperluas wawasan mahasiswa terhadap teknologi informasi terkini yang memiliki potensi besar di masa depan.</span></p><p style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; margin: 0px 0px 1rem; color: rgb(0, 0, 0); font-family: Poppins, Poppins;\"><span style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ;\">Salah satu peserta kegiatan, Marcella Averina, menyampaikan bahwa kegiatan ini memberikan pengalaman yang bermanfaat. “Acara ini menarik dan menambah wawasan karena blockchain masih jarang dibahas, terutama di bangku kuliah. Saya berharap kedepannya semakin banyak kegiatan serupa yang tidak hanya berfokus pada teori, tetapi juga memberikan pengalaman praktik secara langsung,” ungkapnya. Melalui penyelenggaraan seminar dan workshop ini, Departemen Informatika FTI UAJY berharap dapat memberikan kontribusi nyata dalam meningkatkan literasi teknologi blockchain dan Web3 serta mendorong pengembangan talenta digital.</span></p><figure style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; margin: 1rem auto; text-align: center; width: 1152px; color: rgb(0, 0, 0); font-family: Poppins, Poppins;\"><img src=\"https://inf.uajy.ac.id/be/uploads/0688c46a-e6c9-4596-8255-e0f06cfeb0ff?r=1774503665000\" alt=\"\" width=\"512\" style=\"border-width: 0px; border-style: solid; border-color: rgb(238, 238, 238); --tw-border-spacing-x: 0; --tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(33 150 243 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; display: block; vertical-align: middle; max-height: 70vh; width: 1152px; object-fit: contain; margin: auto;\"></figure>', '[{\"url\": \"/uploads/Hasil_Pengujian_User_Flow_b45b548eedd942b695e61b7d2a55121d.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"application/pdf\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]', 4, 1, '2026-05-01 04:02:23', '2026-05-01 06:22:15');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `registration_forms`
+--
+
+CREATE TABLE `registration_forms` (
+  `id` varchar(100) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext DEFAULT NULL,
+  `target` varchar(20) NOT NULL DEFAULT 'public',
+  `visibility` varchar(20) NOT NULL DEFAULT 'visible',
+  `open_date` date DEFAULT NULL,
+  `close_date` date DEFAULT NULL,
+  `quota` int(11) NOT NULL DEFAULT 0,
+  `fields_json` longtext DEFAULT NULL,
+  `created_by` varchar(100) DEFAULT NULL,
+  `created_by_name` varchar(255) DEFAULT NULL,
+  `created_by_role` varchar(50) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `registration_forms`
+--
+
+INSERT INTO `registration_forms` (`id`, `title`, `description`, `target`, `visibility`, `open_date`, `close_date`, `quota`, `fields_json`, `created_by`, `created_by_name`, `created_by_role`, `created_at`, `updated_at`) VALUES
+('form-1777702105881-4ah4tw', 'Test 1 Oprec', 'Test Buat web', 'internal', 'visible', '2026-05-01', '2027-01-02', 10, '[{\"id\": \"field-1777701904892-6pnqs0\", \"label\": \"Nama Lengkap\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777701922394-syja2o\", \"label\": \"Nomor wa\", \"type\": \"tel\", \"required\": true, \"placeholder\": \"Nomor wanya berapa?\", \"options\": []}, {\"id\": \"field-1777702061700-pwmj2l\", \"label\": \"Tanggal Lahir\", \"type\": \"date\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777702024038-yaz9v6\", \"label\": \"paroki mana (Drodown)\", \"type\": \"select\", \"required\": true, \"placeholder\": \"\", \"options\": [\"paroki baciro\", \"paroki luar\"]}, {\"id\": \"field-1777702046377-g18u19\", \"label\": \"Paroki mana (Radio)\", \"type\": \"radio\", \"required\": true, \"placeholder\": \"\", \"options\": [\"baciro\", \"luar\"]}, {\"id\": \"field-1777702102054-0juqgj\", \"label\": \"Paroki Mana\", \"type\": \"checkbox\", \"required\": true, \"placeholder\": \"\", \"options\": [\"baciro\", \"luar\"]}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 13:08:25', '2026-05-02 13:14:20');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `registration_form_submissions`
+--
+
+CREATE TABLE `registration_form_submissions` (
+  `id` varchar(100) NOT NULL,
+  `form_id` varchar(100) NOT NULL,
+  `submitter_key` varchar(255) NOT NULL,
+  `submitter_identifier` varchar(255) NOT NULL DEFAULT '',
+  `submitter_role` varchar(50) NOT NULL DEFAULT 'public',
+  `submitter_user_id` varchar(100) DEFAULT NULL,
+  `submitter_source` varchar(20) NOT NULL DEFAULT 'public',
+  `answers_json` longtext NOT NULL,
+  `submitted_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `registration_form_submissions`
+--
+
+INSERT INTO `registration_form_submissions` (`id`, `form_id`, `submitter_key`, `submitter_identifier`, `submitter_role`, `submitter_user_id`, `submitter_source`, `answers_json`, `submitted_at`) VALUES
+('submission-1777702379973-6ff15f', 'form-1777702105881-4ah4tw', 'member:member', 'Anggota', 'user', '', 'public', '[{\"fieldId\": \"field-1777701904892-6pnqs0\", \"label\": \"Nama Lengkap\", \"type\": \"text\", \"value\": \"aku\"}, {\"fieldId\": \"field-1777701922394-syja2o\", \"label\": \"Nomor wa\", \"type\": \"tel\", \"value\": \"0812312312231\"}, {\"fieldId\": \"field-1777702061700-pwmj2l\", \"label\": \"Tanggal Lahir\", \"type\": \"date\", \"value\": \"2026-05-01\"}, {\"fieldId\": \"field-1777702024038-yaz9v6\", \"label\": \"paroki mana (Drodown)\", \"type\": \"select\", \"value\": \"paroki baciro\"}, {\"fieldId\": \"field-1777702046377-g18u19\", \"label\": \"Paroki mana (Radio)\", \"type\": \"radio\", \"value\": \"luar\"}, {\"fieldId\": \"field-1777702102054-0juqgj\", \"label\": \"Paroki Mana\", \"type\": \"checkbox\", \"value\": [\"baciro\", \"luar\"]}]', '2026-05-02 13:12:59'),
+('submission-1777702543442-28e465', 'form-1777702105881-4ah4tw', 'member:21', 'Aura', 'user', '21', 'internal', '[{\"fieldId\": \"field-1777701904892-6pnqs0\", \"label\": \"Nama Lengkap\", \"type\": \"text\", \"value\": \"aura\"}, {\"fieldId\": \"field-1777701922394-syja2o\", \"label\": \"Nomor wa\", \"type\": \"tel\", \"value\": \"1231231\"}, {\"fieldId\": \"field-1777702061700-pwmj2l\", \"label\": \"Tanggal Lahir\", \"type\": \"date\", \"value\": \"2026-05-02\"}, {\"fieldId\": \"field-1777702024038-yaz9v6\", \"label\": \"paroki mana (Drodown)\", \"type\": \"select\", \"value\": \"paroki baciro\"}, {\"fieldId\": \"field-1777702046377-g18u19\", \"label\": \"Paroki mana (Radio)\", \"type\": \"radio\", \"value\": \"luar\"}, {\"fieldId\": \"field-1777702102054-0juqgj\", \"label\": \"Paroki Mana\", \"type\": \"checkbox\", \"value\": [\"baciro\", \"luar\"]}]', '2026-05-02 13:15:43');
 
 -- --------------------------------------------------------
 
@@ -1926,7 +1977,11 @@ INSERT INTO `tugas_2026_05` (`id`, `username`, `date`, `time`, `position`) VALUE
 (23, 'Tyas', '2026-05-10', '19:00', 'Kameramen'),
 (24, 'Tyas', '2026-05-24', '10:00', 'Operator');
 
+-- --------------------------------------------------------
 
+--
+-- Struktur dari tabel `tugas_form`
+--
 
 CREATE TABLE `tugas_form` (
   `id` int(11) NOT NULL,
@@ -1942,7 +1997,36 @@ CREATE TABLE `tugas_form` (
   `published_at` varchar(50) DEFAULT NULL,
   `expires_at` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `tugas_form_audit`
+--
+
+CREATE TABLE `tugas_form_audit` (
+  `id` int(11) NOT NULL,
+  `form_id` int(11) NOT NULL,
+  `slot_id` int(11) NOT NULL,
+  `actor_username` varchar(150) DEFAULT NULL,
+  `actor_role` varchar(50) DEFAULT NULL,
+  `actor_ip` varchar(50) DEFAULT NULL,
+  `actor_route` varchar(255) DEFAULT NULL,
+  `old_operator` varchar(150) DEFAULT NULL,
+  `old_kameramen` varchar(150) DEFAULT NULL,
+  `old_supervisor` varchar(150) DEFAULT NULL,
+  `new_operator` varchar(150) DEFAULT NULL,
+  `new_kameramen` varchar(150) DEFAULT NULL,
+  `new_supervisor` varchar(150) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `created_at` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `tugas_form_slot`
+--
 
 CREATE TABLE `tugas_form_slot` (
   `id` int(11) NOT NULL,
@@ -1967,6 +2051,190 @@ CREATE TABLE `youtube_embeds` (
   `order_index` int(11) DEFAULT 0,
   `is_visible` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `youtube_embeds`
+--
+
+INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
+('yt-1777497207553', 'https://youtu.be/7y3AlFqobck?si=HoSKCZdrYLbPr3PB', 3, 1),
+('yt-1777497242761', 'https://youtu.be/tPIDedX3zQ4?si=VHukpSDtC64xZ49s', 2, 1),
+('yt-1777497264044', 'https://youtu.be/PWkkMvsp4Ws?si=SvjcHAqsgWNJ3518', 4, 1),
+('yt-1777504238859', 'https://youtu.be/d5mZ5SKWIx4?si=uguT4CisV_sxs6la', 5, 1),
+('yt-1777640091613', 'https://www.youtube.com/watch?v=4hQmwBd70eI&list=PLK7ZkEoQFKXKbArZITSM5ZFH4N9zNcdKS', 1, 1);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indeks untuk tabel `agendas`
+--
+ALTER TABLE `agendas`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `anggota`
+--
+ALTER TABLE `anggota`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_anggota_username` (`username`);
+
+--
+-- Indeks untuk tabel `carousel_slides`
+--
+ALTER TABLE `carousel_slides`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `google_maps_embed`
+--
+ALTER TABLE `google_maps_embed`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `instagram_posts`
+--
+ALTER TABLE `instagram_posts`
+  ADD PRIMARY KEY (`id_instagram`);
+
+--
+-- Indeks untuk tabel `kegiatan`
+--
+ALTER TABLE `kegiatan`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `kegiatan_form`
+--
+ALTER TABLE `kegiatan_form`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_kegiatan_form_slug` (`slug`);
+
+--
+-- Indeks untuk tabel `news`
+--
+ALTER TABLE `news`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`);
+
+--
+-- Indeks untuk tabel `news_categories`
+--
+ALTER TABLE `news_categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`),
+  ADD UNIQUE KEY `slug` (`slug`);
+
+--
+-- Indeks untuk tabel `news_category_mapping`
+--
+ALTER TABLE `news_category_mapping`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_news_category` (`news_id`,`category_id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
+-- Indeks untuk tabel `organization_profiles`
+--
+ALTER TABLE `organization_profiles`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `registration_forms`
+--
+ALTER TABLE `registration_forms`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_registration_forms_target` (`target`),
+  ADD KEY `idx_registration_forms_visibility` (`visibility`),
+  ADD KEY `idx_registration_forms_dates` (`open_date`,`close_date`);
+
+--
+-- Indeks untuk tabel `registration_form_submissions`
+--
+ALTER TABLE `registration_form_submissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_registration_submission` (`form_id`,`submitter_key`),
+  ADD KEY `idx_registration_submissions_form` (`form_id`),
+  ADD KEY `idx_registration_submissions_submitter` (`submitter_key`);
+
+--
+-- Indeks untuk tabel `sertifikat_config`
+--
+ALTER TABLE `sertifikat_config`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tentang_crembo_config`
+--
+ALTER TABLE `tentang_crembo_config`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tentang_crembo_media`
+--
+ALTER TABLE `tentang_crembo_media`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_05`
+--
+ALTER TABLE `tugas_2025_05`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_06`
+--
+ALTER TABLE `tugas_2025_06`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_07`
+--
+ALTER TABLE `tugas_2025_07`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_08`
+--
+ALTER TABLE `tugas_2025_08`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_09`
+--
+ALTER TABLE `tugas_2025_09`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_10`
+--
+ALTER TABLE `tugas_2025_10`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_11`
+--
+ALTER TABLE `tugas_2025_11`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2025_12`
+--
+ALTER TABLE `tugas_2025_12`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_01`
+--
+ALTER TABLE `tugas_2026_01`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `tugas_2026_02`
+--
+ALTER TABLE `tugas_2026_02`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indeks untuk tabel `tugas_2026_03`
@@ -2044,6 +2312,12 @@ ALTER TABLE `tentang_crembo_config`
 ALTER TABLE `news_category_mapping`
   ADD CONSTRAINT `news_category_mapping_ibfk_1` FOREIGN KEY (`news_id`) REFERENCES `news` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `news_category_mapping_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `news_categories` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `registration_form_submissions`
+--
+ALTER TABLE `registration_form_submissions`
+  ADD CONSTRAINT `fk_registration_submissions_form` FOREIGN KEY (`form_id`) REFERENCES `registration_forms` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
