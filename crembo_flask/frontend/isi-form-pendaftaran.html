@@ -535,6 +535,37 @@
       padding-top: 4px;
       flex-wrap: wrap;
     }
+    
+    /* ADDED: Read More Description Style */
+    .card-description-wrap {
+      font-size: 0.83rem;
+      color: #4b5563;
+    }
+    .card-description {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .card-description.expanded {
+      -webkit-line-clamp: unset;
+      display: block;
+    }
+    .read-more-btn {
+      background: none;
+      border: none;
+      color: #3b82f6;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0;
+      margin-top: 4px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .read-more-btn:hover {
+      color: #2563eb;
+    }
 
     @media (max-width: 1040px) {
       .content-layout { grid-template-columns: 1fr; }
@@ -781,6 +812,13 @@
       };
     }
 
+    function stripHtml(html) {
+        if (!html) return "";
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        return div.textContent || div.innerText || "";
+    }
+
     function escapeHtml(text) {
       return String(text || "")
         .replace(/&/g, "&amp;")
@@ -812,7 +850,6 @@
         const parsedSubmissions = await submissionsResponse.json();
         submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
       } catch (error) {
-        // Fallback kosong jika gagal (diasumsikan backend yang utama)
         forms = [];
         submissions = [];
       }
@@ -896,7 +933,6 @@
         return { open: false, reason: "draft", text: "Draft" };
       }
       
-      // LOGIC LOGIN UNTUK INTERNAL
       if (form.target === "internal" && (!session || !session.logged_in)) {
           return { open: false, reason: "login_required", text: "Khusus Internal (Login)", requiresLogin: true };
       }
@@ -916,7 +952,7 @@
     function applyAccessRules(list) {
       return list.filter(function (form) {
         if (form.visibility === "draft") return false;
-        return true; // Jangan blokir internal form lagi, biarkan tampil tapi dikunci
+        return true; 
       });
     }
 
@@ -1005,6 +1041,15 @@
           actionHtml = '<button class="btn" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Isi Form</button>';
         }
 
+        const plainDesc = stripHtml(form.description || '-');
+        // PERBAIKAN: Read More Component
+        const descHtml = `
+            <div class="card-description-wrap">
+                <div class="card-description" id="desc-${form.id}">${escapeHtml(plainDesc)}</div>
+                ${plainDesc.length > 100 ? `<button class="read-more-btn" data-target="desc-${form.id}">Baca Selengkapnya</button>` : ''}
+            </div>
+        `;
+
         return '<article class="card">'
           + '<span class="badge ' + targetClass + '">' + targetText + '</span>'
           + '<h3>' + escapeHtml(form.title) + '</h3>'
@@ -1013,7 +1058,7 @@
           + '<span>Periode: ' + escapeHtml(form.openDate || '-') + ' s/d ' + escapeHtml(form.closeDate || '-') + '</span>'
           + '<span>Kuota: ' + escapeHtml(quotaText) + '</span>'
           + '</div>'
-          + '<div style="font-size:0.83rem;color:#4b5563;">' + escapeHtml(form.description || '-') + '</div>'
+          + descHtml
           + '<div class="actions" style="padding-top:2px;">' + actionHtml + '</div>'
           + '</article>';
       }).join("");
@@ -1023,6 +1068,22 @@
         renderRightPanel();
       }
     }
+
+    // LISTENER UNTUK READ MORE CARD
+    cards.addEventListener("click", function(event) {
+       if (event.target.classList.contains("read-more-btn")) {
+           const targetId = event.target.getAttribute("data-target");
+           const descEl = document.getElementById(targetId);
+           if (descEl) {
+               descEl.classList.toggle("expanded");
+               if (descEl.classList.contains("expanded")) {
+                   event.target.textContent = "Sembunyikan";
+               } else {
+                   event.target.textContent = "Baca Selengkapnya";
+               }
+           }
+       }
+    });
 
     function renderFieldInput(field, existingValue) {
       const type = String(field.type || "text").toLowerCase();
@@ -1116,7 +1177,6 @@
 
       if (state.requiresLogin) {
         formWrap.innerHTML = '<div class="hint">Form ini khusus internal. Anda bisa melihat daftar pertanyaan di sini tetapi harus <a href="login.html" style="color:var(--accent); font-weight:bold;">Login</a> untuk mengisinya.</div>';
-        // Tampilkan field hanya sebagai pratinjau (disabled)
         const fieldsHtml = form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("");
         formWrap.innerHTML += '<div style="opacity: 0.6; pointer-events:none;">' + fieldsHtml + '</div>';
         return;
@@ -1134,7 +1194,10 @@
       formWrap.innerHTML = '<form id="dynamicForm" style="display:grid;gap:10px;">'
         + '<div class="form-block">'
         + '<h3>' + escapeHtml(form.title) + '</h3>'
-        + '<div style="font-size:0.84rem;color:#5b6473;">' + escapeHtml(form.description || "-") + '</div>'
+        + '<div class="card-description-wrap">'
+        + '<div class="card-description" id="desc-formwrap-' + form.id + '" style="color:#5b6473;">' + escapeHtml(stripHtml(form.description || "-")) + '</div>'
+        + (stripHtml(form.description || "-").length > 100 ? '<button type="button" class="read-more-btn" data-target="desc-formwrap-' + form.id + '">Baca Selengkapnya</button>' : '')
+        + '</div>'
         + '</div>'
         + fieldsHtml
         + '<div class="actions">'
@@ -1150,6 +1213,22 @@
           });
       }
     }
+
+    // LISTENER UNTUK READ MORE DESKRIPSI FORM-WRAP
+    formWrap.addEventListener("click", function(event) {
+       if (event.target.classList.contains("read-more-btn")) {
+           const targetId = event.target.getAttribute("data-target");
+           const descEl = document.getElementById(targetId);
+           if (descEl) {
+               descEl.classList.toggle("expanded");
+               if (descEl.classList.contains("expanded")) {
+                   event.target.textContent = "Sembunyikan";
+               } else {
+                   event.target.textContent = "Baca Selengkapnya";
+               }
+           }
+       }
+    });
 
     async function submitForm(form) {
       const viewer = getViewerContext();
@@ -1278,7 +1357,6 @@
     function initTargetFilterByAccess() {
       const viewer = getViewerContext();
       if (!viewer.isLoggedIn) {
-        // Bebaskan untuk bisa melihat opsi Internal, namun tidak diblokir mutlak
         if (targetFilter.options.length <= 1) {
             targetFilter.innerHTML = ''
               + '<option value="all">Semua Target</option>'
