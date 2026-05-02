@@ -63,21 +63,15 @@ PREVIEWABLE_ATTACHMENT_EXTENSIONS = {
     ".pdf",
 }
 
-
-
-
 def template_exists(template_name: str) -> bool:
     return (FRONTEND_DIR / template_name).is_file()
-
 
 def mysql_connection():
     return mysql.connector.connect(**MYSQL_CONFIG)
 
-
 def ensure_upload_folder() -> Path:
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     return UPLOAD_FOLDER
-
 
 def attachment_record_from_url(url_value: str, *, name: str | None = None, mime_type: str | None = None, size: int | None = None) -> dict[str, object]:
     clean_url = (url_value or "").strip()
@@ -93,7 +87,6 @@ def attachment_record_from_url(url_value: str, *, name: str | None = None, mime_
         "previewable": previewable,
         "kind": kind,
     }
-
 
 def normalize_attachment_payload(value) -> list[dict[str, object]]:
     if value in (None, "", []):
@@ -139,7 +132,6 @@ def normalize_attachment_payload(value) -> list[dict[str, object]]:
 
     return normalized_items
 
-
 def save_uploaded_attachment(file_storage) -> dict[str, object]:
     filename = secure_filename(file_storage.filename or "")
     if not filename:
@@ -161,6 +153,18 @@ def save_uploaded_attachment(file_storage) -> dict[str, object]:
         size=destination.stat().st_size,
     )
 
+def remove_physical_file(file_url: str):
+    """Helper method to remove a physical file from the uploads directory."""
+    if not file_url:
+        return
+    try:
+        # Extract filename from URL (e.g. /uploads/image.jpg -> image.jpg)
+        filename = file_url.split('/')[-1]
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"[WARN] Failed to delete file {file_url}: {e}")
 
 def current_user_context() -> dict[str, str]:
     return {
@@ -176,7 +180,6 @@ def current_user_context() -> dict[str, str]:
         "status_akun": session.get("status_akun") or "",
     }
 
-
 def normalize_phone(value: str) -> str:
     cleaned = re.sub(r"[\s\-()]+", "", (value or "").strip())
     if cleaned.startswith("+62"):
@@ -185,11 +188,9 @@ def normalize_phone(value: str) -> str:
         return "62" + cleaned[1:]
     return cleaned
 
-
 def normalize_status(value: str) -> str:
     raw = (value or "").strip().lower()
     return "aktif" if raw in {"", "aktif", "active"} else "nonaktif"
-
 
 def normalize_role_value(value: str) -> str:
     raw = (value or "").strip().lower().replace(" ", "_")
@@ -198,7 +199,6 @@ def normalize_role_value(value: str) -> str:
     if raw == "admin":
         return "admin"
     return "user"
-
 
 def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
     birth_date = row.get("tgl_lahir") or ""
@@ -223,7 +223,6 @@ def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "inactiveUntil": "",
     }
 
-
 def read_member_rows() -> list[dict[str, object]]:
     ensure_auth_schema()
     conn = mysql_connection()
@@ -241,7 +240,6 @@ def read_member_rows() -> list[dict[str, object]]:
     conn.close()
     return rows
 
-
 def hash_member_password(password_value: str, birth_date: str) -> str:
     candidate = (password_value or "").strip()
     if not candidate:
@@ -249,7 +247,6 @@ def hash_member_password(password_value: str, birth_date: str) -> str:
     if candidate.startswith(("scrypt:", "pbkdf2:", "argon2:", "bcrypt:")):
         return candidate
     return generate_password_hash(candidate)
-
 
 def default_password_from_birth_date(birth_date: str) -> str:
     raw = (birth_date or "").strip()
@@ -259,7 +256,6 @@ def default_password_from_birth_date(birth_date: str) -> str:
     if len(parts) == 3:
         return f"{parts[2]}/{parts[1]}/{parts[0]}"
     return raw
-
 
 def ensure_column(cursor, table_name: str, column_name: str, definition: str) -> None:
     cursor.execute(
@@ -274,13 +270,11 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
     if not exists:
         cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
 
-
 def ensure_news_schema() -> None:
     """Ensure news/article tables exist in database."""
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
-        # News categories table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news_categories` (
                 `id` VARCHAR(100) PRIMARY KEY,
@@ -293,7 +287,6 @@ def ensure_news_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """)
 
-        # News/articles table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news` (
                 `id` VARCHAR(100) PRIMARY KEY,
@@ -310,7 +303,6 @@ def ensure_news_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """)
 
-        # Junction table for news-category mapping
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news_category_mapping` (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -329,7 +321,6 @@ def ensure_news_schema() -> None:
     finally:
         cursor.close()
         conn.close()
-
 
 def ensure_agenda_schema() -> None:
     conn = mysql_connection()
@@ -362,7 +353,6 @@ def ensure_agenda_schema() -> None:
     finally:
         cursor.close()
         conn.close()
-
 
 def ensure_registration_form_schema() -> None:
     conn = mysql_connection()
@@ -417,7 +407,6 @@ def ensure_registration_form_schema() -> None:
     finally:
         cursor.close()
         conn.close()
-
 
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
@@ -2465,10 +2454,34 @@ def update_agenda(agenda_id):
 def delete_agenda(agenda_id):
     ensure_agenda_schema()
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        # 1. Fetch agenda data first to get the files we need to delete
+        cursor.execute("SELECT `image_url`, `attachments` FROM `agendas` WHERE `id` = %s LIMIT 1", (agenda_id,))
+        agenda = cursor.fetchone()
+        
+        if not agenda:
+            return jsonify({"success": False, "error": "Agenda not found"}), 404
+
+        # 2. Delete the record from the database
         cursor.execute("DELETE FROM `agendas` WHERE `id` = %s", (agenda_id,))
         conn.commit()
+
+        # 3. Clean up physical files
+        try:
+            # Delete image
+            if agenda.get("image_url"):
+                remove_physical_file(agenda["image_url"])
+            
+            # Delete attachments
+            attachments_raw = agenda.get("attachments") or "[]"
+            attachments = json.loads(attachments_raw) if isinstance(attachments_raw, str) else (attachments_raw or [])
+            for att in attachments:
+                if isinstance(att, dict) and att.get("url"):
+                    remove_physical_file(att["url"])
+        except Exception as e:
+            print(f"[WARN] Error during physical file cleanup for agenda {agenda_id}: {e}")
+
         return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
@@ -2752,11 +2765,38 @@ def update_news(news_id):
 def delete_news(news_id):
     ensure_news_schema()
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        # 1. Fetch news data first to get the files we need to delete
+        cursor.execute("SELECT `thumbnails`, `attachments` FROM `news` WHERE `id` = %s LIMIT 1", (news_id,))
+        news = cursor.fetchone()
+        
+        if not news:
+            return jsonify({"success": False, "error": "News not found"}), 404
+            
+        # 2. Delete mappings and record
         cursor.execute("DELETE FROM `news_category_mapping` WHERE `news_id` = %s", (news_id,))
         cursor.execute("DELETE FROM `news` WHERE `id` = %s", (news_id,))
         conn.commit()
+        
+        # 3. Clean up physical files
+        try:
+            # Clean thumbnails
+            thumbnails_raw = news.get("thumbnails") or "[]"
+            thumbnails = json.loads(thumbnails_raw) if isinstance(thumbnails_raw, str) else (thumbnails_raw or [])
+            for thumb in thumbnails:
+                if isinstance(thumb, dict) and thumb.get("url"):
+                    remove_physical_file(thumb["url"])
+                    
+            # Clean attachments
+            attachments_raw = news.get("attachments") or "[]"
+            attachments = json.loads(attachments_raw) if isinstance(attachments_raw, str) else (attachments_raw or [])
+            for att in attachments:
+                if isinstance(att, dict) and att.get("url"):
+                    remove_physical_file(att["url"])
+        except Exception as e:
+            print(f"[WARN] Error during physical file cleanup for news {news_id}: {e}")
+
         return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
@@ -2773,4 +2813,3 @@ if __name__ == "__main__":
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)
-        
