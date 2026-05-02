@@ -54,7 +54,7 @@
 
 		/* HERO */
 		.hero { min-height: 240px; display: grid; place-items: center; text-align: center; padding: 60px 20px; position: relative; overflow: hidden; isolation: isolate; background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%); }
-		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
+		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("/IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
 		.hero h2 { margin: 0; font-size: clamp(1.8rem, 4.5vw, 2.8rem); font-weight: 800; color: #fff; text-transform: uppercase; text-shadow: 0 4px 16px rgba(0,0,0,0.4); }
 		.hero p { margin: 10px 0 0; color: rgba(255,255,255,0.8); font-size: 0.95rem; }
 
@@ -176,7 +176,7 @@
 		.agenda-date::before { content: ""; display: inline-block; width: 4px; height: 14px; background: var(--primary); border-radius: 2px; }
 		.agenda-card h4 { margin: 0 0 8px; font-size: 1rem; font-weight: 700; color: var(--ink); line-height: 1.4; }
 		
-		/* PERBAIKAN: Memotong text dan memberikan efek elipsis */
+		/* Memotong text agar rapi */
 		.agenda-card p { 
 		    margin: 0 0 16px; 
 		    font-size: 0.88rem; 
@@ -398,9 +398,9 @@
 					<li><a href="/home.html">Home</a></li>
 					<li><a href="/profil.html">Profil</a></li>
 					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a class="active" href="/agenda.html">Agenda</a></li>
-					<li><a href="/pengumuman.html">Pengumuman</a></li>
-					<li><a href="/form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a class="active" href="/agenda">Agenda</a></li>
+					<li><a href="/pengumuman">Pengumuman</a></li>
+					<li><a href="/form-pendaftaran">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -408,7 +408,7 @@
 					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
 					<button type="submit">Cari</button>
 				</form>
-								{% if current_user.logged_in %}
+				{% if current_user.logged_in %}
 				<div class="user-dropdown">
 					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
 						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
@@ -655,8 +655,8 @@
 		}
 
 		function getAgendaDetailUrl(item) {
-			// PERBAIKAN: Mengarahkan ke route flask /agenda/<id>
-			return item && item.id ? "/agenda/" + encodeURIComponent(item.id) : "/agenda-detail.html";
+			// Perbaikan URL agar memanggil route flask dengan ID
+			return item && item.id ? "/agenda/" + encodeURIComponent(item.id) : "/agenda";
 		}
 
 		function renderAgendaCards(items) {
@@ -674,7 +674,6 @@
 				const locationLabel = String(item.location || "").trim();
 				const registerButton = item.registrationLink ? '<a class="btn-primary" href="' + escapeHtml(item.registrationLink) + '" target="_blank" rel="noopener noreferrer">Daftar</a>' : "";
 				
-				/* Menghilangkan tag HTML dari deskripsi */
 				const plainDesc = stripHtml(item.description);
 
 				return ''

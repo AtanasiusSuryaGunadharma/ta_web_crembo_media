@@ -61,7 +61,7 @@
 			isolation: isolate;
 			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%);
 		}
-		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
+		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("/IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
 		.badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 999px; padding: 5px 16px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; backdrop-filter: blur(8px); margin-bottom: 12px; }
 		.hero h2 { margin: 0; color: #fff; font-size: clamp(1.8rem, 4.5vw, 3rem); font-weight: 800; text-shadow: 0 4px 16px rgba(0,0,0,0.4); }
 		.hero-meta { margin-top: 10px; color: rgba(255,255,255,0.75); font-size: 0.9rem; }
@@ -345,8 +345,8 @@
 <body>
 	<header class="top-header" id="topHeader">
 		<div class="container">
-			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
-				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			<a href="/home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 			</a>
 			<div class="brand">
 				<h1>Crew Multimedia Baciro</h1>
@@ -360,12 +360,12 @@
 			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
 			<nav id="mainNav" aria-label="Navigasi utama">
 				<ul>
-					<li><a href="home.html">Home</a></li>
-					<li><a href="profil.html">Profil</a></li>
-					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a class="active" href="agenda.html">Agenda</a></li>
-					<li><a href="pengumuman.html">Pengumuman</a></li>
-					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a href="/home.html">Home</a></li>
+					<li><a href="/profil.html">Profil</a></li>
+					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a class="active" href="/agenda">Agenda</a></li>
+					<li><a href="/pengumuman">Pengumuman</a></li>
+					<li><a href="/form-pendaftaran">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -373,7 +373,7 @@
 					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
 					<button type="submit">Cari</button>
 				</form>
-								{% if current_user.logged_in %}
+				{% if current_user.logged_in %}
 				<div class="user-dropdown">
 					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
 						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
@@ -386,85 +386,41 @@
 							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
 						</div>
 						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
+							<a href="/dashboard.html">Dashboard</a>
 							<a href="/profil">Pengaturan Profil</a>
 							<a href="/logout" style="color: var(--accent);">Keluar</a>
 						</div>
 					</div>
 				</div>
 				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
+				<a class="btn-login" href="/login.html">Login</a>
 				{% endif %}
 			</div>
 		</div>
 	</div>
 
 	<section class="hero" aria-label="Header detail agenda">
-		<div>
-			<span class="badge">Agenda</span>
-			<h2>Promo Pembuatan Website</h2>
-			<div class="hero-meta">21 Februari 2026 &bull; STP Ampta Yogyakarta</div>
+		<div id="heroContent">
+			<!-- Dipopulasi oleh JS agar otomatis terganti dengan judul agenda di database -->
 		</div>
 	</section>
 
 	<div class="breadcrumb-wrap">
 		<div class="container">
-			<ol class="breadcrumb" aria-label="Breadcrumb">
-				<li><a href="home.html">Beranda</a></li>
-				<li><a href="agenda.html">Agenda</a></li>
-				<li aria-current="page">Promo Pembuatan Website</li>
+			<ol class="breadcrumb" aria-label="Breadcrumb" id="breadcrumbList">
+				<!-- Dipopulasi oleh JS -->
 			</ol>
 		</div>
 	</div>
 
 	<main class="container page-content">
 		<div class="detail-layout">
-			<article class="article-card" aria-label="Isi detail agenda">
-				<h3>Promo Pembuatan Website</h3>
-
-				<div class="hero-image" aria-hidden="true">Preview Gambar Utama Agenda</div>
-
-				<p>Program Studi Sarjana Informatika Universitas Atma Jaya Yogyakarta (UAJY) menyelenggarakan kuliah umum bertema memahami pengguna dengan metode riset sederhana. Acara berlangsung di ruang seminar kampus dan terbuka untuk mahasiswa.</p>
-
-				<p>Rangkaian acara dibuka oleh narasumber internal, dilanjutkan sesi materi yang membahas cara menggali kebutuhan pengguna sebelum proses implementasi aplikasi. Materi disusun agar peserta mudah mengadaptasikan ke proyek organisasi maupun tugas akademik.</p>
-
-				<div class="inline-image" aria-hidden="true">Preview Dokumentasi Agenda</div>
-
-				<p>Selain pemaparan teori, peserta juga mengikuti sesi praktik ringan, diskusi, dan tanya jawab untuk memperdalam pemahaman metode riset pengguna. Melalui agenda ini diharapkan peserta mampu merancang solusi yang lebih relevan dengan kebutuhan pengguna.</p>
-
-				<p class="source">Sumber: Panitia Agenda Crembo Media &bull; 2026</p>
-
-				<div class="back-wrap">
-					<a class="btn-ghost" href="agenda.html">← Kembali ke Daftar Agenda</a>
-				</div>
+			<article class="article-card" aria-label="Isi detail agenda" id="articleCard">
+				<!-- Dipopulasi oleh JS -->
 			</article>
 
-			<aside class="sidebar">
-				<section class="side-card" aria-label="Detail agenda">
-					<h4>Detail Agenda</h4>
-					<ul class="detail-list">
-						<li><strong>Tanggal</strong> 21 Februari 2026</li>
-						<li><strong>Waktu</strong> 10:50 – 16:50 WIB</li>
-						<li><strong>Lokasi</strong> STP Ampta Yogyakarta</li>
-						<li><strong>Status</strong> <span style="color:#22c55e;font-weight:700;">Pendaftaran Buka</span></li>
-						<li><strong>Kuota</strong> 50 peserta</li>
-					</ul>
-					<a class="btn-primary" href="form-pendaftaran.html">Daftar Sekarang</a>
-				</section>
-
-				<section class="side-card" aria-label="Lampiran agenda">
-					<h4>Lampiran</h4>
-					<ul class="lampiran-list">
-						<li class="lampiran-item">
-							<span class="lampiran-icon">PDF</span>
-							CVI5EMN4NdcNHCJH_rundown.pdf
-						</li>
-						<li class="lampiran-item">
-							<span class="lampiran-icon">PDF</span>
-							tutsM0fKecXNEIX_materials.pdf
-						</li>
-					</ul>
-				</section>
+			<aside class="sidebar" id="sidebar">
+				<!-- Dipopulasi oleh JS -->
 			</aside>
 		</div>
 	</main>
@@ -474,7 +430,7 @@
 			<div class="container footer-grid">
 				<section class="footer-col" aria-label="Identitas Crembo">
 					<div class="footer-brand">
-						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 						<div>
 							<h4 class="footer-title">Crew Multimedia Baciro</h4>
 							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
@@ -511,8 +467,10 @@
 		const mainNav = document.getElementById("mainNav");
 		const searchForm = document.getElementById("searchForm");
 		const searchInput = document.getElementById("searchInput");
-		const articleCard = document.querySelector(".article-card");
-		const sidebar = document.querySelector(".sidebar");
+		const articleCard = document.getElementById("articleCard");
+		const sidebar = document.getElementById("sidebar");
+		const heroContent = document.getElementById("heroContent");
+		const breadcrumbList = document.getElementById("breadcrumbList");
 
 		function syncStickyOffset() {
 			const h = topHeader ? topHeader.offsetHeight : 104;
@@ -546,7 +504,7 @@
 			searchForm.addEventListener("submit", function(e) {
 				e.preventDefault();
 				const q = searchInput.value.trim();
-				window.location.href = "search.html?q=" + encodeURIComponent(q);
+				window.location.href = "/search.html?q=" + encodeURIComponent(q);
 			});
 		}
 
@@ -612,16 +570,16 @@
 		function renderRichText(value) {
 			const raw = String(value || "").trim();
 			if (!raw) return "<p>Detail agenda belum tersedia.</p>";
-			if (/<[a-z][\s\S]*>/i.test(raw)) return raw;
-			return raw.split(/\n\n+/).map(function(paragraph) {
-				return "<p>" + escapeHtml(paragraph.trim()) + "</p>";
-			}).join("");
+			// Biarkan HTML merender dengan baik termasuk List/Underline
+			return raw;
 		}
 
 		function renderAgendaDetail(item) {
 			if (!articleCard || !sidebar) return;
 			if (!item) {
-				articleCard.innerHTML = '<h3>Agenda tidak ditemukan</h3><p>Data agenda belum tersedia atau sudah dihapus dari database.</p><div class="back-wrap"><a class="btn-ghost" href="agenda.html">← Kembali ke Daftar Agenda</a></div>';
+				heroContent.innerHTML = '<h2>Agenda Tidak Ditemukan</h2>';
+				breadcrumbList.innerHTML = '<li><a href="/home.html">Beranda</a></li><li><a href="/agenda">Agenda</a></li><li aria-current="page">Tidak Ditemukan</li>';
+				articleCard.innerHTML = '<h3>Agenda tidak ditemukan</h3><p>Data agenda belum tersedia atau sudah dihapus dari database.</p><div class="back-wrap"><a class="btn-ghost" href="/agenda">← Kembali ke Daftar Agenda</a></div>';
 				sidebar.innerHTML = '<section class="side-card"><h4>Detail Agenda</h4><p style="margin:0;color:var(--muted);">Data detail agenda tidak ditemukan.</p></section>';
 				return;
 			}
@@ -643,18 +601,34 @@
 				return '<li class="lampiran-item"><a href="' + url + '"' + linkAttr + '><span class="lampiran-icon">' + kind.slice(0, 3) + '</span><span style="flex:1;">' + name + '</span><span style="font-size:0.75rem;color:var(--muted);">' + actionLabel + '</span></a></li>';
 			}).join("") : '<li class="lampiran-item"><span class="lampiran-icon">-</span>Belum ada lampiran.</li>';
 
+			const dateHeader = escapeHtml(endLabel && endLabel !== startLabel ? startLabel + ' - ' + endLabel : startLabel);
+
+			// Hero Content
+			heroContent.innerHTML = ''
+				+ '<span class="badge">Agenda</span>'
+				+ '<h2>' + escapeHtml(item.title) + '</h2>'
+				+ '<div class="hero-meta">' + dateHeader + (item.location ? ' &bull; ' + escapeHtml(item.location) : '') + '</div>';
+
+			// Breadcrumb
+			breadcrumbList.innerHTML = ''
+				+ '<li><a href="/">Beranda</a></li>'
+				+ '<li><a href="/agenda">Agenda</a></li>'
+				+ '<li aria-current="page">' + escapeHtml(item.title) + '</li>';
+
+			// Article Card
 			articleCard.innerHTML = ''
 				+ '<h3>' + escapeHtml(item.title || "Agenda") + '</h3>'
-				+ '<div class="hero-image" aria-hidden="true"' + heroImageStyle + '>' + 'Preview Gambar Utama Agenda' + '</div>'
+				+ (item.imageUrl ? '<div class="hero-image" aria-hidden="true"' + heroImageStyle + '></div>' : '')
 				+ renderRichText(item.description)
-				+ '<p class="source">Sumber: Admin Crembo Media &bull; ' + escapeHtml(endLabel || startLabel || "") + '</p>'
-				+ '<div class="back-wrap"><a class="btn-ghost" href="agenda.html">← Kembali ke Daftar Agenda</a></div>';
+				+ '<p class="source">Sumber: Admin Crembo Media &bull; ' + dateHeader + '</p>'
+				+ '<div class="back-wrap"><a class="btn-ghost" href="/agenda">← Kembali ke Daftar Agenda</a></div>';
 
+			// Sidebar
 			sidebar.innerHTML = ''
 				+ '<section class="side-card" aria-label="Detail agenda">'
 				+ '<h4>Detail Agenda</h4>'
 				+ '<ul class="detail-list">'
-				+ '<li><strong>Tanggal</strong> ' + escapeHtml(endLabel && endLabel !== startLabel ? startLabel + ' - ' + endLabel : startLabel) + '</li>'
+				+ '<li><strong>Tanggal</strong> ' + dateHeader + '</li>'
 				+ (timeLabel ? '<li><strong>Waktu</strong> ' + escapeHtml(timeLabel) + '</li>' : '')
 				+ (item.location ? '<li><strong>Lokasi</strong> ' + escapeHtml(item.location) + '</li>' : '')
 				+ '<li><strong>Status</strong> <span style="color:' + (status === 'open' ? '#22c55e' : status === 'soon' ? '#d4a017' : '#800000') + ';font-weight:700;">' + statusLabel + '</span></li>'
@@ -679,6 +653,7 @@
 					}
 				}
 
+				// Fallback load daftar agenda ke agenda pertama apabila user mengakses root `/agenda-detail` secara langsung
 				const listResponse = await fetch("/api/agendas", { credentials: "same-origin" });
 				if (!listResponse.ok) throw new Error("Gagal memuat agenda");
 				const agendas = await listResponse.json();
@@ -709,7 +684,7 @@
 			function enhanceProfileHoverMenu() {
 				const navList = document.querySelector(".nav-row nav ul");
 				if (!navList) return;
-				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				const profileAnchor = navList.querySelector('a[href="/profil.html"]');
 				if (!profileAnchor) return;
 				const profileItem = profileAnchor.closest("li");
 				if (!profileItem) return;
@@ -736,7 +711,7 @@
 					else applyDesktopDropdownStyle();
 					profileAnchor.setAttribute("aria-expanded", "false");
 				}
-				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
+				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="/profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
 				dropdown.addEventListener("mouseover", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; } });
 				dropdown.addEventListener("mouseout", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; } });
 				profileItem.appendChild(dropdown);
@@ -761,6 +736,6 @@
 			enhanceProfileHoverMenu();
 		})();
 	</script>
-<script src="_public-nav-sync.js"></script>
+<script src="/_public-nav-sync.js"></script>
 </body>
 </html>
