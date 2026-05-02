@@ -7,7 +7,7 @@ Project baru untuk menggabungkan Flask dengan frontend mockup di folder `Mockup_
 Dari folder ini, jalankan:
 
 ```powershell
-& "D:\SURYA\UAJY\Semester 8\TA\ta_crembo_media_4\.venv\Scripts\python.exe" app.py
+& "C:\xampp\htdocs\code_ta_crembo_4\.venv\Scripts\python.exe" app.py
 ```
 
 Lalu buka:

@@ -1129,6 +1129,27 @@
       }
     }
 
+    function hasUnsavedDraft() {
+      const dynamicForm = document.getElementById("dynamicForm");
+      if (!dynamicForm) return false;
+
+      return Array.from(dynamicForm.elements).some(function (element) {
+        if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)) {
+          return false;
+        }
+        if (element.type === "button" || element.type === "submit" || element.type === "reset" || element.type === "hidden") {
+          return false;
+        }
+        if (element.type === "file") {
+          return element.files && element.files.length > 0;
+        }
+        if (element.type === "checkbox" || element.type === "radio") {
+          return element.checked;
+        }
+        return String(element.value || "").trim() !== "";
+      });
+    }
+
     formWrap.addEventListener("click", function(event) {
        if (event.target.classList.contains("read-more-btn")) {
            const targetId = event.target.getAttribute("data-target");
@@ -1263,12 +1284,16 @@
 
     window.addEventListener("storage", function (event) {
       if (!event || !event.key) return;
-      if (event.key === FORM_STORAGE_KEY || event.key === SUBMISSION_STORAGE_KEY || event.key === SESSION_STORAGE_KEY || event.key === GUEST_KEY) refreshDataAndRender();
+      if (event.key === FORM_STORAGE_KEY || event.key === SUBMISSION_STORAGE_KEY || event.key === SESSION_STORAGE_KEY || event.key === GUEST_KEY) {
+        if (!hasUnsavedDraft()) refreshDataAndRender();
+      }
     });
 
-    window.addEventListener("focus", refreshDataAndRender);
+    window.addEventListener("focus", function () {
+      if (!hasUnsavedDraft()) refreshDataAndRender();
+    });
     document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) refreshDataAndRender();
+      if (!document.hidden && !hasUnsavedDraft()) refreshDataAndRender();
     });
 
     refreshDataAndRender();
