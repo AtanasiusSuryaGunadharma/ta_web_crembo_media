@@ -137,6 +137,8 @@
 			overflow: hidden;
 			transition: var(--transition);
 			animation: fadeInUp 0.5s ease both;
+			display: flex;
+			flex-direction: column;
 		}
 		.agenda-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
 
@@ -148,6 +150,7 @@
 			overflow: hidden;
 			display: grid;
 			place-items: center;
+			flex-shrink: 0;
 		}
 		.agenda-thumb .thumb-text { color: rgba(255,255,255,0.4); font-size: 0.8rem; font-weight: 500; }
 		.agenda-thumb::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(transparent, rgba(0,0,0,0.3)); }
@@ -168,15 +171,29 @@
 		.status-soon { background: rgba(212,160,23,0.9); color: #fff; }
 		.status-closed { background: rgba(128,0,0,0.85); color: #fff; }
 
-		.agenda-body { padding: 20px; }
+		.agenda-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
 		.agenda-date { font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 		.agenda-date::before { content: ""; display: inline-block; width: 4px; height: 14px; background: var(--primary); border-radius: 2px; }
 		.agenda-card h4 { margin: 0 0 8px; font-size: 1rem; font-weight: 700; color: var(--ink); line-height: 1.4; }
-		.agenda-card p { margin: 0 0 16px; font-size: 0.88rem; color: var(--ink-secondary); line-height: 1.6; }
+		
+		/* PERBAIKAN: Memotong text dan memberikan efek elipsis */
+		.agenda-card p { 
+		    margin: 0 0 16px; 
+		    font-size: 0.88rem; 
+		    color: var(--ink-secondary); 
+		    line-height: 1.6; 
+		    flex: 1; 
+		    display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+		}
+		
 		.agenda-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 		.agenda-meta-item { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 4px; background: var(--bg); padding: 4px 10px; border-radius: 999px; }
 
-		.card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+		.card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
 		.btn-ghost { border: 1.5px solid var(--line); background: transparent; color: var(--ink-secondary); padding: 8px 16px; font-size: 0.82rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; transition: var(--transition); display: inline-flex; align-items: center; }
 		.btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: var(--hover); }
 		.btn-primary { border: none; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: #fff; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; transition: var(--transition); box-shadow: 0 2px 8px rgba(128,0,0,0.2); }
@@ -467,127 +484,11 @@
 
 		<!-- Agenda grid -->
 		<div id="agendaGrid" class="agenda-grid">
-			<article class="agenda-card">
-				<div class="agenda-thumb">
-					<span class="agenda-status status-open">Buka</span>
-					<span class="thumb-text">Preview Gambar Agenda</span>
-				</div>
-				<div class="agenda-body">
-					<div class="agenda-date">30 Maret 2026</div>
-					<h4>Briefing Petugas Pekan Suci</h4>
-					<p>Agenda briefing internal untuk persiapan pelayanan multimedia selama rangkaian Pekan Suci.</p>
-					<div class="agenda-meta">
-						<span class="agenda-meta-item">⏰ 10:00–12:00 WIB</span>
-						<span class="agenda-meta-item">📍 Aula Paroki</span>
-					</div>
-					<div class="card-actions">
-						<a class="btn-ghost" href="agenda-detail.html">Detail</a>
-						<a class="btn-primary" href="agenda-detail.html">Daftar</a>
-					</div>
-				</div>
-			</article>
-
-			<article class="agenda-card">
-				<div class="agenda-thumb" style="background: linear-gradient(135deg, #1a3a1a 0%, #2d5a2d 50%, #4a7a4a 100%);">
-					<span class="agenda-status status-open">Buka</span>
-					<span class="thumb-text">Preview Gambar Agenda</span>
-				</div>
-				<div class="agenda-body">
-					<div class="agenda-date">03 April 2026</div>
-					<h4>Pelatihan Operator Streaming</h4>
-					<p>Pendalaman teknis kamera, audio, dan live switch untuk tim operator baru dan lama.</p>
-					<div class="agenda-meta">
-						<span class="agenda-meta-item">⏰ 09:00–16:00 WIB</span>
-						<span class="agenda-meta-item">📍 Studio Krembo</span>
-					</div>
-					<div class="card-actions">
-						<a class="btn-ghost" href="agenda-detail.html">Detail</a>
-						<a class="btn-primary" href="agenda-detail.html">Daftar</a>
-					</div>
-				</div>
-			</article>
-
-			<article class="agenda-card">
-				<div class="agenda-thumb" style="background: linear-gradient(135deg, #1a1a3a 0%, #2d2d6a 50%, #4a4a9a 100%);">
-					<span class="agenda-status status-soon">Segera</span>
-					<span class="thumb-text">Preview Gambar Agenda</span>
-				</div>
-				<div class="agenda-body">
-					<div class="agenda-date">10 April 2026</div>
-					<h4>Evaluasi Pelayanan Bulanan</h4>
-					<p>Sesi evaluasi hasil pelayanan dan penyusunan rencana perbaikan bulan berikutnya.</p>
-					<div class="agenda-meta">
-						<span class="agenda-meta-item">⏰ 19:00–21:00 WIB</span>
-						<span class="agenda-meta-item">📍 Ruang Rapat</span>
-					</div>
-					<div class="card-actions">
-						<a class="btn-ghost" href="agenda-detail.html">Detail</a>
-					</div>
-				</div>
-			</article>
-
-			<article class="agenda-card">
-				<div class="agenda-thumb" style="background: linear-gradient(135deg, #3a1a00 0%, #6a3a00 50%, #9a5a00 100%);">
-					<span class="agenda-status status-closed">Selesai</span>
-					<span class="thumb-text">Preview Gambar Agenda</span>
-				</div>
-				<div class="agenda-body">
-					<div class="agenda-date">21 Februari 2026</div>
-					<h4>Promo Pembuatan Website</h4>
-					<p>Kerjasama promosi pembuatan website bagi umat dan komunitas sekitar paroki Baciro.</p>
-					<div class="agenda-meta">
-						<span class="agenda-meta-item">⏰ 10:50–16:50 WIB</span>
-						<span class="agenda-meta-item">📍 STP Ampta Yogyakarta</span>
-					</div>
-					<div class="card-actions">
-						<a class="btn-ghost" href="agenda-detail.html">Detail</a>
-					</div>
-				</div>
-			</article>
-
-			<article class="agenda-card">
-				<div class="agenda-thumb" style="background: linear-gradient(135deg, #1a2a3a 0%, #2d4a6a 50%, #4a6a9a 100%);">
-					<span class="agenda-status status-closed">Selesai</span>
-					<span class="thumb-text">Preview Gambar Agenda</span>
-				</div>
-				<div class="agenda-body">
-					<div class="agenda-date">15 Januari 2026</div>
-					<h4>Pelantikan Pengurus Baru</h4>
-					<p>Serah terima jabatan dan pelantikan pengurus Crembo Media periode 2026–2027.</p>
-					<div class="agenda-meta">
-						<span class="agenda-meta-item">⏰ 09:00–12:00 WIB</span>
-						<span class="agenda-meta-item">📍 Gedung Paroki</span>
-					</div>
-					<div class="card-actions">
-						<a class="btn-ghost" href="agenda-detail.html">Detail</a>
-					</div>
-				</div>
-			</article>
-
-			<article class="agenda-card">
-				<div class="agenda-thumb" style="background: linear-gradient(135deg, #2a0a3a 0%, #5a1a6a 50%, #8a3a9a 100%);">
-					<span class="agenda-status status-closed">Selesai</span>
-					<span class="thumb-text">Preview Gambar Agenda</span>
-				</div>
-				<div class="agenda-body">
-					<div class="agenda-date">05 Desember 2025</div>
-					<h4>Workshop Fotografi Liturgi</h4>
-					<p>Workshop fotografi untuk meningkatkan kualitas dokumentasi kegiatan liturgi paroki.</p>
-					<div class="agenda-meta">
-						<span class="agenda-meta-item">⏰ 08:00–17:00 WIB</span>
-						<span class="agenda-meta-item">📍 Aula Paroki</span>
-					</div>
-					<div class="card-actions">
-						<a class="btn-ghost" href="agenda-detail.html">Detail</a>
-					</div>
-				</div>
-			</article>
+			<!-- Dipopulasi oleh JS -->
 		</div>
 
 		<nav class="pagination-wrap" aria-label="Navigasi halaman agenda">
-			<button class="active" type="button">1</button>
-			<button type="button">2</button>
-			<button type="button">3</button>
+			<!-- Dipopulasi oleh JS -->
 		</nav>
 	</main>
 
@@ -683,6 +584,13 @@
 			});
 		}
 
+		function stripHtml(html) {
+		    if (!html) return "";
+		    const div = document.createElement("div");
+		    div.innerHTML = html;
+		    return div.textContent || div.innerText || "";
+		}
+
 		function escapeHtml(value) {
 			return String(value == null ? "" : value)
 				.replace(/&/g, "&amp;")
@@ -753,7 +661,7 @@
 		function renderAgendaCards(items) {
 			if (!agendaGrid) return;
 			if (!items.length) {
-				agendaGrid.innerHTML = '<div class="empty-state"><strong>Belum ada agenda yang tersedia.</strong><p>Data agenda akan muncul setelah admin menambahkan agenda ke database.</p></div>';
+				agendaGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><strong>Belum ada agenda yang tersedia.</strong><p>Data agenda akan muncul setelah admin menambahkan agenda ke database.</p></div>';
 				return;
 			}
 
@@ -764,16 +672,20 @@
 				const timeLabel = formatTimeRange(item);
 				const locationLabel = String(item.location || "").trim();
 				const registerButton = item.registrationLink ? '<a class="btn-primary" href="' + escapeHtml(item.registrationLink) + '" target="_blank" rel="noopener noreferrer">Daftar</a>' : "";
+				
+				/* Menghilangkan tag HTML dari deskripsi */
+				const plainDesc = stripHtml(item.description);
+
 				return ''
 					+ '<article class="agenda-card">'
 					+ '<div class="agenda-thumb"' + getThumbStyle(item, index) + '>'
 					+ '<span class="agenda-status status-' + status + '">' + statusLabel + '</span>'
-					+ '<span class="thumb-text">Preview Gambar Agenda</span>'
+					+ '<span class="thumb-text">' + (item.imageUrl ? '' : 'Preview Gambar Agenda') + '</span>'
 					+ '</div>'
 					+ '<div class="agenda-body">'
 					+ '<div class="agenda-date">' + escapeHtml(dateLabel) + '</div>'
 					+ '<h4>' + escapeHtml(item.title || "Agenda") + '</h4>'
-					+ '<p>' + escapeHtml(item.description || "") + '</p>'
+					+ '<p>' + escapeHtml(plainDesc || "") + '</p>'
 					+ '<div class="agenda-meta">'
 					+ (timeLabel ? '<span class="agenda-meta-item">⏰ ' + escapeHtml(timeLabel) + '</span>' : "")
 					+ (locationLabel ? '<span class="agenda-meta-item">📍 ' + escapeHtml(locationLabel) + '</span>' : "")
@@ -818,7 +730,8 @@
 				const displayStatus = getAgendaStatus(item);
 				if (statusValue && displayStatus !== statusValue) return false;
 				if (!query) return true;
-				const haystack = [item.title, item.description, item.location, item.registrationLink].join(" ").toLowerCase();
+				const plainDesc = stripHtml(item.description);
+				const haystack = [item.title, plainDesc, item.location, item.registrationLink].join(" ").toLowerCase();
 				return haystack.indexOf(query) >= 0;
 			});
 
@@ -849,7 +762,7 @@
 
 		async function loadAgendas() {
 			if (!agendaGrid) return;
-			agendaGrid.innerHTML = '<div class="empty-state"><strong>Memuat agenda...</strong><p>Mohon tunggu sebentar.</p></div>';
+			agendaGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><strong>Memuat agenda...</strong><p>Mohon tunggu sebentar.</p></div>';
 			try {
 				const response = await fetch("/api/agendas", { credentials: "same-origin" });
 				if (!response.ok) throw new Error("Gagal memuat agenda");
@@ -857,7 +770,7 @@
 				if (!Array.isArray(agendaState.items)) agendaState.items = [];
 				applyAgendaFilters();
 			} catch (error) {
-				agendaGrid.innerHTML = '<div class="empty-state"><strong>Agenda belum bisa dimuat.</strong><p>Pastikan server dan database aktif, lalu muat ulang halaman.</p></div>';
+				agendaGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><strong>Agenda belum bisa dimuat.</strong><p>Pastikan server dan database aktif, lalu muat ulang halaman.</p></div>';
 				if (paginationWrap) paginationWrap.innerHTML = "";
 				if (sectionNote) sectionNote.textContent = "Gagal memuat data agenda";
 			}
