@@ -702,6 +702,20 @@
 			transform: scale(1.2);
 		}
 
+		.embed-note {
+			margin: 10px 0 0;
+			font-size: 0.82rem;
+			color: var(--muted);
+			font-style: italic;
+		}
+
+		.dynamic-note {
+			margin: 0;
+			font-size: 0.84rem;
+			color: var(--muted);
+			font-style: italic;
+		}
+
 		/* ═══════════════════════════════════════════
 		   EMBED YOUTUBE / MAPS
 		   ═══════════════════════════════════════════ */
@@ -748,53 +762,86 @@
 		}
 
 		/* ═══════════════════════════════════════════
-		   INSTAGRAM CAROUSEL
+		   SCROLL CAROUSEL SHELL (UNIFIED)
 		   ═══════════════════════════════════════════ */
-
-		.instagram-empty-state[hidden] {
-			display: none !important;
-		}
-
-		.instagram-carousel-shell {
+		.scroll-carousel-shell {
 			position: relative;
+			margin: 0 -10px;
+			padding: 0 10px;
+		}
+
+		.scroll-btn {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			z-index: 10;
+			width: 42px;
+			height: 42px;
 			border: 1px solid var(--line);
-			background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,248,245,0.98) 100%);
-			border-radius: var(--radius-lg);
-			padding: 16px 54px;
-			overflow: hidden;
+			border-radius: 50%;
+			background: var(--surface);
+			color: var(--primary);
+			box-shadow: var(--shadow-md);
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+			font-size: 1.6rem;
+			font-weight: 300;
+			opacity: 0.8;
+			transition: var(--transition);
 		}
 
-		.instagram-carousel-shell.empty {
-			padding: 18px;
+		.scroll-btn:hover {
+			background: var(--primary);
+			color: #fff;
+			transform: translateY(-50%) scale(1.08);
+			opacity: 1;
 		}
 
-		.instagram-carousel-track {
+		.scroll-btn.prev { left: -14px; }
+		.scroll-btn.next { right: -14px; }
+
+		.scroll-btn.disabled {
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		.cards-scroll-track {
 			display: flex;
-			gap: 18px;
+			gap: 20px;
 			overflow-x: auto;
-			scroll-behavior: smooth;
+			padding-bottom: 16px;
 			scroll-snap-type: x mandatory;
-			padding-bottom: 8px;
-			-ms-overflow-style: none;
-			scrollbar-width: none;
+			scrollbar-width: thin;
+			scrollbar-color: rgba(128, 0, 0, 0.3) rgba(0,0,0,0.05);
+			/* Hide scrollbar on IE/Edge */
+			-ms-overflow-style: -ms-autohiding-scrollbar;
 		}
 
-		.instagram-carousel-track::-webkit-scrollbar {
-			display: none;
+		.cards-scroll-track::-webkit-scrollbar {
+			height: 8px;
 		}
 
-		.instagram-item {
-			flex: 0 0 calc((100% - 36px) / 3);
-			scroll-snap-align: start;
+		.cards-scroll-track::-webkit-scrollbar-thumb {
+			background: rgba(128, 0, 0, 0.3);
+			border-radius: 999px;
 		}
 
+		.cards-scroll-track::-webkit-scrollbar-track {
+			background: rgba(0,0,0,0.05);
+			border-radius: 999px;
+		}
+
+		/* Instagram Cards inside Scroll Track */
 		.instagram-card {
+			flex: 0 0 calc(33.333% - 14px);
+			min-width: 290px;
+			scroll-snap-align: start;
 			border: 1px solid #e0e0e0;
 			padding: 0;
 			background: #fff;
 			border-radius: 12px;
 			transition: all 0.3s ease;
-			height: 100%;
 			display: flex;
 			flex-direction: column;
 			overflow: hidden;
@@ -840,83 +887,6 @@
 			text-transform: uppercase;
 		}
 
-		.instagram-card .embed-box {
-			flex: 1;
-			overflow-y: auto;
-			min-height: 300px;
-			max-height: 500px;
-			padding: 0;
-		}
-
-		.map-embed-box {
-			position: relative;
-		}
-
-		.map-embed-box iframe {
-			display: block;
-		}
-
-		.map-open-btn {
-			position: absolute;
-			top: 12px;
-			left: 12px;
-			z-index: 2;
-			display: inline-flex;
-			align-items: center;
-			gap: 6px;
-			padding: 8px 12px;
-			border-radius: 10px;
-			background: rgba(255, 255, 255, 0.96);
-			color: #1f5fd1;
-			font-weight: 700;
-			font-size: 0.82rem;
-			border: 1px solid rgba(31, 95, 209, 0.18);
-			box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-			text-decoration: none;
-		}
-
-		.map-open-btn:hover {
-			background: #fff;
-			transform: translateY(-1px);
-		}
-
-		.instagram-card .embed-box,
-		.instagram-card .embed-box iframe,
-		.instagram-media {
-			width: 100% !important;
-		}
-
-		.instagram-empty-state {
-			min-height: 160px;
-			display: grid;
-			place-items: center;
-			text-align: center;
-			padding: 24px;
-			color: var(--ink-secondary);
-		}
-
-		.instagram-scroll-btn {
-			position: absolute;
-			top: 50%;
-			transform: translateY(-50%);
-			z-index: 2;
-			width: 38px;
-			height: 38px;
-			border: 0;
-			border-radius: 999px;
-			background: var(--primary);
-			color: #fff;
-			box-shadow: var(--shadow-md);
-			cursor: pointer;
-		}
-
-		.instagram-scroll-btn.prev { left: 12px; }
-		.instagram-scroll-btn.next { right: 12px; }
-
-		.instagram-scroll-btn:hover {
-			background: var(--primary-dark);
-		}
-
 		.ig-embed-wrapper {
 			position: relative;
 			max-height: 500px;
@@ -927,15 +897,10 @@
 			padding: 12px;
 		}
 
-		.ig-embed-wrapper::after {
-			content: "";
-			position: absolute;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			height: 0;
-			background: transparent;
-			pointer-events: none;
+		.ig-embed-wrapper iframe, .ig-embed-wrapper blockquote {
+			width: 100% !important;
+			min-width: 100% !important;
+			margin: 0 !important;
 		}
 
 		.ig-read-more-btn {
@@ -960,40 +925,21 @@
 
 		.ig-read-more-btn:hover {
 			background: linear-gradient(135deg, #e1306c 0%, #833ab4 100%);
-			transform: scale(1.02);
 		}
 
-		.ig-icon {
-			font-size: 1.1em;
+		.instagram-empty-state {
+			min-height: 160px;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			padding: 24px;
+			color: var(--ink-secondary);
 		}
+
 
 		/* ═══════════════════════════════════════════
-		   CARDS & HORIZONTAL SCROLL TRACK
+		   GENERIC CARDS
 		   ═══════════════════════════════════════════ */
-		.cards-scroll-track {
-			display: flex;
-			gap: 20px;
-			overflow-x: auto;
-			padding-bottom: 16px;
-			scroll-snap-type: x mandatory;
-			scrollbar-width: thin;
-			scrollbar-color: rgba(128, 0, 0, 0.3) rgba(0,0,0,0.05);
-		}
-
-		.cards-scroll-track::-webkit-scrollbar {
-			height: 8px;
-		}
-
-		.cards-scroll-track::-webkit-scrollbar-thumb {
-			background: rgba(128, 0, 0, 0.3);
-			border-radius: 999px;
-		}
-
-		.cards-scroll-track::-webkit-scrollbar-track {
-			background: rgba(0,0,0,0.05);
-			border-radius: 999px;
-		}
-
 		.cards-scroll-track .card {
 			flex: 0 0 calc(33.333% - 14px);
 			scroll-snap-align: start;
@@ -1164,27 +1110,6 @@
 			border: 1px solid var(--line);
 		}
 
-		.schedule-scroll {
-			width: 100%;
-			overflow-x: auto;
-			-webkit-overflow-scrolling: touch;
-			overscroll-behavior-x: contain;
-		}
-
-		.schedule-scroll::-webkit-scrollbar {
-			height: 10px;
-		}
-
-		.schedule-scroll::-webkit-scrollbar-thumb {
-			background: rgba(128, 0, 0, 0.28);
-			border-radius: 999px;
-		}
-
-		.schedule-scroll::-webkit-scrollbar-track {
-			background: rgba(128, 0, 0, 0.06);
-			border-radius: 999px;
-		}
-
 		.schedule-preview-top {
 			display: flex;
 			justify-content: space-between;
@@ -1267,30 +1192,14 @@
 			border: 1px solid rgba(0,0,0,0.1);
 		}
 
-		.swatch.normal {
-			background: #27ae60;
-		}
+		.swatch.normal { background: #27ae60; }
+		.swatch.blocked { background: var(--accent); }
 
-		.swatch.blocked {
-			background: var(--accent);
-		}
+		.schedule-table .no-col { width: 62px; }
+		.schedule-table .date-col { width: 200px; }
+		.schedule-table .time-col { width: 120px; }
 
-		.schedule-table .no-col {
-			width: 62px;
-		}
-
-		.schedule-table .date-col {
-			width: 200px;
-		}
-
-		.schedule-table .time-col {
-			width: 120px;
-		}
-
-		.blocked-row td {
-			background: rgba(231, 76, 60, 0.06) !important;
-		}
-
+		.blocked-row td { background: rgba(231, 76, 60, 0.06) !important; }
 		.blocked-inline {
 			border: 1px solid rgba(231, 76, 60, 0.3);
 			padding: 8px 12px;
@@ -1322,31 +1231,13 @@
 			text-transform: uppercase;
 		}
 
-		.schedule-table tbody tr {
-			transition: var(--transition);
-		}
+		.schedule-table tbody tr { transition: var(--transition); }
 
-		/* Baris normal: indikator hijau di sel pertama */
-		.schedule-table tbody tr:not(.blocked-row):not(.hariraya-row) td:first-child {
-			border-left: 4px solid #27ae60;
-			background: rgba(39, 174, 96, 0.04);
-		}
-
-		.schedule-table tbody tr:nth-child(even):not(.blocked-row):not(.hariraya-row) td {
-			background: rgba(39, 174, 96, 0.03);
-		}
-
-		.schedule-table tbody tr:nth-child(even):not(.blocked-row):not(.hariraya-row) td:first-child {
-			background: rgba(39, 174, 96, 0.07);
-		}
-
-		.schedule-table tbody tr:hover:not(.blocked-row):not(.hariraya-row) td {
-			background: rgba(39, 174, 96, 0.08);
-		}
-
-		.schedule-table tbody tr:hover:not(.blocked-row):not(.hariraya-row) td:first-child {
-			background: rgba(39, 174, 96, 0.12);
-		}
+		.schedule-table tbody tr:not(.blocked-row):not(.hariraya-row) td:first-child { border-left: 4px solid #27ae60; background: rgba(39, 174, 96, 0.04); }
+		.schedule-table tbody tr:nth-child(even):not(.blocked-row):not(.hariraya-row) td { background: rgba(39, 174, 96, 0.03); }
+		.schedule-table tbody tr:nth-child(even):not(.blocked-row):not(.hariraya-row) td:first-child { background: rgba(39, 174, 96, 0.07); }
+		.schedule-table tbody tr:hover:not(.blocked-row):not(.hariraya-row) td { background: rgba(39, 174, 96, 0.08); }
+		.schedule-table tbody tr:hover:not(.blocked-row):not(.hariraya-row) td:first-child { background: rgba(39, 174, 96, 0.12); }
 
 		/* ═══════════════════════════════════════════
 		   LEGEND CHIPS
@@ -1374,15 +1265,8 @@
 			flex-shrink: 0;
 		}
 
-		.legend-dot.dot-normal {
-			background: #27ae60;
-			border-color: #1e8449;
-		}
-
-		.legend-dot.dot-blocked {
-			background: #e74c3c;
-			border-color: #c0392b;
-		}
+		.legend-dot.dot-normal { background: #27ae60; border-color: #1e8449; }
+		.legend-dot.dot-blocked { background: #e74c3c; border-color: #c0392b; }
 
 		/* ═══════════════════════════════════════════
 		   HARI RAYA MODE
@@ -1399,11 +1283,7 @@
 			margin-bottom: 14px;
 		}
 
-		.hari-raya-banner p {
-			margin: 0;
-			font-size: 0.88rem;
-			color: var(--ink-secondary);
-		}
+		.hari-raya-banner p { margin: 0; font-size: 0.88rem; color: var(--ink-secondary); }
 
 		.hari-raya-badge {
 			display: inline-flex;
@@ -1421,17 +1301,9 @@
 			box-shadow: 0 2px 8px rgba(212,160,23,0.3);
 		}
 
-		.hariraya-row td {
-			background: rgba(212,160,23,0.04);
-		}
-
-		.hariraya-row:nth-child(even) td {
-			background: rgba(212,160,23,0.08);
-		}
-
-		.hariraya-row:hover td {
-			background: rgba(212,160,23,0.12) !important;
-		}
+		.hariraya-row td { background: rgba(212,160,23,0.04); }
+		.hariraya-row:nth-child(even) td { background: rgba(212,160,23,0.08); }
+		.hariraya-row:hover td { background: rgba(212,160,23,0.12) !important; }
 
 		.hariraya-label {
 			display: inline-block;
@@ -1513,18 +1385,9 @@
 		}
 
 		@keyframes scrollTopPulse {
-			0% {
-				transform: scale(1);
-				opacity: 0.7;
-			}
-			70% {
-				transform: scale(1.24);
-				opacity: 0;
-			}
-			100% {
-				transform: scale(1.24);
-				opacity: 0;
-			}
+			0% { transform: scale(1); opacity: 0.7; }
+			70% { transform: scale(1.24); opacity: 0; }
+			100% { transform: scale(1.24); opacity: 0; }
 		}
 
 		/* ═══════════════════════════════════════════
@@ -1595,63 +1458,16 @@
 			border-radius: var(--radius-sm);
 		}
 
-		.footer-title {
-			margin: 0;
-			font-size: 1.05rem;
-			font-weight: 700;
-			color: #ffffff;
-		}
+		.footer-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: #ffffff; }
+		.footer-sub { margin: 3px 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); line-height: 1.6; }
 
-		.footer-sub {
-			margin: 3px 0 0;
-			font-size: 0.85rem;
-			color: rgba(255, 255, 255, 0.6);
-			line-height: 1.6;
-		}
+		.contact-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
+		.contact-list li { color: rgba(255, 255, 255, 0.8); display: flex; gap: 8px; }
+		.contact-list strong { display: inline-block; min-width: 70px; color: var(--accent-gold-light); font-weight: 600; }
 
-		.contact-list {
-			margin: 0;
-			padding: 0;
-			list-style: none;
-			display: grid;
-			gap: 10px;
-			font-size: 0.9rem;
-		}
-
-		.contact-list li {
-			color: rgba(255, 255, 255, 0.8);
-			display: flex;
-			gap: 8px;
-		}
-
-		.contact-list strong {
-			display: inline-block;
-			min-width: 70px;
-			color: var(--accent-gold-light);
-			font-weight: 600;
-		}
-
-		.social-list {
-			margin: 0;
-			padding: 0;
-			list-style: none;
-			display: grid;
-			gap: 10px;
-			font-size: 0.9rem;
-		}
-
-		.social-item {
-			display: flex;
-			align-items: center;
-			gap: 12px;
-			color: rgba(255, 255, 255, 0.8);
-			transition: var(--transition);
-			padding: 4px 0;
-		}
-
-		.social-item:hover {
-			color: #ffffff;
-		}
+		.social-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
+		.social-item { display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.8); transition: var(--transition); padding: 4px 0; }
+		.social-item:hover { color: #ffffff; }
 
 		.social-dot {
 			width: 32px;
@@ -1666,11 +1482,7 @@
 			color: var(--accent-gold-light);
 			transition: var(--transition);
 		}
-
-		.social-item:hover .social-dot {
-			background: rgba(212, 160, 23, 0.3);
-			transform: scale(1.1);
-		}
+		.social-item:hover .social-dot { background: rgba(212, 160, 23, 0.3); transform: scale(1.1); }
 
 		.footer-bottom {
 			border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -1686,261 +1498,72 @@
 		   RESPONSIVE
 		   ═══════════════════════════════════════════ */
 		@media (max-width: 980px) {
-			.about-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.embed-grid,
-			.ig-grid {
-				grid-template-columns: repeat(2, minmax(0, 1fr));
-			}
-
-			.right-tools {
-				width: 100%;
-				justify-content: flex-end;
-			}
-
-			.nav-row {
-				flex-wrap: wrap;
-			}
-
-			.footer-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.slide {
-				padding: 40px;
-				min-height: 400px;
-			}
-
-			.schedule-scroll {
-				margin: 0 -12px;
-				padding: 0 12px 6px;
-			}
-
-			.schedule-table {
-				min-width: 760px;
-				width: max-content;
-			}
-            .cards-scroll-track .card {
+			.about-grid { grid-template-columns: 1fr; }
+			.embed-grid { grid-template-columns: 1fr; }
+			.right-tools { width: 100%; justify-content: flex-end; }
+			.nav-row { flex-wrap: wrap; }
+			.footer-grid { grid-template-columns: 1fr; }
+			.slide { padding: 40px; min-height: 400px; }
+			.schedule-scroll { margin: 0 -12px; padding: 0 12px 6px; }
+			.schedule-table { min-width: 760px; width: max-content; }
+			
+            .cards-scroll-track .card,
+			.instagram-card {
 				flex: 0 0 calc(50% - 10px);
 			}
 		}
 
 		@media (max-width: 760px) {
-			.top-header .container {
-				grid-template-columns: auto 1fr;
-				align-items: center;
-				gap: 10px;
-				padding: 10px 0;
-				text-align: left;
-			}
-
-			.logo-box {
-				width: 52px;
-				height: 52px;
-				padding: 3px;
-				margin: 0;
-			}
-
-			.brand h1 {
-				font-size: clamp(1.02rem, 5vw, 1.35rem);
-				line-height: 1.2;
-				letter-spacing: 0.4px;
-			}
-
-			.brand p {
-				margin-top: 3px;
-				font-size: 0.76rem;
-				line-height: 1.35;
-			}
-
-			.menu-toggle {
-				display: inline-block;
-			}
-
-			nav {
-				width: 100%;
-				display: none;
-			}
-
-			nav.open {
-				display: block;
-				animation: fadeSlideDown 0.3s ease;
-			}
-
-			@keyframes fadeSlideDown {
-				from { opacity: 0; transform: translateY(-8px); }
-				to { opacity: 1; transform: translateY(0); }
-			}
-
-			nav ul {
-				flex-direction: column;
-				align-items: stretch;
-			}
-
-			nav li {
-				width: 100%;
-			}
-
-			nav a {
-				display: block;
-				border: 1px solid var(--line);
-				border-bottom-width: 3px;
-				border-radius: var(--radius-sm);
-				text-align: center;
-			}
-
-			.nav-dropdown-enhanced {
-				position: static;
-			}
-
-			.nav-dropdown-enhanced .profile-hover-menu {
-				position: static !important;
-				top: auto !important;
-				left: auto !important;
-				min-width: 0 !important;
-				width: 100%;
-				margin-top: 6px;
-				border: 1px solid var(--line) !important;
-				box-shadow: none !important;
-				padding: 6px !important;
-				border-radius: var(--radius-sm) !important;
-				background: var(--bg) !important;
-				display: none !important;
-			}
-
-			.nav-dropdown-enhanced.open .profile-hover-menu {
-				display: block !important;
-			}
-
-			.nav-dropdown-enhanced .profile-hover-menu a {
-				display: block;
-				text-align: center;
-				border: 1px solid var(--line) !important;
-				border-radius: var(--radius-sm) !important;
-				background: var(--surface) !important;
-				margin-bottom: 4px !important;
-				color: var(--ink-secondary) !important;
-			}
-
-			.nav-dropdown-enhanced .profile-hover-menu a:last-child {
-				margin-bottom: 0 !important;
-			}
-
-			.right-tools {
-				width: 100%;
-				justify-content: stretch;
-				flex-wrap: wrap;
-			}
-
-			.search {
-				flex: 1 1 220px;
-			}
-
-			.search input {
-				width: 100%;
-			}
-
-			.btn-login {
-				flex: 1 1 auto;
-				justify-content: center;
-			}
-
-			.section-title {
-				flex-direction: column;
-				align-items: flex-start;
-			}
-
-			.section {
-				padding: 20px 18px;
-				margin-top: 20px;
-				border-radius: var(--radius-md);
-			}
-
-			.carousel-btn {
-				width: 36px;
-				height: 36px;
-				font-size: 1rem;
-			}
-
+			.top-header .container { grid-template-columns: auto 1fr; align-items: center; gap: 10px; padding: 10px 0; text-align: left; }
+			.logo-box { width: 52px; height: 52px; padding: 3px; margin: 0; }
+			.brand h1 { font-size: clamp(1.02rem, 5vw, 1.35rem); line-height: 1.2; letter-spacing: 0.4px; }
+			.brand p { margin-top: 3px; font-size: 0.76rem; line-height: 1.35; }
+			.menu-toggle { display: inline-block; }
+			nav { width: 100%; display: none; }
+			nav.open { display: block; animation: fadeSlideDown 0.3s ease; }
+			@keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+			nav ul { flex-direction: column; align-items: stretch; }
+			nav li { width: 100%; }
+			nav a { display: block; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: var(--radius-sm); text-align: center; }
+			.nav-dropdown-enhanced { position: static; }
+			.nav-dropdown-enhanced .profile-hover-menu { position: static !important; top: auto !important; left: auto !important; min-width: 0 !important; width: 100%; margin-top: 6px; border: 1px solid var(--line) !important; box-shadow: none !important; padding: 6px !important; border-radius: var(--radius-sm) !important; background: var(--bg) !important; display: none !important; }
+			.nav-dropdown-enhanced.open .profile-hover-menu { display: block !important; }
+			.nav-dropdown-enhanced .profile-hover-menu a { display: block; text-align: center; border: 1px solid var(--line) !important; border-radius: var(--radius-sm) !important; background: var(--surface) !important; margin-bottom: 4px !important; color: var(--ink-secondary) !important; }
+			.nav-dropdown-enhanced .profile-hover-menu a:last-child { margin-bottom: 0 !important; }
+			.right-tools { width: 100%; justify-content: stretch; flex-wrap: wrap; }
+			.search { flex: 1 1 220px; }
+			.search input { width: 100%; }
+			.btn-login { flex: 1 1 auto; justify-content: center; }
+			.section-title { flex-direction: column; align-items: flex-start; }
+			.section { padding: 20px 18px; margin-top: 20px; border-radius: var(--radius-md); }
+			.carousel-btn { width: 36px; height: 36px; font-size: 1rem; }
 			.carousel-btn.prev { left: 10px; }
 			.carousel-btn.next { right: 10px; }
-
-			.slide {
-				padding: 30px 24px;
-				min-height: 340px;
-			}
-
-			.embed-grid,
-			.ig-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.schedule-scroll {
-				margin: 0 -18px;
-				padding: 0 18px 6px;
-			}
-
-			.schedule-table {
-				min-width: 760px;
-				width: max-content;
-			}
-            
-            .cards-scroll-track .card {
+			.slide { padding: 30px 24px; min-height: 340px; }
+			.embed-grid { grid-template-columns: 1fr; }
+			.schedule-scroll { margin: 0 -18px; padding: 0 18px 6px; }
+			.schedule-table { min-width: 760px; width: max-content; }
+            .scroll-btn { display: none; }
+            .cards-scroll-track .card,
+			.instagram-card {
 				flex: 0 0 85%;
 			}
 		}
 
 		@media (max-width: 520px) {
-			.top-header .container {
-				padding: 8px 0;
-			}
-
-			.logo-box {
-				width: 46px;
-				height: 46px;
-			}
-
-			.brand h1 {
-				font-size: 0.96rem;
-			}
-
-			.brand p {
-				font-size: 0.72rem;
-			}
-
-			.scroll-top-btn {
-				right: 14px;
-				bottom: 14px;
-				width: 50px;
-				height: 50px;
-			}
-
-			.scroll-top-btn svg {
-				width: 21px;
-				height: 21px;
-			}
+			.top-header .container { padding: 8px 0; }
+			.logo-box { width: 46px; height: 46px; }
+			.brand h1 { font-size: 0.96rem; }
+			.brand p { font-size: 0.72rem; }
+			.scroll-top-btn { right: 14px; bottom: 14px; width: 50px; height: 50px; }
+			.scroll-top-btn svg { width: 21px; height: 21px; }
 		}
 
 		/* ═══════════════════════════════════════════
 		   ANIMATIONS
 		   ═══════════════════════════════════════════ */
-		@keyframes fadeInUp {
-			from {
-				opacity: 0;
-				transform: translateY(20px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
-
-		.section {
-			animation: fadeInUp 0.6s ease both;
-		}
-
+		@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+		.section { animation: fadeInUp 0.6s ease both; }
 		.section:nth-child(1) { animation-delay: 0.1s; }
 		.section:nth-child(2) { animation-delay: 0.15s; }
 		.section:nth-child(3) { animation-delay: 0.2s; }
@@ -1949,134 +1572,28 @@
 		.section:nth-child(6) { animation-delay: 0.35s; }
 		.section:nth-child(7) { animation-delay: 0.4s; }
 
-		/* Smooth hover glow for buttons */
 		.btn-primary::after,
 		.btn-ghost::after,
-		.btn-login::after {
-			content: "";
-			position: absolute;
-			inset: -1px;
-			border-radius: inherit;
-			opacity: 0;
-			transition: opacity 0.3s;
-			pointer-events: none;
-		}
-
-		/* Card image hover zoom */
-		.card .thumb {
-			overflow: hidden;
-		}
-
-		.card:hover .thumb .frame-img {
-			transform: scale(1.05);
-		}
+		.btn-login::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+		.card .thumb { overflow: hidden; }
+		.card:hover .thumb .frame-img { transform: scale(1.05); }
 	
 		/* ═══════════════════════════════════════════
 		   USER DROPDOWN
 		   ═══════════════════════════════════════════ */
-		.user-dropdown {
-			position: relative;
-			display: inline-block;
-		}
-
-		.user-dropdown-btn {
-			display: inline-flex;
-			align-items: center;
-			gap: 8px;
-			background: var(--surface);
-			border: 1.5px solid var(--line);
-			padding: 6px 14px;
-			border-radius: 999px;
-			cursor: pointer;
-			font-size: 0.88rem;
-			font-family: inherit;
-			font-weight: 600;
-			color: var(--ink);
-			transition: var(--transition);
-		}
-
-		.user-dropdown-btn:hover {
-			border-color: var(--primary);
-			box-shadow: var(--shadow-sm);
-		}
-
-		.user-dropdown-btn .avatar {
-			width: 28px;
-			height: 28px;
-			border-radius: 50%;
-			background: var(--primary-light);
-			color: #fff;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 0.8rem;
-			font-weight: 700;
-		}
-
-		.user-dropdown-menu {
-			position: absolute;
-			top: calc(100% + 8px);
-			right: 0;
-			background: var(--surface);
-			border: 1px solid var(--line);
-			border-radius: var(--radius-md);
-			box-shadow: var(--shadow-md);
-			min-width: 220px;
-			opacity: 0;
-			visibility: hidden;
-			transform: translateY(-10px);
-			transition: var(--transition);
-			z-index: 1200;
-			overflow: hidden;
-		}
-
+		.user-dropdown { position: relative; display: inline-block; }
+		.user-dropdown-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--line); padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 0.88rem; font-family: inherit; font-weight: 600; color: var(--ink); transition: var(--transition); }
+		.user-dropdown-btn:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+		.user-dropdown-btn .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+		.user-dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-md); min-width: 220px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: var(--transition); z-index: 1200; overflow: hidden; }
 		.user-dropdown:hover .user-dropdown-menu,
-		.user-dropdown:focus-within .user-dropdown-menu {
-			opacity: 1;
-			visibility: visible;
-			transform: translateY(0);
-		}
-
-		.user-dropdown-header {
-			padding: 12px 16px;
-			background: var(--bg-warm);
-			border-bottom: 1px solid var(--line-soft);
-		}
-
-		.user-dropdown-header p {
-			margin: 0;
-			font-size: 0.9rem;
-			font-weight: 700;
-			color: var(--primary);
-		}
-
-		.user-dropdown-header span {
-			display: block;
-			font-size: 0.75rem;
-			color: var(--muted);
-			margin-top: 2px;
-		}
-
-		.user-dropdown-links {
-			display: flex;
-			flex-direction: column;
-			padding: 8px 0;
-		}
-
-		.user-dropdown-links a {
-			padding: 10px 16px;
-			font-size: 0.88rem;
-			color: var(--ink-secondary);
-			display: flex;
-			align-items: center;
-			gap: 10px;
-			transition: var(--transition);
-		}
-
-		.user-dropdown-links a:hover {
-			background: var(--hover);
-			color: var(--primary);
-		}
+		.user-dropdown:focus-within .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+		.user-dropdown-header { padding: 12px 16px; background: var(--bg-warm); border-bottom: 1px solid var(--line-soft); }
+		.user-dropdown-header p { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--primary); }
+		.user-dropdown-header span { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+		.user-dropdown-links { display: flex; flex-direction: column; padding: 8px 0; }
+		.user-dropdown-links a { padding: 10px 16px; font-size: 0.88rem; color: var(--ink-secondary); display: flex; align-items: center; gap: 10px; transition: var(--transition); }
+		.user-dropdown-links a:hover { background: var(--hover); color: var(--primary); }
 	</style>
 </head>
 <body>
@@ -2170,16 +1687,13 @@
 			</div>
 		</section>
 
-		
 		<section class="section" aria-label="Embed YouTube dan lokasi">
 			<div class="section-title">
 				<h3>YouTube & Google Maps</h3>
-				<!-- <span class="dynamic-note">Kedua link embed bisa diganti manual melalui panel admin.</span> -->
 			</div>
 			<div class="embed-grid">
 				<article class="embed-card">
 					<h4>Embed YouTube</h4>
-					<!-- YouTube disulap menjadi Carousel seperti Profil -->
 					<div class="about-media-carousel" style="min-height: 280px;">
 						<button id="ytMediaPrev" class="about-media-btn prev" type="button" aria-label="Video sebelumnya" style="left:-15px;">&#8249;</button>
 						<div id="ytStage" class="about-media-stage empty" style="min-height:280px; width:100%; position:relative; padding:0;">Belum ada video.</div>
@@ -2200,10 +1714,10 @@
 			<div class="section-title">
 				<h3>Instagram</h3>
 			</div>
-			<div class="instagram-carousel-shell" id="instagramCarouselShell">
-				<button type="button" class="instagram-scroll-btn prev" id="instagramPrevBtn" aria-label="Geser Instagram ke kiri">&lsaquo;</button>
-				<button type="button" class="instagram-scroll-btn next" id="instagramNextBtn" aria-label="Geser Instagram ke kanan">&rsaquo;</button>
-				<div class="instagram-carousel-track" id="instagramCarouselTrack"></div>
+			<div class="scroll-carousel-shell">
+				<button type="button" class="scroll-btn prev" aria-label="Geser kiri">&lsaquo;</button>
+				<div class="cards-scroll-track" id="instagramCarouselTrack"></div>
+				<button type="button" class="scroll-btn next" aria-label="Geser kanan">&rsaquo;</button>
 			</div>
 			<div id="instagramEmptyState" class="instagram-empty-state embed-note" hidden>
 				Belum ada post Instagram aktif. Admin dapat menambahkan konten dari panel kelola.
@@ -2333,8 +1847,12 @@
 				<h3>Agenda</h3>
 				<a class="btn-ghost" href="/agenda">Lihat Semua →</a>
 			</div>
-			<div class="cards-scroll-track" id="homeAgendaGrid">
-				<!-- Dipopulasi oleh JS -->
+			<div class="scroll-carousel-shell">
+				<button type="button" class="scroll-btn prev" aria-label="Geser kiri">&lsaquo;</button>
+				<div class="cards-scroll-track" id="homeAgendaGrid">
+					<!-- Dipopulasi oleh JS -->
+				</div>
+				<button type="button" class="scroll-btn next" aria-label="Geser kanan">&rsaquo;</button>
 			</div>
 		</section>
 
@@ -2343,8 +1861,12 @@
 				<h3>Pengumuman / Informasi / Berita</h3>
 				<a class="btn-ghost" href="/pengumuman">Lihat Semua →</a>
 			</div>
-			<div class="cards-scroll-track" id="homeNewsGrid">
-				<!-- Dipopulasi oleh JS -->
+			<div class="scroll-carousel-shell">
+				<button type="button" class="scroll-btn prev" aria-label="Geser kiri">&lsaquo;</button>
+				<div class="cards-scroll-track" id="homeNewsGrid">
+					<!-- Dipopulasi oleh JS -->
+				</div>
+				<button type="button" class="scroll-btn next" aria-label="Geser kanan">&rsaquo;</button>
 			</div>
 		</section>
 
@@ -2353,8 +1875,12 @@
 				<h3>Form Pendaftaran</h3>
 				<a class="btn-ghost" href="/form-pendaftaran">Lihat Semua →</a>
 			</div>
-			<div class="cards-scroll-track" id="homeFormsGrid">
-				<!-- Dipopulasi oleh JS -->
+			<div class="scroll-carousel-shell">
+				<button type="button" class="scroll-btn prev" aria-label="Geser kiri">&lsaquo;</button>
+				<div class="cards-scroll-track" id="homeFormsGrid">
+					<!-- Dipopulasi oleh JS -->
+				</div>
+				<button type="button" class="scroll-btn next" aria-label="Geser kanan">&rsaquo;</button>
 			</div>
 		</section>
 	</main>
@@ -2420,10 +1946,7 @@
 		const aboutMediaDots = document.getElementById("aboutMediaDots");
 		const aboutMediaPrev = document.getElementById("aboutMediaPrev");
 		const aboutMediaNext = document.getElementById("aboutMediaNext");
-		const instagramCarouselShell = document.getElementById("instagramCarouselShell");
 		const instagramCarouselTrack = document.getElementById("instagramCarouselTrack");
-		const instagramPrevBtn = document.getElementById("instagramPrevBtn");
-		const instagramNextBtn = document.getElementById("instagramNextBtn");
 		const instagramEmptyState = document.getElementById("instagramEmptyState");
 		const homeMisaBesarNote = document.getElementById("homeMisaBesarNote");
 		const scrollTopBtn = document.getElementById("scrollTopBtn");
@@ -2434,12 +1957,7 @@
 		const ytMediaNext = document.getElementById("ytMediaNext");
 		const ytMediaDots = document.getElementById("ytMediaDots");
 
-		const CAROUSEL_STORAGE_KEY = "crembo-home-carousel-slides";
-		const ABOUT_STORAGE_KEY = "crembo-home-about-content";
-		const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
-		
 		const HOME_DATA = window.CREMBO_HOME_DATA || {};
-		const INSTAGRAM_AUTO_SECONDS = Number(HOME_DATA.instagramAutoSeconds || 4);
 
 		const DEFAULT_CAROUSEL_SLIDES = [
 			{
@@ -2493,9 +2011,6 @@
 		let aboutAutoSeconds = 5;
 		let ytVideos = HOME_DATA.youtubeVideos || [];
 		let ytCurrentIndex = 0;
-		let instagramCarouselPaused = false;
-		let instagramAutoTimer = null;
-		let instagramAutoLastTime = null;
 
 		
 		function syncStickyOffset() {
@@ -2578,6 +2093,13 @@
             const div = document.createElement("div");
             div.innerHTML = html;
             return div.textContent || div.innerText || "";
+        }
+
+        function formatDate(value) {
+            if (!value) return "-";
+            const parsed = new Date(String(value).slice(0, 10) + "T00:00:00");
+            if (Number.isNaN(parsed.getTime())) return String(value);
+            return parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
         }
 
 		function readBigMassSchedules() {
@@ -2720,71 +2242,6 @@
 				});
 		}
 
-		function clearInstagramAutoScroll() {
-			if (instagramAutoTimer) {
-				window.cancelAnimationFrame(instagramAutoTimer);
-				instagramAutoTimer = null;
-			}
-			instagramAutoLastTime = null;
-		}
-
-		function getInstagramLoopWidth() {
-			if (!instagramCarouselTrack) return 0;
-			return instagramCarouselTrack.scrollWidth / 2;
-		}
-
-		function normalizeInstagramLoop() {
-			if (!instagramCarouselTrack) return;
-
-			const loopWidth = getInstagramLoopWidth();
-			if (loopWidth <= 0) return;
-
-			if (instagramCarouselTrack.scrollLeft >= loopWidth) {
-				instagramCarouselTrack.scrollLeft -= loopWidth;
-			} else if (instagramCarouselTrack.scrollLeft < 0) {
-				instagramCarouselTrack.scrollLeft += loopWidth;
-			}
-		}
-
-		function animateInstagramCarousel(ts) {
-			if (instagramAutoLastTime === null) {
-				instagramAutoLastTime = ts;
-			}
-
-			const dt = (ts - instagramAutoLastTime) / 1000;
-			instagramAutoLastTime = ts;
-
-			if (!instagramCarouselPaused && instagramCarouselTrack) {
-				instagramCarouselTrack.scrollLeft += 28 * dt;
-				normalizeInstagramLoop();
-			}
-
-			instagramAutoTimer = window.requestAnimationFrame(animateInstagramCarousel);
-		}
-
-		function startInstagramAutoScroll() {
-			clearInstagramAutoScroll();
-			if (!instagramCarouselTrack || instagramCarouselTrack.children.length <= 1) {
-				return;
-			}
-			instagramAutoTimer = window.requestAnimationFrame(animateInstagramCarousel);
-		}
-
-		function shiftInstagram(direction) {
-			if (!instagramCarouselTrack) return;
-			const firstItem = instagramCarouselTrack.querySelector('.instagram-item');
-			if (!firstItem) return;
-
-			instagramCarouselPaused = true;
-			const gap = 18;
-			const step = firstItem.offsetWidth + gap;
-			instagramCarouselTrack.scrollBy({ left: direction * step, behavior: 'smooth' });
-			window.setTimeout(function () {
-				normalizeInstagramLoop();
-				instagramCarouselPaused = false;
-			}, 450);
-		}
-
 		function renderInstagramSection() {
 			if (!instagramCarouselTrack) return;
 
@@ -2792,55 +2249,37 @@
 			instagramCarouselTrack.innerHTML = "";
 
 			if (!posts.length) {
-				instagramCarouselShell.classList.add("empty");
 				if (instagramEmptyState) {
 					instagramEmptyState.hidden = false;
 					instagramEmptyState.style.display = "block"; 
 				}
-				if (instagramPrevBtn) instagramPrevBtn.hidden = true;
-				if (instagramNextBtn) instagramNextBtn.hidden = true;
 				return;
 			}
 
-			instagramCarouselShell.classList.remove("empty");
 			if (instagramEmptyState) {
 				instagramEmptyState.hidden = true;
 				instagramEmptyState.style.display = "none"; 
 			}
-			
-			if (instagramPrevBtn) instagramPrevBtn.hidden = posts.length <= 3;
-			if (instagramNextBtn) instagramNextBtn.hidden = posts.length <= 3;
 
 			posts.forEach(function (item, idx) {
 				const article = document.createElement("article");
-				article.className = "instagram-item";
+				article.className = "instagram-card";
 				
 				const cardId = "ig-card-" + idx;
 				
 				article.innerHTML =
-					'<div class="instagram-card" id="' + cardId + '">' +
-						'<div class="instagram-card-head">' +
-							'<span class="ig-title">' + escapeHtml(item.title || "Instagram Post") + '</span>' +
-							'<span class="instagram-badge">Aktif</span>' +
-						'</div>' +
-						'<div class="ig-embed-wrapper">' +
-							'<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="' + escapeHtml(item.permalink || item.url) + '" data-instgrm-version="14" style="margin:0 auto; width:100%; min-width:100%;"></blockquote>' +
-						'</div>' +
-						'<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="ig-read-more-btn" title="Buka di Instagram">' +
-							'<span class="ig-icon">📷</span> Lihat di Instagram' +
-						'</a>' +
-					'</div>';
+					'<div class="instagram-card-head">' +
+						'<span class="ig-title">' + escapeHtml(item.title || "Instagram Post") + '</span>' +
+						'<span class="instagram-badge">Aktif</span>' +
+					'</div>' +
+					'<div class="ig-embed-wrapper">' +
+						'<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="' + escapeHtml(item.permalink || item.url) + '" data-instgrm-version="14"></blockquote>' +
+					'</div>' +
+					'<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="ig-read-more-btn" title="Buka di Instagram">' +
+						'<span class="ig-icon">📷</span> Lihat di Instagram' +
+					'</a>';
 				instagramCarouselTrack.appendChild(article);
 			});
-
-			if (posts.length > 3) {
-				const originalItems = Array.prototype.slice.call(instagramCarouselTrack.children);
-				originalItems.forEach(function (item) {
-					const clone = item.cloneNode(true);
-					clone.classList.add("ig-clone");
-					instagramCarouselTrack.appendChild(clone);
-				});
-			}
 
 			if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === "function") {
 				window.instgrm.Embeds.process();
@@ -2851,9 +2290,6 @@
                     }
                 }, 1500);
             }
-
-			instagramCarouselPaused = false;
-			startInstagramAutoScroll();
 		}
 
 		function buildAboutDots() {
@@ -3147,7 +2583,7 @@
                 }
                 grid.innerHTML = items.map((item) => {
                     const rawDate = item.publishedAt || item.createdAt;
-                    const dateLabel = rawDate ? new Date(rawDate).toLocaleDateString("id-ID", {day:"2-digit", month:"long", year:"numeric"}) : "";
+                    const dateLabel = formatDate(rawDate);
                     const thumbUrl = item.thumbnails && item.thumbnails[0] ? item.thumbnails[0].url : "";
                     const bgStyle = thumbUrl ? `background-image:url('${escapeHtml(thumbUrl)}');background-size:cover;background-position:center;` : `background: var(--bg-warm);`;
                     
@@ -3222,6 +2658,42 @@
         }
 
 
+        // ==========================================
+        // SCRIPT GENERIC CAROUSEL GESER
+        // ==========================================
+		function initHorizontalScrolls() {
+			document.querySelectorAll('.scroll-carousel-shell').forEach(function(shell) {
+				const track = shell.querySelector('.cards-scroll-track');
+				const prevBtn = shell.querySelector('.scroll-btn.prev');
+				const nextBtn = shell.querySelector('.scroll-btn.next');
+
+				if (prevBtn && nextBtn && track) {
+					prevBtn.addEventListener('click', function() {
+						track.scrollBy({ left: -320, behavior: 'smooth' });
+					});
+					nextBtn.addEventListener('click', function() {
+						track.scrollBy({ left: 320, behavior: 'smooth' });
+					});
+
+					const updateButtons = function() {
+						prevBtn.classList.toggle('disabled', track.scrollLeft <= 5);
+						const maxScroll = track.scrollWidth - track.clientWidth;
+						nextBtn.classList.toggle('disabled', track.scrollLeft >= maxScroll - 5);
+					};
+
+					track.addEventListener('scroll', updateButtons);
+					window.addEventListener('resize', updateButtons);
+					
+					// Setup initial state
+					setTimeout(updateButtons, 500);
+					
+					// Observe child additions (since we fetch dynamically)
+					const observer = new MutationObserver(updateButtons);
+					observer.observe(track, { childList: true });
+				}
+			});
+		}
+
         // INIT SEMUA FUNGSI UTAMA
 		renderCarouselSlides();
 		buildDots();
@@ -3231,6 +2703,7 @@
         loadHomeAgendas();
         loadHomeNews();
         loadHomeForms();
+		initHorizontalScrolls();
         
 		carouselTrack.addEventListener("scroll", syncActiveDot);
 		carouselPrev.addEventListener("click", function () { scrollCarousel(-1); });
@@ -3251,30 +2724,7 @@
 			showAboutImage(aboutMediaIndex + 1);
 			startAboutAutoSlide();
 		});
-		if (instagramPrevBtn) {
-			instagramPrevBtn.addEventListener("click", function () {
-				shiftInstagram(-1);
-			});
-		}
-		if (instagramNextBtn) {
-			instagramNextBtn.addEventListener("click", function () {
-				shiftInstagram(1);
-			});
-		}
-		if (instagramCarouselShell) {
-			instagramCarouselShell.addEventListener("mouseenter", function () {
-				instagramCarouselPaused = true;
-			});
-			instagramCarouselShell.addEventListener("mouseleave", function () {
-				instagramCarouselPaused = false;
-			});
-			instagramCarouselShell.addEventListener("touchstart", function () {
-				instagramCarouselPaused = true;
-			}, { passive: true });
-			instagramCarouselShell.addEventListener("touchend", function () {
-				instagramCarouselPaused = false;
-			}, { passive: true });
-		}
+		
 		startAutoScroll();
 		updateScrollTopVisibility();
 
