@@ -50,7 +50,7 @@
 		.btn-login:hover { background: var(--primary); color: #fff; }
 
 		.hero { min-height: 240px; display: grid; place-items: center; text-align: center; padding: 60px 20px; position: relative; overflow: hidden; isolation: isolate; background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%); }
-		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
+		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("/IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
 		.hero h2 { margin: 0; font-size: clamp(1.8rem, 4.5vw, 2.8rem); font-weight: 800; color: #fff; text-transform: uppercase; text-shadow: 0 4px 16px rgba(0,0,0,0.4); }
 		.hero p { margin: 10px 0 0; color: rgba(255,255,255,0.8); font-size: 0.95rem; }
 		.breadcrumb-wrap { background: var(--surface); border-bottom: 1px solid var(--line-soft); }
@@ -146,6 +146,10 @@
 		.annc-date { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
 		.btn-read { border: 1.5px solid var(--primary); background: transparent; color: var(--primary); padding: 6px 16px; font-size: 0.8rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; transition: var(--transition); }
 		.btn-read:hover { background: var(--primary); color: #fff; }
+
+		/* EMPTY STATE */
+		.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); background: var(--surface); border-radius: var(--radius-lg); border: 2px dashed var(--line); }
+		.empty-state p { margin: 8px 0 0; font-size: 0.92rem; }
 
 		/* PAGINATION */
 		.pagination-wrap { display: flex; justify-content: center; gap: 8px; margin-top: 28px; flex-wrap: wrap; }
@@ -324,8 +328,8 @@
 <body>
 	<header class="top-header" id="topHeader">
 		<div class="container">
-			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
-				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			<a href="/home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 			</a>
 			<div class="brand">
 				<h1>Crew Multimedia Baciro</h1>
@@ -339,12 +343,12 @@
 			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
 			<nav id="mainNav" aria-label="Navigasi utama">
 				<ul>
-					<li><a href="home.html">Home</a></li>
-					<li><a href="profil.html">Profil</a></li>
-					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a href="agenda.html">Agenda</a></li>
-					<li><a class="active" href="pengumuman.html">Pengumuman</a></li>
-					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a href="/home.html">Home</a></li>
+					<li><a href="/profil.html">Profil</a></li>
+					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="/agenda">Agenda</a></li>
+					<li><a class="active" href="/pengumuman">Pengumuman</a></li>
+					<li><a href="/form-pendaftaran">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -365,14 +369,14 @@
 							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
 						</div>
 						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
+							<a href="/dashboard.html">Dashboard</a>
 							<a href="/profil">Pengaturan Profil</a>
 							<a href="/logout" style="color: var(--accent);">Keluar</a>
 						</div>
 					</div>
 				</div>
 				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
+				<a class="btn-login" href="/login.html">Login</a>
 				{% endif %}
 			</div>
 		</div>
@@ -388,7 +392,7 @@
 	<div class="breadcrumb-wrap">
 		<div class="container">
 			<ol class="breadcrumb" aria-label="Breadcrumb">
-				<li><a href="home.html">Beranda</a></li>
+				<li><a href="/home.html">Beranda</a></li>
 				<li aria-current="page">Pengumuman</li>
 			</ol>
 		</div>
@@ -401,11 +405,7 @@
 				<h4>Kategori</h4>
 				<ul class="cat-list" id="categoryList">
 					<li><button class="cat-btn active" type="button" data-cat="">Semua Kategori</button></li>
-					<li><button class="cat-btn" type="button" data-cat="Umum">Umum</button></li>
-					<li><button class="cat-btn" type="button" data-cat="Informasi">Informasi</button></li>
-					<li><button class="cat-btn" type="button" data-cat="Kegiatan">Kegiatan</button></li>
-					<li><button class="cat-btn" type="button" data-cat="Internal">Internal</button></li>
-					<li><button class="cat-btn" type="button" data-cat="Multimedia">Multimedia</button></li>
+					<!-- Dipopulasi oleh JS -->
 				</ul>
 			</aside>
 
@@ -423,87 +423,11 @@
 
 				<!-- Announcement list -->
 				<div class="annc-list" id="anncList">
-					<article class="annc-card">
-						<div class="annc-thumb"><span class="thumb-text">Foto</span></div>
-						<div class="annc-body">
-							<div class="annc-tags">
-								<span class="annc-tag tag-kegiatan">Kegiatan</span>
-								<span class="annc-tag tag-info">Informasi</span>
-							</div>
-							<h4>Mahasiswa Informatika UAJY Unjuk Kreativitas Melalui Pameran Hasil Karya UAS</h4>
-							<p>Program Studi Sarjana Informatika UAJY menyelenggarakan pameran karya tugas akhir semester sebagai bentuk apresiasi dan dokumentasi publik.</p>
-							<div class="annc-footer">
-								<span class="annc-date">Super Admin &bull; 19 Februari 2026</span>
-								<a class="btn-read" href="pengumuman-detail.html">Baca Selengkapnya</a>
-							</div>
-						</div>
-					</article>
-
-					<article class="annc-card">
-						<div class="annc-thumb" style="background: linear-gradient(135deg, #1a2a3a 0%, #2d4a6a 50%, #4a6a9a 100%);"><span class="thumb-text">Foto</span></div>
-						<div class="annc-body">
-							<div class="annc-tags">
-								<span class="annc-tag tag-umum">Umum</span>
-							</div>
-							<h4>Jadwal Misa Perayaan Paskah 2026 — Paroki Kristus Raja Baciro</h4>
-							<p>Informasi lengkap jadwal misa Paskah meliputi Misa Malam Paskah, Misa Pagi, dan rangkaian ibadat Pekan Suci beserta pembagian tugas petugas.</p>
-							<div class="annc-footer">
-								<span class="annc-date">Admin &bull; 15 Maret 2026</span>
-								<a class="btn-read" href="pengumuman-detail.html">Baca Selengkapnya</a>
-							</div>
-						</div>
-					</article>
-
-					<article class="annc-card" style="border-left-color: var(--accent-gold);">
-						<div class="annc-thumb" style="background: linear-gradient(135deg, #3a2a00 0%, #6a5000 50%, #9a7000 100%);"><span class="thumb-text">Foto</span></div>
-						<div class="annc-body">
-							<div class="annc-tags">
-								<span class="annc-tag tag-internal">Internal</span>
-							</div>
-							<h4>Perubahan Jadwal Latihan Rutin Tim Kameramen — Bulan April 2026</h4>
-							<p>Pengumuman perubahan jadwal latihan rutin untuk tim kameramen akibat berbenturan dengan rangkaian kegiatan Pekan Suci.</p>
-							<div class="annc-footer">
-								<span class="annc-date">Koordinator &bull; 10 Maret 2026</span>
-								<a class="btn-read" href="pengumuman-detail.html">Baca Selengkapnya</a>
-							</div>
-						</div>
-					</article>
-
-					<article class="annc-card">
-						<div class="annc-thumb" style="background: linear-gradient(135deg, #1a3a1a 0%, #2d6a2d 50%, #4a8a4a 100%);"><span class="thumb-text">Foto</span></div>
-						<div class="annc-body">
-							<div class="annc-tags">
-								<span class="annc-tag tag-info">Informasi</span>
-							</div>
-							<h4>Rekap Pelayanan Multimedia Bulan Maret 2026</h4>
-							<p>Ringkasan statistik streaming, jumlah kamera aktif, dan catatan teknis pelayanan multimedia selama bulan Maret 2026.</p>
-							<div class="annc-footer">
-								<span class="annc-date">Admin &bull; 02 April 2026</span>
-								<a class="btn-read" href="pengumuman-detail.html">Baca Selengkapnya</a>
-							</div>
-						</div>
-					</article>
-
-					<article class="annc-card">
-						<div class="annc-thumb" style="background: linear-gradient(135deg, #2a001a 0%, #5a003a 50%, #8a005a 100%);"><span class="thumb-text">Foto</span></div>
-						<div class="annc-body">
-							<div class="annc-tags">
-								<span class="annc-tag tag-kegiatan">Kegiatan</span>
-							</div>
-							<h4>Open Recruitment Anggota Baru Crembo Media 2026</h4>
-							<p>Crembo Media membuka kesempatan bergabung untuk umat Paroki Kristus Raja Baciro yang berminat melayani di bidang multimedia.</p>
-							<div class="annc-footer">
-								<span class="annc-date">Admin &bull; 01 April 2026</span>
-								<a class="btn-read" href="pengumuman-detail.html">Baca Selengkapnya</a>
-							</div>
-						</div>
-					</article>
+					<!-- Dipopulasi oleh JS -->
 				</div>
 
 				<nav class="pagination-wrap" aria-label="Navigasi halaman pengumuman">
-					<button class="active" type="button">1</button>
-					<button type="button">2</button>
-					<button type="button">3</button>
+					<!-- Dipopulasi oleh JS -->
 				</nav>
 			</div>
 		</div>
@@ -514,7 +438,7 @@
 			<div class="container footer-grid">
 				<section class="footer-col" aria-label="Identitas Crembo">
 					<div class="footer-brand">
-						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 						<div>
 							<h4 class="footer-title">Crew Multimedia Baciro</h4>
 							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
@@ -587,9 +511,6 @@
 		}
 
 		function parseCategorySlug() {
-			const params = new URLSearchParams(window.location.search);
-			const querySlug = params.get("kategori");
-			if (querySlug) return querySlug;
 			const parts = window.location.pathname.split("/").filter(Boolean);
 			if (parts.length >= 3 && parts[0] === "pengumuman" && parts[1] === "kategori") return decodeURIComponent(parts[2]);
 			return "";
@@ -613,11 +534,11 @@
 
 		function getCategoryRoute(category) {
 			const slug = getCategorySlug(category);
-			return "pengumuman/kategori/" + encodeURIComponent(slug);
+			return "/pengumuman/kategori/" + encodeURIComponent(slug);
 		}
 
 		function getNewsDetailUrl(item) {
-			return item && item.id ? "pengumuman/" + encodeURIComponent(item.id) : "pengumuman-detail.html";
+			return item && item.id ? "/pengumuman/" + encodeURIComponent(item.id) : "/pengumuman";
 		}
 
 		function getThumbStyle(item, index) {
@@ -647,7 +568,7 @@
 			categoryList.querySelectorAll(".cat-btn").forEach(function(button) {
 				button.addEventListener("click", function() {
 					const slug = String(button.getAttribute("data-cat") || "");
-					const target = slug ? getCategoryRoute({ slug: slug }) : "pengumuman.html";
+					const target = slug ? getCategoryRoute({ slug: slug }) : "/pengumuman";
 					window.location.href = target;
 				});
 			});
@@ -671,7 +592,7 @@
 				const publishedDate = formatDate(item.publishedAt || item.createdAt || "");
 				return ''
 					+ '<article class="annc-card">'
-					+ '<div class="annc-thumb"' + getThumbStyle(item, index) + '><span class="thumb-text">Foto</span></div>'
+					+ '<div class="annc-thumb"' + getThumbStyle(item, index) + '>' + (item.thumbnails && item.thumbnails.length > 0 ? '' : '<span class="thumb-text">Foto</span>') + '</div>'
 					+ '<div class="annc-body">'
 					+ '<div class="annc-tags">' + tags + '</div>'
 					+ '<h4>' + escapeHtml(item.title || "Pengumuman") + '</h4>'
@@ -754,6 +675,9 @@
 				if (!newsResponse.ok) throw new Error("Gagal memuat pengumuman");
 				newsState.items = await newsResponse.json();
 				if (!Array.isArray(newsState.items)) newsState.items = [];
+				// Filter yang hanya berstatus 'published'
+				newsState.items = newsState.items.filter(i => i.status === 'published');
+				
 				const categoryPayload = categoriesResponse.ok ? await categoriesResponse.json() : [];
 				newsState.categories = Array.isArray(categoryPayload) ? categoryPayload : [];
 				newsState.selectedCategory = parseCategorySlug();
@@ -796,7 +720,7 @@
 		searchForm.addEventListener("submit", function(e) {
 			e.preventDefault();
 			const q = searchInput.value.trim();
-			window.location.href = "search.html?q=" + encodeURIComponent(q);
+			window.location.href = "/search.html?q=" + encodeURIComponent(q);
 		});
 
 		// Category filter
@@ -833,7 +757,7 @@
 			function enhanceProfileHoverMenu() {
 				const navList = document.querySelector(".nav-row nav ul");
 				if (!navList) return;
-				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				const profileAnchor = navList.querySelector('a[href="/profil.html"]');
 				if (!profileAnchor) return;
 				const profileItem = profileAnchor.closest("li");
 				if (!profileItem) return;
@@ -860,7 +784,7 @@
 					else applyDesktopDropdownStyle();
 					profileAnchor.setAttribute("aria-expanded", "false");
 				}
-				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
+				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="/profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
 				dropdown.addEventListener("mouseover", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; } });
 				dropdown.addEventListener("mouseout", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; } });
 				profileItem.appendChild(dropdown);
@@ -884,79 +808,7 @@
 			}
 			enhanceProfileHoverMenu();
 		})();
-
-		// Seed dummy announcement data to localStorage if empty
-		(function() {
-			const ANNOUNCEMENT_STORAGE_KEY = "crembo-announcements";
-			const existing = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-			if (existing) return;
-
-			const dummyAnnouncements = [
-				{
-					id: "pengumuman-1",
-					categories: ["Kegiatan", "Informasi"],
-					category: "Kegiatan",
-					date: "2026-02-19",
-					title: "Mahasiswa Informatika UAJY Unjuk Kreativitas Melalui Pameran Hasil Karya UAS",
-					content: "Program Studi Sarjana Informatika UAJY menyelenggarakan pameran karya tugas akhir semester.\n\nAcara berlangsung selama dua hari di kampus dan dihadiri oleh dosen, mahasiswa, serta tamu undangan dari industri.\n\nPameran ini menampilkan berbagai proyek inovatif di bidang pengembangan aplikasi, desain UI/UX, sistem informasi, dan kecerdasan buatan.",
-					summary: "Program Studi Sarjana Informatika UAJY menyelenggarakan pameran karya tugas akhir semester sebagai bentuk apresiasi dan dokumentasi publik.",
-					attachments: [],
-					author: "Super Admin",
-					status: "published"
-				},
-				{
-					id: "pengumuman-2",
-					categories: ["Umum"],
-					category: "Umum",
-					date: "2026-03-15",
-					title: "Jadwal Misa Perayaan Paskah 2026 — Paroki Kristus Raja Baciro",
-					content: "Informasi lengkap jadwal misa Paskah meliputi Misa Malam Paskah, Misa Pagi, dan rangkaian ibadat Pekan Suci.\n\nMisa Malam Paskah akan dilaksanakan pada Sabtu, 4 April 2026 pukul 20:00 WIB.\n\nSeluruh petugas diharapkan hadir 30 menit sebelum misa dimulai untuk koordinasi terakhir.",
-					summary: "Jadwal misa Paskah dan rangkaian ibadat Pekan Suci lengkap beserta pembagian tugas petugas.",
-					attachments: [],
-					author: "Admin",
-					status: "published"
-				},
-				{
-					id: "pengumuman-3",
-					categories: ["Internal"],
-					category: "Internal",
-					date: "2026-03-10",
-					title: "Perubahan Jadwal Latihan Rutin Tim Kameramen — Bulan April 2026",
-					content: "Diberitahukan kepada seluruh anggota tim kameramen bahwa jadwal latihan rutin bulan April mengalami perubahan.\n\nLatihan yang semula dijadwalkan setiap Minggu ke-2 dan ke-4 dipindahkan ke hari Sabtu minggu yang sama.\n\nPerubahan ini dilakukan untuk menghindari benturan dengan rangkaian kegiatan Pekan Suci.",
-					summary: "Perubahan jadwal latihan rutin untuk tim kameramen bulan April 2026.",
-					attachments: [],
-					author: "Koordinator",
-					status: "published"
-				},
-				{
-					id: "pengumuman-4",
-					categories: ["Informasi"],
-					category: "Informasi",
-					date: "2026-04-02",
-					title: "Rekap Pelayanan Multimedia Bulan Maret 2026",
-					content: "Rekap pelayanan multimedia Crembo Media sepanjang bulan Maret 2026 telah selesai disusun.\n\nTotal sesi streaming yang berhasil dilaksanakan: 8 sesi reguler + 2 sesi khusus hari raya.\n\nCatatan teknis dan evaluasi lengkap dapat diakses melalui panel admin oleh pengurus terkait.",
-					summary: "Ringkasan statistik streaming dan catatan teknis pelayanan multimedia bulan Maret 2026.",
-					attachments: [],
-					author: "Admin",
-					status: "published"
-				},
-				{
-					id: "pengumuman-5",
-					categories: ["Kegiatan"],
-					category: "Kegiatan",
-					date: "2026-04-01",
-					title: "Open Recruitment Anggota Baru Crembo Media 2026",
-					content: "Crembo Media membuka kesempatan bergabung bagi umat Paroki Kristus Raja Baciro yang berminat melayani di bidang multimedia.\n\nPendaftaran dibuka mulai 1 April hingga 30 April 2026 melalui tautan form pendaftaran yang tersedia.\n\nCriteria: umat aktif Paroki Baciro, bersedia meluangkan waktu untuk pelayanan rutin, memiliki minat di bidang teknologi, kamera, atau konten digital.",
-					summary: "Crembo Media membuka kesempatan bergabung untuk umat yang berminat melayani di bidang multimedia.",
-					attachments: [],
-					author: "Admin",
-					status: "published"
-				}
-			];
-
-			localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(dummyAnnouncements));
-		})();
 	</script>
-<script src="_public-nav-sync.js"></script>
+<script src="/_public-nav-sync.js"></script>
 </body>
 </html>

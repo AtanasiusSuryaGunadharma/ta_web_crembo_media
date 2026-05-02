@@ -891,7 +891,7 @@
     function formatFileSize(bytes) {
       const size = Number(bytes) || 0;
       if (size <= 0) {
-        return "0 B";
+        return " ";
       }
       const units = ["B", "KB", "MB", "GB"];
       let value = size;

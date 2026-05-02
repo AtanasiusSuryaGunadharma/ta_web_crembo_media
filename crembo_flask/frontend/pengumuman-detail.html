@@ -49,9 +49,19 @@
 		.btn-login { border: 1.5px solid var(--primary); background: transparent; color: var(--primary); padding: 8px 18px; font-size: 0.88rem; font-weight: 600; border-radius: 999px; cursor: pointer; font-family: inherit; transition: var(--transition); }
 		.btn-login:hover { background: var(--primary); color: #fff; }
 
-		/* HERO */
-		.hero { min-height: 280px; position: relative; display: grid; place-items: center; text-align: center; padding: 60px 20px; overflow: hidden; isolation: isolate; background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%); }
-		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
+		/* HERO BANNER */
+		.hero {
+			min-height: 280px;
+			position: relative;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			padding: 60px 20px;
+			overflow: hidden;
+			isolation: isolate;
+			background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 50%, var(--primary-light) 100%);
+		}
+		.hero::before { content: ""; position: absolute; inset: 0; background-image: url("/IMG_1970.JPG"); background-size: cover; background-position: center; opacity: 0.15; z-index: -1; }
 		.badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 999px; padding: 5px 16px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; backdrop-filter: blur(8px); margin-bottom: 12px; }
 		.hero h2 { margin: 0; color: #fff; font-size: clamp(1.6rem, 4vw, 2.8rem); font-weight: 800; text-shadow: 0 4px 16px rgba(0,0,0,0.4); line-height: 1.25; }
 		.hero-meta { margin-top: 10px; color: rgba(255,255,255,0.75); font-size: 0.9rem; }
@@ -314,8 +324,8 @@
 <body>
 	<header class="top-header" id="topHeader">
 		<div class="container">
-			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
-				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			<a href="/home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 			</a>
 			<div class="brand">
 				<h1>Crew Multimedia Baciro</h1>
@@ -329,12 +339,12 @@
 			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
 			<nav id="mainNav" aria-label="Navigasi utama">
 				<ul>
-					<li><a href="home.html">Home</a></li>
-					<li><a href="profil.html">Profil</a></li>
-					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a href="agenda.html">Agenda</a></li>
-					<li><a class="active" href="pengumuman.html">Pengumuman</a></li>
-					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a href="/home.html">Home</a></li>
+					<li><a href="/profil.html">Profil</a></li>
+					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="/agenda">Agenda</a></li>
+					<li><a class="active" href="/pengumuman">Pengumuman</a></li>
+					<li><a href="/form-pendaftaran">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -342,7 +352,7 @@
 					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
 					<button type="submit">Cari</button>
 				</form>
-								{% if current_user.logged_in %}
+				{% if current_user.logged_in %}
 				<div class="user-dropdown">
 					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
 						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
@@ -355,14 +365,14 @@
 							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
 						</div>
 						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
+							<a href="/dashboard.html">Dashboard</a>
 							<a href="/profil">Pengaturan Profil</a>
 							<a href="/logout" style="color: var(--accent);">Keluar</a>
 						</div>
 					</div>
 				</div>
 				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
+				<a class="btn-login" href="/login.html">Login</a>
 				{% endif %}
 			</div>
 		</div>
@@ -371,17 +381,17 @@
 	<section class="hero" aria-label="Header detail pengumuman">
 		<div>
 			<span id="heroBadge" class="badge">Pengumuman</span>
-			<h2 id="heroTitle">Mahasiswa Informatika UAJY Unjuk Kreativitas Melalui Pameran Hasil Karya UAS</h2>
-			<div id="heroMeta" class="hero-meta">Super Admin &bull; 19 Februari 2026</div>
+			<h2 id="heroTitle">Memuat Judul...</h2>
+			<div id="heroMeta" class="hero-meta">Admin &bull; Memuat Tanggal...</div>
 		</div>
 	</section>
 
 	<div class="breadcrumb-wrap">
 		<div class="container">
 			<ol class="breadcrumb" aria-label="Breadcrumb">
-				<li><a href="home.html">Beranda</a></li>
-				<li><a href="pengumuman.html">Pengumuman</a></li>
-				<li><a id="breadcrumbCategory" href="pengumuman.html">Kategori</a></li>
+				<li><a href="/home.html">Beranda</a></li>
+				<li><a href="/pengumuman">Pengumuman</a></li>
+				<li><a id="breadcrumbCategory" href="/pengumuman">Kategori</a></li>
 				<li aria-current="page">Detail</li>
 			</ol>
 		</div>
@@ -389,13 +399,14 @@
 
 	<main class="container page-content">
 		<article class="article-card" aria-label="Isi pengumuman">
-			<h3 id="articleTitle">Mahasiswa Informatika UAJY Unjuk Kreativitas Melalui Pameran Hasil Karya UAS</h3>
+			<h3 id="articleTitle">Memuat Judul...</h3>
 			<div class="article-meta">
-				<span class="tag" id="articleCatTag">Kegiatan</span>
-				<span class="auth-date" id="articleAuthDate">Super Admin &bull; 19 Februari 2026</span>
+				<span class="tag" id="articleCatTag">Kategori</span>
+				<span class="auth-date" id="articleAuthDate">Admin &bull; Memuat Tanggal...</span>
 			</div>
 
-			<div id="postHeaderPreview" class="post-header-preview">Preview Dokumentasi Header Pengumuman</div>
+			<!-- PERBAIKAN BUG GAMBAR DEFAULT TEXT -->
+			<div id="postHeaderPreview" class="post-header-preview" style="display: none;"></div>
 
 			<div id="articleBody"></div>
 
@@ -410,7 +421,8 @@
 			</section>
 
 			<div class="back-wrap">
-				<a class="btn-ghost" href="pengumuman.html">← Kembali ke Daftar Pengumuman</a>
+				<!-- PERBAIKAN BACK URL -->
+				<a class="btn-ghost" href="/pengumuman">← Kembali ke Daftar Pengumuman</a>
 			</div>
 		</article>
 	</main>
@@ -420,7 +432,7 @@
 			<div class="container footer-grid">
 				<section class="footer-col" aria-label="Identitas Crembo">
 					<div class="footer-brand">
-						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 						<div>
 							<h4 class="footer-title">Crew Multimedia Baciro</h4>
 							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
@@ -504,10 +516,8 @@
 		function renderRichText(value) {
 			const raw = String(value || "").trim();
 			if (!raw) return "<p>Isi belum tersedia.</p>";
-			if (/<[a-z][\s\S]*>/i.test(raw)) return raw;
-			return raw.split(/\n\n+/).map(function(paragraph) {
-				return "<p>" + escapeHtml(paragraph.trim()) + "</p>";
-			}).join("");
+			// Biarkan HTML tag tetap apa adanya (tidak displit paragraf) agar hasil WYSIWYG dari admin sesuai
+			return raw;
 		}
 
 		function getPrimaryCategory(item) {
@@ -517,7 +527,7 @@
 
 		function getCategoryRoute(category) {
 			const slug = String((category && (category.slug || slugify(category.name || category.id))) || "umum").toLowerCase();
-			return "pengumuman/kategori/" + encodeURIComponent(slug);
+			return "/pengumuman/kategori/" + encodeURIComponent(slug);
 		}
 
 		function getThumbnailUrl(item) {
@@ -583,10 +593,17 @@
 			articleTitle.textContent = item.title || "Pengumuman";
 			articleCatTag.textContent = primaryCategory.name || "Umum";
 			articleAuthDate.textContent = "Admin • " + publishedLabel;
-			postHeaderPreview.textContent = thumbnailUrl ? "Preview Dokumentasi Header " + (primaryCategory.name || "Pengumuman") : "Preview Dokumentasi Header Pengumuman";
-			postHeaderPreview.style.backgroundImage = thumbnailUrl ? 'url("' + escapeAttr(thumbnailUrl) + '")' : "";
-			postHeaderPreview.style.backgroundSize = thumbnailUrl ? "cover" : "";
-			postHeaderPreview.style.backgroundPosition = thumbnailUrl ? "center" : "";
+
+			// PERBAIKAN: Hanya tampilkan header jika ada image-nya
+			if(thumbnailUrl) {
+				postHeaderPreview.style.display = "grid";
+				postHeaderPreview.textContent = ""; 
+				postHeaderPreview.style.backgroundImage = 'url("' + escapeAttr(thumbnailUrl) + '")';
+				postHeaderPreview.style.backgroundSize = "cover";
+				postHeaderPreview.style.backgroundPosition = "center";
+			} else {
+				postHeaderPreview.style.display = "none";
+			}
 
 			articleBody.innerHTML = renderRichText(item.content || item.summary || "");
 			renderAttachmentSection(Array.isArray(item.attachments) ? item.attachments : []);
@@ -640,7 +657,7 @@
 		searchForm.addEventListener("submit", function(e) {
 			e.preventDefault();
 			const q = searchInput.value.trim();
-			window.location.href = "search.html?q=" + encodeURIComponent(q);
+			window.location.href = "/search.html?q=" + encodeURIComponent(q);
 		});
 
 		loadAnnouncementDetail();
@@ -663,7 +680,7 @@
 			function enhanceProfileHoverMenu() {
 				const navList = document.querySelector(".nav-row nav ul");
 				if (!navList) return;
-				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				const profileAnchor = navList.querySelector('a[href="/profil.html"]');
 				if (!profileAnchor) return;
 				const profileItem = profileAnchor.closest("li");
 				if (!profileItem) return;
@@ -690,7 +707,7 @@
 					else applyDesktopDropdownStyle();
 					profileAnchor.setAttribute("aria-expanded", "false");
 				}
-				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
+				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="/profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
 				dropdown.addEventListener("mouseover", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; } });
 				dropdown.addEventListener("mouseout", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; } });
 				profileItem.appendChild(dropdown);
@@ -715,6 +732,6 @@
 			enhanceProfileHoverMenu();
 		})();
 	</script>
-<script src="_public-nav-sync.js"></script>
+<script src="/_public-nav-sync.js"></script>
 </body>
 </html>
