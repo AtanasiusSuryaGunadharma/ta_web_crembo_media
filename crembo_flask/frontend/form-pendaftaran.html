@@ -127,7 +127,20 @@
 
 		.form-card-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
 		.form-card-body h4 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--ink); line-height: 1.4; }
-		.form-card-body p { margin: 0; font-size: 0.88rem; color: var(--ink-secondary); line-height: 1.6; flex: 1; }
+		
+		/* PERBAIKAN: Menambahkan css ellipsis / line-clamp agar text terpotong dengan rapi */
+		.form-card-body p { 
+			margin: 0; 
+			font-size: 0.88rem; 
+			color: var(--ink-secondary); 
+			line-height: 1.6; 
+			flex: 1; 
+			display: -webkit-box;
+			-webkit-line-clamp: 3;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
 
 		.form-meta { display: flex; flex-direction: column; gap: 6px; }
 		.form-meta-item { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
@@ -320,8 +333,8 @@
 <body>
 	<header class="top-header" id="topHeader">
 		<div class="container">
-			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
-				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			<a href="/home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 			</a>
 			<div class="brand">
 				<h1>Crew Multimedia Baciro</h1>
@@ -335,12 +348,12 @@
 			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
 			<nav id="mainNav" aria-label="Navigasi utama">
 				<ul>
-					<li><a href="home.html">Home</a></li>
-					<li><a href="profil.html">Profil</a></li>
-					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a href="agenda.html">Agenda</a></li>
-					<li><a href="pengumuman.html">Pengumuman</a></li>
-					<li><a class="active" href="form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a href="/home.html">Home</a></li>
+					<li><a href="/profil.html">Profil</a></li>
+					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a href="/agenda">Agenda</a></li>
+					<li><a href="/pengumuman">Pengumuman</a></li>
+					<li><a class="active" href="/form-pendaftaran">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -348,7 +361,7 @@
 					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
 					<button type="submit">Cari</button>
 				</form>
-								{% if current_user.logged_in %}
+				{% if current_user.logged_in %}
 				<div class="user-dropdown">
 					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
 						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
@@ -361,14 +374,14 @@
 							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
 						</div>
 						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
+							<a href="/dashboard.html">Dashboard</a>
 							<a href="/profil">Pengaturan Profil</a>
 							<a href="/logout" style="color: var(--accent);">Keluar</a>
 						</div>
 					</div>
 				</div>
 				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
+				<a class="btn-login" href="/login.html">Login</a>
 				{% endif %}
 			</div>
 		</div>
@@ -384,7 +397,7 @@
 	<div class="breadcrumb-wrap">
 		<div class="container">
 			<ol class="breadcrumb" aria-label="Breadcrumb">
-				<li><a href="home.html">Beranda</a></li>
+				<li><a href="/home.html">Beranda</a></li>
 				<li aria-current="page">Form Pendaftaran</li>
 			</ol>
 		</div>
@@ -406,7 +419,7 @@
 			<div class="container footer-grid">
 				<section class="footer-col" aria-label="Identitas Crembo">
 					<div class="footer-brand">
-						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 						<div>
 							<h4 class="footer-title">Crew Multimedia Baciro</h4>
 							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
@@ -538,11 +551,18 @@
 			return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 		}
 
+		function stripHtml(html) {
+			if (!html) return "";
+			const div = document.createElement("div");
+			div.innerHTML = html;
+			return div.textContent || div.innerText || "";
+		}
+
 		function renderForms() {
 			const forms = formsCache.filter(function(f) { return f.visibility !== "draft"; });
 			if (!forms.length) {
 				formSectionNote.textContent = "Belum ada form tersedia.";
-				formsGrid.innerHTML = '<div class="empty-state"><p>Belum ada form pendaftaran yang aktif.</p></div>';
+				formsGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><p>Belum ada form pendaftaran yang aktif.</p></div>';
 				return;
 			}
 			formSectionNote.textContent = forms.length + " form tersedia";
@@ -565,12 +585,14 @@
 
 				let actionBtnHtml = '';
 				if (state.requiresLogin) {
-					actionBtnHtml = '<a class="btn-primary" style="background:var(--muted); box-shadow:none;" href="login.html">Login untuk Akses</a>';
+					actionBtnHtml = '<a class="btn-primary" style="background:var(--muted); box-shadow:none;" href="/login.html">Login untuk Akses</a>';
 				} else if (state.open) {
 					actionBtnHtml = '<a class="btn-primary" href="' + detailUrl + '">Isi Form</a>';
 				} else {
 					actionBtnHtml = '<span class="btn-primary disabled">Tidak Tersedia</span>';
 				}
+
+				const plainDesc = stripHtml(form.description);
 
 				return '<article class="form-card">' +
 					'<div class="form-card-thumb" style="background:' + thumbBg + '">' +
@@ -580,7 +602,7 @@
 					'</div>' +
 					'<div class="form-card-body">' +
 					'<h4>' + escapeHtml(form.title) + '</h4>' +
-					'<p>' + escapeHtml(form.description) + '</p>' +
+					'<p title="' + escapeHtml(plainDesc) + '">' + escapeHtml(plainDesc || "Pendaftaran acara komunitas.") + '</p>' +
 					'<div class="form-meta">' +
 					'<div class="form-meta-item"><span class="form-meta-label">Periode:</span>' + formatDate(form.openDate) + ' – ' + formatDate(form.closeDate) + '</div>' +
 					'<div class="form-meta-item"><span class="form-meta-label">Pendaftar:</span>' + quotaText + '</div>' +
@@ -622,7 +644,7 @@
 		searchForm.addEventListener("submit", function(e) {
 			e.preventDefault();
 			const q = searchInput.value.trim();
-			window.location.href = "search.html?q=" + encodeURIComponent(q);
+			window.location.href = "/search.html?q=" + encodeURIComponent(q);
 		});
 
 		loadForms().then(function () {
@@ -647,7 +669,7 @@
 			function enhanceProfileHoverMenu() {
 				const navList = document.querySelector(".nav-row nav ul");
 				if (!navList) return;
-				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				const profileAnchor = navList.querySelector('a[href="/profil.html"]');
 				if (!profileAnchor) return;
 				const profileItem = profileAnchor.closest("li");
 				if (!profileItem) return;
@@ -674,7 +696,7 @@
 					else applyDesktopDropdownStyle();
 					profileAnchor.setAttribute("aria-expanded", "false");
 				}
-				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
+				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="/profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
 				dropdown.addEventListener("mouseover", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; } });
 				dropdown.addEventListener("mouseout", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; } });
 				profileItem.appendChild(dropdown);
@@ -699,6 +721,6 @@
 			enhanceProfileHoverMenu();
 		})();
 	</script>
-<script src="_public-nav-sync.js"></script>
+<script src="/_public-nav-sync.js"></script>
 </body>
 </html>
