@@ -2144,6 +2144,9 @@ def registration_export_rows(form: dict[str, object], submissions: list[dict[str
     headers = ["No", "Waktu Submit", "Identitas", "Role"] + [str(field.get("label") or "Pertanyaan") for field in fields if isinstance(field, dict)]
     rows = []
 
+    # Format domain utama (Contoh untuk local) Jika dionline sesuaikan URL-nya jika ingin url full
+    base_url = "http://127.0.0.1:5000" 
+
     for index, submission in enumerate(submissions, start=1):
         answer_map = {}
         for answer in submission.get("answers") if isinstance(submission.get("answers"), list) else []:
@@ -2160,13 +2163,25 @@ def registration_export_rows(form: dict[str, object], submissions: list[dict[str
         for field in fields:
             if not isinstance(field, dict):
                 continue
-            value = answer_map.get(str(field.get("id") or ""))
             
-            # Jika value nya list (termasuk file link/checkbox) gabungkan dgn koma
-            if isinstance(value, list):
-                row_values.append(", ".join(str(item) for item in value))
+            value = answer_map.get(str(field.get("id") or ""))
+            field_type = str(field.get("type") or "").strip().lower()
+
+            if field_type == "file":
+                # Convert path to full URL to make it clickable on PDF/Excel
+                if isinstance(value, list):
+                    urls = [f"{base_url}{item}" if str(item).startswith("/") else str(item) for item in value]
+                    row_values.append(", ".join(urls))
+                elif isinstance(value, str) and value.startswith("/"):
+                    row_values.append(f"{base_url}{value}")
+                else:
+                    row_values.append(str(value or ""))
             else:
-                row_values.append(str(value or ""))
+                if isinstance(value, list):
+                    row_values.append(", ".join(str(item) for item in value))
+                else:
+                    row_values.append(str(value or ""))
+
         rows.append(row_values)
 
     return headers, rows

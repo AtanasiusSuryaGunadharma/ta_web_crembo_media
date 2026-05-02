@@ -109,6 +109,7 @@
 		.field input[type="tel"],
 		.field input[type="number"],
 		.field input[type="date"],
+		.field input[type="file"],
 		.field textarea,
 		.field select {
 			width: 100%;
@@ -486,19 +487,21 @@
 	</footer>
 
 	<script>
+		// Inject Session Variable from Python
+		window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+		const sessionUser = window.CREMBO_CURRENT_USER || {};
+		let session = sessionUser.user_id ? { logged_in: true, ...sessionUser } : null;
+
 		const FORM_STORAGE_KEY = "crembo-registration-forms";
 		const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
-		const MEMBER_STORAGE_KEY = "crembo-members";
 		const SESSION_STORAGE_KEY = "crembo-login-session";
 
-		// Ambil data ID dari URL Path flask, misalnya /form-pendaftaran/form-177702105881-4ah4tw
+		// Ambil data ID dari URL Path
 		const pathSegments = window.location.pathname.split('/').filter(Boolean);
 		let formId = "";
-		// Jika url berupa "/form-pendaftaran/{id}"
 		if (pathSegments.length >= 2 && pathSegments[0] === 'form-pendaftaran') {
 			formId = decodeURIComponent(pathSegments[1]);
 		} else {
-			// Fallback (jika diakses via file biasa/mockup misal form-pendaftaran-detail.html?id=xxx)
 			const params = new URLSearchParams(window.location.search);
 			formId = params.get("id") || "";
 		}
@@ -521,9 +524,7 @@
 
 		let forms = [];
 		let submissions = [];
-		let members = [];
 		let currentUser = null;
-		let session = null;
 		let currentForm = null;
 		let accessDenied = false;
 
@@ -536,16 +537,12 @@
 
 		function makeId(prefix) { return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8); }
 
-		function normalizeMember(item, index) {
-			return { id: String(item && item.id ? item.id : "m-" + index), email: String(item && item.email ? item.email : "").toLowerCase(), phone: String(item && item.phone ? item.phone : "").replace(/\s+/g, ""), status: String(item && item.status ? item.status : "Aktif") };
-		}
-
 		function normalizeField(item, index) {
 			return { id: String(item && item.id ? item.id : makeId("field")), label: String(item && item.label ? item.label : "Pertanyaan " + (index + 1)), type: String(item && item.type ? item.type : "text"), required: Boolean(item && item.required), placeholder: String(item && item.placeholder ? item.placeholder : ""), options: Array.isArray(item && item.options) ? item.options.map(String) : [] };
 		}
 
 		function normalizeForm(item, index) {
-			return { id: String(item && item.id ? item.id : "form-" + (index + 1)), title: String(item && item.title ? item.title : "Form Pendaftaran"), description: String(item && item.description ? item.description : ""), target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public", visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible", openDate: String(item && item.openDate ? item.openDate : ""), closeDate: String(item && item.closeDate ? item.closeDate : ""), quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0, fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [], updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString()) };
+			return { id: String(item && item.id ? item.id : "form-" + (index + 1)), title: String(item && item.title ? item.title : "Form Pendaftaran"), description: String(item && item.description ? item.description : ""), target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public", visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible", openDate: String(item && item.openDate ? item.openDate : ""), closeDate: String(item && item.closeDate ? item.closeDate : ""), quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0, imageUrl: String(item && item.imageUrl ? item.imageUrl : ""), attachments: Array.isArray(item && item.attachments) ? item.attachments : [], fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [], updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString()) };
 		}
 
 		async function loadData() {
@@ -557,7 +554,9 @@
 			} catch (error) {
 				currentUser = null;
 			}
-			session = currentUser || (parsedSession && typeof parsedSession === "object" ? parsedSession : null);
+			
+            let tempSession = currentUser || (parsedSession && typeof parsedSession === "object" ? parsedSession : null);
+            session = (tempSession && tempSession.logged_in) ? tempSession : null;
 
 			try {
 				const response = await fetch("/api/registration/forms/" + encodeURIComponent(formId), { credentials: "same-origin" });
@@ -608,6 +607,10 @@
 			dynamicForm.innerHTML = '<div class="form-locked"><p>🚫 ' + message + '</p><a class="btn-back" href="/form-pendaftaran">← Kembali ke Daftar Form</a></div>';
 		}
 
+		function escapeHtml(text) {
+			return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		}
+
 		function inputHtml(field) {
 			const req = field.required ? " required" : "";
 			const placeholder = field.placeholder ? ' placeholder="' + field.placeholder.replace(/"/g, "&quot;") + '"' : "";
@@ -630,6 +633,9 @@
 					return '<label><input type="checkbox" name="' + id + '" value="' + opt.replace(/"/g, "&quot;") + '"> ' + opt + '</label>';
 				}).join("") + '</div>';
 			}
+            if (field.type === "file") {
+                return '<input id="' + id + '" type="file"' + req + ' multiple>';
+            }
 			return '<input id="' + id + '" type="' + field.type + '"' + placeholder + req + '>';
 		}
 
@@ -664,15 +670,31 @@
 			formMetaPeriod.innerHTML = "<strong>Periode:</strong> " + formatDate(currentForm.openDate) + " – " + formatDate(currentForm.closeDate);
 
 			if (!state.open) { renderLocked(state.text + "."); return; }
-			if (currentForm.target === "internal" && (!session || !session.logged_in)) { renderLocked("Form ini khusus internal. Silakan login terlebih dahulu."); return; }
+			if (currentForm.target === "internal" && !session) { renderLocked("Form ini khusus internal. Silakan login terlebih dahulu."); return; }
 			if (currentForm.target === "internal" && !isRegisteredMember()) { renderLocked("Form ini hanya untuk anggota internal yang login."); return; }
+
+            // PERBAIKAN: Menambahkan elemen untuk merender Thumbnail dan Lampiran Form di bagian atas
+            let mediaHtml = '<div style="margin-bottom: 24px;">';
+            if (currentForm.imageUrl) {
+                mediaHtml += '<img src="' + escapeHtml(currentForm.imageUrl) + '" alt="Thumbnail Form" style="width:100%; max-height:350px; object-fit:cover; border-radius:var(--radius-md); margin-bottom:16px; border: 1px solid var(--line);">';
+            }
+            if (currentForm.attachments && currentForm.attachments.length > 0) {
+                mediaHtml += '<div style="background: var(--bg); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--line);">';
+                mediaHtml += '<h4 style="margin:0 0 8px; font-size:0.95rem; color:var(--ink);">Lampiran / Dokumen Pendukung:</h4>';
+                mediaHtml += '<div style="display:flex; flex-wrap:wrap; gap:8px;">';
+                currentForm.attachments.forEach(function(att) {
+                    mediaHtml += '<a href="' + escapeHtml(att.url) + '" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--line); padding:8px 12px; border-radius:6px; font-size:0.85rem; color:var(--primary); font-weight:600; text-decoration:none;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> ' + escapeHtml(att.name || 'Unduh Lampiran') + '</a>';
+                });
+                mediaHtml += '</div></div>';
+            }
+            mediaHtml += '</div>';
 
 			const fieldsHtml = currentForm.fields.map(function(field) {
 				const labelClass = field.required ? "required" : "";
 				return '<div class="field"><label class="' + labelClass + '" for="field-' + field.id + '">' + field.label + '</label>' + inputHtml(field) + '</div>';
 			}).join("");
 
-			dynamicForm.innerHTML = fieldsHtml +
+			dynamicForm.innerHTML = mediaHtml + fieldsHtml +
 				'<div class="form-actions">' +
 				'<button class="btn-submit" type="submit">Kirim Pendaftaran ✓</button>' +
 				'<button class="btn-reset" type="reset">Reset</button>' +
@@ -705,61 +727,92 @@
 			const state = getFormState(currentForm);
 			if (!state.open) { alert(state.text + "."); return; }
 
-			const answers = [];
-			for (const field of currentForm.fields) {
-				const value = collectAnswer(field);
-				if (!validateField(field, value)) {
-					alert('Field "' + field.label + '" wajib diisi.');
-					return;
-				}
-				answers.push({ fieldId: field.id, label: field.label, type: field.type, value: value });
-			}
+            const submitBtn = dynamicForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.textContent = "Mengupload & Menyimpan...";
+            submitBtn.disabled = true;
 
-			// PERBAIKAN BUG: Gunakan random UUID identifier untuk submission anonim agar tidak terjadi conflict duplikat (409).
-			const isLogged = Boolean(session && session.logged_in);
-			let payloadSubmitter = {};
-			
-			if (isLogged) {
-			    payloadSubmitter = { 
-			        key: session.user_id ? "member:" + session.user_id : "member:" + (session.username || session.email || "member"), 
-			        identifier: session.nama || session.username || session.email || "Anggota", 
-			        role: session.role || "user" 
-			    };
-			} else {
-			    // PENTING: Sisipkan parameter unik pada key agar dianggap user berbeda!
-			    const uniqueKey = makeId("guest");
-			    payloadSubmitter = { 
-			        key: uniqueKey, 
-			        identifier: "Pengunjung", 
-			        role: "public" 
-			    };
-			}
+            try {
+                const answers = [];
+                for (const field of currentForm.fields) {
+                    let value = "";
+                    
+                    if (field.type === "file") {
+                        const fileInput = document.getElementById("field-" + field.id);
+                        if (fileInput && fileInput.files.length > 0) {
+                            const formData = new FormData();
+                            for (let i = 0; i < fileInput.files.length; i++) {
+                                formData.append("files", fileInput.files[i]);
+                            }
+                            const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+                            const data = await res.json();
+                            if (data.success && data.files) {
+                                value = data.files.map(f => f.url);
+                            } else {
+                                throw new Error(data.error || "Gagal upload file lampiran.");
+                            }
+                        }
+                        if (field.required && (!value || value.length === 0)) {
+                            throw new Error('Field "' + field.label + '" wajib diupload.');
+                        }
+                    } else {
+                        value = collectAnswer(field);
+                        if (!validateField(field, value)) {
+                            throw new Error('Field "' + field.label + '" wajib diisi.');
+                        }
+                    }
 
-			const payload = {
-				answers: answers,
-				submitter: payloadSubmitter
-			};
+                    answers.push({ fieldId: field.id, label: field.label, type: field.type, value: value });
+                }
 
-			const response = await fetch("/api/registration/forms/" + encodeURIComponent(currentForm.id) + "/submit", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				credentials: "same-origin",
-				body: JSON.stringify(payload)
-			});
-			const result = await response.json();
-			if (!response.ok || !result.success) {
-				alert(result.error || "Gagal mengirim pendaftaran.");
-				return;
-			}
+                const isLogged = Boolean(session && session.logged_in);
+                let payloadSubmitter = {};
+                
+                if (isLogged) {
+                    payloadSubmitter = { 
+                        key: session.user_id ? "member:" + session.user_id : "member:" + (session.username || session.email || "member"), 
+                        identifier: session.nama || session.username || session.email || "Anggota", 
+                        role: session.role || "user" 
+                    };
+                } else {
+                    const uniqueKey = makeId("guest");
+                    payloadSubmitter = { 
+                        key: uniqueKey, 
+                        identifier: "Pengunjung", 
+                        role: "public" 
+                    };
+                }
 
-			dynamicForm.innerHTML =
-				'<div class="form-success">' +
-				'<div class="success-icon">✅</div>' +
-				'<h4>Pendaftaran Berhasil Dikirim!</h4>' +
-				'<p>Terima kasih telah mendaftar. Data Anda telah tersimpan dan akan segera diproses oleh tim Crembo Media.</p>' +
-				(session ? '' : '<button class="btn-primary" style="margin-bottom:12px;" type="button" onclick="location.reload()">Submit Lagi (Kirim Data Lain)</button><br>') +
-				'<a class="btn-back" href="/form-pendaftaran">← Kembali ke Daftar Form</a>' +
-				'</div>';
+                const payload = {
+                    answers: answers,
+                    submitter: payloadSubmitter
+                };
+
+                const response = await fetch("/api/registration/forms/" + encodeURIComponent(currentForm.id) + "/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "same-origin",
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || "Gagal mengirim pendaftaran.");
+                }
+
+                dynamicForm.innerHTML =
+                    '<div class="form-success">' +
+                    '<div class="success-icon">✅</div>' +
+                    '<h4>Pendaftaran Berhasil Dikirim!</h4>' +
+                    '<p>Terima kasih telah mendaftar. Data Anda telah tersimpan dan akan segera diproses oleh tim Crembo Media.</p>' +
+                    (session ? '' : '<button class="btn-submit" style="margin-bottom:12px;" type="button" onclick="location.reload()">Submit Lagi (Kirim Data Lain)</button><br>') +
+                    '<a class="btn-back" href="/form-pendaftaran">← Kembali ke Daftar Form</a>' +
+                    '</div>';
+                    
+            } catch (err) {
+                alert(err.message);
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+            }
 		}
 
 		syncStickyOffset();

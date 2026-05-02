@@ -694,8 +694,14 @@
 
         const answersHtml = Array.isArray(item && item.answers) && item.answers.length
           ? '<ul class="answer-list">' + item.answers.map(function (ans) {
-              const value = Array.isArray(ans && ans.value) ? ans.value.join(", ") : String(ans && ans.value ? ans.value : "-");
-              return '<li><strong>' + escapeHtml(ans && ans.label ? ans.label : "Pertanyaan") + ':</strong> ' + escapeHtml(value) + '</li>';
+              let val = "";
+              if (ans.type === "file") {
+                  const fileList = Array.isArray(ans.value) ? ans.value : (ans.value ? [ans.value] : []);
+                  val = fileList.map(url => `<a href="${escapeHtml(url)}" target="_blank" style="color:#2563eb; text-decoration:underline;">Lihat File</a>`).join(", ");
+              } else {
+                  val = escapeHtml(Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value || "-"));
+              }
+              return '<li><strong>' + escapeHtml(ans.label || "Pertanyaan") + ':</strong> ' + (val || "-") + '</li>';
             }).join("") + '</ul>'
           : "-";
 
@@ -757,8 +763,14 @@
 
         const answersHtml = Array.isArray(item && item.answers) && item.answers.length
           ? '<ul style="margin:0; padding-left:16px;">' + item.answers.map(function(ans) {
-              const value = Array.isArray(ans && ans.value) ? ans.value.join(", ") : String(ans && ans.value ? ans.value : "-");
-              return '<li style="margin-bottom:4px;"><strong>' + escapeHtml(ans && ans.label ? ans.label : "Pertanyaan") + ':</strong> ' + escapeHtml(value) + '</li>';
+              let valHtml = "";
+              if (ans.type === "file") {
+                  const fileList = Array.isArray(ans.value) ? ans.value : (ans.value ? [ans.value] : []);
+                  valHtml = fileList.map(url => `<a href="${escapeHtml(url)}" target="_blank" style="color:#1d4ed8; text-decoration:none; font-weight:600;">Lihat File</a>`).join(", ");
+              } else {
+                  valHtml = escapeHtml(Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value || "-"));
+              }
+              return '<li style="margin-bottom:4px;"><strong>' + escapeHtml(ans.label || "Pertanyaan") + ':</strong> ' + valHtml + '</li>';
             }).join("") + '</ul>'
           : "-";
 
@@ -796,6 +808,7 @@
               table { font-size: 0.8rem; }
               th { background: #f3f4f6 !important; color: #000 !important; border: 1px solid #000; }
               td { border: 1px solid #000; }
+              a { text-decoration: none; color: #000; }
             }
           </style>
         </head>

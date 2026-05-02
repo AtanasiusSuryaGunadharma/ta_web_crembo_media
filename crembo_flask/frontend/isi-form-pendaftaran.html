@@ -536,7 +536,6 @@
       flex-wrap: wrap;
     }
     
-    /* ADDED: Read More Description Style */
     .card-description-wrap {
       font-size: 0.83rem;
       color: #4b5563;
@@ -565,6 +564,22 @@
     }
     .read-more-btn:hover {
       color: #2563eb;
+    }
+
+    /* Tweak Button pada file-upload */
+    input[type=file]::file-selector-button {
+      border: 1px solid #9ca3af;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background-color: #f1f5f9;
+      color: #334155;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+    input[type=file]::file-selector-button:hover {
+      background-color: #e2e8f0;
     }
 
     @media (max-width: 1040px) {
@@ -706,14 +721,12 @@
     </main>
   </div>
   <script>
-    // Ambil Data Session Server
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const sessionUser = window.CREMBO_CURRENT_USER || {};
     
     const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
     const memberRole = sessionUser.role === 'super_admin' ? 'Super Admin' : (sessionUser.role === 'admin' ? 'Admin' : 'Anggota');
     
-    // Perbarui Identitas Sidebar
     document.getElementById("memberName").textContent = displayName;
     document.getElementById("sidebarRole").textContent = "Role: " + memberRole;
     document.getElementById("sidebarAvatar").textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
@@ -775,12 +788,7 @@
     let activeFormId = "";
 
     function safeParse(raw, fallback) {
-      try {
-        const parsed = JSON.parse(raw);
-        return parsed;
-      } catch (error) {
-        return fallback;
-      }
+      try { return JSON.parse(raw); } catch (error) { return fallback; }
     }
 
     function makeId(prefix) {
@@ -808,6 +816,8 @@
         openDate: String(item && item.openDate ? item.openDate : ""),
         closeDate: String(item && item.closeDate ? item.closeDate : ""),
         quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0,
+        imageUrl: String(item && item.imageUrl ? item.imageUrl : ""),
+        attachments: Array.isArray(item && item.attachments) ? item.attachments : [],
         fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : []
       };
     }
@@ -820,12 +830,7 @@
     }
 
     function escapeHtml(text) {
-      return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+      return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
     }
 
     async function readData() {
@@ -833,9 +838,7 @@
 
       try {
         const formsResponse = await fetch("/api/registration/forms", { credentials: "same-origin" });
-        if (!formsResponse.ok) {
-          throw new Error("Gagal memuat form pendaftaran");
-        }
+        if (!formsResponse.ok) throw new Error("Gagal memuat form pendaftaran");
         const parsedForms = await formsResponse.json();
         forms = Array.isArray(parsedForms) ? parsedForms.map(normalizeForm) : [];
 
@@ -844,9 +847,7 @@
           ? "/api/registration/submissions/me"
           : "/api/registration/submissions/me?clientKey=" + encodeURIComponent(getOrCreateGuestId());
         const submissionsResponse = await fetch(mySubmissionsUrl, { credentials: "same-origin" });
-        if (!submissionsResponse.ok) {
-          throw new Error("Gagal memuat jawaban pendaftaran");
-        }
+        if (!submissionsResponse.ok) throw new Error("Gagal memuat jawaban pendaftaran");
         const parsedSubmissions = await submissionsResponse.json();
         submissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
       } catch (error) {
@@ -857,9 +858,7 @@
 
     function getOrCreateGuestId() {
       let id = localStorage.getItem(GUEST_KEY);
-      if (id) {
-        return id;
-      }
+      if (id) return id;
       id = "guest-" + Math.random().toString(36).slice(2, 12);
       localStorage.setItem(GUEST_KEY, id);
       return id;
@@ -869,41 +868,24 @@
       if (session && session.logged_in) {
         const key = "member:" + String(session.user_id || session.username || session.email || "member");
         return {
-          isLoggedIn: true,
-          key: key,
-          aliasKeys: [key],
+          isLoggedIn: true, key: key, aliasKeys: [key],
           identifier: String(session.nama || session.username || session.email || "Pengguna"),
           role: String(session.role || "anggota")
         };
       }
-
       const guestId = getOrCreateGuestId();
       const guestKey = "guest:" + guestId;
-      return {
-        isLoggedIn: false,
-        key: guestKey,
-        aliasKeys: [guestKey],
-        identifier: "Pengunjung",
-        role: "public"
-      };
+      return { isLoggedIn: false, key: guestKey, aliasKeys: [guestKey], identifier: "Pengunjung", role: "public" };
     }
 
     function countSubmissionByForm(formId) {
-      const form = forms.find(function (item) {
-        return item && item.id === formId;
-      });
-      if (form && Number.isFinite(Number(form.submissionCount))) {
-        return Number(form.submissionCount);
-      }
-      return submissions.filter(function (item) {
-        return item && item.formId === formId;
-      }).length;
+      const form = forms.find(function (item) { return item && item.id === formId; });
+      if (form && Number.isFinite(Number(form.submissionCount))) return Number(form.submissionCount);
+      return submissions.filter(function (item) { return item && item.formId === formId; }).length;
     }
 
     function getMySubmission(formId) {
-      return submissions.find(function (item) {
-        return item && item.formId === formId;
-      }) || null;
+      return submissions.find(function (item) { return item && item.formId === formId; }) || null;
     }
 
     async function refreshDataAndRender() {
@@ -929,31 +911,16 @@
       const closeDate = form.closeDate ? new Date(form.closeDate + "T23:59:59") : null;
       const usedQuota = countSubmissionByForm(form.id);
 
-      if (form.visibility === "draft") {
-        return { open: false, reason: "draft", text: "Draft" };
-      }
-      
-      if (form.target === "internal" && (!session || !session.logged_in)) {
-          return { open: false, reason: "login_required", text: "Khusus Internal (Login)", requiresLogin: true };
-      }
-      
-      if (openDate && now < openDate) {
-        return { open: false, reason: "not_open", text: "Belum dibuka" };
-      }
-      if (closeDate && now > closeDate) {
-        return { open: false, reason: "closed", text: "Sudah ditutup" };
-      }
-      if (form.quota > 0 && usedQuota >= form.quota) {
-        return { open: false, reason: "quota", text: "Kuota penuh" };
-      }
+      if (form.visibility === "draft") return { open: false, reason: "draft", text: "Draft" };
+      if (form.target === "internal" && (!session || !session.logged_in)) return { open: false, reason: "login_required", text: "Khusus Internal (Login)", requiresLogin: true };
+      if (openDate && now < openDate) return { open: false, reason: "not_open", text: "Belum dibuka" };
+      if (closeDate && now > closeDate) return { open: false, reason: "closed", text: "Sudah ditutup" };
+      if (form.quota > 0 && usedQuota >= form.quota) return { open: false, reason: "quota", text: "Kuota penuh" };
       return { open: true, reason: "open", text: "Aktif" };
     }
 
     function applyAccessRules(list) {
-      return list.filter(function (form) {
-        if (form.visibility === "draft") return false;
-        return true; 
-      });
+      return list.filter(function (form) { return form.visibility !== "draft"; });
     }
 
     function getFilteredForms() {
@@ -963,33 +930,17 @@
 
       const filtered = applyAccessRules(forms)
         .filter(function (form) {
-          if (selectedTarget !== "all" && form.target !== selectedTarget) {
-            return false;
-          }
-          if (!keyword) {
-            return true;
-          }
+          if (selectedTarget !== "all" && form.target !== selectedTarget) return false;
+          if (!keyword) return true;
           const text = (form.title + " " + form.description).toLowerCase();
           return text.indexOf(keyword) !== -1;
         });
 
       return filtered.sort(function (a, b) {
-        if (sortBy === "a-z") {
-          return a.title.localeCompare(b.title);
-        }
-        if (sortBy === "z-a") {
-          return b.title.localeCompare(a.title);
-        }
-        if (sortBy === "newest") {
-          const dateA = a.openDate ? new Date(a.openDate) : new Date(0);
-          const dateB = b.openDate ? new Date(b.openDate) : new Date(0);
-          return dateB.getTime() - dateA.getTime();
-        }
-        if (sortBy === "oldest") {
-          const dateA = a.openDate ? new Date(a.openDate) : new Date(0);
-          const dateB = b.openDate ? new Date(b.openDate) : new Date(0);
-          return dateA.getTime() - dateB.getTime();
-        }
+        if (sortBy === "a-z") return a.title.localeCompare(b.title);
+        if (sortBy === "z-a") return b.title.localeCompare(a.title);
+        if (sortBy === "newest") return new Date(b.openDate || 0).getTime() - new Date(a.openDate || 0).getTime();
+        if (sortBy === "oldest") return new Date(a.openDate || 0).getTime() - new Date(b.openDate || 0).getTime();
         return 0;
       });
     }
@@ -997,9 +948,7 @@
     function updateAccessHeader() {
       const viewer = getViewerContext();
       if (accessChip) {
-        accessChip.textContent = viewer.isLoggedIn
-          ? "Login: " + viewer.identifier
-          : "Mode Pengunjung (Beberapa form memerlukan login)";
+        accessChip.textContent = viewer.isLoggedIn ? "Login: " + viewer.identifier : "Mode Pengunjung (Beberapa form memerlukan login)";
       }
       if (authAction) {
         authAction.textContent = viewer.isLoggedIn ? "Keluar" : "Login";
@@ -1013,10 +962,7 @@
 
       if (!list.length) {
         cards.innerHTML = '<div class="empty">Belum ada form yang bisa ditampilkan untuk akses saat ini.</div>';
-        if (activeFormId) {
-          activeFormId = "";
-          renderRightPanel();
-        }
+        if (activeFormId) { activeFormId = ""; renderRightPanel(); }
         return;
       }
 
@@ -1025,9 +971,7 @@
         const mySubmission = getMySubmission(form.id);
         const targetClass = form.target === "internal" ? "internal" : "public";
         const targetText = form.target === "internal" ? "Internal" : "Umum";
-        const quotaText = form.quota > 0
-          ? String(countSubmissionByForm(form.id)) + "/" + String(form.quota)
-          : String(countSubmissionByForm(form.id)) + "/Tak terbatas";
+        const quotaText = form.quota > 0 ? countSubmissionByForm(form.id) + "/" + form.quota : countSubmissionByForm(form.id) + "/Tak terbatas";
 
         let actionHtml = '<button class="btn ghost" type="button" data-action="open" data-id="' + escapeHtml(form.id) + '">Lihat Detail</button>';
 
@@ -1042,7 +986,6 @@
         }
 
         const plainDesc = stripHtml(form.description || '-');
-        // PERBAIKAN: Read More Component
         const descHtml = `
             <div class="card-description-wrap">
                 <div class="card-description" id="desc-${form.id}">${escapeHtml(plainDesc)}</div>
@@ -1069,18 +1012,13 @@
       }
     }
 
-    // LISTENER UNTUK READ MORE CARD
     cards.addEventListener("click", function(event) {
        if (event.target.classList.contains("read-more-btn")) {
            const targetId = event.target.getAttribute("data-target");
            const descEl = document.getElementById(targetId);
            if (descEl) {
                descEl.classList.toggle("expanded");
-               if (descEl.classList.contains("expanded")) {
-                   event.target.textContent = "Sembunyikan";
-               } else {
-                   event.target.textContent = "Baca Selengkapnya";
-               }
+               event.target.textContent = descEl.classList.contains("expanded") ? "Sembunyikan" : "Baca Selengkapnya";
            }
        }
     });
@@ -1092,58 +1030,36 @@
       const label = escapeHtml(field.label);
 
       if (type === "textarea") {
-        return '<div class="form-block">'
-          + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
-          + '<textarea name="' + escapeHtml(field.id) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>' + escapeHtml(value) + '</textarea>'
-          + '</div>';
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><textarea name="' + escapeHtml(field.id) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>' + escapeHtml(value) + '</textarea></div>';
       }
-
       if (type === "select") {
         const options = field.options.length ? field.options : ["Pilihan 1", "Pilihan 2"];
         const optionHtml = ['<option value="">Pilih...</option>'].concat(options.map(function (opt) {
           const selected = String(value) === String(opt) ? ' selected' : '';
           return '<option value="' + escapeHtml(opt) + '"' + selected + '>' + escapeHtml(opt) + '</option>';
         })).join("");
-
-        return '<div class="form-block">'
-          + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
-          + '<select name="' + escapeHtml(field.id) + '" ' + requiredAttr + '>' + optionHtml + '</select>'
-          + '</div>';
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><select name="' + escapeHtml(field.id) + '" ' + requiredAttr + '>' + optionHtml + '</select></div>';
       }
-
       if (type === "radio" || type === "checkbox") {
         const options = field.options.length ? field.options : ["Pilihan 1", "Pilihan 2"];
         const values = Array.isArray(value) ? value.map(String) : [String(value || "")];
-
-        return '<div class="form-block">'
-          + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
-          + '<div class="options">'
-          + options.map(function (opt, idx) {
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><div class="options">' + options.map(function (opt) {
               const checked = values.indexOf(String(opt)) !== -1 ? ' checked' : '';
               const inputName = type === "checkbox" ? field.id + '[]' : field.id;
-              return '<label><input type="' + type + '" name="' + escapeHtml(inputName) + '" value="' + escapeHtml(opt) + '"' + checked + ' ' + requiredAttr + '>' + escapeHtml(opt) + '</label>';
-            }).join("")
-          + '</div>'
-          + '</div>';
+              return '<label><input type="' + type + '" name="' + escapeHtml(inputName) + '" value="' + escapeHtml(opt) + '"' + checked + ' ' + requiredAttr + '> ' + escapeHtml(opt) + '</label>';
+            }).join("") + '</div></div>';
       }
-
+      if (type === "file") {
+        return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><input type="file" name="' + escapeHtml(field.id) + '" ' + requiredAttr + ' multiple></div>';
+      }
       const htmlType = ["text", "email", "number", "date", "time", "tel"].indexOf(type) !== -1 ? type : "text";
-      return '<div class="form-block">'
-        + '<label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label>'
-        + '<input type="' + htmlType + '" name="' + escapeHtml(field.id) + '" value="' + escapeHtml(value) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '>'
-        + '</div>';
+      return '<div class="form-block"><label>' + label + (field.required ? ' <span class="required">*</span>' : '') + '</label><input type="' + htmlType + '" name="' + escapeHtml(field.id) + '" value="' + escapeHtml(value) + '" placeholder="' + escapeHtml(field.placeholder || "") + '" ' + requiredAttr + '></div>';
     }
 
     function getFieldAnswerFromSubmission(submission, field) {
-      if (!submission || !Array.isArray(submission.answers)) {
-        return "";
-      }
-      const found = submission.answers.find(function (ans) {
-        return ans && ans.fieldId === field.id;
-      });
-      if (!found) {
-        return "";
-      }
+      if (!submission || !Array.isArray(submission.answers)) return "";
+      const found = submission.answers.find(function (ans) { return ans && ans.fieldId === field.id; });
+      if (!found) return "";
       return found.value;
     }
 
@@ -1153,21 +1069,22 @@
       rightBadge.textContent = "Sudah submit";
 
       const submittedAt = submission && submission.submittedAt ? new Date(submission.submittedAt) : null;
-      const submittedText = submittedAt && !Number.isNaN(submittedAt.getTime())
-        ? submittedAt.toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
-        : "-";
+      const submittedText = submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
 
       const answersHtml = form.fields.map(function (field) {
         const value = getFieldAnswerFromSubmission(submission, field);
-        const valueText = Array.isArray(value) ? value.join(", ") : String(value || "-");
-        return '<li><strong>' + escapeHtml(field.label) + '</strong>' + escapeHtml(valueText) + '</li>';
+        let valueHtml = "";
+        
+        if (field.type === 'file') {
+            const files = Array.isArray(value) ? value : (value ? [value] : []);
+            valueHtml = files.length ? files.map(v => `<a href="${escapeHtml(v)}" target="_blank" style="color:#2563eb; text-decoration:underline;">Lihat File</a>`).join(", ") : "-";
+        } else {
+            valueHtml = escapeHtml(Array.isArray(value) ? value.join(", ") : String(value || "-"));
+        }
+        return '<li><strong>' + escapeHtml(field.label) + '</strong>' + valueHtml + '</li>';
       }).join("");
 
-      formWrap.innerHTML = '<div class="form-block">'
-        + '<h3>' + escapeHtml(form.title) + '</h3>'
-        + '<div style="font-size:0.8rem;color:#64748b;">Tanggal submit: ' + escapeHtml(submittedText) + '</div>'
-        + '</div>'
-        + '<ul class="review-list">' + answersHtml + '</ul>';
+      formWrap.innerHTML = '<div class="form-block"><h3>' + escapeHtml(form.title) + '</h3><div style="font-size:0.8rem;color:#64748b;">Tanggal submit: ' + escapeHtml(submittedText) + '</div></div><ul class="review-list">' + answersHtml + '</ul>';
     }
 
     function renderFillForm(form, state) {
@@ -1176,9 +1093,7 @@
       rightBadge.textContent = state.text;
 
       if (state.requiresLogin) {
-        formWrap.innerHTML = '<div class="hint">Form ini khusus internal. Anda bisa melihat daftar pertanyaan di sini tetapi harus <a href="login.html" style="color:var(--accent); font-weight:bold;">Login</a> untuk mengisinya.</div>';
-        const fieldsHtml = form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("");
-        formWrap.innerHTML += '<div style="opacity: 0.6; pointer-events:none;">' + fieldsHtml + '</div>';
+        formWrap.innerHTML = '<div class="hint">Form ini khusus internal. Anda bisa melihat daftar pertanyaan di sini tetapi harus <a href="login.html" style="color:var(--accent); font-weight:bold;">Login</a> untuk mengisinya.</div><div style="opacity: 0.6; pointer-events:none;">' + form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("") + '</div>';
         return;
       }
 
@@ -1187,23 +1102,23 @@
         return;
       }
 
-      const fieldsHtml = form.fields.length
-        ? form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("")
-        : '<div class="hint">Form belum memiliki pertanyaan dari admin.</div>';
+      const fieldsHtml = form.fields.length ? form.fields.map(function (field) { return renderFieldInput(field, ""); }).join("") : '<div class="hint">Form belum memiliki pertanyaan dari admin.</div>';
 
-      formWrap.innerHTML = '<form id="dynamicForm" style="display:grid;gap:10px;">'
-        + '<div class="form-block">'
-        + '<h3>' + escapeHtml(form.title) + '</h3>'
-        + '<div class="card-description-wrap">'
-        + '<div class="card-description" id="desc-formwrap-' + form.id + '" style="color:#5b6473;">' + escapeHtml(stripHtml(form.description || "-")) + '</div>'
-        + (stripHtml(form.description || "-").length > 100 ? '<button type="button" class="read-more-btn" data-target="desc-formwrap-' + form.id + '">Baca Selengkapnya</button>' : '')
-        + '</div>'
-        + '</div>'
-        + fieldsHtml
-        + '<div class="actions">'
-        + '<button type="submit" class="btn">Submit Jawaban</button>'
-        + '</div>'
-        + '</form>';
+      let mediaHtml = '<div style="margin-bottom: 16px;">';
+      if (form.imageUrl) {
+          mediaHtml += '<img src="' + escapeHtml(form.imageUrl) + '" alt="Thumbnail Form" style="width:100%; max-height:260px; object-fit:cover; border-radius:var(--radius-md); margin-bottom:12px; border: 1px solid var(--line);">';
+      }
+      if (form.attachments && form.attachments.length > 0) {
+          mediaHtml += '<div style="background: var(--bg); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--line);">';
+          mediaHtml += '<h4 style="margin:0 0 8px; font-size:0.9rem; color:var(--ink);">Lampiran / Dokumen Pendukung:</h4><div style="display:flex; flex-wrap:wrap; gap:8px;">';
+          form.attachments.forEach(function(att) {
+              mediaHtml += '<a href="' + escapeHtml(att.url) + '" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--line); padding:6px 12px; border-radius:6px; font-size:0.8rem; color:var(--primary); font-weight:600; text-decoration:none;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> ' + escapeHtml(att.name || 'Unduh Lampiran') + '</a>';
+          });
+          mediaHtml += '</div></div>';
+      }
+      mediaHtml += '</div>';
+
+      formWrap.innerHTML = '<form id="dynamicForm" style="display:grid;gap:10px;"><div class="form-block"><h3>' + escapeHtml(form.title) + '</h3><div class="card-description-wrap"><div class="card-description" id="desc-formwrap-' + form.id + '" style="color:#5b6473;">' + escapeHtml(stripHtml(form.description || "-")) + '</div>' + (stripHtml(form.description || "-").length > 100 ? '<button type="button" class="read-more-btn" data-target="desc-formwrap-' + form.id + '">Baca Selengkapnya</button>' : '') + '</div></div>' + mediaHtml + fieldsHtml + '<div class="actions"><button type="submit" class="btn">Submit Jawaban</button></div></form>';
 
       const dynamicForm = document.getElementById("dynamicForm");
       if(dynamicForm) {
@@ -1214,87 +1129,83 @@
       }
     }
 
-    // LISTENER UNTUK READ MORE DESKRIPSI FORM-WRAP
     formWrap.addEventListener("click", function(event) {
        if (event.target.classList.contains("read-more-btn")) {
            const targetId = event.target.getAttribute("data-target");
            const descEl = document.getElementById(targetId);
            if (descEl) {
                descEl.classList.toggle("expanded");
-               if (descEl.classList.contains("expanded")) {
-                   event.target.textContent = "Sembunyikan";
-               } else {
-                   event.target.textContent = "Baca Selengkapnya";
-               }
+               event.target.textContent = descEl.classList.contains("expanded") ? "Sembunyikan" : "Baca Selengkapnya";
            }
        }
     });
 
     async function submitForm(form) {
       const viewer = getViewerContext();
-      if (getMySubmission(form.id)) {
-        renderRightPanel();
-        return;
-      }
+      if (getMySubmission(form.id)) { renderRightPanel(); return; }
 
       const formElement = document.getElementById("dynamicForm");
-      if (!formElement) {
-        return;
+      if (!formElement) return;
+
+      const submitBtn = formElement.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = "Mengupload & Submit...";
+      submitBtn.disabled = true;
+
+      try {
+          const answers = [];
+          for (const field of form.fields) {
+            const type = String(field.type || "text").toLowerCase();
+            let value = "";
+
+            if (type === "file") {
+                const fileInput = formElement.querySelector('input[name="' + field.id + '"]');
+                if (fileInput && fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        formData.append("files", fileInput.files[i]);
+                    }
+                    const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+                    const data = await res.json();
+                    if (data.success && data.files) {
+                        value = data.files.map(f => f.url);
+                    } else {
+                        throw new Error(data.error || "Gagal upload file.");
+                    }
+                }
+                if (field.required && (!value || value.length === 0)) throw new Error("Mohon upload file: " + field.label);
+            } else if (type === "checkbox") {
+              const checked = Array.from(formElement.querySelectorAll('input[name="' + field.id + '[]"]:checked'));
+              value = checked.map(function (item) { return item.value; });
+              if (field.required && value.length === 0) throw new Error("Mohon isi: " + field.label);
+            } else if (type === "radio") {
+              const selected = formElement.querySelector('input[name="' + field.id + '"]:checked');
+              value = selected ? selected.value : "";
+              if (field.required && !value) throw new Error("Mohon isi: " + field.label);
+            } else {
+              const input = formElement.querySelector('[name="' + field.id + '"]');
+              value = input ? String(input.value || "").trim() : "";
+              if (field.required && !value) throw new Error("Mohon isi: " + field.label);
+            }
+
+            answers.push({ fieldId: field.id, label: field.label, type: type, value: value });
+          }
+
+          const response = await fetch("/api/registration/forms/" + encodeURIComponent(form.id) + "/submit", {
+            method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin",
+            body: JSON.stringify({ answers: answers, submitter: { key: viewer.key, identifier: viewer.identifier, role: viewer.role } })
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.error || "Gagal mengirim pendaftaran.");
+
+          await refreshDataAndRender();
+          renderRightPanel();
+          alert("Jawaban berhasil disimpan. Submit ulang tidak diperbolehkan.");
+      } catch (err) {
+          alert(err.message);
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
       }
-
-      const answers = form.fields.map(function (field) {
-        const type = String(field.type || "text").toLowerCase();
-        let value = "";
-
-        if (type === "checkbox") {
-          const checked = Array.from(formElement.querySelectorAll('input[name="' + field.id + '[]"]:checked'));
-          value = checked.map(function (item) { return item.value; });
-          if (field.required && value.length === 0) {
-            throw new Error("Mohon isi: " + field.label);
-          }
-        } else if (type === "radio") {
-          const selected = formElement.querySelector('input[name="' + field.id + '"]:checked');
-          value = selected ? selected.value : "";
-          if (field.required && !value) {
-            throw new Error("Mohon isi: " + field.label);
-          }
-        } else {
-          const input = formElement.querySelector('[name="' + field.id + '"]');
-          value = input ? String(input.value || "").trim() : "";
-          if (field.required && !value) {
-            throw new Error("Mohon isi: " + field.label);
-          }
-        }
-
-        return {
-          fieldId: field.id,
-          label: field.label,
-          value: value
-        };
-      });
-
-      const response = await fetch("/api/registration/forms/" + encodeURIComponent(form.id) + "/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          answers: answers,
-          submitter: {
-            key: viewer.key,
-            identifier: viewer.identifier,
-            role: viewer.role
-          }
-        })
-      });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        alert(result.error || "Gagal mengirim pendaftaran.");
-        return;
-      }
-
-      await refreshDataAndRender();
-      renderRightPanel();
-      alert("Jawaban berhasil disimpan. Submit ulang tidak diperbolehkan.");
     }
 
     function renderRightPanel() {
@@ -1322,74 +1233,42 @@
 
     cards.addEventListener("click", function (event) {
       const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
+      if (!(target instanceof HTMLElement)) return;
       const button = target.closest("button[data-action='open']");
-      if (!button) {
-        return;
-      }
-
+      if (!button) return;
       const id = button.getAttribute("data-id");
-      if (!id) {
-        return;
-      }
-
+      if (!id) return;
       activeFormId = id;
       renderRightPanel();
     });
 
-    searchInput.addEventListener("input", function () {
-      renderCards();
-      renderRightPanel();
-    });
-
-    targetFilter.addEventListener("change", function () {
-      renderCards();
-      renderRightPanel();
-    });
-
-    sortFilter.addEventListener("change", function () {
-      renderCards();
-      renderRightPanel();
-    });
+    searchInput.addEventListener("input", function () { renderCards(); renderRightPanel(); });
+    targetFilter.addEventListener("change", function () { renderCards(); renderRightPanel(); });
+    sortFilter.addEventListener("change", function () { renderCards(); renderRightPanel(); });
 
     function initTargetFilterByAccess() {
       const viewer = getViewerContext();
       if (!viewer.isLoggedIn) {
         if (targetFilter.options.length <= 1) {
-            targetFilter.innerHTML = ''
-              + '<option value="all">Semua Target</option>'
-              + '<option value="public">Umum</option>'
-              + '<option value="internal">Internal</option>';
+            targetFilter.innerHTML = '<option value="all">Semua Target</option><option value="public">Umum</option><option value="internal">Internal</option>';
             targetFilter.value = "all";
         }
         return;
       }
-
       if (targetFilter.options.length <= 1) {
-        targetFilter.innerHTML = ''
-          + '<option value="all">Semua Target</option>'
-          + '<option value="public">Umum</option>'
-          + '<option value="internal">Internal</option>';
+        targetFilter.innerHTML = '<option value="all">Semua Target</option><option value="public">Umum</option><option value="internal">Internal</option>';
         targetFilter.value = "all";
       }
     }
 
     window.addEventListener("storage", function (event) {
-      if (!event || !event.key) {
-        return;
-      }
-      if (event.key === FORM_STORAGE_KEY || event.key === SUBMISSION_STORAGE_KEY || event.key === SESSION_STORAGE_KEY || event.key === GUEST_KEY) {
-        refreshDataAndRender();
-      }
+      if (!event || !event.key) return;
+      if (event.key === FORM_STORAGE_KEY || event.key === SUBMISSION_STORAGE_KEY || event.key === SESSION_STORAGE_KEY || event.key === GUEST_KEY) refreshDataAndRender();
     });
 
     window.addEventListener("focus", refreshDataAndRender);
     document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) {
-        refreshDataAndRender();
-      }
+      if (!document.hidden) refreshDataAndRender();
     });
 
     refreshDataAndRender();
