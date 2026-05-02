@@ -2681,11 +2681,16 @@
 					// URL perbaikan menuju path yang benar: /form-pendaftaran/{id}
 					const detailUrl = `/form-pendaftaran/${encodeURIComponent(item.id)}`;
 
+					// Perbaikan Thumbnail
+					const thumbUrl = item.imageUrl ? item.imageUrl : "";
+                    const bgStyle = thumbUrl ? `background-image:url('${escapeHtml(thumbUrl)}');background-size:cover;background-position:center;` : `background: var(--bg-warm);`;
+
+
                     return `
                     <article class="card">
-                        <div class="thumb frame">
+                        <div class="thumb frame" style="${bgStyle}; min-height: 160px;">
 							<span class="form-status-badge ${state.statusClass}">${state.label}</span>
-                            Form Pendaftaran ${isInternal ? 'Internal' : 'Umum'}
+                            ${thumbUrl ? '' : `Form Pendaftaran ${isInternal ? 'Internal' : 'Umum'}`}
                         </div>
                         <div class="body">
                             <span class="tag-badge" style="background: rgba(212,160,23,0.15); border-color: rgba(212,160,23,0.25); color: #8a6500;">
