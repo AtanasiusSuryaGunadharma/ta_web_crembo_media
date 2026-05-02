@@ -356,7 +356,7 @@
 					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
 					<button type="submit">Cari</button>
 				</form>
-								{% if current_user.logged_in %}
+				{% if current_user.logged_in %}
 				<div class="user-dropdown">
 					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
 						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
@@ -533,6 +533,10 @@
 		}
 
 		function getCategoryRoute(category) {
+            // Perbaikan untuk memastikan "Semua Kategori" menuju root `/pengumuman`
+            if (!category || (!category.id && !category.slug && category.name === "Semua Kategori")) {
+                return "/pengumuman";
+            }
 			const slug = getCategorySlug(category);
 			return "/pengumuman/kategori/" + encodeURIComponent(slug);
 		}
@@ -558,17 +562,18 @@
 
 		function renderCategoryButtons(categories) {
 			if (!categoryList) return;
-			const allItems = [{ id: "", name: "Semua Kategori", slug: "" }].concat(categories);
+			const allItems = [{ id: "", name: "Semua Kategori", slug: "ALL" }].concat(categories);
 			categoryList.innerHTML = allItems.map(function(category) {
-				const slug = getCategorySlug(category);
-				const active = newsState.selectedCategory === slug || (!newsState.selectedCategory && !slug);
-				return '<li><button class="cat-btn' + (active ? ' active' : '') + '" type="button" data-cat="' + escapeHtml(slug) + '">' + escapeHtml(getCategoryName(category)) + '</button></li>';
+                const isAll = category.slug === "ALL";
+				const slug = isAll ? "" : getCategorySlug(category);
+				const active = newsState.selectedCategory === slug || (!newsState.selectedCategory && isAll);
+				return '<li><button class="cat-btn' + (active ? ' active' : '') + '" type="button" data-cat="' + escapeHtml(slug) + '">' + escapeHtml(category.name || "Umum") + '</button></li>';
 			}).join("");
 
 			categoryList.querySelectorAll(".cat-btn").forEach(function(button) {
 				button.addEventListener("click", function() {
 					const slug = String(button.getAttribute("data-cat") || "");
-					const target = slug ? getCategoryRoute({ slug: slug }) : "/pengumuman";
+					const target = slug ? ("/pengumuman/kategori/" + encodeURIComponent(slug)) : "/pengumuman";
 					window.location.href = target;
 				});
 			});

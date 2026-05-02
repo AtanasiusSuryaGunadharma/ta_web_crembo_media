@@ -34,33 +34,12 @@ MYSQL_CONFIG = {
 
 UPLOAD_FOLDER = FRONTEND_DIR / "uploads"
 ALLOWED_ATTACHMENT_EXTENSIONS = {
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".webp",
-    ".bmp",
-    ".pdf",
-    ".doc",
-    ".docx",
-    ".xls",
-    ".xlsx",
-    ".ppt",
-    ".pptx",
-    ".zip",
-    ".rar",
-    ".7z",
-    ".txt",
-    ".csv",
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".pdf",
+    ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".zip", ".rar", ".7z", ".txt", ".csv",
 }
 PREVIEWABLE_ATTACHMENT_EXTENSIONS = {
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".webp",
-    ".bmp",
-    ".pdf",
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".pdf",
 }
 
 def template_exists(template_name: str) -> bool:
@@ -158,11 +137,11 @@ def remove_physical_file(file_url: str):
     if not file_url:
         return
     try:
-        # Extract filename from URL (e.g. /uploads/image.jpg -> image.jpg)
+        # Gunakan Pathlib untuk safety cross-platform path resolution
         filename = file_url.split('/')[-1]
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        file_path = UPLOAD_FOLDER / filename
+        if file_path.exists() and file_path.is_file():
+            file_path.unlink()
     except Exception as e:
         print(f"[WARN] Failed to delete file {file_url}: {e}")
 
@@ -271,7 +250,6 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
         cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
 
 def ensure_news_schema() -> None:
-    """Ensure news/article tables exist in database."""
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
@@ -2470,6 +2448,27 @@ def update_agenda(agenda_id):
             ),
         )
         conn.commit()
+        
+        # Cleanup file lama yang sudah dihapus/diganti saat Edit
+        if existing:
+            try:
+                # Cleanup Image
+                if existing.get("image_url") and existing.get("image_url") != values["image_url"]:
+                    remove_physical_file(existing["image_url"])
+                
+                # Cleanup Attachments
+                old_atts_raw = existing.get("attachments") or "[]"
+                old_atts = json.loads(old_atts_raw) if isinstance(old_atts_raw, str) else (old_atts_raw or [])
+                new_atts_raw = values.get("attachments") or "[]"
+                new_atts = json.loads(new_atts_raw) if isinstance(new_atts_raw, str) else (new_atts_raw or [])
+                new_att_urls = [a.get("url") for a in new_atts if isinstance(a, dict) and a.get("url")]
+                
+                for oa in old_atts:
+                    if isinstance(oa, dict) and oa.get("url") and oa.get("url") not in new_att_urls:
+                        remove_physical_file(oa["url"])
+            except Exception as e:
+                print(f"[WARN] Failed to cleanup replaced files for agenda {agenda_id}: {e}")
+
         return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
@@ -2755,8 +2754,13 @@ def update_news(news_id):
     category_ids = data.get("categoryIds", [])
 
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        cursor.execute("SELECT * FROM `news` WHERE `id` = %s LIMIT 1", (news_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "News not found"}), 404
+
         cursor.execute("""
             UPDATE `news`
             SET `title` = %s, `slug` = %s, `content` = %s, `summary` = %s, 
@@ -2782,6 +2786,25 @@ def update_news(news_id):
             """, (news_id, cat_id))
 
         conn.commit()
+
+        # Clean up old files if they are replaced
+        try:
+            old_thumbs_raw = existing.get("thumbnails") or "[]"
+            old_thumbs = json.loads(old_thumbs_raw) if isinstance(old_thumbs_raw, str) else (old_thumbs_raw or [])
+            new_thumb_urls = [t.get("url") for t in thumbnails if isinstance(t, dict) and t.get("url")]
+            for ot in old_thumbs:
+                if isinstance(ot, dict) and ot.get("url") and ot.get("url") not in new_thumb_urls:
+                    remove_physical_file(ot["url"])
+                    
+            old_atts_raw = existing.get("attachments") or "[]"
+            old_atts = json.loads(old_atts_raw) if isinstance(old_atts_raw, str) else (old_atts_raw or [])
+            new_att_urls = [a.get("url") for a in attachments if isinstance(a, dict) and a.get("url")]
+            for oa in old_atts:
+                if isinstance(oa, dict) and oa.get("url") and oa.get("url") not in new_att_urls:
+                    remove_physical_file(oa["url"])
+        except Exception as e:
+            print(f"[WARN] Failed to cleanup replaced files for news {news_id}: {e}")
+
         return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
