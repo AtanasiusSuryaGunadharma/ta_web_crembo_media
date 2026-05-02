@@ -725,7 +725,9 @@
       if (type === "tugas") return "Notifikasi Pengingat Tugas";
       if (type === "tukar") return "Notifikasi Tukar Jadwal";
       if (type === "peminjaman") return "Notifikasi Peminjaman";
-      if (type === "agenda") return "Notifikasi Agenda/Pengumuman";
+      if (type === "agenda") return "Notifikasi Agenda";
+      if (type === "form") return "Notifikasi Form Pendaftaran";
+      if (type === "news") return "Notifikasi Pengumuman";
       if (type === "keanggotaan") return "Notifikasi Status Keanggotaan";
       return "Notifikasi";
     }
@@ -1125,28 +1127,6 @@
         notificationTypeFilter.value = tabValue === "all" ? "all" : tabValue;
         activateNotificationTab(tabValue);
       });
-    });
-
-    notificationList.addEventListener("click", function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-      const action = target.getAttribute("data-notif-action");
-      const id = target.getAttribute("data-notif-id");
-      if (action !== "toggle" || !id) {
-        return;
-      }
-
-      const items = readNotifications();
-      const item = items.find(function (row) { return row.id === id; });
-      if (!item) {
-        return;
-      }
-
-      item.status = item.status === "unread" ? "read" : "unread";
-      saveNotifications(items);
-      renderNotifications();
     });
 
     document.querySelectorAll(".group-toggle").forEach(function (button) {
