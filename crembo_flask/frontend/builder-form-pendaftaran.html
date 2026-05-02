@@ -413,6 +413,16 @@
     }
 
     .notify.show { opacity: 1; transform: translateY(0); }
+    
+    /* Attachment Styles */
+    .file-input-wrapper { position: relative; }
+    .file-input-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .file-input-btn { border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; padding: 12px; text-align: center; color: #475569; font-size: 0.85rem; font-weight: 600; display: block; }
+    .file-input-wrapper:hover .file-input-btn { background: #e2e8f0; border-color: #94a3b8; }
+    .preview-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .preview-item { display: flex; align-items: center; justify-content: space-between; border: 1px solid #e2e8f0; background: #f8fafc; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; }
+    .preview-item img { max-width: 40px; max-height: 40px; border-radius: 4px; object-fit: cover; }
+    .remove-file { color: #ef4444; background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 0; line-height: 1; }
 
     @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
@@ -454,7 +464,6 @@
           <p id="pageDesc">Atur target pendaftar, visibilitas, kuota, periode, dan field pertanyaan.</p>
         </div>
         <div class="form-headline-actions">
-          <!-- <a class="btn ghost" href="manajemen-form-pendaftaran.html">Kembali</a> -->
           <span id="liveDateTime" class="chip">-</span>
           <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -515,6 +524,25 @@
             <input id="quotaInput" type="number" min="0" step="1" value="0">
             <p class="helper">Isi 0 jika tanpa batas kuota.</p>
           </div>
+
+          <div class="split-2">
+            <div class="field">
+                <label class="label">Thumbnail Form</label>
+                <div class="file-input-wrapper">
+                  <input type="file" id="imageUploadInput" accept="image/*">
+                  <div class="file-input-btn">Upload Thumbnail / Gambar Form</div>
+                </div>
+                <div id="imagePreviewContainer" class="preview-list"></div>
+            </div>
+            <div class="field">
+                <label class="label">Lampiran Form</label>
+                <div class="file-input-wrapper">
+                  <input type="file" id="attachmentUploadInput" multiple>
+                  <div class="file-input-btn">Upload Lampiran (PDF/Word/Excel dll)</div>
+                </div>
+                <div id="attachmentPreviewContainer" class="preview-list"></div>
+            </div>
+          </div>
         </article>
 
         <article class="panel">
@@ -538,6 +566,7 @@
                 <option value="select">Dropdown</option>
                 <option value="radio">Radio</option>
                 <option value="checkbox">Checkbox</option>
+                <option value="file">File Upload (Pendaftar mengirim file)</option>
               </select>
             </div>
           </div>
@@ -598,6 +627,12 @@
     const closeDateInput = document.getElementById("closeDateInput");
     const quotaInput = document.getElementById("quotaInput");
 
+    // File Inputs
+    const imageUploadInput = document.getElementById("imageUploadInput");
+    const imagePreviewContainer = document.getElementById("imagePreviewContainer");
+    const attachmentUploadInput = document.getElementById("attachmentUploadInput");
+    const attachmentPreviewContainer = document.getElementById("attachmentPreviewContainer");
+
     const fieldLabelInput = document.getElementById("fieldLabelInput");
     const fieldTypeInput = document.getElementById("fieldTypeInput");
     const fieldPlaceholderInput = document.getElementById("fieldPlaceholderInput");
@@ -614,6 +649,8 @@
 
     let forms = [];
     let fields = [];
+    let formImage = null; // Object image {url, name, dsb}
+    let formAttachments = []; // Array of attachment objects
     let editingFieldId = "";
     let draggingFieldId = "";
 
@@ -659,9 +696,106 @@
         openDate: String(item && item.openDate ? item.openDate : ""),
         closeDate: String(item && item.closeDate ? item.closeDate : ""),
         quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0,
+        imageUrl: String(item && item.imageUrl ? item.imageUrl : ""),
+        imageName: String(item && item.imageName ? item.imageName : ""),
+        attachments: Array.isArray(item && item.attachments) ? item.attachments : [],
         fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [],
         updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString())
       };
+    }
+
+    // --- UPLOAD HANDLERS ---
+    async function uploadFile(file) {
+      const formData = new FormData();
+      formData.append("files", file);
+      
+      try {
+        const response = await fetch("/api/upload_image", {
+          method: "POST",
+          body: formData
+        });
+        const result = await response.json();
+        if (result.success && result.files && result.files.length > 0) {
+          return result.files[0];
+        }
+        throw new Error(result.error || "Gagal mengupload file");
+      } catch (e) {
+        console.error("Upload error:", e);
+        showNotify("Error upload: " + e.message);
+        return null;
+      }
+    }
+
+    imageUploadInput.addEventListener("change", async function(e) {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      
+      showNotify("Mengupload thumbnail...");
+      const uploaded = await uploadFile(file);
+      if (uploaded) {
+        formImage = uploaded;
+        renderImagePreview();
+        showNotify("Thumbnail berhasil diupload");
+      }
+      e.target.value = ""; 
+    });
+
+    attachmentUploadInput.addEventListener("change", async function(e) {
+      if (!e.target.files || e.target.files.length === 0) return;
+      
+      showNotify("Mengupload lampiran...");
+      const newAtts = [];
+      for (let i = 0; i < e.target.files.length; i++) {
+        const uploaded = await uploadFile(e.target.files[i]);
+        if (uploaded) newAtts.push(uploaded);
+      }
+      
+      formAttachments = formAttachments.concat(newAtts);
+      renderAttachmentPreview();
+      if(newAtts.length > 0) showNotify(`${newAtts.length} lampiran berhasil diupload`);
+      e.target.value = ""; 
+    });
+
+    function renderImagePreview() {
+      imagePreviewContainer.innerHTML = "";
+      if (!formImage) return;
+      
+      const el = document.createElement("div");
+      el.className = "preview-item";
+      el.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="${formImage.url}" alt="Thumbnail">
+          <span>${formImage.name || 'Thumbnail'}</span>
+        </div>
+        <button class="remove-file" type="button" title="Hapus Thumbnail">&times;</button>
+      `;
+      
+      el.querySelector(".remove-file").addEventListener("click", function() {
+        formImage = null;
+        renderImagePreview();
+      });
+      
+      imagePreviewContainer.appendChild(el);
+    }
+
+    function renderAttachmentPreview() {
+      attachmentPreviewContainer.innerHTML = "";
+      formAttachments.forEach((att, idx) => {
+        const el = document.createElement("div");
+        el.className = "preview-item";
+        el.innerHTML = `
+          <span>📎 ${att.name || 'Lampiran ' + (idx + 1)}</span>
+          <button class="remove-file" type="button" data-idx="${idx}" title="Hapus Lampiran">&times;</button>
+        `;
+        
+        el.querySelector(".remove-file").addEventListener("click", function(e) {
+          const index = parseInt(e.target.getAttribute("data-idx"));
+          formAttachments.splice(index, 1);
+          renderAttachmentPreview();
+        });
+        
+        attachmentPreviewContainer.appendChild(el);
+      });
     }
 
     async function loadForms() {
@@ -945,6 +1079,18 @@
       openDateInput.value = target.openDate;
       closeDateInput.value = target.closeDate;
       quotaInput.value = String(target.quota);
+      
+      // Load Thumbnail & Attachments
+      if (target.imageUrl) {
+        formImage = { url: target.imageUrl, name: target.imageName || 'Thumbnail' };
+      }
+      if (target.attachments && Array.isArray(target.attachments)) {
+        formAttachments = target.attachments;
+      }
+
+      renderImagePreview();
+      renderAttachmentPreview();
+
       fields = target.fields.slice();
       renderFieldList();
     }
@@ -978,6 +1124,9 @@
         openDate: openDate,
         closeDate: closeDate,
         quota: Number.isFinite(Number(quotaInput.value)) ? Number(quotaInput.value) : 0,
+        imageUrl: formImage ? formImage.url : "",
+        imageName: formImage ? (formImage.name || 'thumbnail') : "",
+        attachments: formAttachments,
         fields: fields.slice(),
         updatedAt: new Date().toISOString()
       };

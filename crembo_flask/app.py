@@ -337,6 +337,7 @@ def ensure_registration_form_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
+        # PERBAIKAN: Menambahkan schema image_url, image_name, dan attachments
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS `registration_forms` (
@@ -348,6 +349,9 @@ def ensure_registration_form_schema() -> None:
               `open_date` date DEFAULT NULL,
               `close_date` date DEFAULT NULL,
               `quota` int(11) NOT NULL DEFAULT 0,
+              `image_url` text DEFAULT NULL,
+              `image_name` varchar(255) DEFAULT NULL,
+              `attachments` longtext DEFAULT NULL,
               `fields_json` longtext DEFAULT NULL,
               `created_by` varchar(100) DEFAULT NULL,
               `created_by_name` varchar(255) DEFAULT NULL,
@@ -361,6 +365,11 @@ def ensure_registration_form_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
             """
         )
+        # ALTER TABLE IF COLUMNS DONT EXIST YET
+        ensure_column(cursor, "registration_forms", "image_url", "`image_url` text DEFAULT NULL")
+        ensure_column(cursor, "registration_forms", "image_name", "`image_name` varchar(255) DEFAULT NULL")
+        ensure_column(cursor, "registration_forms", "attachments", "`attachments` longtext DEFAULT NULL")
+
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS `registration_form_submissions` (
@@ -661,6 +670,13 @@ def registration_form_row_to_dict(row: dict[str, object], submission_count: int 
     except (TypeError, ValueError):
         fields = []
 
+    # BACA DATA BARU imageUrl dan attachments
+    attachments_raw = row.get("attachments") or "[]"
+    try:
+        attachments = json.loads(attachments_raw) if isinstance(attachments_raw, str) else (attachments_raw or [])
+    except (TypeError, ValueError):
+        attachments = []
+
     return {
         "id": row.get("id"),
         "title": row.get("title") or "Form Pendaftaran",
@@ -670,6 +686,9 @@ def registration_form_row_to_dict(row: dict[str, object], submission_count: int 
         "openDate": str(row.get("open_date") or ""),
         "closeDate": str(row.get("close_date") or ""),
         "quota": int(row.get("quota") or 0),
+        "imageUrl": row.get("image_url") or "",
+        "imageName": row.get("image_name") or "",
+        "attachments": attachments if isinstance(attachments, list) else [],
         "fields": normalize_registration_fields(fields),
         "submissionCount": int(submission_count or 0),
         "createdAt": row.get("created_at") or "",
@@ -680,6 +699,7 @@ def registration_form_row_to_dict(row: dict[str, object], submission_count: int 
 def registration_form_payload_to_db_values(data, existing=None):
     source = existing or {}
     fields = normalize_registration_fields(data.get("fields", source.get("fields_json", source.get("fields", []))))
+    attachments = normalize_attachment_payload(data.get("attachments", source.get("attachments", [])))
 
     def value_for(*keys, default=""):
         for key in keys:
@@ -703,6 +723,9 @@ def registration_form_payload_to_db_values(data, existing=None):
         "open_date": str(value_for("openDate", "open_date")).strip() or None,
         "close_date": str(value_for("closeDate", "close_date")).strip() or None,
         "quota": int(quota_value or 0),
+        "image_url": str(value_for("imageUrl", "image_url")).strip(),
+        "image_name": str(value_for("imageName", "image_name")).strip(),
+        "attachments": json.dumps(attachments, ensure_ascii=False),
         "fields_json": json.dumps(fields, ensure_ascii=False),
     }
 
@@ -814,7 +837,19 @@ def registration_submission_payload_to_rows(form: dict[str, object], answers_pay
         field_type = str(field.get("type") or "text").strip().lower()
         value = answer_map.get(field_id)
 
-        if field_type == "checkbox":
+        # Upload Lampiran (Tambahan handling lampiran pada saat visitor isi form)
+        if field_type == "file":
+             # Value dari client adalah list url jika input type file (seperti attachment)
+             if isinstance(value, list):
+                 normalized_value = [str(item).strip() for item in value if str(item).strip()]
+             elif value in (None, ""):
+                 normalized_value = []
+             else:
+                 normalized_value = [str(value).strip()]
+             if field.get("required") and not normalized_value:
+                 return None, f'Mohon isi/upload: {field_label}'
+
+        elif field_type == "checkbox":
             if isinstance(value, list):
                 normalized_value = [str(item).strip() for item in value if str(item).strip()]
             elif value in (None, ""):
@@ -1912,8 +1947,8 @@ def create_registration_form():
         cursor.execute(
             """
             INSERT INTO `registration_forms`
-            (`id`, `title`, `description`, `target`, `visibility`, `open_date`, `close_date`, `quota`, `fields_json`, `created_by`, `created_by_name`, `created_by_role`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (`id`, `title`, `description`, `target`, `visibility`, `open_date`, `close_date`, `quota`, `image_url`, `image_name`, `attachments`, `fields_json`, `created_by`, `created_by_name`, `created_by_role`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 form_id,
@@ -1924,6 +1959,9 @@ def create_registration_form():
                 values["open_date"],
                 values["close_date"],
                 values["quota"],
+                values["image_url"],
+                values["image_name"],
+                values["attachments"],
                 values["fields_json"],
                 str(session.get("user_id") or ""),
                 str(session.get("nama") or session.get("username") or ""),
@@ -1982,6 +2020,9 @@ def update_registration_form(form_id):
                 `open_date` = %s,
                 `close_date` = %s,
                 `quota` = %s,
+                `image_url` = %s,
+                `image_name` = %s,
+                `attachments` = %s,
                 `fields_json` = %s
             WHERE `id` = %s
             """,
@@ -1993,11 +2034,36 @@ def update_registration_form(form_id):
                 values["open_date"],
                 values["close_date"],
                 values["quota"],
+                values["image_url"],
+                values["image_name"],
+                values["attachments"],
                 values["fields_json"],
                 form_id,
             ),
         )
         conn.commit()
+
+        # Cleanup file lama yang sudah dihapus/diganti saat Edit
+        if existing:
+            try:
+                # Cleanup Image
+                if existing.get("image_url") and existing.get("image_url") != values["image_url"]:
+                    remove_physical_file(existing["image_url"])
+                
+                # Cleanup Attachments
+                old_atts_raw = existing.get("attachments") or "[]"
+                old_atts = json.loads(old_atts_raw) if isinstance(old_atts_raw, str) else (old_atts_raw or [])
+                new_atts_raw = values.get("attachments") or "[]"
+                new_atts = json.loads(new_atts_raw) if isinstance(new_atts_raw, str) else (new_atts_raw or [])
+                new_att_urls = [a.get("url") for a in new_atts if isinstance(a, dict) and a.get("url")]
+                
+                for oa in old_atts:
+                    if isinstance(oa, dict) and oa.get("url") and oa.get("url") not in new_att_urls:
+                        remove_physical_file(oa["url"])
+            except Exception as e:
+                print(f"[WARN] Failed to cleanup replaced files for registration form {form_id}: {e}")
+
+
         return jsonify({"success": True, "id": form_id})
     except Exception as error:
         conn.rollback()
@@ -2014,10 +2080,35 @@ def delete_registration_form(form_id):
         return jsonify({"success": False, "error": "Forbidden"}), 403
 
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        # Fetch form data first to get the files we need to delete
+        cursor.execute("SELECT `image_url`, `attachments` FROM `registration_forms` WHERE `id` = %s LIMIT 1", (form_id,))
+        form = cursor.fetchone()
+        
+        if not form:
+            return jsonify({"success": False, "error": "Form not found"}), 404
+
+        # Delete the record from the database
         cursor.execute("DELETE FROM `registration_forms` WHERE `id` = %s", (form_id,))
         conn.commit()
+
+        # Clean up physical files
+        try:
+            # Delete image
+            if form.get("image_url"):
+                remove_physical_file(form["image_url"])
+            
+            # Delete attachments
+            attachments_raw = form.get("attachments") or "[]"
+            attachments = json.loads(attachments_raw) if isinstance(attachments_raw, str) else (attachments_raw or [])
+            for att in attachments:
+                if isinstance(att, dict) and att.get("url"):
+                    remove_physical_file(att["url"])
+        except Exception as e:
+            print(f"[WARN] Error during physical file cleanup for form {form_id}: {e}")
+
+
         return jsonify({"success": True})
     except Exception as error:
         conn.rollback()
@@ -2070,6 +2161,8 @@ def registration_export_rows(form: dict[str, object], submissions: list[dict[str
             if not isinstance(field, dict):
                 continue
             value = answer_map.get(str(field.get("id") or ""))
+            
+            # Jika value nya list (termasuk file link/checkbox) gabungkan dgn koma
             if isinstance(value, list):
                 row_values.append(", ".join(str(item) for item in value))
             else:
