@@ -447,7 +447,6 @@
 
   <script>
     const FORM_STORAGE_KEY = "crembo-registration-forms";
-    const SUBMISSION_STORAGE_KEY = "crembo-registration-submissions";
 
     const searchInput = document.getElementById("searchInput");
     const targetFilter = document.getElementById("targetFilter");
@@ -457,7 +456,6 @@
     const notify = document.getElementById("notify");
 
     let forms = [];
-    let submissions = [];
 
     function showNotify(message) {
       notify.textContent = message;
@@ -502,29 +500,9 @@
         closeDate: String(item && item.closeDate ? item.closeDate : ""),
         quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0,
         fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [],
+        submissionCount: Number.isFinite(Number(item && item.submissionCount)) ? Number(item.submissionCount) : 0, // FIXED
         updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString())
       };
-    }
-
-    function defaultForms() {
-      return [
-        {
-          id: makeId("form"),
-          title: "Form Pendaftaran Open Recruitment",
-          description: "Form umum untuk pendaftaran anggota baru.",
-          target: "public",
-          visibility: "visible",
-          openDate: "2026-03-20",
-          closeDate: "2026-04-10",
-          quota: 100,
-          fields: [
-            { id: makeId("field"), label: "Nama Lengkap", type: "text", required: true, placeholder: "", options: [] },
-            { id: makeId("field"), label: "Email", type: "email", required: true, placeholder: "", options: [] },
-            { id: makeId("field"), label: "Alasan Bergabung", type: "textarea", required: true, placeholder: "", options: [] }
-          ],
-          updatedAt: new Date().toISOString()
-        }
-      ];
     }
 
     async function loadForms() {
@@ -535,33 +513,16 @@
         }
         const parsed = await response.json();
         forms = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeForm) : [];
-        localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
       } catch (error) {
-        const raw = localStorage.getItem(FORM_STORAGE_KEY);
-        const parsed = raw ? safeParse(raw) : null;
-        forms = Array.isArray(parsed) && parsed.length ? parsed.map(normalizeForm) : defaultForms().map(normalizeForm);
-        localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
+        showNotify("Gagal Load API, memakai fallback.");
       }
-    }
-
-    function loadSubmissions() {
-      submissions = [];
-    }
-
-    function saveForms() {
-      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(forms));
     }
 
     function getSubmissionCount(formId) {
       const fromForm = forms.find(function (item) {
         return item && item.id === formId;
       });
-      if (fromForm && Number.isFinite(Number(fromForm.submissionCount))) {
-        return Number(fromForm.submissionCount);
-      }
-      return submissions.filter(function (item) {
-        return item && item.formId === formId;
-      }).length;
+      return fromForm ? fromForm.submissionCount : 0;
     }
 
     function formatDate(value) {
@@ -617,7 +578,7 @@
         const targetText = item.target === "internal" ? "Internal" : "Umum";
         const visibilityText = item.visibility === "draft" ? "Draft" : "Ditampilkan";
         const count = getSubmissionCount(item.id);
-        const quotaText = item.quota > 0 ? String(item.quota) : "Tanpa batas";
+        const quotaText = item.quota > 0 ? String(item.quota) : "Tak terbatas";
 
         return "<tr>"
           + "<td class=\"title-cell\"><strong>" + escapeHtml(item.title) + "</strong><div class=\"sub\">" + escapeHtml(item.description || "-") + "</div></td>"
@@ -637,13 +598,10 @@
 
     async function removeForm(id) {
       const target = forms.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
+      if (!target) return;
+
       const ok = window.confirm('Hapus form "' + target.title + '"?');
-      if (!ok) {
-        return;
-      }
+      if (!ok) return;
 
       const response = await fetch("/api/registration/forms/" + encodeURIComponent(id), {
         method: "DELETE",
@@ -656,7 +614,6 @@
       }
 
       forms = forms.filter(function (item) { return item.id !== id; });
-      saveForms();
       renderRows();
       showNotify("Form berhasil dihapus.");
     }
@@ -687,10 +644,16 @@
     targetFilter.addEventListener("change", renderRows);
 
     loadForms().then(function () {
-      loadSubmissions();
       renderRows();
       updateLiveDateTime();
       setInterval(updateLiveDateTime, 1000);
+    });
+
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+      });
     });
   </script>
 <script src="_sidebar-fix.js"></script>

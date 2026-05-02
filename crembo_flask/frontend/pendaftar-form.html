@@ -372,10 +372,8 @@
       table { min-width: 0; }
     }
   </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="_admin-theme.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
@@ -385,7 +383,7 @@
         <p>Kelola data pendaftar form</p>
       </div>
 
-      <div class="menu-group">
+      <div class="menu-group open">
         <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
         <div class="group-items">
           <a class="menu-link" href="manajemen-profil.html">Profil</a>
@@ -429,9 +427,9 @@
         <div class="filters">
           <input id="searchInput" type="search" placeholder="Cari identitas pendaftar atau jawaban...">
           <select id="roleFilter">
-            <option value="all">Semua Role</option>
-            <option value="public">Public</option>
-            <option value="internal">Internal</option>
+            <option value="all">Semua Jenis/Role</option>
+            <option value="public">Publik / Umum</option>
+            <option value="internal">Internal Anggota</option>
           </select>
           <select id="sortFilter">
             <option value="newest">Terbaru</option>
@@ -452,7 +450,7 @@
           <strong id="summaryTotal">0</strong>
         </article>
         <article class="summary-card">
-          <span>Public</span>
+          <span>Publik</span>
           <strong id="summaryPublic">0</strong>
         </article>
         <article class="summary-card">
@@ -465,11 +463,11 @@
         <table id="submissionTable">
           <thead>
             <tr>
-              <th>No</th>
-              <th>Waktu Submit</th>
-              <th>Identitas</th>
-              <th>Role</th>
-              <th>Data Jawaban</th>
+              <th width="5%">No</th>
+              <th width="15%">Waktu Submit</th>
+              <th width="20%">Identitas Pendaftar</th>
+              <th width="15%">Jenis Akun</th>
+              <th width="45%">Data Jawaban</th>
             </tr>
           </thead>
           <tbody id="submissionRows"></tbody>
@@ -534,14 +532,45 @@
         .replace(/'/g, "&#39;");
     }
 
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function normalizeField(item, index) {
+      return {
+        id: String(item && item.id ? item.id : makeId("field")),
+        label: String(item && item.label ? item.label : "Pertanyaan " + (index + 1)),
+        type: String(item && item.type ? item.type : "text"),
+        required: Boolean(item && item.required),
+        placeholder: String(item && item.placeholder ? item.placeholder : ""),
+        options: Array.isArray(item && item.options) ? item.options.map(String) : []
+      };
+    }
+
+    function normalizeForm(item, index) {
+      return {
+        id: String(item && item.id ? item.id : "form-" + (index + 1)),
+        title: String(item && item.title ? item.title : "Form Pendaftaran"),
+        description: String(item && item.description ? item.description : ""),
+        target: String(item && item.target ? item.target : "public") === "internal" ? "internal" : "public",
+        visibility: String(item && item.visibility ? item.visibility : "visible") === "draft" ? "draft" : "visible",
+        openDate: String(item && item.openDate ? item.openDate : ""),
+        closeDate: String(item && item.closeDate ? item.closeDate : ""),
+        quota: Number.isFinite(Number(item && item.quota)) ? Number(item.quota) : 0,
+        fields: Array.isArray(item && item.fields) ? item.fields.map(normalizeField) : [],
+        submissionCount: Number.isFinite(Number(item && item.submissionCount)) ? Number(item.submissionCount) : 0,
+        updatedAt: String(item && item.updatedAt ? item.updatedAt : new Date().toISOString())
+      };
+    }
+
     function formatDateTime(value) {
-      if (!value) {
-        return "-";
+      if (!value) return "-";
+      let valStr = String(value);
+      if(valStr.indexOf("T") === -1 && valStr.indexOf(" ") > 0) {
+         valStr = valStr.replace(" ", "T");
       }
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
+      const date = new Date(valStr);
+      if (Number.isNaN(date.getTime())) return value;
       const day = String(date.getDate()).padStart(2, "0");
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
@@ -560,14 +589,7 @@
         currentForm = parsed && parsed.form ? normalizeForm(parsed.form, 0) : null;
         allSubmissions = Array.isArray(parsed && parsed.submissions) ? parsed.submissions : [];
       } catch (error) {
-        const rawForms = localStorage.getItem(FORM_STORAGE_KEY);
-        const parsedForms = rawForms ? safeParse(rawForms) : null;
-        const forms = Array.isArray(parsedForms) ? parsedForms : [];
-        currentForm = forms.find(function (item) { return item && item.id === formId; }) || null;
-
-        const rawSubmissions = localStorage.getItem(SUBMISSION_STORAGE_KEY);
-        const parsedSubmissions = rawSubmissions ? safeParse(rawSubmissions) : null;
-        allSubmissions = Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+        showNotify("Gagal Load API Pendaftar.");
       }
     }
 
@@ -586,13 +608,16 @@
       const keyword = searchInput.value.trim().toLowerCase();
       const selectedRole = roleFilter.value;
       const sortMode = sortFilter.value;
+
       const rows = allSubmissions
         .filter(function (item) {
           return item && item.formId === formId;
         })
         .filter(function (item) {
-          if (selectedRole !== "all" && (item.submitter && item.submitter.role ? item.submitter.role : "public") !== selectedRole) {
-            return false;
+          if (selectedRole !== "all") {
+             const source = (item.submitter && item.submitter.source) ? item.submitter.source : "public";
+             if (selectedRole === "public" && source !== "public") return false;
+             if (selectedRole === "internal" && source === "public") return false;
           }
           return true;
         });
@@ -622,10 +647,10 @@
     function renderSummary(list) {
       const total = list.length;
       const publicCount = list.filter(function (item) {
-        return (item.submitter && item.submitter.role ? item.submitter.role : "public") === "public";
+        return (item.submitter && item.submitter.source ? item.submitter.source : "public") === "public";
       }).length;
       const internalCount = list.filter(function (item) {
-        return (item.submitter && item.submitter.role ? item.submitter.role : "public") === "internal";
+        return (item.submitter && item.submitter.source ? item.submitter.source : "public") !== "public";
       }).length;
 
       summaryTotal.textContent = String(total);
@@ -645,10 +670,11 @@
       }
 
       pageTitle.textContent = "Data Pendaftar: " + currentForm.title;
-      pageDesc.textContent = "Total pendaftar: " + String(allSubmissions.filter(function (s) { return s && s.formId === formId; }).length);
+      pageDesc.textContent = "Total pendaftar ditarik otomatis dari database.";
 
       const list = filteredSubmissions();
       renderSummary(list);
+
       if (!list.length) {
         submissionRows.innerHTML = "";
         emptyState.style.display = "block";
@@ -657,8 +683,14 @@
 
       emptyState.style.display = "none";
       submissionRows.innerHTML = list.map(function (item, index) {
-        const identity = item && item.submitter && item.submitter.identifier ? item.submitter.identifier : "public";
-        const role = item && item.submitter && item.submitter.role ? item.submitter.role : "public";
+        const identity = item && item.submitter && item.submitter.identifier ? item.submitter.identifier : "Publik / Umum";
+        const source = item && item.submitter && item.submitter.source ? item.submitter.source : "public";
+        const roleOriginal = item && item.submitter && item.submitter.role ? item.submitter.role : "public";
+        
+        let roleDisplay = "Publik / Umum";
+        if (source !== "public") {
+           roleDisplay = roleOriginal === "super_admin" ? "Internal (Super Admin)" : (roleOriginal === "admin" ? "Internal (Admin)" : "Internal (Anggota)");
+        }
 
         const answersHtml = Array.isArray(item && item.answers) && item.answers.length
           ? '<ul class="answer-list">' + item.answers.map(function (ans) {
@@ -671,7 +703,7 @@
           + "<td>" + String(index + 1) + "</td>"
           + "<td>" + escapeHtml(formatDateTime(item && item.submittedAt ? item.submittedAt : "")) + "</td>"
           + "<td>" + escapeHtml(identity) + "</td>"
-          + "<td>" + escapeHtml(role) + "</td>"
+          + "<td>" + escapeHtml(roleDisplay) + "</td>"
           + "<td>" + answersHtml + "</td>"
           + "</tr>";
       }).join("");
@@ -694,13 +726,110 @@
       if (!currentForm) {
         return;
       }
-      const link = document.createElement("a");
-      link.href = "/api/registration/forms/" + encodeURIComponent(formId) + "/export.pdf";
-      link.download = "";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      showNotify("File PDF sedang diunduh.");
+      
+      const list = filteredSubmissions();
+      if (!list.length) {
+        showNotify("Tidak ada data pendaftar untuk dipreview.");
+        return;
+      }
+
+      showNotify("Menyiapkan preview data pendaftar...");
+      const popup = window.open("", "_blank");
+      if (!popup) {
+        showNotify("Popup diblokir browser. Izinkan popup untuk preview PDF.");
+        return;
+      }
+
+      const generatedAt = new Date().toLocaleString("id-ID", {
+        day: "2-digit", month: "long", year: "numeric", 
+        hour: "2-digit", minute: "2-digit", second: "2-digit"
+      }) + " WIB";
+
+      const tableRowsHtml = list.map(function(item, index) {
+        const identity = item && item.submitter && item.submitter.identifier ? item.submitter.identifier : "Publik / Umum";
+        const source = item && item.submitter && item.submitter.source ? item.submitter.source : "public";
+        const roleOriginal = item && item.submitter && item.submitter.role ? item.submitter.role : "public";
+        
+        let roleDisplay = "Publik / Umum";
+        if (source !== "public") {
+           roleDisplay = roleOriginal === "super_admin" ? "Internal (Super Admin)" : (roleOriginal === "admin" ? "Internal (Admin)" : "Internal (Anggota)");
+        }
+
+        const answersHtml = Array.isArray(item && item.answers) && item.answers.length
+          ? '<ul style="margin:0; padding-left:16px;">' + item.answers.map(function(ans) {
+              const value = Array.isArray(ans && ans.value) ? ans.value.join(", ") : String(ans && ans.value ? ans.value : "-");
+              return '<li style="margin-bottom:4px;"><strong>' + escapeHtml(ans && ans.label ? ans.label : "Pertanyaan") + ':</strong> ' + escapeHtml(value) + '</li>';
+            }).join("") + '</ul>'
+          : "-";
+
+        return '<tr>'
+          + '<td style="border: 1px solid #cbd5e1; padding: 10px; text-align: center;">' + String(index + 1) + '</td>'
+          + '<td style="border: 1px solid #cbd5e1; padding: 10px;">' + escapeHtml(formatDateTime(item && item.submittedAt ? item.submittedAt : "")) + '</td>'
+          + '<td style="border: 1px solid #cbd5e1; padding: 10px;">' + escapeHtml(identity) + '</td>'
+          + '<td style="border: 1px solid #cbd5e1; padding: 10px;">' + escapeHtml(roleDisplay) + '</td>'
+          + '<td style="border: 1px solid #cbd5e1; padding: 10px;">' + answersHtml + '</td>'
+          + '</tr>';
+      }).join("");
+
+      popup.document.write(`
+        <!doctype html>
+        <html lang="id">
+        <head>
+          <meta charset="utf-8">
+          <title>Data Pendaftar - ${escapeHtml(currentForm.title)}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 30px; color: #111827; line-height: 1.5; }
+            .header { text-align: center; border-bottom: 3px solid #800000; padding-bottom: 15px; margin-bottom: 20px; }
+            .header h1 { margin: 0 0 8px 0; color: #800000; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
+            .header p { margin: 0; font-size: 1.1rem; color: #4b5563; font-weight: 600; }
+            .meta { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 15px; color: #374151; background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+            table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+            th { background: #800000; color: #ffffff; padding: 12px 10px; text-align: left; border: 1px solid #5c0000; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+            td { vertical-align: top; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            .no-print { text-align: center; margin-bottom: 20px; }
+            .print-btn { background: #800000; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 6px rgba(128,0,0,0.2); transition: background 0.2s; }
+            .print-btn:hover { background: #5c0000; }
+            @media print {
+              body { padding: 0; }
+              .no-print { display: none !important; }
+              table { font-size: 0.8rem; }
+              th { background: #f3f4f6 !important; color: #000 !important; border: 1px solid #000; }
+              td { border: 1px solid #000; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print">
+            <button class="print-btn" onclick="window.print()">🖨️ Cetak / Simpan sebagai PDF</button>
+          </div>
+          <div class="header">
+            <h1>Laporan Data Pendaftar</h1>
+            <p>${escapeHtml(currentForm.title)}</p>
+          </div>
+          <div class="meta">
+            <span><strong>Total Pendaftar:</strong> ${list.length} Orang</span>
+            <span><strong>Dicetak pada:</strong> ${generatedAt}</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th width="5%" style="text-align: center;">No</th>
+                <th width="15%">Waktu Submit</th>
+                <th width="20%">Identitas Pendaftar</th>
+                <th width="20%">Jenis Akun</th>
+                <th width="40%">Data Jawaban</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `);
+      popup.document.close();
+      showNotify("Preview laporan berhasil dibuka di tab baru.");
     }
 
     function updateLiveDateTime() {
@@ -717,6 +846,13 @@
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+      });
+    });
+
     searchInput.addEventListener("input", renderRows);
     roleFilter.addEventListener("change", renderRows);
     sortFilter.addEventListener("change", renderRows);
@@ -729,6 +865,6 @@
       setInterval(updateLiveDateTime, 1000);
     });
   </script>
-  <script src="_sidebar-fix.js"></script>
+<script src="_sidebar-fix.js"></script>
 </body>
 </html>
