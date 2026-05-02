@@ -715,9 +715,29 @@
 				answers.push({ fieldId: field.id, label: field.label, type: field.type, value: value });
 			}
 
+			// PERBAIKAN BUG: Gunakan random UUID identifier untuk submission anonim agar tidak terjadi conflict duplikat (409).
+			const isLogged = Boolean(session && session.logged_in);
+			let payloadSubmitter = {};
+			
+			if (isLogged) {
+			    payloadSubmitter = { 
+			        key: session.user_id ? "member:" + session.user_id : "member:" + (session.username || session.email || "member"), 
+			        identifier: session.nama || session.username || session.email || "Anggota", 
+			        role: session.role || "user" 
+			    };
+			} else {
+			    // PENTING: Sisipkan parameter unik pada key agar dianggap user berbeda!
+			    const uniqueKey = makeId("guest");
+			    payloadSubmitter = { 
+			        key: uniqueKey, 
+			        identifier: "Pengunjung", 
+			        role: "public" 
+			    };
+			}
+
 			const payload = {
 				answers: answers,
-				submitter: session ? { key: session.user_id ? "member:" + session.user_id : "member:" + (session.username || session.email || "member"), identifier: session.nama || session.username || session.email || "Anggota", role: session.role || "user" } : { key: "guest:" + getOrCreateGuestId(), identifier: "public", role: "public" }
+				submitter: payloadSubmitter
 			};
 
 			const response = await fetch("/api/registration/forms/" + encodeURIComponent(currentForm.id) + "/submit", {
@@ -737,6 +757,7 @@
 				'<div class="success-icon">✅</div>' +
 				'<h4>Pendaftaran Berhasil Dikirim!</h4>' +
 				'<p>Terima kasih telah mendaftar. Data Anda telah tersimpan dan akan segera diproses oleh tim Crembo Media.</p>' +
+				(session ? '' : '<button class="btn-primary" style="margin-bottom:12px;" type="button" onclick="location.reload()">Submit Lagi (Kirim Data Lain)</button><br>') +
 				'<a class="btn-back" href="/form-pendaftaran">← Kembali ke Daftar Form</a>' +
 				'</div>';
 		}
