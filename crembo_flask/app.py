@@ -396,6 +396,181 @@ def ensure_registration_form_schema() -> None:
         cursor.close()
         conn.close()
 
+def ensure_notifications_schema() -> None:
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS `notifications` (
+              `id` varchar(100) NOT NULL,
+              `type` varchar(50) DEFAULT NULL,
+              `title` varchar(255) DEFAULT NULL,
+              `body` text DEFAULT NULL,
+              `url` varchar(255) DEFAULT NULL,
+              `data` longtext DEFAULT NULL,
+              `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS `notification_reads` (
+              `notification_id` varchar(100) NOT NULL,
+              `user_key` varchar(255) NOT NULL,
+              `read_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`notification_id`,`user_key`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        ''')
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def create_notification(cursor, type_value: str, title: str, body: str, url: str | None = None, data: dict | None = None):
+    nid = f"notif-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
+    cursor.execute(
+        """
+        INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """,
+        (
+            nid,
+            str(type_value or ""),
+            str(title or ""),
+            str(body or ""),
+            str(url or "") if url else None,
+            json.dumps(data or {}, ensure_ascii=False),
+        ),
+    )
+    return nid
+
+
+@app.route("/api/notifications", methods=["GET"])
+def get_notifications():
+    ensure_notifications_schema()
+    viewer = current_user_context()
+    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
+    user_key = None
+    if viewer.get("logged_in"):
+        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
+    else:
+        if client_key:
+            user_key = client_key
+
+    limit = int(request.args.get("limit") or 50)
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `notifications` ORDER BY `created_at` DESC LIMIT %s", (limit,))
+        rows = cursor.fetchall() or []
+        results = []
+        for r in rows:
+            # determine read status for this user
+            is_read = False
+            if user_key:
+                cursor.execute("SELECT 1 FROM `notification_reads` WHERE `notification_id` = %s AND `user_key` = %s LIMIT 1", (r["id"], user_key))
+                is_read = cursor.fetchone() is not None
+            results.append({
+                "id": r.get("id"),
+                "type": r.get("type"),
+                "title": r.get("title"),
+                "body": r.get("body"),
+                "url": r.get("url"),
+                "data": json.loads(r.get("data") or "{}"),
+                "createdAt": r.get("created_at").isoformat() if r.get("created_at") else None,
+                "read": bool(is_read),
+            })
+        return jsonify(results)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/notifications/<notif_id>/mark_read", methods=["POST"])
+def mark_notification_read(notif_id):
+    ensure_notifications_schema()
+    viewer = current_user_context()
+    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
+    if viewer.get("logged_in"):
+        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
+    else:
+        user_key = client_key or None
+    if not user_key:
+        return jsonify({"success": False, "error": "Missing client key"}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT IGNORE INTO `notification_reads` (`notification_id`, `user_key`) VALUES (%s, %s)", (notif_id, user_key))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/notifications/<notif_id>/toggle_read", methods=["POST"])
+def toggle_notification_read(notif_id):
+    ensure_notifications_schema()
+    viewer = current_user_context()
+    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
+    if viewer.get("logged_in"):
+        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
+    else:
+        user_key = client_key or None
+    if not user_key:
+        return jsonify({"success": False, "error": "Missing client key"}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM `notification_reads` WHERE `notification_id` = %s AND `user_key` = %s LIMIT 1", (notif_id, user_key))
+        if cursor.fetchone():
+            cursor.execute("DELETE FROM `notification_reads` WHERE `notification_id` = %s AND `user_key` = %s", (notif_id, user_key))
+            is_read = False
+        else:
+            cursor.execute("INSERT IGNORE INTO `notification_reads` (`notification_id`, `user_key`) VALUES (%s, %s)", (notif_id, user_key))
+            is_read = True
+        conn.commit()
+        return jsonify({"success": True, "read": is_read})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/notifications/mark_all_read", methods=["POST"])
+def mark_all_notifications_read():
+    ensure_notifications_schema()
+    viewer = current_user_context()
+    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
+    if viewer.get("logged_in"):
+        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
+    else:
+        user_key = client_key or None
+    if not user_key:
+        return jsonify({"success": False, "error": "Missing client key"}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT `id` FROM `notifications`")
+        rows = cursor.fetchall() or []
+        for r in rows:
+            try:
+                cursor.execute("INSERT IGNORE INTO `notification_reads` (`notification_id`, `user_key`) VALUES (%s, %s)", (r["id"], user_key))
+            except Exception:
+                pass
+        conn.commit()
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+        
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -544,151 +719,16 @@ def ensure_auth_schema() -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     ''')
 
-def ensure_notifications_schema() -> None:
-    conn = mysql_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS `notifications` (
-              `id` varchar(100) NOT NULL,
-              `type` varchar(50) DEFAULT NULL,
-              `title` varchar(255) DEFAULT NULL,
-              `body` text DEFAULT NULL,
-              `url` varchar(255) DEFAULT NULL,
-              `data` longtext DEFAULT NULL,
-              `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-        ''')
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS `notification_reads` (
-              `notification_id` varchar(100) NOT NULL,
-              `user_key` varchar(255) NOT NULL,
-              `read_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY (`notification_id`,`user_key`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-        ''')
-        conn.commit()
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def create_notification(cursor, type_value: str, title: str, body: str, url: str | None = None, data: dict | None = None):
-    nid = f"notif-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
-    cursor.execute(
-        """
-        INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """,
-        (
-            nid,
-            str(type_value or ""),
-            str(title or ""),
-            str(body or ""),
-            str(url or "") if url else None,
-            json.dumps(data or {}, ensure_ascii=False),
-        ),
-    )
-    return nid
-
-
-@app.route("/api/notifications", methods=["GET"])
-def get_notifications():
-    ensure_notifications_schema()
-    viewer = current_user_context()
-    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
-    user_key = None
-    if viewer.get("logged_in"):
-        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
-    else:
-        if client_key:
-            user_key = client_key
-
-    limit = int(request.args.get("limit") or 50)
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT * FROM `notifications` ORDER BY `created_at` DESC LIMIT %s", (limit,))
-        rows = cursor.fetchall() or []
-        results = []
-        for r in rows:
-            # determine read status for this user
-            is_read = False
-            if user_key:
-                cursor.execute("SELECT 1 FROM `notification_reads` WHERE `notification_id` = %s AND `user_key` = %s LIMIT 1", (r["id"], user_key))
-                is_read = cursor.fetchone() is not None
-            results.append({
-                "id": r.get("id"),
-                "type": r.get("type"),
-                "title": r.get("title"),
-                "body": r.get("body"),
-                "url": r.get("url"),
-                "data": json.loads(r.get("data") or "{}"),
-                "createdAt": r.get("created_at").isoformat() if r.get("created_at") else None,
-                "read": bool(is_read),
-            })
-        return jsonify(results)
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.route("/api/notifications/<notif_id>/mark_read", methods=["POST"])
-def mark_notification_read(notif_id):
-    ensure_notifications_schema()
-    viewer = current_user_context()
-    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
-    if viewer.get("logged_in"):
-        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
-    else:
-        user_key = client_key or None
-    if not user_key:
-        return jsonify({"success": False, "error": "Missing client key"}), 400
-
-    conn = mysql_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT IGNORE INTO `notification_reads` (`notification_id`, `user_key`) VALUES (%s, %s)", (notif_id, user_key))
-        conn.commit()
-        return jsonify({"success": True})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "error": str(e)}), 400
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.route("/api/notifications/mark_all_read", methods=["POST"])
-def mark_all_notifications_read():
-    ensure_notifications_schema()
-    viewer = current_user_context()
-    client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
-    if viewer.get("logged_in"):
-        user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
-    else:
-        user_key = client_key or None
-    if not user_key:
-        return jsonify({"success": False, "error": "Missing client key"}), 400
-
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT `id` FROM `notifications`")
-        rows = cursor.fetchall() or []
-        for r in rows:
-            try:
-                cursor.execute("INSERT IGNORE INTO `notification_reads` (`notification_id`, `user_key`) VALUES (%s, %s)", (r["id"], user_key))
-            except Exception:
-                pass
-        conn.commit()
-        return jsonify({"success": True})
-    finally:
-        cursor.close()
-        conn.close()
-    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS `google_maps_embed` (
+          `id` int(11) NOT NULL,
+          `url` text DEFAULT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    ''')
+    cursor.execute("SELECT COUNT(*) FROM `google_maps_embed`")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO `google_maps_embed` (`id`, `url`) VALUES (1, '')")
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS `sertifikat_config` (
@@ -1548,7 +1588,6 @@ def public_news_category_page(category_slug):
 def public_news_detail_page(news_id):
     return render_public_page("pengumuman-detail.html", news_id=news_id)
 
-# Tambahkan bagian ini sebelum "# --- TENTANG CREMBO ENDPOINTS ---" di file app.py kamu
 
 @app.route("/agenda")
 def public_agenda_page():
@@ -3183,6 +3222,7 @@ if __name__ == "__main__":
         ensure_auth_schema()
         ensure_news_schema()
         ensure_agenda_schema()
+        ensure_notifications_schema()
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)
