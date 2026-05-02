@@ -1389,6 +1389,14 @@ def public_agenda_detail_page(agenda_id):
     # Mengirim parameter agenda_id ke template sehingga JS di client bisa membaca ID yang akan di load
     return render_public_page("agenda-detail.html", agenda_id=agenda_id)
 
+@app.route("/form-pendaftaran")
+def public_registration_forms_page():
+    return render_public_page("form-pendaftaran.html")
+
+@app.route("/form-pendaftaran/<form_id>")
+def public_registration_form_detail_page(form_id):
+    return render_public_page("form-pendaftaran-detail.html", form_id=form_id)
+
 # --- TENTANG CREMBO ENDPOINTS ---
 
 @app.route("/api/tentang/config", methods=["GET"])
