@@ -1511,10 +1511,12 @@
             try {
               await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' });
             } catch (e) {}
-            if (url) { window.location.href = url; }
+            if (url) { 
+              // PERBAIKAN: Buka di tab baru
+              window.open(url, '_blank'); 
+            }
             else { renderNotifications(); }
           } else if (action === 'toggle') {
-            // Memanggil endpoint toggle_read untuk mengganti status dibaca/baru
             try {
               await fetch('/api/notifications/' + encodeURIComponent(nid) + '/toggle_read', { method: 'POST', credentials: 'same-origin' });
             } catch (e) {}

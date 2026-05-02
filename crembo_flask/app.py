@@ -2093,6 +2093,7 @@ def get_registration_form_detail(form_id):
         conn.close()
 
 
+# Di dalam app.py, cari fungsi create_registration_form()
 @app.route("/api/registration/forms", methods=["POST"])
 def create_registration_form():
     ensure_registration_form_schema()
@@ -2147,8 +2148,8 @@ def create_registration_form():
             ensure_notifications_schema()
             nc = conn.cursor()
             try:
-                # create a broadcast notification for new registration form
-                create_notification(nc, "form", f"Form Pendaftaran Baru: {values['title']}", values.get('description') or "Terdapat form pendaftaran baru.", url_for('get_registration_form_detail', form_id=form_id), {"form_id": form_id})
+                # PERBAIKAN: ubah url_for agar mengarah ke halaman public FE, bukan ke API
+                create_notification(nc, "form", f"Form Pendaftaran Baru: {values['title']}", values.get('description') or "Terdapat form pendaftaran baru.", url_for('public_registration_form_detail_page', form_id=form_id), {"form_id": form_id})
                 conn.commit()
             finally:
                 nc.close()

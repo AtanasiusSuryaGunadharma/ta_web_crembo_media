@@ -772,6 +772,7 @@
           + '</article>';
       }).join("");
 
+      // Attach click handlers for actions
       Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
         btn.addEventListener('click', async function(e) {
           const action = btn.getAttribute('data-notif-action');
@@ -779,9 +780,13 @@
           if (action === 'open') {
             const url = btn.getAttribute('data-notif-url') || '';
             try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
-            if (url) { window.location.href = url; } else { renderNotifications(); }
+            if (url) { 
+              // PERBAIKAN: Buka di tab baru
+              window.open(url, '_blank'); 
+            } else { 
+              renderNotifications(); 
+            }
           } else if (action === 'toggle') {
-            // Memanggil endpoint toggle_read untuk mengganti status dibaca/baru
             try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/toggle_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
             renderNotifications();
           }
