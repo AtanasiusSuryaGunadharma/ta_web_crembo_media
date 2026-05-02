@@ -582,15 +582,10 @@
 		/* ═══════════════════════════════════════════
 		   PROFIL / ABOUT
 		   ═══════════════════════════════════════════ */
-		.about-grid,
-		.cards-3,
-		.cards-2 {
-			display: grid;
-			gap: 20px;
-		}
-
 		.about-grid {
+			display: grid;
 			grid-template-columns: 1.15fr 1fr;
+			gap: 20px;
 			align-items: start;
 		}
 
@@ -705,20 +700,6 @@
 			background: var(--primary);
 			border-color: var(--primary);
 			transform: scale(1.2);
-		}
-
-		.embed-note {
-			margin: 10px 0 0;
-			font-size: 0.82rem;
-			color: var(--muted);
-			font-style: italic;
-		}
-
-		.dynamic-note {
-			margin: 0;
-			font-size: 0.84rem;
-			color: var(--muted);
-			font-style: italic;
 		}
 
 		/* ═══════════════════════════════════════════
@@ -864,6 +845,8 @@
 			overflow-y: auto;
 			min-height: 300px;
 			max-height: 500px;
+			padding: 0;
+		}
 
 		.map-embed-box {
 			position: relative;
@@ -895,8 +878,6 @@
 		.map-open-btn:hover {
 			background: #fff;
 			transform: translateY(-1px);
-		}
-			padding: 0;
 		}
 
 		.instagram-card .embed-box,
@@ -987,14 +968,36 @@
 		}
 
 		/* ═══════════════════════════════════════════
-		   CARDS
+		   CARDS & HORIZONTAL SCROLL TRACK
 		   ═══════════════════════════════════════════ */
-		.cards-3 {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+		.cards-scroll-track {
+			display: flex;
+			gap: 20px;
+			overflow-x: auto;
+			padding-bottom: 16px;
+			scroll-snap-type: x mandatory;
+			scrollbar-width: thin;
+			scrollbar-color: rgba(128, 0, 0, 0.3) rgba(0,0,0,0.05);
 		}
 
-		.cards-2 {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+		.cards-scroll-track::-webkit-scrollbar {
+			height: 8px;
+		}
+
+		.cards-scroll-track::-webkit-scrollbar-thumb {
+			background: rgba(128, 0, 0, 0.3);
+			border-radius: 999px;
+		}
+
+		.cards-scroll-track::-webkit-scrollbar-track {
+			background: rgba(0,0,0,0.05);
+			border-radius: 999px;
+		}
+
+		.cards-scroll-track .card {
+			flex: 0 0 calc(33.333% - 14px);
+			scroll-snap-align: start;
+			min-width: 280px;
 		}
 
 		.card {
@@ -1004,6 +1007,8 @@
 			overflow: hidden;
 			transition: var(--transition);
 			position: relative;
+			display: flex;
+			flex-direction: column;
 		}
 
 		.card:hover {
@@ -1030,6 +1035,25 @@
 
 		.card .body {
 			padding: 16px 18px 20px;
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+		}
+
+		.tag-badge {
+			display: inline-flex;
+			align-items: center;
+			padding: 4px 12px;
+			background: rgba(128, 0, 0, 0.08);
+			color: var(--primary);
+			font-size: 0.72rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.4px;
+			border-radius: 999px;
+			margin-bottom: 10px;
+			width: fit-content;
+			border: 1px solid rgba(128, 0, 0, 0.15);
 		}
 
 		.meta-date {
@@ -1045,6 +1069,7 @@
 			border-radius: 999px;
 			font-weight: 600;
 			letter-spacing: 0.2px;
+			width: fit-content;
 		}
 
 		.meta-date::before {
@@ -1068,11 +1093,20 @@
 			line-height: 1.6;
 		}
 
-		.card-actions {
-			margin-top: 14px;
+		.card-footer-meta {
+			margin-top: auto;
+			padding-top: 16px;
 			display: flex;
-			gap: 10px;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
 			flex-wrap: wrap;
+		}
+
+		.author-date {
+			font-size: 0.78rem;
+			color: var(--muted);
+			font-weight: 500;
 		}
 
 		.btn-primary {
@@ -1494,39 +1528,6 @@
 		}
 
 		/* ═══════════════════════════════════════════
-		   AGENDA LIST
-		   ═══════════════════════════════════════════ */
-		.agenda-list {
-			margin: 0;
-			padding: 0;
-			list-style: none;
-			display: grid;
-			gap: 10px;
-		}
-
-		.agenda-item {
-			border: 1px solid var(--line);
-			padding: 12px 16px;
-			display: flex;
-			justify-content: space-between;
-			gap: 10px;
-			align-items: center;
-			border-radius: var(--radius-sm);
-			transition: var(--transition);
-			background: var(--surface);
-		}
-
-		.agenda-item:hover {
-			border-color: var(--primary);
-			box-shadow: var(--shadow-sm);
-		}
-
-		.agenda-item small {
-			color: var(--muted);
-			font-size: 0.85rem;
-		}
-
-		/* ═══════════════════════════════════════════
 		   FOOTER
 		   ═══════════════════════════════════════════ */
 		.footer {
@@ -1685,9 +1686,7 @@
 		   RESPONSIVE
 		   ═══════════════════════════════════════════ */
 		@media (max-width: 980px) {
-			.about-grid,
-			.cards-3,
-			.cards-2 {
+			.about-grid {
 				grid-template-columns: 1fr;
 			}
 
@@ -1722,6 +1721,9 @@
 			.schedule-table {
 				min-width: 760px;
 				width: max-content;
+			}
+            .cards-scroll-track .card {
+				flex: 0 0 calc(50% - 10px);
 			}
 		}
 
@@ -1883,6 +1885,10 @@
 			.schedule-table {
 				min-width: 760px;
 				width: max-content;
+			}
+            
+            .cards-scroll-track .card {
+				flex: 0 0 85%;
 			}
 		}
 
@@ -2104,7 +2110,7 @@
 					<input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
 					<button type="submit">Cari</button>
 				</form>
-								{% if current_user.logged_in %}
+				{% if current_user.logged_in %}
 				<div class="user-dropdown">
 					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
 						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
@@ -2207,7 +2213,7 @@
 		<section class="section" aria-label="Jadwal Streaming">
 			<div class="section-title">
 				<h3>Jadwal Streaming</h3>
-				<a class="btn-ghost" href="/jadwal-streaming">Lihat Semua →</a>
+				<a class="btn-ghost" href="/jadwal-streaming.html">Lihat Semua →</a>
 			</div>
 			<div class="schedule-preview-top">
 				<div class="mode-pills" aria-label="Preview mode jadwal">
@@ -2327,7 +2333,7 @@
 				<h3>Agenda</h3>
 				<a class="btn-ghost" href="/agenda">Lihat Semua →</a>
 			</div>
-			<div class="cards-3" id="homeAgendaGrid">
+			<div class="cards-scroll-track" id="homeAgendaGrid">
 				<!-- Dipopulasi oleh JS -->
 			</div>
 		</section>
@@ -2337,7 +2343,7 @@
 				<h3>Pengumuman / Informasi / Berita</h3>
 				<a class="btn-ghost" href="/pengumuman">Lihat Semua →</a>
 			</div>
-			<div class="cards-3" id="homeNewsGrid">
+			<div class="cards-scroll-track" id="homeNewsGrid">
 				<!-- Dipopulasi oleh JS -->
 			</div>
 		</section>
@@ -2347,7 +2353,7 @@
 				<h3>Form Pendaftaran</h3>
 				<a class="btn-ghost" href="/form-pendaftaran">Lihat Semua →</a>
 			</div>
-			<div class="cards-2" id="homeFormsGrid">
+			<div class="cards-scroll-track" id="homeFormsGrid">
 				<!-- Dipopulasi oleh JS -->
 			</div>
 		</section>
@@ -2365,7 +2371,7 @@
 			<div class="container footer-grid">
 				<section class="footer-col" aria-label="Identitas Crembo">
 					<div class="footer-brand">
-						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 						<div>
 							<h4 class="footer-title">Crew Multimedia Baciro</h4>
 							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
@@ -3091,10 +3097,10 @@
                     const aStart = new Date(a.startDate + "T" + (a.startTime||"00:00"));
                     const bStart = new Date(b.startDate + "T" + (b.startTime||"00:00"));
                     return bStart - aStart; // terbaru
-                }).slice(0, 3);
+                });
                 
                 if (!items.length) {
-                    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 40px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted);">Belum ada agenda terbaru.</div>';
+                    grid.innerHTML = '<div style="width: 100%; text-align:center; padding: 40px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted);">Belum ada agenda terbaru.</div>';
                     return;
                 }
                 grid.innerHTML = items.map((item) => {
@@ -3112,15 +3118,18 @@
                             <p style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; min-height: 48px;">
                                 ${escapeHtml(stripHtml(item.description))}
                             </p>
-                            <div class="card-actions">
-                                <a class="btn-ghost" href="/agenda/${escapeHtml(item.id)}">Lihat Detail</a>
-                                ${item.registrationLink ? `<a class="btn-primary" href="${escapeHtml(item.registrationLink)}" target="_blank">Daftar</a>` : ''}
+                            <div class="card-footer-meta">
+                                <span class="author-date">Agenda</span>
+                                <div style="display:flex; gap:6px;">
+                                    <a class="btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;" href="/agenda/${escapeHtml(item.id)}">Detail</a>
+                                    ${item.registrationLink ? `<a class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" href="${escapeHtml(item.registrationLink)}" target="_blank">Daftar</a>` : ''}
+                                </div>
                             </div>
                         </div>
                     </article>`;
                 }).join("");
             } catch(e) {
-                grid.innerHTML = '<div style="grid-column:1/-1;">Gagal memuat agenda.</div>';
+                grid.innerHTML = '<div style="width: 100%; text-align:center;">Gagal memuat agenda.</div>';
             }
         }
 
@@ -3130,36 +3139,43 @@
             try {
                 const res = await fetch("/api/news");
                 let items = await res.json();
-                items = items.filter(i => i.status === 'published').slice(0, 3);
+                items = items.filter(i => i.status === 'published');
                 
                 if (!items.length) {
-                    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 40px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted);">Belum ada pengumuman terbaru.</div>';
+                    grid.innerHTML = '<div style="width: 100%; text-align:center; padding: 40px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted);">Belum ada pengumuman terbaru.</div>';
                     return;
                 }
                 grid.innerHTML = items.map((item) => {
-                    const dateLabel = item.publishedAt ? new Date(item.publishedAt).toLocaleDateString("id-ID", {day:"2-digit", month:"long", year:"numeric"}) : "";
+                    const rawDate = item.publishedAt || item.createdAt;
+                    const dateLabel = rawDate ? new Date(rawDate).toLocaleDateString("id-ID", {day:"2-digit", month:"long", year:"numeric"}) : "";
                     const thumbUrl = item.thumbnails && item.thumbnails[0] ? item.thumbnails[0].url : "";
                     const bgStyle = thumbUrl ? `background-image:url('${escapeHtml(thumbUrl)}');background-size:cover;background-position:center;` : `background: var(--bg-warm);`;
                     
+                    let categoryName = "Umum";
+                    if (item.categories && item.categories.length > 0) {
+                        categoryName = item.categories[0].name;
+                    }
+
                     return `
                     <article class="card">
                         <div class="thumb" style="${bgStyle}">
                             ${thumbUrl ? '' : '<div class="frame" style="height:100%;">Placeholder Gambar</div>'}
                         </div>
                         <div class="body">
-                            <span class="meta-date">${dateLabel}</span>
+                            <span class="tag-badge">${escapeHtml(categoryName)}</span>
                             <h4>${escapeHtml(item.title)}</h4>
                             <p style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; min-height: 48px;">
                                 ${escapeHtml(item.summary || stripHtml(item.content))}
                             </p>
-                            <div class="card-actions">
-                                <a class="btn-ghost" href="/pengumuman/${escapeHtml(item.id)}">Baca Selengkapnya →</a>
+                            <div class="card-footer-meta">
+                                <span class="author-date">Admin &bull; ${dateLabel}</span>
+                                <a class="btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;" href="/pengumuman/${escapeHtml(item.id)}">Baca Selengkapnya</a>
                             </div>
                         </div>
                     </article>`;
                 }).join("");
             } catch(e) {
-                grid.innerHTML = '<div style="grid-column:1/-1;">Gagal memuat pengumuman.</div>';
+                grid.innerHTML = '<div style="width: 100%; text-align:center;">Gagal memuat pengumuman.</div>';
             }
         }
 
@@ -3169,10 +3185,10 @@
             try {
                 const res = await fetch("/api/registration/forms");
                 let items = await res.json();
-                items = items.filter(i => i.visibility !== 'draft').slice(0, 2);
+                items = items.filter(i => i.visibility !== 'draft');
                 
                 if (!items.length) {
-                    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 40px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted);">Belum ada form pendaftaran.</div>';
+                    grid.innerHTML = '<div style="width: 100%; text-align:center; padding: 40px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted);">Belum ada form pendaftaran.</div>';
                     return;
                 }
                 grid.innerHTML = items.map((item) => {
@@ -3183,19 +3199,25 @@
                             Form Pendaftaran ${isInternal ? 'Internal' : 'Umum'}
                         </div>
                         <div class="body">
+                            <span class="tag-badge" style="background: rgba(212,160,23,0.15); border-color: rgba(212,160,23,0.25); color: #8a6500;">
+                                ${isInternal ? 'Khusus Internal' : 'Terbuka Umum'}
+                            </span>
                             <h4>${escapeHtml(item.title)}</h4>
                             <p style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; min-height: 48px;">
                                 ${escapeHtml(item.description || 'Digunakan untuk pendaftaran kegiatan.')}
                             </p>
-                            <div class="card-actions">
-                                <a class="btn-ghost" href="/form-pendaftaran/${escapeHtml(item.id)}">Lihat Detail</a>
-                                <a class="btn-primary" href="/form-pendaftaran/${escapeHtml(item.id)}">Isi Form</a>
+                            <div class="card-footer-meta">
+                                <span class="author-date">Formulir</span>
+                                <div style="display:flex; gap:6px;">
+                                    <a class="btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;" href="/form-pendaftaran/${escapeHtml(item.id)}">Detail</a>
+                                    <a class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" href="/form-pendaftaran/${escapeHtml(item.id)}">Isi Form</a>
+                                </div>
                             </div>
                         </div>
                     </article>`;
                 }).join("");
             } catch(e) {
-                grid.innerHTML = '<div style="grid-column:1/-1;">Gagal memuat form.</div>';
+                grid.innerHTML = '<div style="width: 100%; text-align:center;">Gagal memuat form.</div>';
             }
         }
 
