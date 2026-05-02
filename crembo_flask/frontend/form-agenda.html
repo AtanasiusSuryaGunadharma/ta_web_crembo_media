@@ -1,335 +1,563 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Form Agenda - Crembo Media</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f6efe6;
-      --panel: #fffaf4;
-      --text: #221b16;
-      --muted: #6f6257;
-      --brand: #b44624;
-      --line: rgba(66, 41, 26, 0.12);
-      --shadow: 0 20px 50px rgba(74, 37, 17, 0.12);
-      --radius: 24px;
+      --bg: #ececec;
+      --panel: #ffffff;
+      --line: #1f1f1f;
+      --text: #111111;
+      --side-text: #f4f4f4;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --primary: #800000;
+      --primary-dark: #5c0000;
+      --primary-deeper: #3a0000;
+      --accent: #facc15;
+      --danger: #dc2626;
+      --blue: #2f66d8;
+      --blue-hover: #1d4ed8;
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(245, 158, 11, 0.16), transparent 28%),
-        radial-gradient(circle at 85% 12%, rgba(180, 70, 36, 0.16), transparent 24%),
-        linear-gradient(180deg, #fef8f0 0%, var(--bg) 100%);
+      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
       min-height: 100vh;
     }
 
-    .app { display: grid; grid-template-columns: 285px 1fr; min-height: 100vh; }
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
     .sidebar {
-      position: sticky; top: 0; height: 100vh; overflow: auto;
-      padding: 24px 18px; background: linear-gradient(180deg, #2d1710 0%, #4a2316 100%);
-      color: #fff; border-right: 1px solid rgba(255,255,255,0.08);
-    }
-    .brand { display:flex; align-items:center; gap:14px; padding:12px 12px 24px; }
-    .brand-mark {
-      width:48px; height:48px; border-radius:16px;
-      background: linear-gradient(135deg, #f59e0b, #fb7185);
-      display:grid; place-items:center; color:#fff; font-weight:800;
-    }
-    .brand strong { display:block; font-size:15px; }
-    .brand span { color: rgba(255,255,255,0.7); font-size:12px; }
-    .nav-title {
-      font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-      color: rgba(255,255,255,0.45); padding: 0 12px 10px;
-    }
-    .nav-link {
-      display:flex; align-items:center; gap:12px; padding:12px; margin:4px 0;
-      border-radius:16px; color: rgba(255,255,255,0.88); text-decoration:none;
-      transition: .2s ease;
-    }
-    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.08); transform: translateX(2px); }
-    .nav-link svg { width:18px; height:18px; flex:none; }
-    .sidebar-note {
-      margin: 18px 12px 0; padding: 16px; border-radius: 20px;
-      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8);
-      line-height: 1.6; font-size: 13px;
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
     }
 
-    .main { padding: 28px; }
-    .topbar {
-      display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom: 22px;
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
     }
-    .eyebrow {
-      display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
-      background: rgba(180, 70, 36, 0.08); color: var(--brand);
-      font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; color: #fff; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-items {
+      display: block;
+      border-top: 1px solid #525252;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #e5e5e5;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover { background: rgba(255, 255, 255, 0.1); }
+
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid #8d8d8d;
+      color: #ebebeb;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .side-actions a:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .main { padding: 16px; }
+
+    /* New Consistent Form Header */
+    .headline.dashboard-headline-bar {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, #7f0000 0%, #9f1d1d 45%, #b32626 100%);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
       margin-bottom: 12px;
-    }
-    h1 {
-      margin:0; font-family:'Playfair Display', serif; font-size: clamp(32px, 4vw, 50px); line-height:1.06;
-    }
-    .lead { margin: 12px 0 0; max-width: 760px; color: var(--muted); line-height: 1.7; }
-    .top-actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-end; }
-    .btn {
-      display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      min-height:46px; padding:0 18px; border:0; border-radius:16px; font-weight:700;
-      text-decoration:none; cursor:pointer; transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .btn:hover { transform: translateY(-1px); }
-    .btn.primary { background: linear-gradient(135deg, var(--brand), #d65a31); color:#fff; box-shadow: 0 14px 30px rgba(180, 70, 36, 0.22); }
-    .btn.ghost { background:#fff; color: var(--text); border:1px solid var(--line); }
-    .btn.danger { background: #fee2e2; color:#b91c1c; }
-
-    .surface {
-      background: rgba(255,255,255,0.76);
-      border: 1px solid rgba(255,255,255,0.7);
-      backdrop-filter: blur(10px);
+      flex-wrap: wrap;
       box-shadow: var(--shadow);
+    }
+
+    .headline-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .headline-copy span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .headline h2 {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .headline p {
+      margin: 4px 0 0;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.84rem;
+    }
+
+    .headline-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .btn-kembali-header {
+      background: #fff;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    
+    .btn-kembali-header:hover { background: #f8fafc; }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link svg { width: 18px; height: 18px; }
+
+    .container {
+      display: grid;
+      gap: 12px;
+    }
+
+    .panel {
+      border: 1px solid #d1d5db;
       border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
     }
 
-    .form-shell {
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 18px;
-    }
-    .panel { padding: 22px; }
-    .panel-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom: 18px; }
-    .panel-head h2 { margin:0; font-size: 18px; }
-    .panel-head p { margin: 6px 0 0; color: var(--muted); line-height: 1.6; font-size: 14px; }
+    .field { display: grid; gap: 6px; }
+    .label { font-size: 0.82rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .form-grid { display:grid; gap: 14px; }
-    .split-2 { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .field label {
-      display:block; font-size:12px; font-weight:800; color: var(--muted);
-      text-transform:uppercase; letter-spacing:.06em; margin-bottom: 8px;
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      padding: 9px 10px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+      outline: none;
     }
-    .field input, .field select, .field textarea {
-      width:100%; border-radius:14px; border:1px solid var(--line); background:#fff; color:var(--text);
-      padding:14px 15px; font: inherit; outline:none; transition: border-color .2s ease, box-shadow .2s ease;
+    
+    input:focus, textarea:focus, select:focus { border-color: var(--blue); }
+
+    textarea {
+      min-height: 230px;
+      resize: vertical;
     }
-    .field textarea { min-height: 170px; resize: vertical; }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: rgba(180, 70, 36, 0.5);
-      box-shadow: 0 0 0 4px rgba(180, 70, 36, 0.08);
+
+    .helper {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .editor-toolbar {
+      border: 1px solid #d0d0d0;
+      border-bottom: 0;
+      border-radius: 10px 10px 0 0;
+      background: #f7f7f7;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #4b5563;
+    }
+
+    .editor-toolbar span {
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      padding: 3px 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .editor-toolbar span:hover { background: #f1f5f9; }
+
+    .editor-area {
+      border: 1px solid #d0d0d0;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+    
+    .editor-area textarea { border: none; border-radius: 0; }
+
+    .split-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
     .upload-box {
-      border: 1.5px dashed rgba(180, 70, 36, 0.28);
-      background: linear-gradient(180deg, #fff, #fff8ef);
-      color: var(--muted);
-      border-radius: 20px;
-      padding: 18px;
-      min-height: 110px;
-      display:grid;
-      gap: 8px;
-      place-items:center;
-      text-align:center;
-      cursor:pointer;
-      transition: .2s ease;
+      border: 2px dashed #93c5fd;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      text-align: center;
+      padding: 16px;
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-    .upload-box:hover { border-color: rgba(180, 70, 36, 0.55); transform: translateY(-1px); }
-    .upload-box strong { color: var(--text); }
+    
+    .upload-box:hover { background: #e0f2fe; }
 
     .image-preview {
-      margin-top: 14px;
-      display:grid;
-      gap: 10px;
-      grid-template-columns: 1fr;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 8px;
+      background: #f8fafc;
+      display: grid;
+      gap: 6px;
+      max-width: 320px;
     }
-    .image-card {
-      display:grid; gap:10px;
-      border-radius: 18px; overflow:hidden; border:1px solid var(--line); background:#fff;
-    }
-    .image-card img { width:100%; height: 220px; object-fit: cover; display:block; }
-    .image-card .meta { padding: 12px 14px; color: var(--muted); font-size: 13px; }
 
-    .attachments { display:grid; gap: 10px; margin-top: 14px; }
+    .image-preview img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+    }
+
+    .attachments { display: grid; gap: 8px; }
+
     .attachment-item {
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding: 12px 14px; border-radius: 16px; background:#fff; border:1px solid var(--line);
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      background: #f8fafc;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: #374151;
     }
-    .attachment-item strong { display:block; font-size: 13px; }
-    .attachment-item span { color: var(--muted); font-size: 12px; }
 
-    .helper {
-      margin: 10px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
+    .attachment-item button {
+      border: 1px solid #ef4444;
+      background: #fff;
+      color: #b91c1c;
+      border-radius: 7px;
+      font-size: 0.74rem;
+      padding: 4px 7px;
+      cursor: pointer;
+      font-weight: bold;
     }
+
     .actions {
-      display:flex; gap: 12px; flex-wrap: wrap; justify-content:flex-end;
-      padding-top: 6px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
     }
+
+    .btn {
+      border: 1px solid #1f2937;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+      color: #fff;
+      font-weight: 700;
+      padding: 9px 13px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #3b7df8 0%, var(--blue) 100%);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    
+    .btn.primary:hover { filter: brightness(1.1); }
+
+    .btn.ghost {
+      color: var(--text);
+      background: #fff;
+      border-color: #9ca3af;
+    }
+    
+    .btn.ghost:hover { background: #f9fafb; border-color: #6b7280; }
 
     .notify {
-      position: fixed; right: 24px; bottom: 24px; z-index: 80;
-      padding: 14px 18px; border-radius: 16px; color: #fff;
-      background: rgba(24, 24, 27, 0.95); box-shadow: 0 18px 36px rgba(0,0,0,.2);
-      transform: translateY(120%); opacity: 0; transition: .25s ease;
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      border: 1px solid #cfe0ff;
+      background: #f1f6ff;
+      color: #1e3a8a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 50;
     }
-    .notify.show { transform: translateY(0); opacity: 1; }
 
-    .loading { color: var(--muted); }
+    .notify.show { opacity: 1; transform: translateY(0); }
 
-    @media (max-width: 1100px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar { position: relative; height: auto; }
-      .main { padding: 18px; }
-      .topbar { flex-direction: column; }
-      .top-actions { justify-content:flex-start; }
-      .form-shell { grid-template-columns: 1fr; }
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
       .split-2 { grid-template-columns: 1fr; }
     }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
       <div class="brand">
-        <div class="brand-mark">C</div>
-        <div>
-          <strong>Crembo Media</strong>
-          <span>Agenda Management</span>
+        <h1>Crembo Media Panel</h1>
+        <p>Kelola pengumuman, kategori, dan publikasi berita</p>
+      </div>
+
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link active" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
         </div>
       </div>
 
-      <div class="nav-title">Menu</div>
-      <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11.5h6V4H4v7.5Zm10 8.5h6V4h-6v16ZM4 20h6v-6H4v6Z" stroke="currentColor" stroke-width="1.8"/></svg>Dashboard</a>
-      <a class="nav-link" href="manajemen-agenda.html"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v4M17 3v4M4 9h16M6 6h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/></svg>Manajemen Agenda</a>
-      <a class="nav-link active" href="form-agenda.html"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8"/></svg>Form Agenda</a>
-      <a class="nav-link" href="kelola-berita.html"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8"/></svg>Kelola Berita</a>
-
-      <div class="sidebar-note">
-        Agenda disimpan ke database. File gambar dan lampiran di-upload lewat server agar data tetap sinkron saat dibuka ulang.
+      <div class="side-actions">
+        <a href="manajemen-agenda.html">Kembali ke Daftar Agenda</a>
+        <a href="dashboard.html">Kembali ke Dashboard</a>
       </div>
     </aside>
 
     <main class="main">
-      <header class="topbar">
-        <div>
-          <div class="eyebrow">Agenda CRUD</div>
-          <h1 id="pageTitle">Tambah Agenda</h1>
-          <p id="pageDesc" class="lead">Isi data agenda lalu simpan ke database. Halaman ini memakai struktur yang sama dengan daftar agenda di sebelahnya.</p>
+      <header class="headline dashboard-headline-bar">
+        <div class="headline-copy">
+          <span>AGENDA CRUD</span>
+          <h2 id="pageTitle">Tambah Agenda</h2>
+          <p id="pageDesc">Buat agenda atau acara baru.</p>
         </div>
-        <div class="top-actions">
-          <a class="btn ghost" href="manajemen-agenda.html">Kembali</a>
+        <div class="headline-right">
+          <a class="btn-kembali-header" href="manajemen-agenda.html">Kembali</a>
+          <span id="liveDateTime" class="chip" style="background: transparent; border: none; font-weight: 400; padding: 0;">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)" style="background: transparent; border: none;">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
         </div>
       </header>
 
-      <section class="form-shell">
-        <article class="surface panel">
-          <div class="panel-head">
-            <div>
-              <h2>Informasi Agenda</h2>
-              <p>Judul, jadwal, lokasi, dan deskripsi agenda.</p>
-            </div>
-          </div>
+      <section class="container">
 
-          <form id="agendaForm" class="form-grid">
+        <article class="panel">
+          <form id="agendaForm" style="display:grid;gap:16px;">
             <div class="field">
-              <label for="titleInput">Judul Agenda *</label>
-              <input id="titleInput" type="text" placeholder="Contoh: Kuliah Umum Digital Ministry" required>
+              <label class="label" for="titleInput">Judul Agenda *</label>
+              <input id="titleInput" type="text" placeholder="Judul agenda" required>
             </div>
 
             <div class="field">
-              <label for="descriptionInput">Deskripsi</label>
-              <textarea id="descriptionInput" placeholder="Tulis deskripsi agenda di sini..."></textarea>
+              <label class="label">Foto Agenda</label>
+              <input id="imageInput" type="file" accept="image/*" style="display:none;">
+              <div id="imageDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload foto agenda">
+                <strong style="font-size: 0.95rem;">Klik atau seret foto ke sini</strong>
+                <span style="font-size: 0.8rem;">Format: JPEG, PNG, GIF (Maks 2MB)</span>
+              </div>
+              <div id="imagePreview" class="image-preview" style="display:none;"></div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="descriptionInput">Deskripsi</label>
+              <div class="editor-toolbar" aria-hidden="true">
+                <span>B</span><span>I</span><span>U</span><span>List</span><span>Link</span>
+              </div>
+              <div class="editor-area">
+                <textarea id="descriptionInput" placeholder="Tulis deskripsi agenda di sini..."></textarea>
+              </div>
             </div>
 
             <div class="split-2">
               <div class="field">
-                <label for="startDateInput">Tanggal Mulai *</label>
+                <label class="label" for="startDateInput">Tanggal Mulai *</label>
                 <input id="startDateInput" type="date" required>
               </div>
               <div class="field">
-                <label for="startTimeInput">Waktu Mulai *</label>
+                <label class="label" for="startTimeInput">Waktu Mulai *</label>
                 <input id="startTimeInput" type="time" required>
               </div>
             </div>
 
             <div class="split-2">
               <div class="field">
-                <label for="endDateInput">Tanggal Selesai</label>
+                <label class="label" for="endDateInput">Tanggal Selesai</label>
                 <input id="endDateInput" type="date">
               </div>
               <div class="field">
-                <label for="endTimeInput">Waktu Selesai</label>
+                <label class="label" for="endTimeInput">Waktu Selesai</label>
                 <input id="endTimeInput" type="time">
               </div>
             </div>
 
             <div class="field">
-              <label for="locationInput">Lokasi</label>
-              <input id="locationInput" type="text" placeholder="Contoh: Aula Kampus / Google Meet">
+              <label class="label" for="locationInput">Lokasi</label>
+              <input id="locationInput" type="text" placeholder="Lokasi acara">
             </div>
 
             <div class="field">
-              <label for="registrationLinkInput">Link Pendaftaran / Meeting</label>
+              <label class="label" for="registrationLinkInput">Link (Pendaftaran/Meeting)</label>
               <input id="registrationLinkInput" type="url" placeholder="https://...">
             </div>
-          </form>
-        </article>
-
-        <article class="surface panel">
-          <div class="panel-head">
-            <div>
-              <h2>Media & Status</h2>
-              <p>Upload gambar, lampiran, status, dan urutan agenda.</p>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label>Foto Agenda</label>
-              <input id="imageInput" type="file" accept="image/*" style="display:none;">
-              <div id="imageDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload foto agenda">
-                <strong>Klik atau seret foto ke sini</strong>
-                <span>JPG, PNG, WEBP. Gambar akan di-upload ke server.</span>
-              </div>
-              <div id="imagePreview" class="image-preview"></div>
-            </div>
 
             <div class="field">
-              <label>Lampiran</label>
-              <input id="attachmentInput" type="file" multiple style="display:none;" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv">
+              <label class="label">Lampiran (PDF / Dokumen - bisa lebih dari 1 file)</label>
+              <input id="attachmentInput" type="file" multiple style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.png,.jpg,.jpeg,.webp">
               <div id="attachmentDrop" class="upload-box" role="button" tabindex="0" aria-label="Upload lampiran agenda">
-                <strong>Klik untuk upload lampiran</strong>
-                <span>Boleh lebih dari satu file, semua disimpan di server.</span>
+                <strong style="font-size: 0.95rem;">Klik untuk pilih file lampiran</strong>
+                <span style="font-size: 0.8rem;">Format: PDF, DOC, XLS, ZIP, gambar, dll</span>
               </div>
               <div id="attachmentList" class="attachments"></div>
             </div>
 
             <div class="split-2">
               <div class="field">
-                <label for="statusInput">Status</label>
+                <label class="label" for="statusInput">Status</label>
                 <select id="statusInput">
                   <option value="active">Aktif</option>
                   <option value="inactive">Nonaktif</option>
                 </select>
               </div>
               <div class="field">
-                <label for="orderInput">Urutan</label>
+                <label class="label" for="orderInput">Urutan</label>
                 <input id="orderInput" type="number" min="0" step="1" value="0">
               </div>
             </div>
 
-            <p class="helper">Urutan ini dipakai oleh daftar agenda agar bisa sinkron dengan drag and drop.</p>
-
             <div class="actions">
-              <button class="btn primary" type="submit" id="saveBtn" form="agendaForm">Simpan Agenda</button>
-              <button class="btn danger" type="button" id="deleteBtn" style="display:none;">Hapus Agenda</button>
-              <a class="btn ghost" href="manajemen-agenda.html">Batal</a>
+              <button class="btn primary" type="submit" id="saveBtn">Simpan Agenda</button>
+              <a class="btn ghost" href="manajemen-agenda.html" style="color: var(--danger); border-color: transparent;">Batal</a>
             </div>
-          </div>
+          </form>
         </article>
       </section>
     </main>
@@ -343,9 +571,8 @@
 
     const pageTitle = document.getElementById("pageTitle");
     const pageDesc = document.getElementById("pageDesc");
-    const agendaForm = document.getElementById("agendaForm");
     const saveBtn = document.getElementById("saveBtn");
-    const deleteBtn = document.getElementById("deleteBtn");
+    const agendaForm = document.getElementById("agendaForm");
 
     const titleInput = document.getElementById("titleInput");
     const descriptionInput = document.getElementById("descriptionInput");
@@ -355,87 +582,65 @@
     const endTimeInput = document.getElementById("endTimeInput");
     const locationInput = document.getElementById("locationInput");
     const registrationLinkInput = document.getElementById("registrationLinkInput");
+    const statusInput = document.getElementById("statusInput");
+    const orderInput = document.getElementById("orderInput");
+
     const imageInput = document.getElementById("imageInput");
     const imageDrop = document.getElementById("imageDrop");
     const imagePreview = document.getElementById("imagePreview");
+
     const attachmentInput = document.getElementById("attachmentInput");
     const attachmentDrop = document.getElementById("attachmentDrop");
     const attachmentList = document.getElementById("attachmentList");
-    const statusInput = document.getElementById("statusInput");
-    const orderInput = document.getElementById("orderInput");
+
+    const liveDateTime = document.getElementById("liveDateTime");
     const notify = document.getElementById("notify");
 
-    let currentImage = { url: "", name: "" };
+    let currentImage = { name: "", dataUrl: "" };
     let currentAttachments = [];
-    let agendaCount = 0;
 
-    function showNotify(message) {
+    function showNotify(message, type) {
       notify.textContent = message;
+      if (type === "error") {
+        notify.style.borderColor = "#fca5a5";
+        notify.style.background = "#fef2f2";
+        notify.style.color = "#991b1b";
+      } else {
+        notify.style.borderColor = "#cfe0ff";
+        notify.style.background = "#f1f6ff";
+        notify.style.color = "#1e3a8a";
+      }
       notify.classList.add("show");
       window.clearTimeout(showNotify.timer);
       showNotify.timer = window.setTimeout(function () {
         notify.classList.remove("show");
-      }, 2400);
+      }, 2500);
     }
 
-    function escapeHtml(text) {
-      return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+    function makeId(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
     }
 
-    function formatDate(value) {
-      if (!value) {
-        return "";
-      }
-      const date = new Date(value + "T00:00:00");
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-      return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+    function readAsDataUrl(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || "")); };
+        reader.onerror = function () { reject(new Error("Gagal membaca file")); };
+        reader.readAsDataURL(file);
+      });
     }
 
-    function normalizeAttachment(item) {
-      if (!item) {
-        return null;
-      }
-      if (typeof item === "string") {
-        const url = item.trim();
-        if (!url) {
-          return null;
-        }
-        return {
-          id: "att-" + Date.now(),
-          name: url.split("/").pop() || "lampiran",
-          url: url,
-          type: "",
-          size: 0,
-          previewable: /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url)
-        };
-      }
-      const url = String(item.url || item.fileUrl || item.path || "").trim();
-      if (!url) {
-        return null;
-      }
-      return {
-        id: String(item.id || "att-" + Date.now()),
-        name: String(item.name || url.split("/").pop() || "lampiran"),
-        url: url,
-        type: String(item.type || ""),
-        size: Number(item.size || 0) || 0,
-        previewable: typeof item.previewable === "boolean" ? item.previewable : /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(url)
-      };
-    }
-
-    function renderImagePreview() {
-      if (!currentImage.url) {
+    function renderImage() {
+      if (!currentImage.name && !currentImage.dataUrl) {
+        imagePreview.style.display = "none";
         imagePreview.innerHTML = "";
         return;
       }
-      imagePreview.innerHTML = '<div class="image-card"><img src="' + escapeHtml(currentImage.url) + '" alt="Foto agenda"><div class="meta">' + escapeHtml(currentImage.name || "foto agenda") + '</div></div>';
+      imagePreview.style.display = "grid";
+      const img = currentImage.dataUrl
+        ? '<img src="' + currentImage.dataUrl + '" alt="Foto agenda">'
+        : '<img alt="Foto agenda" src="" style="display:none;">';
+      imagePreview.innerHTML = img + '<strong style="font-size: 0.85rem;">' + currentImage.name + '</strong>';
     }
 
     function renderAttachments() {
@@ -444,220 +649,236 @@
         return;
       }
 
-      attachmentList.innerHTML = currentAttachments.map(function (item, index) {
-        const view = item.previewable ? '<a class="btn ghost" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Lihat</a>' : '<span class="helper">Tidak bisa dipreview</span>';
+      attachmentList.innerHTML = currentAttachments.map(function (att, index) {
+        const label = att.type && att.type.indexOf("pdf") >= 0 ? "PDF" : "FILE";
+        const viewLink = att.url || att.dataUrl ? '<a href="' + (att.url || att.dataUrl) + '" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:700;text-decoration:none;">Lihat</a>' : '<span style="color:#6b7280;">Tidak bisa dipreview</span>';
         return '<div class="attachment-item">'
-          + '<div><strong>' + escapeHtml(item.name) + '</strong><span>' + escapeHtml(item.url) + '</span></div>'
-          + '<div style="display:flex;gap:8px;align-items:center;">' + view + '<button type="button" class="btn danger" data-remove-index="' + String(index) + '">Hapus</button></div>'
+          + '<span><strong>[' + label + ']</strong> ' + att.name + '</span>'
+          + '<div style="display:flex;gap:12px;align-items:center;">' + viewLink + '<button type="button" data-remove-index="' + String(index) + '">Hapus</button></div>'
           + '</div>';
       }).join("");
     }
 
-    async function uploadFiles(files, multiple) {
-      const list = Array.from(files || []);
-      if (!list.length) {
-        return [];
-      }
-
-      const formData = new FormData();
-      if (multiple) {
-        list.forEach(function (file) {
-          formData.append("files", file);
-        });
-      } else {
-        formData.append("file", list[0]);
-      }
-
-      const response = await fetch("/api/upload_image", { method: "POST", body: formData });
-      const payload = await response.json();
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || "Upload gagal");
-      }
-      return Array.isArray(payload.files) ? payload.files : [];
-    }
-
-    async function handleImageChange(files) {
-      const uploaded = await uploadFiles(files, false);
-      if (!uploaded.length) {
-        return;
-      }
-      currentImage = {
-        url: String(uploaded[0].url || ""),
-        name: String(uploaded[0].name || files[0].name || "foto agenda")
-      };
-      renderImagePreview();
-    }
-
-    async function handleAttachmentAdd(files) {
-      const uploaded = await uploadFiles(files, true);
-      uploaded.forEach(function (item) {
-        currentAttachments.push({
-          id: String(item.id || "att-" + Date.now()),
-          name: String(item.name || "lampiran"),
-          url: String(item.url || ""),
-          type: String(item.type || ""),
-          size: Number(item.size || 0) || 0,
-          previewable: /\.(jpg|jpeg|png|gif|webp|bmp|pdf)$/i.test(String(item.url || item.name || ""))
-        });
-      });
-      renderAttachments();
-    }
-
-    function fillForm(data) {
-      titleInput.value = data.title || "";
-      descriptionInput.value = data.description || "";
-      startDateInput.value = data.startDate || "";
-      startTimeInput.value = data.startTime || "";
-      endDateInput.value = data.endDate || "";
-      endTimeInput.value = data.endTime || "";
-      locationInput.value = data.location || "";
-      registrationLinkInput.value = data.registrationLink || "";
-      statusInput.value = data.status === "inactive" ? "inactive" : "active";
-      orderInput.value = String(Number.isFinite(Number(data.order)) ? Number(data.order) : 0);
-      currentImage = { url: data.imageUrl || "", name: data.imageName || "" };
-      currentAttachments = Array.isArray(data.attachments) ? data.attachments.map(normalizeAttachment).filter(Boolean) : [];
-      renderImagePreview();
-      renderAttachments();
-    }
-
-    function normalizeAgendaPayload() {
-      return {
-        title: titleInput.value.trim(),
-        description: descriptionInput.value.trim(),
-        startDate: startDateInput.value,
-        startTime: startTimeInput.value,
-        endDate: endDateInput.value,
-        endTime: endTimeInput.value,
-        location: locationInput.value.trim(),
-        registrationLink: registrationLinkInput.value.trim(),
-        imageUrl: currentImage.url,
-        imageName: currentImage.name,
-        attachments: currentAttachments.map(function (item) {
-          return {
-            id: item.id,
-            name: item.name,
-            url: item.url,
-            type: item.type,
-            size: item.size,
-            previewable: item.previewable
-          };
-        }),
-        status: statusInput.value === "inactive" ? "inactive" : "active",
-        order: Number.isFinite(Number(orderInput.value)) ? Number(orderInput.value) : 0
-      };
-    }
-
-    async function loadAgendaCount() {
-      try {
-        const response = await fetch("/api/agendas");
-        const data = await response.json();
-        agendaCount = Array.isArray(data) ? data.length : 0;
-        if (!editId && (!orderInput.value || Number(orderInput.value) === 0)) {
-          orderInput.value = String(agendaCount);
-        }
-      } catch (error) {
-        agendaCount = 0;
-      }
-    }
-
-    async function loadAgendaDetail() {
+    async function fillEditData() {
       if (!editId) {
         const today = new Date().toISOString().slice(0, 10);
         startDateInput.value = today;
         endDateInput.value = today;
-        await loadAgendaCount();
         return;
       }
 
-      const response = await fetch("/api/agendas/" + encodeURIComponent(editId));
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Agenda tidak ditemukan");
-      }
+      try {
+        const res = await fetch("/api/agendas/" + encodeURIComponent(editId), { credentials: "same-origin" });
+        if (!res.ok) throw new Error("Gagal memuat agenda");
+        const target = await res.json();
 
-      pageTitle.textContent = "Edit Agenda";
-      pageDesc.textContent = "Perbarui data agenda yang sudah tersimpan di database.";
-      saveBtn.textContent = "Simpan Perubahan";
-      deleteBtn.style.display = "inline-flex";
-      fillForm(payload);
+        pageTitle.textContent = "Edit Agenda";
+        pageDesc.textContent = "Ubah data agenda";
+        saveBtn.textContent = "Simpan Perubahan";
+
+        titleInput.value = target.title || "";
+        descriptionInput.value = target.description || "";
+        startDateInput.value = target.startDate || "";
+        startTimeInput.value = (target.startTime || "").substring(0,5);
+        endDateInput.value = target.endDate || "";
+        endTimeInput.value = (target.endTime || "").substring(0,5);
+        locationInput.value = target.location || "";
+        registrationLinkInput.value = target.registrationLink || "";
+        statusInput.value = target.status || "active";
+        orderInput.value = String(target.order || 0);
+        
+        currentImage = {
+          name: target.imageName || "",
+          dataUrl: target.imageUrl || ""
+        };
+        
+        currentAttachments = [];
+        if(Array.isArray(target.attachments)) {
+            currentAttachments = target.attachments.map(function(a) {
+                return {
+                    name: a.name || "",
+                    dataUrl: a.url || a.dataUrl || "",
+                    type: a.mimeType || a.type || ""
+                };
+            });
+        }
+
+        renderImage();
+        renderAttachments();
+      } catch(err) {
+        showNotify("Data agenda tidak ditemukan.", "error");
+        window.setTimeout(function () {
+          window.location.href = "manajemen-agenda.html";
+        }, 1500);
+      }
     }
 
-    async function submitAgenda(event) {
+    async function handleImageUpload(files) {
+      if (!files || !files.length) return;
+      const file = files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      showNotify("Mengupload gambar...");
+      try {
+          const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+          const result = await res.json();
+          if (res.ok && result.success) {
+              currentImage = {
+                  name: result.files[0].name,
+                  dataUrl: result.url
+              };
+              renderImage();
+              showNotify("Gambar berhasil diupload.");
+          } else {
+              throw new Error(result.error || "Gagal upload");
+          }
+      } catch (err) {
+          showNotify("Error upload gambar: " + err.message, "error");
+      }
+    }
+
+    async function handleAttachmentUpload(files) {
+      if (!files || !files.length) return;
+      
+      const formData = new FormData();
+      for (const file of files) {
+          formData.append("files", file);
+      }
+      
+      showNotify("Mengupload lampiran...");
+      try {
+          const res = await fetch("/api/upload_image", { method: "POST", body: formData });
+          const result = await res.json();
+          if (res.ok && result.success) {
+              result.files.forEach(f => {
+                  currentAttachments.push({
+                      id: makeId("att"),
+                      name: f.name,
+                      type: f.mimeType || "",
+                      dataUrl: f.url
+                  });
+              });
+              renderAttachments();
+              showNotify("Lampiran berhasil diupload.");
+          } else {
+              throw new Error(result.error || "Gagal upload");
+          }
+      } catch (err) {
+          showNotify("Error upload lampiran: " + err.message, "error");
+      }
+    }
+
+    function updateLiveDateTime() {
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+    }
+
+    async function saveAgenda(event) {
       event.preventDefault();
 
-      if (!titleInput.value.trim() || !startDateInput.value || !startTimeInput.value) {
-        showNotify("Judul, tanggal mulai, dan waktu mulai wajib diisi.");
+      const title = titleInput.value.trim();
+      const startDate = startDateInput.value;
+      const startTime = startTimeInput.value;
+
+      if (!title || !startDate || !startTime) {
+        showNotify("Judul, tanggal mulai, dan waktu mulai wajib diisi.", "error");
         return;
       }
 
-      const payload = normalizeAgendaPayload();
-      const method = editId ? "PUT" : "POST";
-      const url = editId ? "/api/agendas/" + encodeURIComponent(editId) : "/api/agendas";
+      // Pastikan property-nya cocok dengan payload yang diharapkan di backend
+      const payload = {
+        title: title,
+        description: descriptionInput.value.trim(),
+        startDate: startDate,
+        startTime: startTime,
+        endDate: endDateInput.value || "",
+        endTime: endTimeInput.value || "",
+        location: locationInput.value.trim(),
+        registrationLink: registrationLinkInput.value.trim(),
+        imageName: currentImage.name || "",
+        imageUrl: currentImage.dataUrl || "",
+        attachments: currentAttachments.map(function(a) { 
+            return { 
+                name: a.name, 
+                url: a.dataUrl, 
+                mimeType: a.type 
+            }; 
+        }),
+        status: statusInput.value,
+        order: Number.isFinite(Number(orderInput.value)) ? Number(orderInput.value) : 0
+      };
+      
+      if (editId) payload.id = editId;
 
-      const response = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Gagal menyimpan agenda");
+      saveBtn.textContent = "Menyimpan...";
+      saveBtn.disabled = true;
+
+      try {
+        const url = editId ? "/api/agendas/" + encodeURIComponent(editId) : "/api/agendas";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            credentials: "same-origin"
+        });
+        
+        const result = await res.json();
+        if(!res.ok || !result.success) throw new Error(result.error || "Gagal menyimpan ke database");
+
+        showNotify("Agenda berhasil disimpan ke database.");
+        window.setTimeout(function () {
+          window.location.href = "manajemen-agenda.html";
+        }, 800);
+      } catch(err) {
+        console.error("Save Error:", err);
+        showNotify("Error: " + err.message, "error");
+        saveBtn.textContent = "Simpan Agenda";
+        saveBtn.disabled = false;
       }
-
-      showNotify(editId ? "Agenda berhasil diperbarui." : "Agenda berhasil ditambahkan.");
-      window.setTimeout(function () {
-        window.location.href = "manajemen-agenda.html";
-      }, 500);
     }
 
-    async function deleteAgenda() {
-      if (!editId) {
-        return;
-      }
-      const confirmDelete = window.confirm("Hapus agenda ini?");
-      if (!confirmDelete) {
-        return;
-      }
+    imageDrop.addEventListener("click", function () {
+      imageInput.click();
+    });
 
-      const response = await fetch("/api/agendas/" + encodeURIComponent(editId), { method: "DELETE" });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Gagal menghapus agenda");
-      }
-
-      showNotify("Agenda berhasil dihapus.");
-      window.setTimeout(function () {
-        window.location.href = "manajemen-agenda.html";
-      }, 500);
-    }
-
-    imageDrop.addEventListener("click", function () { imageInput.click(); });
     imageDrop.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         imageInput.click();
       }
     });
+
     imageInput.addEventListener("change", function () {
-      handleImageChange(Array.from(imageInput.files || [])).then(function () {
+      handleImageUpload(Array.from(imageInput.files || [])).then(function () {
         imageInput.value = "";
-      }).catch(function (error) {
-        showNotify(error.message || "Gagal mengunggah gambar.");
       });
     });
 
-    attachmentDrop.addEventListener("click", function () { attachmentInput.click(); });
+    attachmentDrop.addEventListener("click", function () {
+      attachmentInput.click();
+    });
+
     attachmentDrop.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         attachmentInput.click();
       }
     });
+
     attachmentInput.addEventListener("change", function () {
-      handleAttachmentAdd(Array.from(attachmentInput.files || [])).then(function () {
+      handleAttachmentUpload(Array.from(attachmentInput.files || [])).then(function () {
         attachmentInput.value = "";
-      }).catch(function (error) {
-        showNotify(error.message || "Gagal mengunggah lampiran.");
       });
     });
 
@@ -670,45 +891,23 @@
       if (!Number.isFinite(index)) {
         return;
       }
-      currentAttachments = currentAttachments.filter(function (_, idx) {
-        return idx !== index;
-      });
+      currentAttachments = currentAttachments.filter(function (_, idx) { return idx !== index; });
       renderAttachments();
     });
 
-    agendaForm.addEventListener("submit", function (event) {
-      submitAgenda(event).catch(function (error) {
-        showNotify(error.message || "Gagal menyimpan agenda.");
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
       });
     });
 
-    deleteBtn.addEventListener("click", function () {
-      deleteAgenda().catch(function (error) {
-        showNotify(error.message || "Gagal menghapus agenda.");
-      });
-    });
+    agendaForm.addEventListener("submit", saveAgenda);
 
-    (async function init() {
-      try {
-        const today = new Date().toISOString().slice(0, 10);
-        startDateInput.value = startDateInput.value || today;
-        endDateInput.value = endDateInput.value || today;
-        await loadAgendaDetail();
-        renderImagePreview();
-        renderAttachments();
-      } catch (error) {
-        showNotify(error.message || "Gagal memuat agenda.");
-        if (editId) {
-          window.setTimeout(function () {
-            window.location.href = "manajemen-agenda.html";
-          }, 900);
-        } else {
-          await loadAgendaCount();
-        }
-      }
-    })();
+    fillEditData();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
   </script>
-  <script src="_sidebar-fix.js"></script>
-  <script src="_public-nav-sync.js"></script>
+<script src="_sidebar-fix.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 02 Bulan Mei 2026 pada 09.19
+-- Waktu pembuatan: 02 Bulan Mei 2026 pada 10.48
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -51,8 +51,8 @@ CREATE TABLE `agendas` (
 --
 
 INSERT INTO `agendas` (`id`, `title`, `description`, `start_date`, `start_time`, `end_date`, `end_time`, `location`, `registration_link`, `image_url`, `image_name`, `attachments`, `status`, `order_index`, `created_at`, `updated_at`) VALUES
-('agenda-1777612459330', 'aaasdasd', 'asdasdasd', '2026-05-02', '16:13:00', '2026-06-01', '12:13:00', 'asdasd', 'https://www.google.com/maps', '/uploads/Tanda_Tangan_Mick_Schumacher_41971d95e5d0460ca6060bc64a6f1dd2.png', 'Tanda_Tangan_Mick_Schumacher.png', '[{\"url\": \"/uploads/template-import-anggota_6d989233e1194d1cb594f689b2a1484e.csv\", \"name\": \"template-import-anggota.csv\", \"mimeType\": \"\", \"size\": 197, \"previewable\": false, \"kind\": \"file\"}, {\"url\": \"/uploads/Hasil_Pengujian_User_Flow_f5711524e2234b218cada04b822f498f.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]', 'active', 0, '2026-05-01 12:14:19', '2026-05-02 12:51:57'),
-('agenda-1777701095247', 'Tes Agenda 1', 'asdadasda', '2026-05-02', '16:50:00', '2026-05-09', NULL, 'asdasdasd', 'https://bimbingan.uajy.ac.id/', '/uploads/foto_baju_koki_56c2574608704394916b6d47043ff550.jpg', 'foto_baju_koki.jpg', '[{\"url\": \"/uploads/Hasil_Pengujian_User_Flow_e082ff24fdc04572b32a1d3b9416a0fd.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}, {\"url\": \"/uploads/fake-signature-word-vector_e8d296625001474eacbe720139ce4f25.jpg\", \"name\": \"fake-signature-word-vector.jpg\", \"mimeType\": \"\", \"size\": 21672, \"previewable\": true, \"kind\": \"image\"}]', 'active', 1, '2026-05-02 12:51:35', '2026-05-02 12:51:57');
+('agenda-1777701095247', 'Tes Agenda 1', 'asdadasda', '2026-05-02', '16:50:00', '2026-05-09', NULL, 'asdasdasd', 'https://bimbingan.uajy.ac.id/', '/uploads/foto_baju_koki_56c2574608704394916b6d47043ff550.jpg', 'foto_baju_koki.jpg', '[{\"url\": \"/uploads/Hasil_Pengujian_User_Flow_e082ff24fdc04572b32a1d3b9416a0fd.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}, {\"url\": \"/uploads/fake-signature-word-vector_e8d296625001474eacbe720139ce4f25.jpg\", \"name\": \"fake-signature-word-vector.jpg\", \"mimeType\": \"\", \"size\": 21672, \"previewable\": true, \"kind\": \"image\"}]', 'active', 1, '2026-05-02 12:51:35', '2026-05-02 12:51:57'),
+('agenda-1777710375757', 'asdasd', 'asdasddas', '2026-05-02', '15:27:00', '2026-05-30', '15:26:00', 'asda', 'https://bimbingan.uajy.ac.id/', '/uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_efd0d16489214ef8a8ab4ba2868538a8.png', 'screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39.png', '[{\"url\": \"/uploads/Hasil_Pengujian_User_Flow_61a3a7b4386a4b08923d1c7fa3d5f7b4.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"application/pdf\", \"size\": 0, \"previewable\": true, \"kind\": \"pdf\"}, {\"url\": \"/uploads/laporan-data-anggota-20260430_8b8cf4719dde4ebbb26bcec8f2cbaf19.xls\", \"name\": \"laporan-data-anggota-20260430.xls\", \"mimeType\": \"application/vnd.ms-excel\", \"size\": 0, \"previewable\": false, \"kind\": \"file\"}]', 'active', 0, '2026-05-02 15:26:15', '2026-05-02 15:26:15');
 
 -- --------------------------------------------------------
 

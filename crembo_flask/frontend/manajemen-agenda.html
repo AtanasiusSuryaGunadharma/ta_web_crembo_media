@@ -1,344 +1,466 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manajemen Agenda - Crembo Media</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f6efe6;
-      --panel: #fffaf4;
-      --panel-2: #fff3e7;
-      --text: #221b16;
-      --muted: #6f6257;
-      --brand: #b44624;
-      --brand-2: #f59e0b;
-      --line: rgba(66, 41, 26, 0.12);
-      --shadow: 0 20px 50px rgba(74, 37, 17, 0.12);
-      --radius: 24px;
+      --bg: #f5f0eb;
+      --panel: #ffffff;
+      --line: #e5e7eb;
+      --text: #111827;
+      --side-text: #f8fbff;
+      --primary: #800000;
+      --primary-dark: #5c0000;
+      --primary-deeper: #3a0000;
+      --accent: #facc15;
+      --radius: 12px;
+      --shadow: 0 4px 14px rgba(128, 0, 0, 0.08);
+      --green: #16a34a;
+      --orange: #d97706;
+      --danger: #dc2626;
+      --blue: #2563eb;
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(245, 158, 11, 0.16), transparent 28%),
-        radial-gradient(circle at 85% 12%, rgba(180, 70, 36, 0.16), transparent 24%),
-        linear-gradient(180deg, #fef8f0 0%, var(--bg) 100%);
+      background: var(--bg);
       min-height: 100vh;
     }
 
-    a { color: inherit; }
-    .app { display: grid; grid-template-columns: 285px 1fr; min-height: 100vh; }
+    .layout {
+      display: grid;
+      grid-template-columns: 292px 1fr;
+      min-height: 100vh;
+    }
+
     .sidebar {
+      background: linear-gradient(180deg, var(--primary-deeper) 0%, var(--primary-dark) 52%, var(--primary) 100%);
+      color: var(--side-text);
+      border-right: 1px solid var(--primary-deeper);
+      padding: 18px 14px;
+      overflow-y: auto;
       position: sticky;
       top: 0;
       height: 100vh;
-      overflow: auto;
-      padding: 24px 18px;
-      background: linear-gradient(180deg, #2d1710 0%, #4a2316 100%);
-      color: #fff;
-      border-right: 1px solid rgba(255,255,255,0.08);
     }
 
     .brand {
-      display: flex; align-items: center; gap: 14px;
-      padding: 12px 12px 24px;
-    }
-    .brand-mark {
-      width: 48px; height: 48px; border-radius: 16px;
-      background: linear-gradient(135deg, #f59e0b, #fb7185);
-      display: grid; place-items: center; color: #fff; font-weight: 800;
-      box-shadow: 0 14px 30px rgba(245, 158, 11, 0.25);
-    }
-    .brand strong { display: block; font-size: 15px; }
-    .brand span { color: rgba(255,255,255,0.7); font-size: 12px; }
-
-    .nav-section { margin: 14px 0 22px; }
-    .nav-title {
-      font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-      color: rgba(255,255,255,0.45); padding: 0 12px 10px;
-    }
-    .nav-link {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px; margin: 4px 0;
-      border-radius: 16px;
-      color: rgba(255,255,255,0.88);
-      text-decoration: none;
-      transition: .2s ease;
-    }
-    .nav-link:hover, .nav-link.active {
-      background: rgba(255,255,255,0.08);
-      transform: translateX(2px);
-    }
-    .nav-link svg { width: 18px; height: 18px; flex: none; }
-
-    .sidebar-note {
-      margin: 18px 12px 0;
-      padding: 16px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.8);
-      line-height: 1.6;
-      font-size: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
     }
 
-    .main { padding: 28px; }
-    .topbar {
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
-      margin-bottom: 22px;
-    }
-    .eyebrow {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px; border-radius: 999px;
-      background: rgba(180, 70, 36, 0.08); color: var(--brand);
-      font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    h1 {
-      margin: 0;
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(32px, 4vw, 50px);
-      line-height: 1.06;
-    }
-    .lead { margin: 12px 0 0; max-width: 760px; color: var(--muted); line-height: 1.7; }
-    .top-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; color: #fff; }
+    .brand p { margin: 6px 0 0; color: #facc15; font-size: 0.82rem; }
 
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-      min-height: 46px; padding: 0 18px; border: 0; border-radius: 16px;
-      font-weight: 700; text-decoration: none; cursor: pointer;
-      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
-    }
-    .btn:hover { transform: translateY(-1px); }
-    .btn.primary { background: linear-gradient(135deg, var(--brand), #d65a31); color: #fff; box-shadow: 0 14px 30px rgba(180, 70, 36, 0.22); }
-    .btn.ghost { background: #fff; color: var(--text); border: 1px solid var(--line); }
-    .btn.soft { background: rgba(180, 70, 36, 0.08); color: var(--brand); }
-    .btn.danger { background: #fee2e2; color: #b91c1c; }
-
-    .surface {
-      background: rgba(255,255,255,0.72);
-      border: 1px solid rgba(255,255,255,0.7);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-    }
-
-    .toolbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) 180px 180px;
-      gap: 14px;
-      padding: 18px;
-      margin-bottom: 18px;
-      align-items: center;
-    }
-    .field label {
-      display: block; font-size: 12px; font-weight: 800; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;
-    }
-    .field input, .field select {
-      width: 100%; border-radius: 14px; border: 1px solid var(--line);
-      background: #fff; color: var(--text); padding: 14px 15px; font: inherit;
-      outline: none; transition: border-color .2s ease, box-shadow .2s ease;
-    }
-    .field input:focus, .field select:focus {
-      border-color: rgba(180, 70, 36, 0.5);
-      box-shadow: 0 0 0 4px rgba(180, 70, 36, 0.08);
-    }
-    .hint {
-      grid-column: 1 / -1;
-      margin-top: -4px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-    .agenda-card {
-      display: grid;
-      grid-template-columns: 84px minmax(0, 1fr);
-      gap: 16px;
-      padding: 18px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,248,240,0.92));
-      border: 1px solid rgba(180, 70, 36, 0.1);
-      box-shadow: 0 14px 28px rgba(68, 35, 18, 0.07);
-      min-height: 200px;
-      cursor: grab;
-    }
-    .agenda-card.dragging { opacity: 0.45; transform: scale(0.99); }
-    .agenda-card.drop-target { outline: 2px dashed rgba(180, 70, 36, 0.5); outline-offset: 3px; }
-    .agenda-cover {
-      width: 84px; height: 84px; border-radius: 20px; overflow: hidden;
-      background: linear-gradient(135deg, #fde68a, #fecaca);
-      border: 1px solid rgba(180, 70, 36, 0.12);
-      position: relative;
-    }
-    .agenda-cover img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
-    }
-    .agenda-meta {
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
       margin-bottom: 10px;
-    }
-    .agenda-title {
-      margin: 0; font-size: 18px; line-height: 1.35;
-    }
-    .agenda-sub {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
-      color: var(--muted); font-size: 13px; line-height: 1.5;
-    }
-    .pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 800;
-    }
-    .pill.active { background: rgba(16, 185, 129, 0.12); color: #047857; }
-    .pill.inactive { background: rgba(148, 163, 184, 0.18); color: #475569; }
-    .pill.order { background: rgba(180, 70, 36, 0.08); color: var(--brand); }
-    .pill.count { background: rgba(245, 158, 11, 0.16); color: #92400e; }
-
-    .agenda-desc {
-      margin: 10px 0 0;
-      color: var(--text);
-      line-height: 1.65;
-      font-size: 14px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .agenda-actions {
-      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px;
+
+    .group-toggle {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--side-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 11px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .handle {
-      width: 38px; height: 38px; border-radius: 12px;
-      display: inline-grid; place-items: center;
-      background: rgba(180, 70, 36, 0.08); color: var(--brand);
-      border: 1px solid rgba(180, 70, 36, 0.12);
-      flex: none;
+
+    .group-items {
+      display: block;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 6px;
+    }
+
+    .menu-link {
+      display: block;
+      text-decoration: none;
+      color: #eaf1ff;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
+    .menu-link:hover { background: rgba(255, 255, 255, 0.1); }
+
+    .menu-link.active {
+      border-color: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-actions a {
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.1);
+      color: #f8fbff;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .side-actions a:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .main { padding: 20px; }
+
+    .meta-header {
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .meta-title {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .meta-badges {
+      display: inline-flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .world-link svg { width: 18px; height: 18px; }
+
+    .headline {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .headline h2 { margin: 0; font-size: clamp(1.18rem, 2vw, 1.4rem); }
+
+    .headline .btn.primary { margin-left: auto; background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    .toolbar {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .btn {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #fff;
+      color: #374151;
+      font-weight: 700;
+      padding: 9px 14px;
+      font-size: 0.84rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn.primary {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+    }
+
+    .btn.ghost {
+      color: var(--primary);
+      border-color: #e5e7eb;
+    }
+
+    .btn.warn {
+      color: var(--danger);
+      border-color: #fca5a5;
+      background: #fef2f2;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      min-width: 840px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 16px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #f8fafc; font-size: 0.76rem; text-transform: uppercase; color: #4b5563; font-weight: 700; border-top: none; border-bottom: 2px solid var(--line); }
+
+    .title-cell strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.94rem;
+      color: #111827;
+    }
+
+    .sub {
+      color: #6b7280;
+      font-size: 0.78rem;
+    }
+
+    .status {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      border: 1px solid;
+      display: inline-block;
+    }
+
+    .status.active {
+      background: #dcfce7;
+      color: var(--green);
+      border-color: #86efac;
+    }
+
+    .status.inactive {
+      background: #fef3c7;
+      color: var(--orange);
+      border-color: #fcd34d;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
     .empty {
-      margin-top: 16px;
-      padding: 24px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.76);
-      color: var(--muted);
-      border: 1px dashed rgba(180, 70, 36, 0.2);
+      text-align: center;
+      color: #6b7280;
+      padding: 30px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      background: #f8fafc;
+      margin-top: 10px;
+      font-size: 0.9rem;
     }
 
     .notify {
-      position: fixed; right: 24px; bottom: 24px; z-index: 80;
-      padding: 14px 18px; border-radius: 16px; color: #fff;
-      background: rgba(24, 24, 27, 0.95); box-shadow: 0 18px 36px rgba(0,0,0,.2);
-      transform: translateY(120%); opacity: 0; transition: .25s ease;
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1e40af;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .notify.show { transform: translateY(0); opacity: 1; }
 
-    .loading {
-      padding: 18px; color: var(--muted);
-    }
+    .notify.show { opacity: 1; transform: translateY(0); }
 
-    @media (max-width: 1100px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar { position: relative; height: auto; }
-      .toolbar { grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 1fr; }
-      .main { padding: 18px; }
-      .topbar { flex-direction: column; }
-      .top-actions { justify-content: flex-start; }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .filters { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
     }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard">
       <div class="brand">
-        <div class="brand-mark">C</div>
-        <div>
-          <strong>Crembo Media</strong>
-          <span>Agenda Management</span>
+        <h1>Crembo Media Panel</h1>
+        <p>Kelola agenda untuk acara yang akan datang</p>
+      </div>
+
+      <div class="menu-group">
+        <button class="group-toggle" type="button">Informasi & Publikasi <span>-</span></button>
+        <div class="group-items">
+          <a class="menu-link" href="manajemen-profil.html">Profil</a>
+          <a class="menu-link" href="kelola-berita.html">Pengumuman</a>
+          <a class="menu-link active" href="manajemen-agenda.html">Agenda Kegiatan</a>
+          <a class="menu-link" href="manajemen-form-pendaftaran.html">Form Pendaftaran</a>
         </div>
       </div>
 
-      <div class="nav-section">
-        <div class="nav-title">Menu</div>
-        <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11.5h6V4H4v7.5Zm10 8.5h6V4h-6v16ZM4 20h6v-6H4v6Z" stroke="currentColor" stroke-width="1.8"/></svg>Dashboard</a>
-        <a class="nav-link" href="manajemen-profil.html"><svg viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke="currentColor" stroke-width="1.8"/></svg>Manajemen Profil</a>
-        <a class="nav-link active" href="manajemen-agenda.html"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v4M17 3v4M4 9h16M6 6h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/></svg>Manajemen Agenda</a>
-        <a class="nav-link" href="form-agenda.html"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8"/></svg>Form Agenda</a>
-        <a class="nav-link" href="kelola-berita.html"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8"/></svg>Kelola Berita</a>
-      </div>
-
-      <div class="sidebar-note">
-        Drag and drop urutan agenda di sini akan disimpan ke database, jadi tampilannya mengikuti data yang sama di form agenda.
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="home.html">Kembali ke Beranda</a>
       </div>
     </aside>
 
     <main class="main">
-      <header class="topbar">
+      <header class="meta-header" aria-label="Header dashboard waktu berjalan">
         <div>
-          <div class="eyebrow">Agenda CRUD</div>
-          <h1>Manajemen Agenda</h1>
-          <p class="lead">Kelola agenda kegiatan, ubah urutan dengan drag and drop, lalu simpan ke database agar form dan daftar tetap sinkron.</p>
+          <h1 class="meta-title">Manajemen Agenda</h1>
+          <p style="margin: 6px 0 0; color: rgba(255,255,255,0.85); font-size: 0.88rem;">Kelola acara dan kegiatan komunitas.</p>
         </div>
-        <div class="top-actions">
-          <a class="btn ghost" href="dashboard.html">Kembali</a>
-          <a class="btn primary" href="form-agenda.html">Tambah Agenda</a>
+        <div class="meta-badges">
+          <span id="liveDateTime" class="chip">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
         </div>
       </header>
 
-      <section class="surface toolbar" aria-label="Filter agenda">
-        <div class="field">
-          <label for="searchInput">Cari agenda</label>
-          <input id="searchInput" type="search" placeholder="Cari judul atau lokasi">
+      <header class="headline">
+        <div>
+          <h2>Daftar Agenda Tersedia</h2>
         </div>
-        <div class="field">
-          <label for="statusFilter">Status</label>
+        <a class="btn primary" href="form-agenda.html">+ Tambah Agenda</a>
+      </header>
+
+      <section class="toolbar" aria-label="Filter agenda">
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Cari judul agenda atau lokasi...">
           <select id="statusFilter">
-            <option value="all">Semua</option>
+            <option value="all">Semua Status</option>
             <option value="active">Aktif</option>
             <option value="inactive">Nonaktif</option>
           </select>
         </div>
-        <div class="field">
-          <label for="sortMode">Urutan</label>
-          <select id="sortMode">
-            <option value="order">Sesuai urutan</option>
-            <option value="recent">Terbaru diubah</option>
-          </select>
-        </div>
-        <div class="hint" id="dragHint">Untuk mengurutkan, gunakan drag handle pada kartu agenda saat filter masih di posisi default.</div>
       </section>
 
-      <section id="agendaGrid" class="grid" aria-label="Daftar agenda"></section>
-      <div id="emptyState" class="empty" style="display:none;">Belum ada agenda yang cocok dengan filter saat ini.</div>
+      <section class="table-wrap" aria-label="Tabel agenda">
+        <table>
+          <thead>
+            <tr>
+              <th>Judul</th>
+              <th>Tanggal Mulai</th>
+              <th>Lokasi</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="agendaRows"></tbody>
+        </table>
+      </section>
+
+      <div id="emptyState" class="empty" style="display:none;">Belum ada data agenda.</div>
     </main>
   </div>
 
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
 
   <script>
-    const agendaGrid = document.getElementById("agendaGrid");
-    const emptyState = document.getElementById("emptyState");
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
-    const sortMode = document.getElementById("sortMode");
-    const dragHint = document.getElementById("dragHint");
+    const agendaRows = document.getElementById("agendaRows");
+    const emptyState = document.getElementById("emptyState");
+    const liveDateTime = document.getElementById("liveDateTime");
     const notify = document.getElementById("notify");
-    const liveDateTime = document.createElement("div");
 
     let agendas = [];
-    let draggedId = "";
-    let dragBlockedReason = "";
 
     function showNotify(message) {
       notify.textContent = message;
@@ -346,11 +468,18 @@
       window.clearTimeout(showNotify.timer);
       showNotify.timer = window.setTimeout(function () {
         notify.classList.remove("show");
-      }, 2200);
+      }, 2500);
+    }
+
+    function formatDateTime(dateValue, timeValue) {
+      if (!dateValue) return "-";
+      const parts = dateValue.split("-");
+      const formattedDate = parts.length === 3 ? parts[2] + "/" + parts[1] + "/" + parts[0] : dateValue;
+      return formattedDate + (timeValue ? " " + timeValue.substring(0, 5) : "");
     }
 
     function escapeHtml(text) {
-      return String(text)
+      return String(text || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -358,58 +487,89 @@
         .replace(/'/g, "&#39;");
     }
 
-    function normalizeAttachment(att) {
-      if (typeof att === "string") {
-        return { id: "att-" + att, name: att, type: "", dataUrl: "" };
+    async function loadAgendas() {
+      try {
+        const response = await fetch("/api/agendas", { credentials: "same-origin" });
+        if (!response.ok) throw new Error("Gagal mengambil data dari server");
+        agendas = await response.json();
+        renderRows();
+      } catch (err) {
+        showNotify("Gagal Load API Agenda. Cek koneksi server.");
+        console.error(err);
       }
-      return {
-        id: String(att && att.id ? att.id : "att-" + Date.now()),
-        name: String(att && att.name ? att.name : "lampiran"),
-        type: String(att && att.type ? att.type : ""),
-        dataUrl: String(att && att.dataUrl ? att.dataUrl : "")
-      };
     }
 
-    function normalizeAgenda(item, index) {
-      const status = String(item && item.status ? item.status : "active").toLowerCase() === "inactive" ? "inactive" : "active";
-      return {
-        id: String(item && item.id ? item.id : "agenda-" + (index + 1)),
-        title: String(item && item.title ? item.title : "Judul Agenda"),
-        description: String(item && item.description ? item.description : ""),
-        startDate: String(item && item.startDate ? item.startDate : ""),
-        startTime: String(item && item.startTime ? item.startTime : ""),
-        endDate: String(item && item.endDate ? item.endDate : ""),
-        endTime: String(item && item.endTime ? item.endTime : ""),
-        location: String(item && item.location ? item.location : ""),
-        registrationLink: String(item && item.registrationLink ? item.registrationLink : ""),
-        imageUrl: String(item && item.imageUrl ? item.imageUrl : ""),
-        imageName: String(item && item.imageName ? item.imageName : ""),
-        attachments: Array.isArray(item && item.attachments) ? item.attachments.map(normalizeAttachment) : [],
-        status: status,
-        order: Number.isFinite(Number(item && item.order)) ? Number(item.order) : index,
-        createdAt: String(item && item.createdAt ? item.createdAt : ""),
-        updatedAt: String(item && item.updatedAt ? item.updatedAt : "")
-      };
+    function applyFilters() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+
+      return agendas
+        .slice()
+        .sort(function (a, b) {
+          return (a.order - b.order) || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        })
+        .filter(function (item) {
+          if (status !== "all" && item.status !== status) {
+            return false;
+          }
+          if (!keyword) {
+            return true;
+          }
+          return [item.title, item.location].join(" ").toLowerCase().indexOf(keyword) >= 0;
+        });
     }
 
-    function formatDateTime(dateValue, timeValue) {
-      if (!dateValue) {
-        return "-";
+    function renderRows() {
+      const filtered = applyFilters();
+      if (!filtered.length) {
+        agendaRows.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
       }
-      const dateObject = new Date(dateValue + "T00:00:00");
-      if (Number.isNaN(dateObject.getTime())) {
-        return dateValue + (timeValue ? " " + timeValue : "");
-      }
-      const day = String(dateObject.getDate()).padStart(2, "0");
-      const month = String(dateObject.getMonth() + 1).padStart(2, "0");
-      const year = dateObject.getFullYear();
-      return day + "/" + month + "/" + year + (timeValue ? " " + timeValue : "");
+
+      emptyState.style.display = "none";
+      agendaRows.innerHTML = filtered.map(function (item) {
+        const statusLabel = item.status === "active" ? "Aktif" : "Nonaktif";
+        const attCount = Array.isArray(item.attachments) ? item.attachments.length : 0;
+        const attachmentsLabel = attCount > 0 ? "Lampiran: " + attCount + " file" : "Tanpa lampiran";
+        
+        return "<tr>"
+          + "<td class=\"title-cell\"><strong>" + escapeHtml(item.title) + "</strong><div class=\"sub\">" + escapeHtml(attachmentsLabel) + "</div></td>"
+          + "<td>" + escapeHtml(formatDateTime(item.startDate, item.startTime)) + "</td>"
+          + "<td>" + escapeHtml(item.location || "-") + "</td>"
+          + "<td><span class=\"status " + item.status + "\">" + statusLabel + "</span></td>"
+          + "<td><div class=\"inline-actions\">"
+          + "<a class=\"btn ghost\" href=\"form-agenda.html?id=" + encodeURIComponent(item.id) + "\">Edit</a>"
+          + "<button class=\"btn warn\" type=\"button\" data-delete-id=\"" + escapeHtml(item.id) + "\">Hapus</button>"
+          + "</div></td>"
+          + "</tr>";
+      }).join("");
     }
 
-    function formatRange(item) {
-      const start = formatDateTime(item.startDate, item.startTime);
-      const end = item.endDate ? formatDateTime(item.endDate, item.endTime) : "";
-      return end && end !== start ? start + " - " + end : start;
+    async function removeAgenda(id) {
+      const target = agendas.find(function (item) { return item.id === id; });
+      if (!target) return;
+
+      const ok = window.confirm('Hapus agenda "' + target.title + '"?');
+      if (!ok) return;
+
+      try {
+        const response = await fetch("/api/agendas/" + encodeURIComponent(id), { 
+            method: "DELETE",
+            credentials: "same-origin"
+        });
+        const resData = await response.json();
+        
+        if (!response.ok || !resData.success) {
+            throw new Error(resData.error || "Gagal menghapus.");
+        }
+        
+        agendas = agendas.filter(function (item) { return item.id !== id; });
+        renderRows();
+        showNotify("Agenda berhasil dihapus.");
+      } catch(err) {
+        showNotify("Error: " + err.message);
+      }
     }
 
     function updateLiveDateTime() {
@@ -426,249 +586,20 @@
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
-    function loadAgendas() {
-      agendaGrid.innerHTML = '<div class="loading">Memuat agenda...</div>';
-      fetch("/api/agendas")
-        .then(function (response) {
-          if (!response.ok) {
-            throw new Error("Gagal memuat agenda");
-          }
-          return response.json();
-        })
-        .then(function (data) {
-          agendas = Array.isArray(data) ? data.map(normalizeAgenda) : [];
-          renderAgendas();
-        })
-        .catch(function () {
-          agendaGrid.innerHTML = '';
-          emptyState.style.display = "block";
-          emptyState.textContent = "Gagal memuat agenda dari database.";
-        });
-    }
-
-    function shouldAllowDrag() {
-      return searchInput.value.trim() === "" && statusFilter.value === "all" && sortMode.value === "order";
-    }
-
-    function applyFilters() {
-      const keyword = searchInput.value.trim().toLowerCase();
-      const status = statusFilter.value;
-      const base = agendas.slice();
-
-      if (sortMode.value === "recent") {
-        base.sort(function (a, b) {
-          return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
-        });
-      } else {
-        base.sort(function (a, b) {
-          return (a.order - b.order) || new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
-        });
-      }
-
-      return base.filter(function (item) {
-        if (status !== "all" && item.status !== status) {
-          return false;
-        }
-        if (!keyword) {
-          return true;
-        }
-        return [item.title, item.location, item.description].join(" ").toLowerCase().indexOf(keyword) >= 0;
-      });
-    }
-
-    function renderAgendas() {
-      const filtered = applyFilters();
-      const allowDrag = shouldAllowDrag();
-      dragHint.textContent = allowDrag
-        ? "Untuk mengurutkan, seret kartu agenda ke posisi yang diinginkan lalu lepas di atas kartu lain."
-        : "Drag and drop dinonaktifkan saat filter atau urutan tidak berada pada mode default.";
-
-      if (!filtered.length) {
-        agendaGrid.innerHTML = "";
-        emptyState.style.display = "block";
-        emptyState.textContent = "Belum ada agenda yang cocok dengan filter saat ini.";
-        return;
-      }
-
-      emptyState.style.display = "none";
-      agendaGrid.innerHTML = filtered.map(function (item, index) {
-        const imageMarkup = item.imageUrl
-          ? '<img src="' + escapeHtml(item.imageUrl) + '" alt="' + escapeHtml(item.title) + '">'
-          : '<div style="width:100%;height:100%;display:grid;place-items:center;color:#8f6d4c;font-weight:800;">' + String(item.title || "A").slice(0, 1).toUpperCase() + '</div>';
-        const attachmentCount = item.attachments.length;
-        const imageName = item.imageName ? escapeHtml(item.imageName) : "Tidak ada gambar";
-        return '<article class="agenda-card" draggable="' + (allowDrag ? 'true' : 'false') + '" data-id="' + escapeHtml(item.id) + '">' 
-          + '<div class="agenda-cover">' + imageMarkup + '</div>'
-          + '<div>'
-          + '<div class="agenda-meta">'
-          + '<div style="min-width:0;">'
-          + '<h2 class="agenda-title">' + escapeHtml(item.title) + '</h2>'
-          + '<div class="agenda-sub">'
-          + '<span class="pill order">#' + String(index + 1) + '</span>'
-          + '<span class="pill ' + item.status + '">' + (item.status === 'active' ? 'Aktif' : 'Nonaktif') + '</span>'
-          + '<span class="pill count">' + String(attachmentCount) + ' lampiran</span>'
-          + '</div>'
-          + '</div>'
-          + '<div class="handle" title="Seret untuk mengurutkan">⋮⋮</div>'
-          + '</div>'
-          + '<p class="agenda-desc">' + escapeHtml(item.description || 'Tidak ada deskripsi.') + '</p>'
-          + '<div class="agenda-sub">'
-          + '<span><strong>Jadwal:</strong> ' + escapeHtml(formatRange(item)) + '</span>'
-          + '<span><strong>Lokasi:</strong> ' + escapeHtml(item.location || '-') + '</span>'
-          + '<span><strong>Gambar:</strong> ' + imageName + '</span>'
-          + '</div>'
-          + '<div class="agenda-actions">'
-          + '<a class="btn ghost" href="form-agenda.html?id=' + encodeURIComponent(item.id) + '">Edit</a>'
-          + '<button class="btn danger" type="button" data-delete-id="' + escapeHtml(item.id) + '">Hapus</button>'
-          + '</div>'
-          + '</div>'
-          + '</article>';
-      }).join("");
-
-      bindDragAndDrop(allowDrag);
-    }
-
-    function bindDragAndDrop(allowDrag) {
-      const cards = agendaGrid.querySelectorAll(".agenda-card");
-      cards.forEach(function (card) {
-        card.addEventListener("dragstart", function (event) {
-          if (!allowDrag) {
-            event.preventDefault();
-            return;
-          }
-          draggedId = card.getAttribute("data-id") || "";
-          card.classList.add("dragging");
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", draggedId);
-        });
-        card.addEventListener("dragend", function () {
-          card.classList.remove("dragging");
-          agendaGrid.querySelectorAll(".drop-target").forEach(function (node) {
-            node.classList.remove("drop-target");
-          });
-        });
-        card.addEventListener("dragover", function (event) {
-          if (!allowDrag) {
-            return;
-          }
-          event.preventDefault();
-          card.classList.add("drop-target");
-        });
-        card.addEventListener("dragleave", function () {
-          card.classList.remove("drop-target");
-        });
-        card.addEventListener("drop", function (event) {
-          if (!allowDrag) {
-            return;
-          }
-          event.preventDefault();
-          const targetId = card.getAttribute("data-id") || "";
-          const sourceId = draggedId || event.dataTransfer.getData("text/plain") || "";
-          card.classList.remove("drop-target");
-          if (!sourceId || !targetId || sourceId === targetId) {
-            return;
-          }
-          reorderAgenda(sourceId, targetId);
-        });
-      });
-    }
-
-    function reorderAgenda(sourceId, targetId) {
-      const ordered = applyFilters();
-      const sourceIndex = ordered.findIndex(function (item) { return item.id === sourceId; });
-      const targetIndex = ordered.findIndex(function (item) { return item.id === targetId; });
-      if (sourceIndex < 0 || targetIndex < 0) {
-        return;
-      }
-
-      const nextOrder = ordered.slice();
-      const moved = nextOrder.splice(sourceIndex, 1)[0];
-      nextOrder.splice(targetIndex, 0, moved);
-
-      const fixedOrder = nextOrder.map(function (item, index) {
-        return Object.assign({}, item, { order: index });
-      });
-
-      agendas = agendas.map(function (item) {
-        const updated = fixedOrder.find(function (entry) { return entry.id === item.id; });
-        return updated ? Object.assign({}, item, { order: updated.order }) : item;
-      }).sort(function (a, b) {
-        return (a.order - b.order) || new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
-      });
-
-      syncAgendaOrder(fixedOrder);
-      renderAgendas();
-    }
-
-    function syncAgendaOrder(list) {
-      Promise.all(list.map(function (item) {
-        return fetch("/api/agendas/" + encodeURIComponent(item.id), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ order: item.order })
-        }).then(function (response) {
-          if (!response.ok) {
-            throw new Error("Gagal menyimpan urutan");
-          }
-          return response.json();
-        });
-      }))
-        .then(function () {
-          showNotify("Urutan agenda berhasil disimpan.");
-          loadAgendas();
-        })
-        .catch(function () {
-          showNotify("Gagal menyimpan urutan agenda.");
-          loadAgendas();
-        });
-    }
-
-    function removeAgenda(id) {
-      const target = agendas.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
-      const ok = window.confirm('Hapus agenda "' + target.title + '"?');
-      if (!ok) {
-        return;
-      }
-
-      fetch("/api/agendas/" + encodeURIComponent(id), {
-        method: "DELETE"
-      })
-        .then(function (response) {
-          if (!response.ok) {
-            throw new Error("Gagal menghapus agenda");
-          }
-          return response.json();
-        })
-        .then(function () {
-          showNotify("Agenda berhasil dihapus.");
-          loadAgendas();
-        })
-        .catch(function () {
-          showNotify("Gagal menghapus agenda.");
-        });
-    }
-
-    agendaGrid.addEventListener("click", function (event) {
+    agendaRows.addEventListener("click", function (event) {
       const button = event.target.closest("button[data-delete-id]");
-      if (!button) {
-        return;
-      }
+      if (!button) return;
       const id = button.getAttribute("data-delete-id") || "";
       removeAgenda(id);
     });
 
-    searchInput.addEventListener("input", renderAgendas);
-    statusFilter.addEventListener("change", renderAgendas);
-    sortMode.addEventListener("change", renderAgendas);
+    searchInput.addEventListener("input", renderRows);
+    statusFilter.addEventListener("change", renderRows);
 
+    loadAgendas();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
-    loadAgendas();
   </script>
-  <script src="_sidebar-fix.js"></script>
-  <script src="_public-nav-sync.js"></script>
+<script src="_sidebar-fix.js"></script>
 </body>
 </html>
