@@ -1387,14 +1387,14 @@ def render_public_page(template_name: str, **context):
     return render_template(template_name, current_user=current_user_context(), **context)
 
 
-@app.route("/agenda")
-def public_agenda_page():
-    return render_public_page("agenda.html")
+# @app.route("/agenda")
+# def public_agenda_page():
+#     return render_public_page("agenda.html")
 
 
-@app.route("/agenda/<agenda_id>")
-def public_agenda_detail_page(agenda_id):
-    return render_public_page("agenda-detail.html", agenda_id=agenda_id)
+# @app.route("/agenda/<agenda_id>")
+# def public_agenda_detail_page(agenda_id):
+#     return render_public_page("agenda-detail.html", agenda_id=agenda_id)
 
 
 @app.route("/pengumuman")
@@ -1411,6 +1411,16 @@ def public_news_category_page(category_slug):
 def public_news_detail_page(news_id):
     return render_public_page("pengumuman-detail.html", news_id=news_id)
 
+# Tambahkan bagian ini sebelum "# --- TENTANG CREMBO ENDPOINTS ---" di file app.py kamu
+
+@app.route("/agenda")
+def public_agenda_page():
+    return render_public_page("agenda.html")
+
+@app.route("/agenda/<agenda_id>")
+def public_agenda_detail_page(agenda_id):
+    # Mengirim parameter agenda_id ke template sehingga JS di client bisa membaca ID yang akan di load
+    return render_public_page("agenda-detail.html", agenda_id=agenda_id)
 
 # --- TENTANG CREMBO ENDPOINTS ---
 

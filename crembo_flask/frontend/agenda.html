@@ -380,8 +380,8 @@
 <body>
 	<header class="top-header" id="topHeader">
 		<div class="container">
-			<a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
-				<img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+			<a href="/home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
+				<img src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 			</a>
 			<div class="brand">
 				<h1>Crew Multimedia Baciro</h1>
@@ -395,12 +395,12 @@
 			<button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
 			<nav id="mainNav" aria-label="Navigasi utama">
 				<ul>
-					<li><a href="home.html">Home</a></li>
-					<li><a href="profil.html">Profil</a></li>
-					<li><a href="jadwal-streaming.html">Jadwal Streaming</a></li>
-					<li><a class="active" href="agenda.html">Agenda</a></li>
-					<li><a href="pengumuman.html">Pengumuman</a></li>
-					<li><a href="form-pendaftaran.html">Form Pendaftaran</a></li>
+					<li><a href="/home.html">Home</a></li>
+					<li><a href="/profil.html">Profil</a></li>
+					<li><a href="/jadwal-streaming.html">Jadwal Streaming</a></li>
+					<li><a class="active" href="/agenda.html">Agenda</a></li>
+					<li><a href="/pengumuman.html">Pengumuman</a></li>
+					<li><a href="/form-pendaftaran.html">Form Pendaftaran</a></li>
 				</ul>
 			</nav>
 			<div class="right-tools">
@@ -421,14 +421,14 @@
 							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
 						</div>
 						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
+							<a href="/dashboard.html">Dashboard</a>
 							<a href="/profil">Pengaturan Profil</a>
 							<a href="/logout" style="color: var(--accent);">Keluar</a>
 						</div>
 					</div>
 				</div>
 				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
+				<a class="btn-login" href="/login.html">Login</a>
 				{% endif %}
 			</div>
 		</div>
@@ -444,7 +444,7 @@
 	<div class="breadcrumb-wrap">
 		<div class="container">
 			<ol class="breadcrumb" aria-label="Breadcrumb">
-				<li><a href="home.html">Beranda</a></li>
+				<li><a href="/home.html">Beranda</a></li>
 				<li aria-current="page">Agenda</li>
 			</ol>
 		</div>
@@ -497,7 +497,7 @@
 			<div class="container footer-grid">
 				<section class="footer-col" aria-label="Identitas Crembo">
 					<div class="footer-brand">
-						<img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+						<img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
 						<div>
 							<h4 class="footer-title">Crew Multimedia Baciro</h4>
 							<p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
@@ -580,7 +580,7 @@
 			searchForm.addEventListener("submit", function(e) {
 				e.preventDefault();
 				const q = searchInput.value.trim();
-				window.location.href = "search.html?q=" + encodeURIComponent(q);
+				window.location.href = "/search.html?q=" + encodeURIComponent(q);
 			});
 		}
 
@@ -655,7 +655,8 @@
 		}
 
 		function getAgendaDetailUrl(item) {
-			return item && item.id ? "agenda/" + encodeURIComponent(item.id) : "agenda-detail.html";
+			// PERBAIKAN: Mengarahkan ke route flask /agenda/<id>
+			return item && item.id ? "/agenda/" + encodeURIComponent(item.id) : "/agenda-detail.html";
 		}
 
 		function renderAgendaCards(items) {
@@ -800,7 +801,7 @@
 			function enhanceProfileHoverMenu() {
 				const navList = document.querySelector(".nav-row nav ul");
 				if (!navList) return;
-				const profileAnchor = navList.querySelector('a[href="profil.html"]');
+				const profileAnchor = navList.querySelector('a[href="/profil.html"]');
 				if (!profileAnchor) return;
 				const profileItem = profileAnchor.closest("li");
 				if (!profileItem) return;
@@ -827,7 +828,7 @@
 					else applyDesktopDropdownStyle();
 					profileAnchor.setAttribute("aria-expanded", "false");
 				}
-				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
+				dropdown.innerHTML = menuItems.map(function(item) { return '<a href="/profil.html?profil=' + encodeURIComponent(item.id) + '" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">' + item.label + '</a>'; }).join("");
 				dropdown.addEventListener("mouseover", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "rgba(128,0,0,0.06)"; link.style.color = "#800000"; } });
 				dropdown.addEventListener("mouseout", function(e) { const link = e.target.closest("a"); if (link) { link.style.background = "transparent"; link.style.color = "#4a4a4a"; } });
 				profileItem.appendChild(dropdown);
@@ -852,6 +853,6 @@
 			enhanceProfileHoverMenu();
 		})();
 	</script>
-<script src="_public-nav-sync.js"></script>
+<script src="/_public-nav-sync.js"></script>
 </body>
 </html>
