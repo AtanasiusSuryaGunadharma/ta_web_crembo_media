@@ -688,15 +688,7 @@ def mark_all_notifications_read():
     finally:
         cursor.close()
         conn.close()
-        CREATE TABLE IF NOT EXISTS `google_maps_embed` (
-          `id` int(11) NOT NULL,
-          `url` text DEFAULT NULL,
-          PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-    ''')
-    cursor.execute("SELECT COUNT(*) FROM `google_maps_embed`")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO `google_maps_embed` (`id`, `url`) VALUES (1, '')")
+    
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS `sertifikat_config` (
