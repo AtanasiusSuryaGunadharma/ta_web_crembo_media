@@ -1421,13 +1421,21 @@ def list_pengajuan():
     try:
         ensure_loan_schema(cursor)
         
-        # Ambil filter yang mungkin dikirim frontend admin
         status_filter = request.args.get('status')
         from_date = request.args.get('from_date')
         to_date = request.args.get('to_date')
 
         query = "SELECT * FROM `loan_requests` WHERE 1=1"
         params = []
+        
+        # PERBAIKAN: Jika bukan admin, hanya ambil data milik user yang sedang login
+        role = session.get("role") or ""
+        if role not in ["admin", "super_admin"]:
+            user_id = session.get("user_id")
+            if not user_id:
+                return jsonify({"success": True, "items": []})
+            query += " AND `member_id` = %s"
+            params.append(str(user_id))
         
         if status_filter and status_filter != 'all':
             query += " AND `status` = %s"
@@ -1468,7 +1476,6 @@ def list_pengajuan():
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/pengajuan", methods=["POST"])
 def create_pengajuan():
@@ -1547,7 +1554,8 @@ def create_pengajuan():
             ensure_notifications_schema()
             nc = conn.cursor()
             try:
-                create_notification(nc, "form", f"Pengajuan Peminjaman Baru: {barang_nama}", f"Pengajuan oleh user ID {session.get('user_id')}", url_for('dashboard') if False else "/persetujuan-peminjaman.html", {"pengajuan_id": pengajuan_id})
+                # PERBAIKAN: Sertakan target_role="admin"
+                create_notification(nc, "form", f"Pengajuan Peminjaman Baru: {barang_nama}", f"Pengajuan oleh user ID {session.get('user_id')}", url_for('dashboard') if False else "/persetujuan-peminjaman.html", {"pengajuan_id": pengajuan_id}, target_role="admin")
                 conn.commit()
             finally:
                 nc.close()
@@ -1876,18 +1884,19 @@ def ensure_notifications_schema() -> None:
               PRIMARY KEY (`notification_id`,`user_key`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         ''')
+        # PERBAIKAN: Tambah kolom target_role agar bisa membedakan notif admin/user
+        ensure_column(cursor, "notifications", "target_role", "`target_role` varchar(50) DEFAULT NULL")
         conn.commit()
     finally:
         cursor.close()
         conn.close()
 
-
-def create_notification(cursor, type_value: str, title: str, body: str, url: str | None = None, data: dict | None = None):
+def create_notification(cursor, type_value: str, title: str, body: str, url: str | None = None, data: dict | None = None, target_role: str | None = None):
     nid = f"notif-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
     cursor.execute(
         """
-        INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `target_role`)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
         (
             nid,
@@ -1896,10 +1905,10 @@ def create_notification(cursor, type_value: str, title: str, body: str, url: str
             str(body or ""),
             str(url or "") if url else None,
             json.dumps(data or {}, ensure_ascii=False),
+            target_role # Bisa spesifik diset "admin"
         ),
     )
     return nid
-
 
 @app.route("/api/notifications", methods=["GET"])
 def get_notifications():
@@ -1907,8 +1916,11 @@ def get_notifications():
     viewer = current_user_context()
     client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
     user_key = None
+    role = "user" # default
+    
     if viewer.get("logged_in"):
         user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
+        role = viewer.get("role") or "user"
     else:
         if client_key:
             user_key = client_key
@@ -1917,11 +1929,21 @@ def get_notifications():
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM `notifications` ORDER BY `created_at` DESC LIMIT %s", (limit,))
+        # PERBAIKAN: Tampilkan notifikasi yang bersifat global (NULL) atau sesuai role-nya
+        target_roles = ["admin", "super_admin"] if role in ["admin", "super_admin"] else ["user"]
+        format_strings = ','.join(['%s'] * len(target_roles))
+        
+        query = f"""
+            SELECT * FROM `notifications` 
+            WHERE `target_role` IS NULL OR `target_role` IN ({format_strings}) 
+            ORDER BY `created_at` DESC LIMIT %s
+        """
+        params = tuple(target_roles) + (limit,)
+        
+        cursor.execute(query, params)
         rows = cursor.fetchall() or []
         results = []
         for r in rows:
-            # determine read status for this user
             is_read = False
             if user_key:
                 cursor.execute("SELECT 1 FROM `notification_reads` WHERE `notification_id` = %s AND `user_key` = %s LIMIT 1", (r["id"], user_key))
