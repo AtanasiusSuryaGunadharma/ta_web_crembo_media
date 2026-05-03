@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 02 Bulan Mei 2026 pada 21.34
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 09.32
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -394,7 +394,7 @@ CREATE TABLE `notifications` (
 INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `created_at`) VALUES
 ('notif-1777749531636-663746', 'agenda', 'Agenda Baru: tes notif agenda sudah mulai', 'asad', '/agenda/agenda-1777749531632', '{\"agenda_id\": \"agenda-1777749531632\"}', '2026-05-03 02:18:51'),
 ('notif-1777750088225-d0a1cc', 'news', 'Pengumuman Baru: Test Notif Berita', 'Test Notif Berita 1', '/pengumuman/news-1777750088218', '{\"news_id\": \"news-1777750088218\"}', '2026-05-03 02:28:08'),
-('notif-1777750140928-22f2de', 'form', 'Form Pendaftaran Baru: Test Notif Form', 'asdasdasd', '/api/registration/forms/form-1777750140905-4ve7w8', '{\"form_id\": \"form-1777750140905-4ve7w8\"}', '2026-05-03 02:29:00');
+('notif-1777750967609-f51b8e', 'form', 'Form Pendaftaran Baru: Tes Notifikasi Form 1 baru', 'asdasdasd', '/form-pendaftaran/form-1777750967591-khe4sg', '{\"form_id\": \"form-1777750967591-khe4sg\"}', '2026-05-03 02:42:47');
 
 -- --------------------------------------------------------
 
@@ -413,10 +413,13 @@ CREATE TABLE `notification_reads` (
 --
 
 INSERT INTO `notification_reads` (`notification_id`, `user_key`, `read_at`) VALUES
-('notif-1777749531636-663746', 'member:21', '2026-05-03 02:26:55'),
 ('notif-1777749531636-663746', 'member:50', '2026-05-03 02:24:13'),
+('notif-1777750088225-d0a1cc', 'member:21', '2026-05-03 02:43:40'),
+('notif-1777750140928-22f2de', 'member:21', '2026-05-03 02:40:00'),
 ('notif-1777750140928-22f2de', 'member:50', '2026-05-03 02:32:00'),
-('notif-1777750140928-22f2de', 'member:53', '2026-05-03 02:31:31');
+('notif-1777750140928-22f2de', 'member:53', '2026-05-03 02:31:31'),
+('notif-1777750967609-f51b8e', 'member:21', '2026-05-03 02:43:42'),
+('notif-1777750967609-f51b8e', 'member:50', '2026-05-03 02:42:58');
 
 -- --------------------------------------------------------
 
@@ -480,7 +483,7 @@ INSERT INTO `registration_forms` (`id`, `title`, `description`, `target`, `visib
 ('form-1777706259281-axrzsh', 'asdasd', 'Sebanyak 18 mahasiswa dari Fakultas Bisnis dan Ekonomika (FBE) serta Fakultas Teknologi Industri (FTI) Universitas Atma Jaya Yogyakarta (UAJY) berhasil mencatatkan prestasi membanggakan dengan menembus program Djarum Next Academy (DNA). Program ini merupakan ajang pengembangan bakat yang dirancang PT Djarum guna menjaring dan membina calon pemimpin muda Indonesia.\n\nKeberhasilan tersebut mencerminkan kolaborasi lintas disiplin ilmu di lingkungan UAJY. Dari Fakultas Teknologi Industri, tujuh mahasiswa Program Studi Informatika yang lolos adalah Louis Fernando Ega, Kalvin Lawinata, Eric Daniswara Octa Wijaya, Leo Malvin, Richard Angelico Pudjohartono, Kevin Philips Tanamas, dan Agus Febrianto. Selain itu, terdapat pula lima mahasiswa Program Studi Teknik Industri yang berhasil lolos yakni Nicholas Arron, Domingos Jose Siliwoloe Nicholas Pinto Soares, Natalie Richarta, Jocelyn Clarista Susanty, dan Alfin Prasetya. Sementara itu, dari Fakultas Bisnis dan Ekonomika, lima mahasiswa Program Studi Manajemen yang lolos adalah Gabriella Maharani Putri Nugroho, Christopher Kosasih, Nicholas Christian, Matthew Boanerges Harryson, dan Manuel Carlo Gilardino. Adapun satu mahasiswa Program Studi Akuntansi yang turut lolos ialah Yosafat William Sinar Wiharono. Untuk dapat bergabung dalam Djarum Next Academy, para mahasiswa harus melalui proses seleksi berlapis. Tahapan tersebut dimulai dari seleksi administrasi, psikotes untuk mengukur potensi kognitif dan kepribadian, wawancara bersama tim Human Resources Development (HRD), hingga sesi akhir bersama pihak user dari perusahaan guna menilai kesiapan teknis dan manajerial peserta.\n\nProgram magang intensif ini berlangsung selama enam bulan, terhitung sejak 1 Agustus 2025 hingga 29 Januari 2026. Melalui program tersebut, mahasiswa mendapatkan kesempatan untuk mengaplikasikan teori yang diperoleh di bangku kuliah dalam lingkungan kerja nyata. UAJY memandang keterlibatan mahasiswa dalam DNA sebagai upaya menyelaraskan kurikulum akademik dengan kebutuhan industri yang terus berkembang. Selama mengikuti program, peserta ditempatkan pada divisi-divisi strategis dengan pendampingan mentor profesional. Mereka juga mengikuti berbagai kegiatan pengembangan, seperti kunjungan perusahaan, pelatihan teknis sesuai proyek yang ditangani, serta penguatan keterampilan interpersonal, termasuk literasi keuangan dan manajemen diri. Peserta turut diberi kesempatan menggarap proyek nyata yang berdampak langsung bagi perusahaan.', 'internal', 'visible', '2026-05-02', '2026-05-16', 0, '[{\"id\": \"field-1777706256352-flr1ru\", \"label\": \"aaaaa\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 14:17:39', '2026-05-02 21:09:22', NULL, NULL, NULL),
 ('form-1777731059168-mxepy6', 'test form 4444', 'asdasdasdas', 'public', 'visible', '2026-05-03', '2026-07-18', 0, '[{\"id\": \"field-1777731055150-482ynr\", \"label\": \"bbbbbbbbb\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777731057515-mug491\", \"label\": \"ccccccccccc\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 21:10:59', '2026-05-02 23:08:20', '', '', '[]'),
 ('form-1777738884832-eetlo5', 'Test menu upload', 'hchgcguj', 'public', 'visible', '2026-05-02', '2026-12-03', 0, '[{\"id\": \"field-1777738873805-mx7vxf\", \"label\": \"namaq\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": []}, {\"id\": \"field-1777738883267-i5cf46\", \"label\": \"foto\", \"type\": \"file\", \"required\": true, \"placeholder\": \"\", \"options\": []}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-02 23:21:24', '2026-05-02 23:21:24', '/uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_9081c12a67b740fc99b25435c212c810.png', 'screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39.png', '[{\"url\": \"/uploads/pendaftar-test-1-oprec_1e58f2a77e474c74be88e91a2c2291e5.pdf\", \"name\": \"pendaftar-test-1-oprec.pdf\", \"mimeType\": \"application/pdf\", \"size\": 2312, \"previewable\": true, \"kind\": \"pdf\"}, {\"url\": \"/uploads/Hasil_Pengujian_User_Flow_a307315d573b40d8b66d3b6be0836e99.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"application/pdf\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]'),
-('form-1777750140905-4ve7w8', 'Test Notif Form', 'asdasdasd', 'public', 'visible', '2026-05-01', '2026-12-02', 0, '[{\"id\": \"field-1777750135637-mq0k0f\", \"label\": \"Tes nOtif\", \"type\": \"text\", \"required\": true, \"placeholder\": \"\", \"options\": [\"asdasdasd\"]}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-03 02:29:00', '2026-05-03 02:29:00', '/uploads/iPhone-13-PRO-www.crembomedia.com_4f1a5fce64a04196b67277fa9059c6c5.png', 'iPhone-13-PRO-www.crembomedia.com.png', '[{\"url\": \"/uploads/Hasil_Pengujian_User_Flow_da49e83c0f4d44c29af3aeefd82141cd.pdf\", \"name\": \"Hasil_Pengujian_User_Flow.pdf\", \"mimeType\": \"application/pdf\", \"size\": 361523, \"previewable\": true, \"kind\": \"pdf\"}]');
+('form-1777750967591-khe4sg', 'Tes Notifikasi Form 1 baru', 'asdasdasd', 'public', 'visible', '2026-05-01', '2026-05-16', 0, '[{\"id\": \"field-1777750961296-abt8jy\", \"label\": \"asdasd\", \"type\": \"text\", \"required\": true, \"placeholder\": \"asdasd\", \"options\": [\"asdasdads\"]}, {\"id\": \"field-1777750966477-gvggqj\", \"label\": \"aaa\", \"type\": \"file\", \"required\": true, \"placeholder\": \"sddd\", \"options\": [\"sdasdasdasd\"]}]', '50', 'Atanasius Surya', 'super_admin', '2026-05-03 02:42:47', '2026-05-03 02:42:47', '/uploads/foto_baju_koki_228cfc4b2bde44e2803a6af0a092cad2.jpg', 'foto_baju_koki.jpg', '[{\"url\": \"/uploads/laporan-data-anggota-20260429_a45315a4777a4b35aef7a1bc726fce07.xls\", \"name\": \"laporan-data-anggota-20260429.xls\", \"mimeType\": \"application/vnd.ms-excel\", \"size\": 12821, \"previewable\": false, \"kind\": \"file\"}]');
 
 -- --------------------------------------------------------
 
