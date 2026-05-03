@@ -1168,11 +1168,11 @@
         return;
       }
       const demo = [
-        { id: "brg-1", code: "CAM-001", nama: "Kamera Sony A6400", kategori: "Kamera", foto: "", tanggalBeli: "2025-11-12", hargaBeli: 12500000, total: 2, tersedia: 1, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Lemari Studio A", catatan: "Satu unit sedang dipakai untuk dokumentasi agenda." },
-        { id: "brg-2", code: "AUD-004", nama: "Wireless Microphone Set", kategori: "Audio", foto: "", tanggalBeli: "2025-12-03", hargaBeli: null, total: 4, tersedia: 4, dipinjam: 0, bisaDipinjam: true, kondisi: "Baik", status: "Tersedia", lokasi: "Rak Audio 2", catatan: "Baterai cadangan tersedia 8 pcs." },
-        { id: "brg-3", code: "TRI-002", nama: "Tripod Heavy Duty", kategori: "Aksesori", foto: "", tanggalBeli: "2025-10-28", hargaBeli: 850000, total: 3, tersedia: 2, dipinjam: 1, bisaDipinjam: true, kondisi: "Rusak Ringan", status: "Tersedia", lokasi: "Gudang Perlengkapan", catatan: "1 unit perlu pengencangan lock kaki." },
-        { id: "brg-4", code: "SWI-001", nama: "Video Switcher ATEM Mini", kategori: "Switcher", foto: "", tanggalBeli: "2025-09-19", hargaBeli: 7600000, total: 1, tersedia: 0, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Meja Kontrol", catatan: "Dipakai untuk misa Kamis malam." },
-        { id: "brg-5", code: "CAB-015", nama: "Kabel HDMI 10m", kategori: "Kabel", foto: "", tanggalBeli: "2025-11-30", hargaBeli: 450000, total: 6, tersedia: 5, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Tersedia", lokasi: "Laci Kabel", catatan: "Label kabel sudah diperbarui." }
+        // { id: "brg-1", code: "CAM-001", nama: "Kamera Sony A6400", kategori: "Kamera", foto: "", tanggalBeli: "2025-11-12", hargaBeli: 12500000, total: 2, tersedia: 1, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Lemari Studio A", catatan: "Satu unit sedang dipakai untuk dokumentasi agenda." },
+        // { id: "brg-2", code: "AUD-004", nama: "Wireless Microphone Set", kategori: "Audio", foto: "", tanggalBeli: "2025-12-03", hargaBeli: null, total: 4, tersedia: 4, dipinjam: 0, bisaDipinjam: true, kondisi: "Baik", status: "Tersedia", lokasi: "Rak Audio 2", catatan: "Baterai cadangan tersedia 8 pcs." },
+        // { id: "brg-3", code: "TRI-002", nama: "Tripod Heavy Duty", kategori: "Aksesori", foto: "", tanggalBeli: "2025-10-28", hargaBeli: 850000, total: 3, tersedia: 2, dipinjam: 1, bisaDipinjam: true, kondisi: "Rusak Ringan", status: "Tersedia", lokasi: "Gudang Perlengkapan", catatan: "1 unit perlu pengencangan lock kaki." },
+        // { id: "brg-4", code: "SWI-001", nama: "Video Switcher ATEM Mini", kategori: "Switcher", foto: "", tanggalBeli: "2025-09-19", hargaBeli: 7600000, total: 1, tersedia: 0, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Meja Kontrol", catatan: "Dipakai untuk misa Kamis malam." },
+        // { id: "brg-5", code: "CAB-015", nama: "Kabel HDMI 10m", kategori: "Kabel", foto: "", tanggalBeli: "2025-11-30", hargaBeli: 450000, total: 6, tersedia: 5, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Tersedia", lokasi: "Laci Kabel", catatan: "Label kabel sudah diperbarui." }
       ];
       localStorage.setItem(BARANG_STORAGE_KEY, JSON.stringify(demo));
     }
@@ -1228,37 +1228,7 @@
     }
 
     function readBarang() {
-      if (Array.isArray(REMOTE_INVENTORY) && REMOTE_INVENTORY.length) {
-        return REMOTE_INVENTORY.slice();
-      }
-
-      const adminInventory = safeParse(localStorage.getItem(INVENTORY_STORAGE_KEY), []);
-      if (Array.isArray(adminInventory) && adminInventory.length) {
-        return adminInventory.map(normalizeBarangFromInventory);
-      }
-
-      const fallbackInventory = safeParse(localStorage.getItem(BARANG_STORAGE_KEY), []);
-      return Array.isArray(fallbackInventory) ? fallbackInventory.map(function (item) {
-        return {
-          id: String(item.id || ""),
-          code: String(item.code || item.id || "-"),
-          nama: String(item.nama || item.name || "Barang Inventaris"),
-          kategori: String(item.kategori || item.category || "Lainnya"),
-          foto: String(item.foto || item.photo || "").trim(),
-          tanggalBeli: String(item.tanggalBeli || item.purchaseDate || ""),
-          hargaBeli: item.hargaBeli !== undefined ? item.hargaBeli : item.purchasePrice,
-          total: Number(item.total || item.totalUnit || 0),
-          tersedia: Number(item.tersedia || item.availableUnit || 0),
-          dipinjam: Number(item.dipinjam || item.borrowedUnit || 0),
-          bisaDipinjam: item.bisaDipinjam !== false,
-          kondisi: String(item.kondisi || item.condition || "Baik"),
-          status: String(item.status || "Tersedia"),
-          lokasi: String(item.lokasi || item.location || "-"),
-          catatan: String(item.catatan || item.notes || ""),
-          deskripsi: String(item.deskripsi || item.description || item.notes || ""),
-          sumber: "fallback"
-        };
-      }) : [];
+      return Array.isArray(REMOTE_INVENTORY) ? REMOTE_INVENTORY.slice() : [];
     }
 
     function readPengajuan() {
