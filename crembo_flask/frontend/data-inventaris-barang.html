@@ -13,6 +13,9 @@
       --side-text: #f4f4f4;
       --radius: 16px;
       --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --green: #0f8e4b;
+      --orange: #986200;
+      --danger: #bf1f1f;
     }
 
     * { box-sizing: border-box; }
@@ -1661,24 +1664,17 @@
       activeFilterChip.textContent = "Filter: " + (categoryFilter.value === "all" ? "Semua" : categoryFilter.value);
     }
 
-    function updateLiveDateTime() {
+    function updatePageDateTime() {
       const now = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-
-      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " WIB";
     }
-
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
 
     function renderTable(rows) {
       if (!rows.length) {
@@ -1917,13 +1913,8 @@
         status: statusFilter.value,
         sort: inventorySort.value
       });
-      const url = INVENTORY_API_BASE + "/export.xlsx?" + params.toString();
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "laporan-data-inventaris-barang.xlsx";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // PERBAIKAN: Gunakan window.open alih-alih dom a.click()
+      window.open(INVENTORY_API_BASE + "/export.xlsx?" + params.toString(), "_blank");
     }
 
     function exportInventoryPdf() {
@@ -1934,13 +1925,8 @@
         status: statusFilter.value,
         sort: inventorySort.value
       });
-      const url = INVENTORY_API_BASE + "/export.pdf?" + params.toString();
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "laporan-data-inventaris-barang.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // PERBAIKAN: Gunakan window.open alih-alih dom a.click()
+      window.open(INVENTORY_API_BASE + "/export.pdf?" + params.toString(), "_blank");
     }
 
     function closeAllModalsByEsc(event) {

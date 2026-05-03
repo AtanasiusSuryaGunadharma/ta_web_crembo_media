@@ -646,7 +646,17 @@ def fetch_inventory_items_for_report(cursor, filters: dict[str, str]) -> list[di
         sort_mode=filters.get("sort", "updated-desc"),
     )
 
-
+# TAMBAHKAN PERBAIKAN INI di atas endpoint get_inventory_categories
+# Fungsi format_currency ini sebelumnya crash jika menerima data null saat akan diexport PDF
+def format_currency(value):
+    if value is None or value == "" or str(value).lower() == "none":
+        return "-"
+    try:
+        val = int(value)
+        return f"Rp {val:,}".replace(",", ".")
+    except (ValueError, TypeError):
+        return "-"
+        
 @app.route("/api/inventory/categories", methods=["GET"])
 def get_inventory_categories():
     ensure_auth_schema()
@@ -980,6 +990,7 @@ def delete_inventory_item(item_id):
         conn.close()
 
 
+# Hapus dan Gantikan endpoint /api/inventory/export.xlsx dengan yang berikut ini:
 @app.route("/api/inventory/export.xlsx", methods=["GET"])
 def export_inventory_excel():
     ensure_auth_schema()
@@ -1022,6 +1033,8 @@ def export_inventory_excel():
         buffer = BytesIO()
         workbook.save(buffer)
         buffer.seek(0)
+        
+        # PERBAIKAN: Gunakan send_file dengan benar dan tambahkan as_attachment=True
         return send_file(
             buffer,
             as_attachment=True,
@@ -1032,7 +1045,7 @@ def export_inventory_excel():
         cursor.close()
         conn.close()
 
-
+# Hapus dan Gantikan endpoint /api/inventory/export.pdf dengan yang berikut ini:
 @app.route("/api/inventory/export.pdf", methods=["GET"])
 def export_inventory_pdf():
     ensure_auth_schema()
@@ -1088,6 +1101,8 @@ def export_inventory_pdf():
         elements.append(table)
         document.build(elements)
         buffer.seek(0)
+        
+        # PERBAIKAN: Gunakan send_file dengan benar dan tambahkan as_attachment=True
         return send_file(
             buffer,
             as_attachment=True,
