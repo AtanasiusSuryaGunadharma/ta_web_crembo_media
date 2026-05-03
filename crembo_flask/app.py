@@ -513,6 +513,21 @@ def inventory_request_filters(args) -> dict[str, str]:
     }
 
 
+def ensure_column(cursor, table_name: str, column_name: str, definition: str) -> None:
+    """Ensure a column exists in a table. If not, add it using ALTER TABLE."""
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s
+        """,
+        (MYSQL_CONFIG["database"], table_name, column_name),
+    )
+    exists = cursor.fetchone()[0] > 0
+    if not exists:
+        cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
+
+
 def ensure_inventory_schema(cursor) -> None:
     cursor.execute(
         """
@@ -1517,10 +1532,6 @@ def cancel_pengajuan(pengajuan_id):
     finally:
         cursor.close()
         conn.close()
-    )
-    exists = cursor.fetchone()[0] > 0
-    if not exists:
-        cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
 
 def ensure_news_schema() -> None:
     """Ensure news/article tables exist in database."""
@@ -1530,8 +1541,7 @@ def ensure_news_schema() -> None:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news_categories` (
                 `id` VARCHAR(100) PRIMARY KEY,
-                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
-                 `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
+                `name` VARCHAR(255) NOT NULL UNIQUE,
                 `description` TEXT,
                 `order_index` INT DEFAULT 0,
                 `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -1542,7 +1552,6 @@ def ensure_news_schema() -> None:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news` (
                 `id` VARCHAR(100) PRIMARY KEY,
-             `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
              `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
                 `content` LONGTEXT NOT NULL,
                 `summary` TEXT,
