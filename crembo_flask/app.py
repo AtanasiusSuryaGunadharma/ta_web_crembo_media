@@ -545,7 +545,7 @@ def ensure_inventory_schema(cursor) -> None:
           `status` varchar(50) NOT NULL DEFAULT 'Tersedia',
           `notes` text DEFAULT NULL,
           `photos` longtext DEFAULT NULL,
-            `unit_details` longtext DEFAULT NULL,
+          `unit_details` longtext DEFAULT NULL,
           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
@@ -555,7 +555,9 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
-        ensure_column(cursor, "inventory_items", "unit_details", "`unit_details` longtext DEFAULT NULL")
+    
+    # PERBAIKAN: Indentasi disejajarkan ke kiri (sejajar dengan cursor.execute)
+    ensure_column(cursor, "inventory_items", "unit_details", "`unit_details` longtext DEFAULT NULL")
 
     cursor.execute("SELECT COUNT(*) FROM `inventory_categories`")
     if cursor.fetchone()[0] == 0:
