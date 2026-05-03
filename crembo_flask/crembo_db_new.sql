@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 09.32
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 10.01
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -225,6 +225,70 @@ INSERT INTO `instagram_posts` (`id_instagram`, `judul_instagram`, `url_instagram
 ('ig-1777491111872', 'Tipe-tipe petugas Crembo waktu Misa', 'https://www.instagram.com/reel/DWszMKVDd4H/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 2, '2026-04-30 02:56:49', '127.0.0.1', 1),
 ('ig-1777491154924', 'Dokum Tablo 2025', 'https://www.instagram.com/p/DIwR16YSqQf/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 3, '2026-04-30 02:56:49', '127.0.0.1', 1),
 ('ig-1777492609498', 'Iklan EKM', 'https://www.instagram.com/p/DN2a-xE5p0C/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==', 4, '2026-04-30 02:56:49', '127.0.0.1', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `inventory_categories`
+--
+
+CREATE TABLE `inventory_categories` (
+  `id` varchar(100) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `order_index` int(11) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `inventory_categories`
+--
+
+INSERT INTO `inventory_categories` (`id`, `name`, `order_index`, `created_at`, `updated_at`) VALUES
+('inv-cat-01', 'Kamera', 1, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-02', 'Audio', 2, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-03', 'Aksesori', 3, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-04', 'Switcher', 4, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-05', 'Kabel', 5, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-06', 'Lighting', 6, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-07', 'Lainnya', 7, '2026-05-03 15:01:06', '2026-05-03 15:01:06');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `inventory_items`
+--
+
+CREATE TABLE `inventory_items` (
+  `id` varchar(100) NOT NULL,
+  `code` varchar(100) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `category` varchar(255) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `purchase_date` date DEFAULT NULL,
+  `purchase_price` bigint(20) DEFAULT NULL,
+  `total_unit` int(11) NOT NULL DEFAULT 1,
+  `available_unit` int(11) NOT NULL DEFAULT 1,
+  `has_multiple` tinyint(1) NOT NULL DEFAULT 0,
+  `can_borrow` tinyint(1) NOT NULL DEFAULT 1,
+  `condition` varchar(50) NOT NULL DEFAULT 'Baik',
+  `status` varchar(50) NOT NULL DEFAULT 'Tersedia',
+  `notes` text DEFAULT NULL,
+  `photos` longtext DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `inventory_items`
+--
+
+INSERT INTO `inventory_items` (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`, `created_at`, `updated_at`) VALUES
+('inv-001', 'CAM-001', 'Kamera Sony A6400', 'Kamera', 'Lemari Studio A', '2025-11-12', 12500000, 2, 1, 1, 1, 'Baik', 'Dipinjam', 'Satu unit sedang dipakai untuk dokumentasi agenda.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-002', 'AUD-004', 'Wireless Microphone Set', 'Audio', 'Rak Audio 2', '2025-12-03', NULL, 4, 4, 1, 1, 'Baik', 'Tersedia', 'Baterai cadangan tersedia 8 pcs.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-003', 'TRI-002', 'Tripod Heavy Duty', 'Aksesori', 'Gudang Perlengkapan', '2025-10-28', 850000, 3, 2, 1, 1, 'Rusak Ringan', 'Tersedia', '1 unit perlu pengencangan lock kaki.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-004', 'SWI-001', 'Video Switcher ATEM Mini', 'Switcher', 'Meja Kontrol', '2025-09-19', 7600000, 1, 0, 0, 1, 'Baik', 'Dipinjam', 'Dipakai untuk misa Kamis malam.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 5, 1, 1, 'Baik', 'Tersedia', 'Label kabel sudah diperbarui.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06');
 
 -- --------------------------------------------------------
 

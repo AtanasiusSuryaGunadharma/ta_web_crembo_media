@@ -524,6 +524,80 @@
       background: #efefef;
     }
 
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .photo-card {
+      border: 1px solid #d0d0d0;
+      border-radius: 10px;
+      padding: 8px;
+      background: #fafafa;
+      display: grid;
+      gap: 6px;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 88px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #d7d7d7;
+    }
+
+    .photo-card small {
+      display: block;
+      color: #666;
+      font-size: 0.72rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .photo-card button {
+      border: 1px solid #b91c1c;
+      background: #fff1f1;
+      color: #991b1b;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .detail-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .detail-gallery figure {
+      margin: 0;
+      border: 1px solid #d0d0d0;
+      border-radius: 10px;
+      padding: 8px;
+      background: #fafafa;
+    }
+
+    .detail-gallery img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #d7d7d7;
+    }
+
+    .detail-gallery figcaption {
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: #555;
+      word-break: break-word;
+    }
+
     .photo-preview[hidden] {
       display: none;
     }
@@ -787,7 +861,8 @@
           </div>
           <div class="field">
             <label for="itemPurchaseDateInput">Tanggal Pembelian</label>
-            <input id="itemPurchaseDateInput" name="purchaseDate" type="date" required>
+            <input id="itemPurchaseDateInput" name="purchaseDate" type="date">
+            <p class="help-note">Opsional. Kosongkan jika tanggal belum dicatat.</p>
           </div>
           <div class="field">
             <label for="itemPurchasePriceInput">Harga Pembelian</label>
@@ -841,10 +916,11 @@
 
         <div class="field">
           <label for="itemPhotoInput">Foto Barang</label>
-          <input id="itemPhotoInput" name="photo" type="file" accept="image/*">
+          <input id="itemPhotoInput" name="photo" type="file" accept="image/*" multiple>
           <div class="photo-preview-wrap">
             <p id="itemPhotoHint" class="photo-preview-note">Belum ada foto dipilih.</p>
             <img id="itemPhotoPreview" class="photo-preview" alt="Preview foto barang" hidden>
+            <div id="itemPhotoList" class="photo-gallery"></div>
           </div>
         </div>
 
@@ -1020,6 +1096,7 @@
     const itemPhotoInput = document.getElementById("itemPhotoInput");
     const itemPhotoPreview = document.getElementById("itemPhotoPreview");
     const itemPhotoHint = document.getElementById("itemPhotoHint");
+    const itemPhotoList = document.getElementById("itemPhotoList");
     const itemMultiUnitToggle = document.getElementById("itemMultiUnitToggle");
     const itemBorrowableToggle = document.getElementById("itemBorrowableToggle");
     const manageCategoriesBtn = document.getElementById("manageCategoriesBtn");
@@ -1030,10 +1107,121 @@
     const categoryManageList = document.getElementById("categoryManageList");
 
     let editingItemId = "";
-    let pendingPhotoData = "";
+    let pendingPhotoData = [];
     let categoryEditOriginal = "";
 
     const DEFAULT_CATEGORIES = ["Kamera", "Audio", "Aksesori", "Switcher", "Kabel", "Lighting", "Lainnya"];
+    const INVENTORY_API_BASE = "/api/inventory";
+
+    let inventoryCache = [];
+    let categoryCache = [];
+
+    function apiRequestJSON(url, options) {
+      const requestOptions = Object.assign({
+        headers: {},
+      }, options || {});
+
+      if (requestOptions.body && !(requestOptions.body instanceof FormData)) {
+        requestOptions.headers = Object.assign({ "Content-Type": "application/json" }, requestOptions.headers || {});
+      }
+
+      return fetch(url, requestOptions).then(function (response) {
+        return response.json().catch(function () {
+          return {};
+        }).then(function (payload) {
+          if (!response.ok || payload.success === false) {
+            throw new Error(payload.error || payload.message || "Request failed");
+          }
+          return payload;
+        });
+      });
+    }
+
+    function normalizePhotoRecord(photo) {
+      if (!photo) {
+        return null;
+      }
+
+      if (typeof photo === "string") {
+        const url = photo.trim();
+        if (!url) {
+          return null;
+        }
+        return {
+          url: url,
+          name: url.split("/").pop() || "Foto Barang",
+          mimeType: "",
+          size: 0,
+          previewable: true,
+          kind: "image"
+        };
+      }
+
+      if (typeof photo !== "object") {
+        return null;
+      }
+
+      const url = String(photo.url || photo.path || photo.fileUrl || "").trim();
+      if (!url) {
+        return null;
+      }
+
+      return {
+        url: url,
+        name: String(photo.name || photo.filename || url.split("/").pop() || "Foto Barang").trim(),
+        mimeType: String(photo.mimeType || photo.mime_type || "").trim(),
+        size: normalizeNumber(photo.size, 0),
+        previewable: true,
+        kind: "image"
+      };
+    }
+
+    function cloneInventoryPhotos(photos) {
+      return (Array.isArray(photos) ? photos : [])
+        .map(normalizePhotoRecord)
+        .filter(Boolean);
+    }
+
+    async function loadInventoryState() {
+      const data = await apiRequestJSON(INVENTORY_API_BASE + "/items");
+      inventoryCache = Array.isArray(data.items) ? data.items.map(function (item, index) {
+        return normalizeItem(item, index);
+      }) : [];
+      categoryCache = Array.isArray(data.categories) && data.categories.length ? data.categories.slice() : DEFAULT_CATEGORIES.slice();
+      return data;
+    }
+
+    function refreshCategoryUI(selectedCategory) {
+      populateCategorySelect(selectedCategory);
+      renderCategoryManager();
+      renderInventoryPage();
+    }
+
+    function renderPhotoPickerList() {
+      const photoList = document.getElementById("itemPhotoList");
+      if (!photoList) {
+        return;
+      }
+
+      const photos = cloneInventoryPhotos(pendingPhotoData);
+      photoList.innerHTML = photos.length ? photos.map(function (photo, index) {
+        return '<div class="photo-card">' +
+          '<img src="' + escapeHtml(photo.url) + '" alt="' + escapeHtml(photo.name || "Foto Barang") + '">' +
+          '<small>' + escapeHtml(photo.name || "Foto Barang") + '</small>' +
+          '<button type="button" data-photo-index="' + index + '">Hapus Foto</button>' +
+        '</div>';
+      }).join("") : '';
+      itemPhotoHint.textContent = photos.length ? (photos.length + " foto terpilih.") : "Belum ada foto dipilih.";
+      itemPhotoPreview.hidden = photos.length === 0;
+      itemPhotoPreview.src = photos.length ? photos[0].url : "";
+    }
+
+    function getItemPhotos(item) {
+      if (!item) {
+        return [];
+      }
+      return cloneInventoryPhotos(item.photos && item.photos.length ? item.photos : (item.photo ? [item.photo] : []));
+    }
 
     function isMultiUnitEnabled() {
       return !!itemMultiUnitToggle.checked;
@@ -1095,11 +1283,12 @@
       const availableUnit = Math.min(totalUnit, normalizeNumber(item && item.availableUnit, totalUnit));
       const borrowedUnit = totalUnit - availableUnit;
       const hasMultiple = totalUnit > 1;
+      const photos = cloneInventoryPhotos(item && item.photos ? item.photos : (item && item.photo ? [item.photo] : []));
       return {
         id: String(item && item.id ? item.id : "inv-" + (index + 1)),
         code: String(item && item.code ? item.code : "INV-" + String(index + 1).padStart(3, "0")).trim().toUpperCase(),
         name: String(item && item.name ? item.name : "Barang " + (index + 1)).trim(),
-        category: String(item && item.category ? item.category : "Umum").trim(),
+        category: String(item && item.category ? item.category : "Lainnya").trim(),
         totalUnit: totalUnit,
         availableUnit: availableUnit,
         borrowedUnit: borrowedUnit,
@@ -1108,37 +1297,20 @@
         condition: String(item && item.condition ? item.condition : "Baik").trim(),
         status: String(item && item.status ? item.status : (availableUnit > 0 ? "Tersedia" : "Dipinjam")).trim(),
         location: String(item && item.location ? item.location : "Gudang").trim(),
-        purchaseDate: String(item && item.purchaseDate ? item.purchaseDate : new Date().toISOString().slice(0, 10)),
+        purchaseDate: String(item && item.purchaseDate ? item.purchaseDate : "").trim(),
         purchasePrice: item && item.purchasePrice !== undefined && item.purchasePrice !== null && String(item.purchasePrice).trim() !== ""
           ? normalizeNumber(item.purchasePrice, 0)
           : null,
         notes: String(item && item.notes ? item.notes : "").trim(),
-        photo: String(item && item.photo ? item.photo : "").trim(),
-        updatedAt: item && item.updatedAt ? String(item.updatedAt) : new Date().toISOString()
+        photo: photos.length ? photos[0].url : "",
+        photos: photos,
+        updatedAt: item && item.updatedAt ? String(item.updatedAt) : new Date().toISOString(),
+        createdAt: item && item.createdAt ? String(item.createdAt) : ""
       };
     }
 
     function readCategories() {
-      try {
-        const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        const categories = Array.isArray(parsed) ? parsed : [];
-        const unique = [];
-
-        DEFAULT_CATEGORIES.concat(categories).forEach(function (item) {
-          const clean = String(item || "").trim();
-          if (!clean) {
-            return;
-          }
-          if (unique.indexOf(clean) === -1) {
-            unique.push(clean);
-          }
-        });
-
-        return unique;
-      } catch (error) {
-        return DEFAULT_CATEGORIES.slice();
-      }
+      return categoryCache.length ? categoryCache.slice() : DEFAULT_CATEGORIES.slice();
     }
 
     function saveCategories(categories) {
@@ -1149,7 +1321,7 @@
           unique.push(clean);
         }
       });
-      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(unique));
+      categoryCache = unique.slice();
       return unique;
     }
 
@@ -1192,7 +1364,7 @@
       categoryManagerModal.hidden = true;
     }
 
-    function addCategoryFromInput() {
+    async function addCategoryFromInput() {
       const value = newCategoryInput.value.trim();
       if (!value) {
         return;
@@ -1213,30 +1385,33 @@
           return;
         }
 
-        saveCategories(categories.map(function (item) {
-          return item === categoryEditOriginal ? value : item;
-        }));
-
-        const items = readInventory().map(function (item) {
-          if (item.category === categoryEditOriginal) {
-            return Object.assign({}, item, { category: value, updatedAt: new Date().toISOString() });
-          }
-          return item;
+        await apiRequestJSON(INVENTORY_API_BASE + "/categories/" + encodeURIComponent(categoryEditOriginal), {
+          method: "PUT",
+          body: JSON.stringify({ name: value })
         });
-        saveInventory(items);
+        categoryCache = categories.map(function (item) {
+          return item === categoryEditOriginal ? value : item;
+        });
         categoryFilter.value = value;
         categoryEditOriginal = "";
         addCategoryBtn.textContent = "Tambah Kategori";
         newCategoryInput.value = "";
-        populateCategorySelect(value);
-        renderCategoryManager();
-        renderInventoryPage();
+        await loadInventoryState();
+        refreshCategoryUI(value);
         return;
       }
 
-      if (categories.indexOf(value) === -1) {
-        saveCategories(categories.concat(value));
+      if (categories.indexOf(value) !== -1) {
+        window.alert("Nama kategori sudah ada. Gunakan nama lain.");
+        return;
       }
+
+      await apiRequestJSON(INVENTORY_API_BASE + "/categories", {
+        method: "POST",
+        body: JSON.stringify({ name: value })
+      });
+      categoryCache = categories.concat(value);
+      await loadInventoryState();
       populateCategorySelect(value);
       categoryFilter.value = "all";
       newCategoryInput.value = "";
@@ -1250,7 +1425,7 @@
       addCategoryBtn.textContent = "Simpan Perubahan";
     }
 
-    function deleteCategory(category) {
+    async function deleteCategory(category) {
       const items = readInventory();
       const used = items.some(function (item) {
         return item.category === category;
@@ -1261,9 +1436,18 @@
         return;
       }
 
-      saveCategories(readCategories().filter(function (item) {
+      try {
+        await apiRequestJSON(INVENTORY_API_BASE + "/categories/" + encodeURIComponent(category), {
+          method: "DELETE"
+        });
+      } catch (error) {
+        window.alert(error.message || "Gagal menghapus kategori.");
+        return;
+      }
+
+      categoryCache = readCategories().filter(function (item) {
         return item !== category;
-      }));
+      });
       renderCategoryManager();
       populateCategorySelect();
       categoryFilter.value = "all";
@@ -1308,75 +1492,58 @@
     }
 
     function setPhotoPreview(photoDataUrl) {
-      const hasPhoto = !!String(photoDataUrl || "").trim();
-      if (!hasPhoto) {
-        itemPhotoPreview.hidden = true;
-        itemPhotoPreview.removeAttribute("src");
-        itemPhotoHint.textContent = "Belum ada foto dipilih.";
-        return;
-      }
-
-      itemPhotoPreview.src = photoDataUrl;
-      itemPhotoPreview.hidden = false;
-      itemPhotoHint.textContent = "Preview foto barang.";
+      pendingPhotoData = cloneInventoryPhotos(photoDataUrl);
+      renderPhotoPickerList();
     }
 
-    function handlePhotoInputChange(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) {
+    async function handlePhotoInputChange(event) {
+      const files = Array.from((event.target.files && event.target.files.length ? event.target.files : []) || []);
+      if (!files.length) {
         return;
       }
 
-      if (!file.type || file.type.indexOf("image/") !== 0) {
-        window.alert("File harus berupa gambar.");
+      const invalidFile = files.find(function (file) {
+        return !file.type || file.type.indexOf("image/") !== 0;
+      });
+      if (invalidFile) {
+        window.alert("Semua file harus berupa gambar.");
         itemPhotoInput.value = "";
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = function () {
-        pendingPhotoData = String(reader.result || "");
-        setPhotoPreview(pendingPhotoData);
-      };
-      reader.readAsDataURL(file);
-    }
+      const formData = new FormData();
+      files.forEach(function (file) {
+        formData.append("files", file);
+      });
 
-    function readInventory() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        const isSeeded = localStorage.getItem(STORAGE_SEED_KEY) === DUMMY_SEED_VERSION;
-
-        if (!isSeeded) {
-          const merged = DUMMY_INVENTORY.concat(Array.isArray(parsed) ? parsed : []);
-          const byCode = {};
-          merged.forEach(function (item, index) {
-            const normalized = normalizeItem(item, index);
-            byCode[normalized.code] = normalized;
-          });
-          const values = Object.keys(byCode).map(function (code) {
-            return byCode[code];
-          });
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
-          localStorage.setItem(STORAGE_SEED_KEY, DUMMY_SEED_VERSION);
-          if (!localStorage.getItem(CATEGORY_STORAGE_KEY)) {
-            saveCategories(values.map(function (item) { return item.category; }));
-          }
-          return values;
+        const response = await fetch("/api/upload_image", {
+          method: "POST",
+          body: formData
+        });
+        const payload = await response.json().catch(function () {
+          return {};
+        });
+        if (!response.ok || payload.success === false) {
+          throw new Error(payload.error || payload.message || "Gagal mengunggah foto.");
         }
 
-        if (!Array.isArray(parsed)) {
-          return [];
-        }
-
-        return parsed.map(normalizeItem);
+        const uploadedFiles = Array.isArray(payload.files) ? payload.files : (payload.url ? [{ url: payload.url, name: "Foto Barang" }] : []);
+        pendingPhotoData = cloneInventoryPhotos(pendingPhotoData).concat(uploadedFiles.map(normalizePhotoRecord).filter(Boolean));
+        renderPhotoPickerList();
+        itemPhotoInput.value = "";
       } catch (error) {
-        return [];
+        window.alert(error.message || "Gagal mengunggah foto.");
+        itemPhotoInput.value = "";
       }
     }
 
+    function readInventory() {
+      return inventoryCache.map(normalizeItem);
+    }
+
     function saveInventory(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items.map(normalizeItem)));
+      inventoryCache = items.map(normalizeItem);
     }
 
     function formatDateTime(isoString) {
@@ -1552,10 +1719,10 @@
 
     function resetForm() {
       editingItemId = "";
-      pendingPhotoData = "";
+      pendingPhotoData = [];
       inventoryForm.reset();
       inventoryFormTitle.textContent = "Tambah Barang Inventaris";
-      itemPurchaseDateInput.value = new Date().toISOString().slice(0, 10);
+      itemPurchaseDateInput.value = "";
       itemPurchasePriceInput.value = "";
       setPhotoPreview("");
       setMultiUnitMode(false, false);
@@ -1568,7 +1735,7 @@
       populateCategorySelect();
       setMultiUnitMode(false, false);
       setBorrowableMode(true);
-      itemPurchaseDateInput.value = new Date().toISOString().slice(0, 10);
+      itemPurchaseDateInput.value = "";
       inventoryFormModal.hidden = false;
     }
 
@@ -1586,7 +1753,7 @@
       itemNameInput.value = item.name;
       populateCategorySelect(item.category);
       itemLocationInput.value = item.location;
-      itemPurchaseDateInput.value = item.purchaseDate || new Date().toISOString().slice(0, 10);
+      itemPurchaseDateInput.value = item.purchaseDate || "";
       itemPurchasePriceInput.value = item.purchasePrice === null || item.purchasePrice === undefined ? "" : String(item.purchasePrice);
       setMultiUnitMode(!!item.hasMultiple || item.totalUnit > 1, true);
       itemTotalInput.value = item.totalUnit;
@@ -1595,7 +1762,7 @@
       setBorrowableMode(item.canBorrow !== false);
       itemStatusInput.value = item.status;
       itemNotesInput.value = item.notes;
-      pendingPhotoData = item.photo || "";
+      pendingPhotoData = getItemPhotos(item);
       itemPhotoInput.value = "";
       setPhotoPreview(pendingPhotoData);
       inventoryFormModal.hidden = false;
@@ -1614,8 +1781,11 @@
         return;
       }
 
-      const photoMarkup = item.photo
-        ? '<li><strong>Foto Barang:</strong><br><img class="detail-photo" src="' + escapeHtml(item.photo) + '" alt="' + escapeHtml(item.name) + '"></li>'
+      const photos = getItemPhotos(item);
+      const photoMarkup = photos.length
+        ? '<li><strong>Foto Barang:</strong><div class="detail-gallery">' + photos.map(function (photo) {
+            return '<figure><img src="' + escapeHtml(photo.url) + '" alt="' + escapeHtml(photo.name || item.name) + '"><figcaption>' + escapeHtml(photo.name || item.name) + '</figcaption></figure>';
+          }).join("") + '</div></li>'
         : '<li><strong>Foto Barang:</strong> -</li>';
 
       inventoryDetailBody.innerHTML =
@@ -1646,13 +1816,11 @@
 
     function saveFormData(event) {
       event.preventDefault();
-      const items = readInventory();
-      const id = editingItemId || ("inv-" + Date.now());
       const code = itemCodeInput.value.trim().toUpperCase();
       const name = itemNameInput.value.trim();
       const category = itemCategoryInput.value.trim();
       const location = itemLocationInput.value.trim();
-      const purchaseDate = itemPurchaseDateInput.value || new Date().toISOString().slice(0, 10);
+      const purchaseDate = itemPurchaseDateInput.value || null;
       const purchasePriceRaw = itemPurchasePriceInput.value.trim();
       const purchasePrice = purchasePriceRaw === "" ? null : normalizeNumber(purchasePriceRaw, 0);
       const multiUnit = isMultiUnitEnabled();
@@ -1662,22 +1830,8 @@
       const condition = itemConditionInput.value;
       const status = canBorrow ? itemStatusInput.value : "Tersedia";
       const notes = itemNotesInput.value.trim();
-      const photo = pendingPhotoData;
-
-      const duplicateCode = items.some(function (item) {
-        if (item.id === id) {
-          return false;
-        }
-        return item.code.toUpperCase() === code;
-      });
-
-      if (duplicateCode) {
-        window.alert("Kode barang sudah dipakai. Gunakan kode lain.");
-        return;
-      }
-
-      const payload = normalizeItem({
-        id: id,
+      const photos = cloneInventoryPhotos(pendingPhotoData);
+      const payload = {
         code: code,
         name: name,
         category: category,
@@ -1691,22 +1845,42 @@
         condition: condition,
         status: status,
         notes: notes,
-        photo: photo,
-        updatedAt: new Date().toISOString()
-      }, 0);
+        photos: photos,
+      };
 
-      const updatedItems = editingItemId
-        ? items.map(function (item) { return item.id === id ? payload : item; })
-        : items.concat(payload);
-
-      saveInventory(updatedItems);
-      closeFormModal();
-      renderInventoryPage();
+      (async function () {
+        try {
+          const response = editingItemId
+            ? await apiRequestJSON(INVENTORY_API_BASE + "/items/" + encodeURIComponent(editingItemId), {
+                method: "PUT",
+                body: JSON.stringify(payload)
+              })
+            : await apiRequestJSON(INVENTORY_API_BASE + "/items", {
+                method: "POST",
+                body: JSON.stringify(payload)
+              });
+          if (response.item) {
+            const existingIndex = inventoryCache.findIndex(function (item) {
+              return item.id === response.item.id;
+            });
+            if (existingIndex !== -1) {
+              inventoryCache[existingIndex] = normalizeItem(response.item, existingIndex);
+            } else {
+              inventoryCache.push(normalizeItem(response.item, inventoryCache.length));
+            }
+          } else {
+            await loadInventoryState();
+          }
+          closeFormModal();
+          renderInventoryPage();
+        } catch (error) {
+          window.alert(error.message || "Gagal menyimpan data inventaris.");
+        }
+      })();
     }
 
-    function deleteItem(itemId) {
-      const items = readInventory();
-      const item = items.find(function (entry) { return entry.id === itemId; });
+    async function deleteItem(itemId) {
+      const item = readInventory().find(function (entry) { return entry.id === itemId; });
       if (!item) {
         return;
       }
@@ -1716,101 +1890,51 @@
         return;
       }
 
-      const updated = items.filter(function (entry) {
-        return entry.id !== itemId;
-      });
-      saveInventory(updated);
-      renderInventoryPage();
+      try {
+        await apiRequestJSON(INVENTORY_API_BASE + "/items/" + encodeURIComponent(itemId), {
+          method: "DELETE"
+        });
+        inventoryCache = inventoryCache.filter(function (entry) {
+          return entry.id !== itemId;
+        });
+        renderInventoryPage();
+      } catch (error) {
+        window.alert(error.message || "Gagal menghapus data inventaris.");
+      }
     }
 
     function exportInventoryExcel() {
-      const rows = filterAndSortItems(readInventory());
-      let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
-        '<link rel="stylesheet" href="_admin-theme.css">' +
-        '</head><body>';
-      html += '<h3>Laporan Data Inventaris Barang</h3>';
-      html += '<table border="1" cellspacing="0" cellpadding="6">';
-      html += '<tr><th>Kode</th><th>Nama Barang</th><th>Kategori</th><th>Tanggal Beli</th><th>Harga Beli</th><th>Total Unit</th><th>Tersedia</th><th>Dipinjam</th><th>Bisa Dipinjam</th><th>Kondisi</th><th>Status</th><th>Lokasi</th><th>Update Terakhir</th><th>Foto</th><th>Keterangan</th></tr>';
-
-      if (rows.length) {
-        rows.forEach(function (item) {
-          html += '<tr>' +
-            '<td>' + escapeHtml(item.code) + '</td>' +
-            '<td>' + escapeHtml(item.name) + '</td>' +
-            '<td>' + escapeHtml(item.category) + '</td>' +
-            '<td>' + escapeHtml(item.purchaseDate || '-') + '</td>' +
-            '<td>' + escapeHtml(formatCurrency(item.purchasePrice)) + '</td>' +
-            '<td>' + item.totalUnit + '</td>' +
-            '<td>' + item.availableUnit + '</td>' +
-            '<td>' + item.borrowedUnit + '</td>' +
-            '<td>' + (item.canBorrow ? 'Ya' : 'Tidak') + '</td>' +
-            '<td>' + escapeHtml(item.condition) + '</td>' +
-            '<td>' + escapeHtml(item.status) + '</td>' +
-            '<td>' + escapeHtml(item.location) + '</td>' +
-            '<td>' + escapeHtml(formatDateTime(item.updatedAt)) + '</td>' +
-            '<td>' + (item.photo ? 'Ada' : 'Tidak') + '</td>' +
-            '<td>' + escapeHtml(item.notes || '-') + '</td>' +
-          '</tr>';
-        });
-      } else {
-        html += '<tr><td colspan="15">Tidak ada data inventaris sesuai filter.</td></tr>';
-      }
-
-      html += '</table></body></html>';
-
-      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-      const url = URL.createObjectURL(blob);
+      const params = new URLSearchParams({
+        search: inventorySearchInput.value.trim(),
+        category: categoryFilter.value,
+        condition: conditionFilter.value,
+        status: statusFilter.value,
+        sort: inventorySort.value
+      });
+      const url = INVENTORY_API_BASE + "/export.xlsx?" + params.toString();
       const a = document.createElement("a");
       a.href = url;
-      a.download = "laporan-data-inventaris-barang.xls";
+      a.download = "laporan-data-inventaris-barang.xlsx";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
 
     function exportInventoryPdf() {
-      const rows = filterAndSortItems(readInventory());
-      const popup = window.open("", "_blank", "width=1120,height=800");
-      if (!popup) {
-        return;
-      }
-
-      const bodyRows = rows.length
-        ? rows.map(function (item) {
-            return '<tr>' +
-              '<td>' + escapeHtml(item.code) + '</td>' +
-              '<td>' + escapeHtml(item.name) + '</td>' +
-              '<td>' + escapeHtml(item.category) + '</td>' +
-              '<td>' + escapeHtml(item.purchaseDate || '-') + '</td>' +
-              '<td>' + escapeHtml(formatCurrency(item.purchasePrice)) + '</td>' +
-              '<td>' + item.totalUnit + '</td>' +
-              '<td>' + item.availableUnit + '</td>' +
-              '<td>' + item.borrowedUnit + '</td>' +
-              '<td>' + (item.canBorrow ? 'Ya' : 'Tidak') + '</td>' +
-              '<td>' + escapeHtml(item.condition) + '</td>' +
-              '<td>' + escapeHtml(item.status) + '</td>' +
-              '<td>' + escapeHtml(item.location) + '</td>' +
-              '<td>' + (item.photo ? 'Ada' : 'Tidak') + '</td>' +
-              '<td>' + escapeHtml(item.notes || '-') + '</td>' +
-            '</tr>';
-          }).join("")
-        : '<tr><td colspan="14">Tidak ada data inventaris sesuai filter.</td></tr>';
-
-      popup.document.write(
-        '<!doctype html><html><head><meta charset="utf-8"><title>Laporan Inventaris Barang</title>' +
-        '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h2{margin:0 0 8px}p{margin:4px 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:6px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f2f2}@media print{body{padding:0}}</style>' +
-        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
-        '<link rel="stylesheet" href="_admin-theme.css">' +
-        '</head><body>' +
-        '<h2>Laporan Data Inventaris Barang</h2>' +
-        '<p>Filter: ' + escapeHtml(activeFilterChip.textContent || 'Semua') + '</p>' +
-        '<table><thead><tr><th>Kode</th><th>Nama Barang</th><th>Kategori</th><th>Tanggal Beli</th><th>Harga Beli</th><th>Total</th><th>Tersedia</th><th>Dipinjam</th><th>Bisa Dipinjam</th><th>Kondisi</th><th>Status</th><th>Lokasi</th><th>Foto</th><th>Keterangan</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
-        '</body></html>'
-      );
-      popup.document.close();
-      popup.focus();
-      popup.print();
+      const params = new URLSearchParams({
+        search: inventorySearchInput.value.trim(),
+        category: categoryFilter.value,
+        condition: conditionFilter.value,
+        status: statusFilter.value,
+        sort: inventorySort.value
+      });
+      const url = INVENTORY_API_BASE + "/export.pdf?" + params.toString();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "laporan-data-inventaris-barang.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     function closeAllModalsByEsc(event) {
@@ -1860,6 +1984,22 @@
     closeInventoryFormBtn.addEventListener("click", closeFormModal);
     cancelInventoryFormBtn.addEventListener("click", closeFormModal);
     itemPhotoInput.addEventListener("change", handlePhotoInputChange);
+    itemPhotoList.addEventListener("click", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const index = Number(target.getAttribute("data-photo-index"));
+      if (Number.isNaN(index)) {
+        return;
+      }
+
+      pendingPhotoData = cloneInventoryPhotos(pendingPhotoData).filter(function (photo, photoIndex) {
+        return photoIndex !== index;
+      });
+      renderPhotoPickerList();
+    });
     itemMultiUnitToggle.addEventListener("change", function () {
       setMultiUnitMode(itemMultiUnitToggle.checked, false);
       syncQuantityFields();
@@ -1920,10 +2060,20 @@
 
     document.addEventListener("keydown", closeAllModalsByEsc);
 
-    renderInventoryPage();
-    populateCategorySelect();
-    updatePageDateTime();
-    setInterval(updatePageDateTime, 1000);
+    (async function initializeInventoryPage() {
+      try {
+        await loadInventoryState();
+      } catch (error) {
+        window.alert(error.message || "Gagal memuat data inventaris dari server.");
+        inventoryCache = [];
+        categoryCache = DEFAULT_CATEGORIES.slice();
+      }
+
+      renderInventoryPage();
+      populateCategorySelect();
+      updatePageDateTime();
+      setInterval(updatePageDateTime, 1000);
+    })();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

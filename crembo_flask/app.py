@@ -41,6 +41,94 @@ ALLOWED_ATTACHMENT_EXTENSIONS = {
 PREVIEWABLE_ATTACHMENT_EXTENSIONS = {
     ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".pdf",
 }
+INVENTORY_DEFAULT_CATEGORIES = ["Kamera", "Audio", "Aksesori", "Switcher", "Kabel", "Lighting", "Lainnya"]
+INVENTORY_DEFAULT_ITEMS = [
+    {
+        "id": "inv-001",
+        "code": "CAM-001",
+        "name": "Kamera Sony A6400",
+        "category": "Kamera",
+        "location": "Lemari Studio A",
+        "purchaseDate": "2025-11-12",
+        "purchasePrice": 12500000,
+        "totalUnit": 2,
+        "availableUnit": 1,
+        "hasMultiple": True,
+        "canBorrow": True,
+        "condition": "Baik",
+        "status": "Dipinjam",
+        "notes": "Satu unit sedang dipakai untuk dokumentasi agenda.",
+        "photos": [],
+    },
+    {
+        "id": "inv-002",
+        "code": "AUD-004",
+        "name": "Wireless Microphone Set",
+        "category": "Audio",
+        "location": "Rak Audio 2",
+        "purchaseDate": "2025-12-03",
+        "purchasePrice": None,
+        "totalUnit": 4,
+        "availableUnit": 4,
+        "hasMultiple": True,
+        "canBorrow": True,
+        "condition": "Baik",
+        "status": "Tersedia",
+        "notes": "Baterai cadangan tersedia 8 pcs.",
+        "photos": [],
+    },
+    {
+        "id": "inv-003",
+        "code": "TRI-002",
+        "name": "Tripod Heavy Duty",
+        "category": "Aksesori",
+        "location": "Gudang Perlengkapan",
+        "purchaseDate": "2025-10-28",
+        "purchasePrice": 850000,
+        "totalUnit": 3,
+        "availableUnit": 2,
+        "hasMultiple": True,
+        "canBorrow": True,
+        "condition": "Rusak Ringan",
+        "status": "Tersedia",
+        "notes": "1 unit perlu pengencangan lock kaki.",
+        "photos": [],
+    },
+    {
+        "id": "inv-004",
+        "code": "SWI-001",
+        "name": "Video Switcher ATEM Mini",
+        "category": "Switcher",
+        "location": "Meja Kontrol",
+        "purchaseDate": "2025-09-19",
+        "purchasePrice": 7600000,
+        "totalUnit": 1,
+        "availableUnit": 0,
+        "hasMultiple": False,
+        "canBorrow": True,
+        "condition": "Baik",
+        "status": "Dipinjam",
+        "notes": "Dipakai untuk misa Kamis malam.",
+        "photos": [],
+    },
+    {
+        "id": "inv-005",
+        "code": "CAB-015",
+        "name": "Kabel HDMI 10m",
+        "category": "Kabel",
+        "location": "Laci Kabel",
+        "purchaseDate": "2025-11-30",
+        "purchasePrice": 450000,
+        "totalUnit": 6,
+        "availableUnit": 5,
+        "hasMultiple": True,
+        "canBorrow": True,
+        "condition": "Baik",
+        "status": "Tersedia",
+        "notes": "Label kabel sudah diperbarui.",
+        "photos": [],
+    },
+]
 
 def template_exists(template_name: str) -> bool:
     return (FRONTEND_DIR / template_name).is_file()
@@ -51,6 +139,56 @@ def mysql_connection():
 def ensure_upload_folder() -> Path:
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     return UPLOAD_FOLDER
+
+
+def normalize_text(value, fallback: str = "") -> str:
+    return str(value if value is not None else fallback).strip()
+
+
+def parse_optional_int(value) -> int | None:
+    if value in (None, ""):
+        return None
+    try:
+        return max(0, int(float(value)))
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_required_int(value, fallback: int = 0) -> int:
+    parsed = parse_optional_int(value)
+    return fallback if parsed is None else parsed
+
+
+def fetch_scalar_value(row, default=0):
+    if row is None:
+        return default
+    if isinstance(row, dict):
+        return next(iter(row.values()), default)
+    if isinstance(row, (list, tuple)):
+        return row[0] if row else default
+    return row
+
+
+def parse_optional_date(value) -> str | None:
+    raw = normalize_text(value)
+    if not raw:
+        return None
+    try:
+        datetime.strptime(raw, "%Y-%m-%d")
+    except ValueError:
+        return None
+    return raw
+
+
+def safe_json_loads(value, fallback):
+    if isinstance(value, (list, dict)):
+        return value
+    if not value:
+        return fallback
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError):
+        return fallback
 
 def attachment_record_from_url(url_value: str, *, name: str | None = None, mime_type: str | None = None, size: int | None = None) -> dict[str, object]:
     clean_url = (url_value or "").strip()
@@ -144,6 +282,821 @@ def remove_physical_file(file_url: str):
             file_path.unlink()
     except Exception as e:
         print(f"[WARN] Failed to delete file {file_url}: {e}")
+
+
+def normalize_inventory_photos(value) -> list[dict[str, object]]:
+    photos = normalize_attachment_payload(value)
+    normalized: list[dict[str, object]] = []
+    for photo in photos:
+        if not isinstance(photo, dict):
+            continue
+        url_value = normalize_text(photo.get("url"))
+        if not url_value:
+            continue
+        normalized.append(
+            {
+                "url": url_value,
+                "name": normalize_text(photo.get("name")) or Path(url_value).name,
+                "mimeType": normalize_text(photo.get("mimeType")),
+                "size": parse_required_int(photo.get("size"), 0),
+                "previewable": True,
+                "kind": "image",
+            }
+        )
+    return normalized
+
+
+def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
+    photos = normalize_inventory_photos(safe_json_loads(row.get("photos"), []))
+    total_unit = parse_required_int(row.get("total_unit"), 1)
+    available_unit = min(total_unit, parse_required_int(row.get("available_unit"), total_unit))
+    purchase_date = row.get("purchase_date")
+    purchase_price = row.get("purchase_price")
+    updated_at = row.get("updated_at")
+    created_at = row.get("created_at")
+    photo_url = photos[0]["url"] if photos else ""
+    return {
+        "id": row.get("id") or "",
+        "code": normalize_text(row.get("code")).upper(),
+        "name": normalize_text(row.get("name")),
+        "category": normalize_text(row.get("category")) or "Lainnya",
+        "location": normalize_text(row.get("location")),
+        "purchaseDate": purchase_date.isoformat() if hasattr(purchase_date, "isoformat") else normalize_text(purchase_date),
+        "purchasePrice": int(purchase_price) if purchase_price not in (None, "") else None,
+        "totalUnit": total_unit,
+        "availableUnit": available_unit,
+        "borrowedUnit": max(total_unit - available_unit, 0),
+        "hasMultiple": bool(row.get("has_multiple")),
+        "canBorrow": bool(row.get("can_borrow", True)),
+        "condition": normalize_text(row.get("condition")) or "Baik",
+        "status": normalize_text(row.get("status")) or "Tersedia",
+        "notes": normalize_text(row.get("notes")),
+        "photos": photos,
+        "photo": photo_url,
+        "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at),
+        "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else normalize_text(updated_at),
+    }
+
+
+def inventory_summary_from_items(items: list[dict[str, object]]) -> dict[str, int]:
+    total_unit = 0
+    total_available = 0
+    total_borrowed = 0
+    for item in items:
+        current_total = parse_required_int(item.get("totalUnit"), 0)
+        current_available = parse_required_int(item.get("availableUnit"), 0)
+        total_unit += current_total
+        total_available += current_available
+        total_borrowed += max(current_total - current_available, 0)
+    return {
+        "totalJenisBarang": len(items),
+        "totalUnit": total_unit,
+        "totalAvailable": total_available,
+        "totalBorrowed": total_borrowed,
+    }
+
+
+def inventory_sort_items(items: list[dict[str, object]], sort_mode: str) -> list[dict[str, object]]:
+    mode = normalize_text(sort_mode) or "updated-desc"
+
+    def item_time(item: dict[str, object]) -> datetime:
+        raw = normalize_text(item.get("updatedAt")) or "1970-01-01T00:00:00"
+        try:
+            return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        except ValueError:
+            return datetime(1970, 1, 1)
+
+    if mode == "name-asc":
+        return sorted(items, key=lambda item: normalize_text(item.get("name")).lower())
+    if mode == "name-desc":
+        return sorted(items, key=lambda item: normalize_text(item.get("name")).lower(), reverse=True)
+    if mode == "updated-asc":
+        return sorted(items, key=item_time)
+    return sorted(items, key=item_time, reverse=True)
+
+
+def inventory_filter_items(items: list[dict[str, object]], search: str = "", category: str = "all", condition: str = "all", status: str = "all", sort_mode: str = "updated-desc") -> list[dict[str, object]]:
+    keyword = normalize_text(search).lower()
+    category_value = normalize_text(category) or "all"
+    condition_value = normalize_text(condition) or "all"
+    status_value = normalize_text(status) or "all"
+
+    filtered: list[dict[str, object]] = []
+    for item in items:
+        haystack = " ".join([
+            normalize_text(item.get("code")),
+            normalize_text(item.get("name")),
+            normalize_text(item.get("category")),
+            normalize_text(item.get("location")),
+            normalize_text(item.get("notes")),
+        ]).lower()
+        matches_keyword = not keyword or keyword in haystack
+        matches_category = category_value == "all" or normalize_text(item.get("category")) == category_value
+        matches_condition = condition_value == "all" or normalize_text(item.get("condition")) == condition_value
+        matches_status = status_value == "all" or normalize_text(item.get("status")) == status_value
+        if matches_keyword and matches_category and matches_condition and matches_status:
+            filtered.append(item)
+
+    return inventory_sort_items(filtered, sort_mode)
+
+
+def inventory_request_filters(args) -> dict[str, str]:
+    return {
+        "search": normalize_text(args.get("search")),
+        "category": normalize_text(args.get("category")) or "all",
+        "condition": normalize_text(args.get("condition")) or "all",
+        "status": normalize_text(args.get("status")) or "all",
+        "sort": normalize_text(args.get("sort")) or "updated-desc",
+    }
+
+
+def ensure_inventory_schema(cursor) -> None:
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `inventory_categories` (
+          `id` varchar(100) NOT NULL,
+          `name` varchar(255) NOT NULL,
+          `order_index` int(11) NOT NULL DEFAULT 0,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uniq_inventory_category_name` (`name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `inventory_items` (
+          `id` varchar(100) NOT NULL,
+          `code` varchar(100) NOT NULL,
+          `name` varchar(255) NOT NULL,
+          `category` varchar(255) NOT NULL,
+          `location` varchar(255) NOT NULL,
+          `purchase_date` date DEFAULT NULL,
+          `purchase_price` bigint(20) DEFAULT NULL,
+          `total_unit` int(11) NOT NULL DEFAULT 1,
+          `available_unit` int(11) NOT NULL DEFAULT 1,
+          `has_multiple` tinyint(1) NOT NULL DEFAULT 0,
+          `can_borrow` tinyint(1) NOT NULL DEFAULT 1,
+          `condition` varchar(50) NOT NULL DEFAULT 'Baik',
+          `status` varchar(50) NOT NULL DEFAULT 'Tersedia',
+          `notes` text DEFAULT NULL,
+          `photos` longtext DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uniq_inventory_item_code` (`code`),
+          KEY `idx_inventory_item_category` (`category`),
+          KEY `idx_inventory_item_updated_at` (`updated_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+
+    cursor.execute("SELECT COUNT(*) FROM `inventory_categories`")
+    if cursor.fetchone()[0] == 0:
+        for order_index, category_name in enumerate(INVENTORY_DEFAULT_CATEGORIES, start=1):
+            cursor.execute(
+                """
+                INSERT INTO `inventory_categories` (`id`, `name`, `order_index`)
+                VALUES (%s, %s, %s)
+                """,
+                (f"inv-cat-{order_index:02d}", category_name, order_index),
+            )
+
+    cursor.execute("SELECT COUNT(*) FROM `inventory_items`")
+    if cursor.fetchone()[0] == 0:
+        for index, item in enumerate(INVENTORY_DEFAULT_ITEMS, start=1):
+            cursor.execute(
+                """
+                INSERT INTO `inventory_items`
+                (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    item.get("id") or f"inv-{index:03d}",
+                    item.get("code") or f"INV-{index:03d}",
+                    item.get("name") or f"Barang {index}",
+                    item.get("category") or "Lainnya",
+                    item.get("location") or "Gudang",
+                    item.get("purchaseDate"),
+                    item.get("purchasePrice"),
+                    int(item.get("totalUnit") or 1),
+                    int(item.get("availableUnit") or 1),
+                    1 if item.get("hasMultiple") else 0,
+                    1 if item.get("canBorrow", True) else 0,
+                    item.get("condition") or "Baik",
+                    item.get("status") or "Tersedia",
+                    item.get("notes") or "",
+                    json.dumps(item.get("photos") or [], ensure_ascii=False),
+                ),
+            )
+
+
+def inventory_category_exists(cursor, category_name: str) -> bool:
+    cursor.execute("SELECT COUNT(*) FROM `inventory_categories` WHERE `name` = %s", (category_name,))
+    row = cursor.fetchone()
+    if isinstance(row, dict):
+        return next(iter(row.values())) > 0
+    return row[0] > 0 if row else False
+
+
+def ensure_inventory_category(cursor, category_name: str) -> None:
+    clean_name = normalize_text(category_name)
+    if not clean_name:
+        raise ValueError("Kategori wajib diisi.")
+    if inventory_category_exists(cursor, clean_name):
+        return
+    cursor.execute("SELECT COALESCE(MAX(`order_index`), 0) + 1 FROM `inventory_categories`")
+    row = cursor.fetchone()
+    if isinstance(row, dict):
+        next_order = next(iter(row.values())) or 1
+    else:
+        next_order = row[0] or 1 if row else 1
+    cursor.execute(
+        """
+        INSERT INTO `inventory_categories` (`id`, `name`, `order_index`)
+        VALUES (%s, %s, %s)
+        """,
+        (f"inv-cat-{uuid.uuid4().hex[:12]}", clean_name, next_order),
+    )
+
+
+def inventory_item_payload_from_request(data: dict[str, object], existing: dict[str, object] | None = None) -> dict[str, object]:
+    code = normalize_text(data.get("code")).upper()
+    name = normalize_text(data.get("name"))
+    category = normalize_text(data.get("category"))
+    location = normalize_text(data.get("location"))
+    if not code:
+        raise ValueError("Kode barang wajib diisi.")
+    if not name:
+        raise ValueError("Nama barang wajib diisi.")
+    if not category:
+        raise ValueError("Kategori wajib dipilih.")
+    if not location:
+        raise ValueError("Lokasi simpan wajib diisi.")
+
+    has_multiple = bool(data.get("hasMultiple"))
+    total_unit = parse_required_int(data.get("totalUnit"), 1) if has_multiple else 1
+    total_unit = max(1, total_unit)
+    available_unit = parse_required_int(data.get("availableUnit"), total_unit) if has_multiple else 1
+    available_unit = min(total_unit, max(0, available_unit))
+    purchase_date = parse_optional_date(data.get("purchaseDate"))
+    purchase_price = parse_optional_int(data.get("purchasePrice"))
+    can_borrow = bool(data.get("canBorrow", True))
+    condition = normalize_text(data.get("condition")) or "Baik"
+    if condition not in {"Baik", "Rusak Ringan", "Rusak Berat", "Hilang"}:
+        condition = "Baik"
+    status = normalize_text(data.get("status")) or "Tersedia"
+    if status not in {"Tersedia", "Dipinjam", "Perbaikan", "Hilang"}:
+        status = "Tersedia"
+    if not can_borrow and status == "Dipinjam":
+        status = "Tersedia"
+    notes = normalize_text(data.get("notes"))
+
+    if data.get("photos") is not None:
+        photos = normalize_inventory_photos(data.get("photos"))
+    elif data.get("photo"):
+        photos = normalize_inventory_photos([data.get("photo")])
+    elif existing is not None:
+        photos = normalize_inventory_photos(safe_json_loads(existing.get("photos"), []))
+    else:
+        photos = []
+
+    return {
+        "code": code,
+        "name": name,
+        "category": category,
+        "location": location,
+        "purchase_date": purchase_date,
+        "purchase_price": purchase_price,
+        "total_unit": total_unit,
+        "available_unit": available_unit,
+        "has_multiple": 1 if has_multiple or total_unit > 1 else 0,
+        "can_borrow": 1 if can_borrow else 0,
+        "condition": condition,
+        "status": status,
+        "notes": notes,
+        "photos": photos,
+    }
+
+
+def inventory_export_rows(items: list[dict[str, object]]):
+    headers = [
+        "Kode Barang",
+        "Nama Barang",
+        "Kategori",
+        "Lokasi Simpan",
+        "Tanggal Pembelian",
+        "Harga Pembelian",
+        "Total Unit",
+        "Unit Tersedia",
+        "Dipinjam",
+        "Bisa Dipinjam",
+        "Kondisi",
+        "Status",
+        "Foto",
+        "Keterangan",
+        "Update Terakhir",
+    ]
+    rows = []
+    for item in items:
+        photos = item.get("photos") or []
+        photo_label = f"{len(photos)} foto" if photos else "-"
+        rows.append([
+            normalize_text(item.get("code")),
+            normalize_text(item.get("name")),
+            normalize_text(item.get("category")),
+            normalize_text(item.get("location")),
+            normalize_text(item.get("purchaseDate")) or "-",
+            format_currency(item.get("purchasePrice")),
+            str(parse_required_int(item.get("totalUnit"), 0)),
+            str(parse_required_int(item.get("availableUnit"), 0)),
+            str(parse_required_int(item.get("borrowedUnit"), max(parse_required_int(item.get("totalUnit"), 0) - parse_required_int(item.get("availableUnit"), 0), 0))),
+            "Ya" if item.get("canBorrow") else "Tidak",
+            normalize_text(item.get("condition")),
+            normalize_text(item.get("status")),
+            photo_label,
+            normalize_text(item.get("notes")) or "-",
+            normalize_text(item.get("updatedAt")) or "-",
+        ])
+    return headers, rows
+
+
+def inventory_export_filename(extension: str) -> str:
+    return f"laporan-data-inventaris-barang.{extension}"
+
+
+def fetch_inventory_items_for_report(cursor, filters: dict[str, str]) -> list[dict[str, object]]:
+    cursor.execute(
+        """
+        SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
+               `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+               `notes`, `photos`, `created_at`, `updated_at`
+        FROM `inventory_items`
+        ORDER BY `updated_at` DESC, `code` ASC
+        """
+    )
+    items = [inventory_item_row_to_dict(row) for row in cursor.fetchall() or []]
+    return inventory_filter_items(
+        items,
+        search=filters.get("search", ""),
+        category=filters.get("category", "all"),
+        condition=filters.get("condition", "all"),
+        status=filters.get("status", "all"),
+        sort_mode=filters.get("sort", "updated-desc"),
+    )
+
+
+@app.route("/api/inventory/categories", methods=["GET"])
+def get_inventory_categories():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT `name` FROM `inventory_categories` ORDER BY `order_index` ASC, `name` ASC")
+        categories = [row["name"] for row in cursor.fetchall() or [] if row.get("name")]
+        if not categories:
+            categories = INVENTORY_DEFAULT_CATEGORIES[:]
+        return jsonify({"success": True, "categories": categories})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/categories", methods=["POST"])
+def create_inventory_category():
+    ensure_auth_schema()
+    data = request.get_json(silent=True) or {}
+    category_name = normalize_text(data.get("name"))
+    if not category_name:
+        return jsonify({"success": False, "error": "Nama kategori wajib diisi."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        ensure_inventory_category(cursor, category_name)
+        conn.commit()
+        return jsonify({"success": True, "name": category_name})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/categories/<category_name>", methods=["PUT"])
+def update_inventory_category(category_name):
+    ensure_auth_schema()
+    data = request.get_json(silent=True) or {}
+    new_name = normalize_text(data.get("name"))
+    old_name = normalize_text(category_name)
+    if not old_name or not new_name:
+        return jsonify({"success": False, "error": "Nama kategori tidak valid."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT `id` FROM `inventory_categories` WHERE `name` = %s LIMIT 1", (old_name,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Kategori tidak ditemukan."}), 404
+        if new_name != old_name:
+            cursor.execute("SELECT COUNT(*) FROM `inventory_categories` WHERE `name` = %s", (new_name,))
+            if fetch_scalar_value(cursor.fetchone(), 0) > 0:
+                return jsonify({"success": False, "error": "Nama kategori sudah dipakai."}), 400
+
+        cursor.execute("UPDATE `inventory_categories` SET `name` = %s WHERE `name` = %s", (new_name, old_name))
+        cursor.execute("UPDATE `inventory_items` SET `category` = %s WHERE `category` = %s", (new_name, old_name))
+        conn.commit()
+        return jsonify({"success": True, "name": new_name})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/categories/<category_name>", methods=["DELETE"])
+def delete_inventory_category(category_name):
+    ensure_auth_schema()
+    old_name = normalize_text(category_name)
+    if not old_name:
+        return jsonify({"success": False, "error": "Kategori tidak valid."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT COUNT(*) FROM `inventory_items` WHERE `category` = %s", (old_name,))
+        if fetch_scalar_value(cursor.fetchone(), 0) > 0:
+            return jsonify({"success": False, "error": "Kategori ini masih dipakai oleh data inventaris."}), 409
+        cursor.execute("DELETE FROM `inventory_categories` WHERE `name` = %s", (old_name,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/items", methods=["GET"])
+def get_inventory_items():
+    ensure_auth_schema()
+    filters = inventory_request_filters(request.args)
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """
+            SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
+                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                   `notes`, `photos`, `created_at`, `updated_at`
+            FROM `inventory_items`
+            ORDER BY `updated_at` DESC, `code` ASC
+            """
+        )
+        raw_items = [inventory_item_row_to_dict(row) for row in cursor.fetchall() or []]
+        categories = []
+        cursor.execute("SELECT `name` FROM `inventory_categories` ORDER BY `order_index` ASC, `name` ASC")
+        for row in cursor.fetchall() or []:
+            if row.get("name"):
+                categories.append(row["name"])
+
+        items = inventory_filter_items(
+            raw_items,
+            search=filters["search"],
+            category=filters["category"],
+            condition=filters["condition"],
+            status=filters["status"],
+            sort_mode=filters["sort"],
+        )
+        return jsonify({
+            "success": True,
+            "items": items,
+            "categories": categories or INVENTORY_DEFAULT_CATEGORIES[:],
+            "summary": inventory_summary_from_items(items),
+            "filters": filters,
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/items/<item_id>", methods=["GET"])
+def get_inventory_item(item_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """
+            SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
+                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                   `notes`, `photos`, `created_at`, `updated_at`
+            FROM `inventory_items`
+            WHERE `id` = %s
+            LIMIT 1
+            """,
+            (item_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "error": "Barang inventaris tidak ditemukan."}), 404
+        return jsonify({"success": True, "item": inventory_item_row_to_dict(row)})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/items", methods=["POST"])
+def create_inventory_item():
+    ensure_auth_schema()
+    data = request.get_json(silent=True) or {}
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        payload = inventory_item_payload_from_request(data)
+        cursor.execute("SELECT COUNT(*) FROM `inventory_items` WHERE `code` = %s", (payload["code"],))
+        if fetch_scalar_value(cursor.fetchone(), 0) > 0:
+            return jsonify({"success": False, "error": "Kode barang sudah dipakai."}), 400
+
+        ensure_inventory_category(cursor, payload["category"])
+        item_id = normalize_text(data.get("id")) or f"inv-{int(time.time() * 1000)}"
+        cursor.execute(
+            """
+            INSERT INTO `inventory_items`
+            (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                item_id,
+                payload["code"],
+                payload["name"],
+                payload["category"],
+                payload["location"],
+                payload["purchase_date"],
+                payload["purchase_price"],
+                payload["total_unit"],
+                payload["available_unit"],
+                payload["has_multiple"],
+                payload["can_borrow"],
+                payload["condition"],
+                payload["status"],
+                payload["notes"],
+                json.dumps(payload["photos"], ensure_ascii=False),
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True, "item": get_inventory_item_response(cursor, item_id)})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_inventory_item_response(cursor, item_id: str) -> dict[str, object]:
+    cursor.execute(
+        """
+        SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
+               `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+               `notes`, `photos`, `created_at`, `updated_at`
+        FROM `inventory_items`
+        WHERE `id` = %s
+        LIMIT 1
+        """,
+        (item_id,),
+    )
+    row = cursor.fetchone() or {}
+    return inventory_item_row_to_dict(row)
+
+
+@app.route("/api/inventory/items/<item_id>", methods=["PUT"])
+def update_inventory_item(item_id):
+    ensure_auth_schema()
+    data = request.get_json(silent=True) or {}
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `inventory_items` WHERE `id` = %s LIMIT 1", (item_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Barang inventaris tidak ditemukan."}), 404
+
+        payload = inventory_item_payload_from_request(data, existing)
+        cursor.execute(
+            "SELECT COUNT(*) FROM `inventory_items` WHERE `code` = %s AND `id` <> %s",
+            (payload["code"], item_id),
+        )
+        if fetch_scalar_value(cursor.fetchone(), 0) > 0:
+            return jsonify({"success": False, "error": "Kode barang sudah dipakai."}), 400
+
+        ensure_inventory_category(cursor, payload["category"])
+        old_photos = normalize_inventory_photos(safe_json_loads(existing.get("photos"), []))
+        new_photos = payload["photos"]
+
+        cursor.execute(
+            """
+            UPDATE `inventory_items`
+            SET `code` = %s,
+                `name` = %s,
+                `category` = %s,
+                `location` = %s,
+                `purchase_date` = %s,
+                `purchase_price` = %s,
+                `total_unit` = %s,
+                `available_unit` = %s,
+                `has_multiple` = %s,
+                `can_borrow` = %s,
+                `condition` = %s,
+                `status` = %s,
+                `notes` = %s,
+                `photos` = %s
+            WHERE `id` = %s
+            """,
+            (
+                payload["code"],
+                payload["name"],
+                payload["category"],
+                payload["location"],
+                payload["purchase_date"],
+                payload["purchase_price"],
+                payload["total_unit"],
+                payload["available_unit"],
+                payload["has_multiple"],
+                payload["can_borrow"],
+                payload["condition"],
+                payload["status"],
+                payload["notes"],
+                json.dumps(new_photos, ensure_ascii=False),
+                item_id,
+            ),
+        )
+        conn.commit()
+
+        old_urls = {photo.get("url") for photo in old_photos if photo.get("url")}
+        new_urls = {photo.get("url") for photo in new_photos if photo.get("url")}
+        for removed_url in old_urls - new_urls:
+            remove_physical_file(removed_url)
+
+        return jsonify({"success": True, "item": get_inventory_item_response(cursor, item_id)})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/items/<item_id>", methods=["DELETE"])
+def delete_inventory_item(item_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT `photos`, `name` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (item_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Barang inventaris tidak ditemukan."}), 404
+
+        cursor.execute("DELETE FROM `inventory_items` WHERE `id` = %s", (item_id,))
+        conn.commit()
+
+        for photo in normalize_inventory_photos(safe_json_loads(existing.get("photos"), [])):
+            remove_physical_file(photo.get("url") or "")
+
+        return jsonify({"success": True})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/export.xlsx", methods=["GET"])
+def export_inventory_excel():
+    ensure_auth_schema()
+    filters = inventory_request_filters(request.args)
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        items = fetch_inventory_items_for_report(cursor, filters)
+
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+
+        headers, rows = inventory_export_rows(items)
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Inventaris"
+        worksheet.append(headers)
+        for row in rows:
+            worksheet.append(row)
+
+        header_fill = PatternFill("solid", fgColor="7F0000")
+        header_font = Font(color="FFFFFF", bold=True)
+        for cell in worksheet[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+            for cell in column_cells:
+                try:
+                    cell_value = str(cell.value or "")
+                    if len(cell_value) > max_length:
+                        max_length = len(cell_value)
+                except Exception:
+                    continue
+            worksheet.column_dimensions[column_letter].width = min(max_length + 4, 40)
+
+        buffer = BytesIO()
+        workbook.save(buffer)
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=inventory_export_filename("xlsx"),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/inventory/export.pdf", methods=["GET"])
+def export_inventory_pdf():
+    ensure_auth_schema()
+    filters = inventory_request_filters(request.args)
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        items = fetch_inventory_items_for_report(cursor, filters)
+
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+
+        headers, rows = inventory_export_rows(items)
+        buffer = BytesIO()
+        document = SimpleDocTemplate(
+            buffer,
+            pagesize=landscape(A4),
+            rightMargin=8 * mm,
+            leftMargin=8 * mm,
+            topMargin=10 * mm,
+            bottomMargin=10 * mm,
+        )
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("InventoryTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.HexColor("#7F0000"))
+        normal_style = ParagraphStyle("InventoryNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=8, leading=10)
+
+        elements = [
+            Paragraph("Laporan Data Inventaris Barang", title_style),
+            Spacer(1, 4 * mm),
+            Paragraph(f"Filter: {filters.get('category', 'all')} | Cari: {filters.get('search', '') or '-'} | Urutan: {filters.get('sort', 'updated-desc')}", normal_style),
+            Spacer(1, 4 * mm),
+        ]
+
+        table_data = [headers] + rows if rows else [headers, ["-" for _ in headers]]
+        table = Table(table_data, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7F0000")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D5DB")),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor("#FFFFFF")]),
+                ]
+            )
+        )
+        elements.append(table)
+        document.build(elements)
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=inventory_export_filename("pdf"),
+            mimetype="application/pdf",
+        )
+    finally:
+        cursor.close()
+        conn.close()
 
 def current_user_context() -> dict[str, str]:
     return {
@@ -758,6 +1711,8 @@ def ensure_auth_schema() -> None:
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     ''')
+
+        ensure_inventory_schema(cursor)
         
     conn.commit()
     cursor.close()
