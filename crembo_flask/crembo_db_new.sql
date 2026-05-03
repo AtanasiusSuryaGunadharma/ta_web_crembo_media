@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 10.01
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 10.24
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -251,7 +251,8 @@ INSERT INTO `inventory_categories` (`id`, `name`, `order_index`, `created_at`, `
 ('inv-cat-04', 'Switcher', 4, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-cat-05', 'Kabel', 5, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-cat-06', 'Lighting', 6, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
-('inv-cat-07', 'Lainnya', 7, '2026-05-03 15:01:06', '2026-05-03 15:01:06');
+('inv-cat-07', 'Lainnya', 7, '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-cat-5cd9367a238b', 'Lensaaaaaaaaa', 8, '2026-05-03 15:08:45', '2026-05-03 15:08:45');
 
 -- --------------------------------------------------------
 
@@ -288,7 +289,8 @@ INSERT INTO `inventory_items` (`id`, `code`, `name`, `category`, `location`, `pu
 ('inv-002', 'AUD-004', 'Wireless Microphone Set', 'Audio', 'Rak Audio 2', '2025-12-03', NULL, 4, 4, 1, 1, 'Baik', 'Tersedia', 'Baterai cadangan tersedia 8 pcs.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-003', 'TRI-002', 'Tripod Heavy Duty', 'Aksesori', 'Gudang Perlengkapan', '2025-10-28', 850000, 3, 2, 1, 1, 'Rusak Ringan', 'Tersedia', '1 unit perlu pengencangan lock kaki.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-004', 'SWI-001', 'Video Switcher ATEM Mini', 'Switcher', 'Meja Kontrol', '2025-09-19', 7600000, 1, 0, 0, 1, 'Baik', 'Dipinjam', 'Dipakai untuk misa Kamis malam.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
-('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 5, 1, 1, 'Baik', 'Tersedia', 'Label kabel sudah diperbarui.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06');
+('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 5, 1, 1, 'Baik', 'Tersedia', 'Label kabel sudah diperbarui.', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-1777795725826', 'LENS-012321123', 'Lensa Canon D1500', 'Lensaaaaaaaaa', 'Kotak Kamera', '2025-01-02', 1000000, 3, 3, 1, 0, 'Baik', 'Tersedia', 'Lensa nya bagus', '[{\"url\": \"/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_212f4e2321a347e9bc3b0877e722aa0b.png\", \"name\": \"screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40.png\", \"mimeType\": \"image/png\", \"size\": 215530, \"previewable\": true, \"kind\": \"image\"}]', '2026-05-03 15:08:45', '2026-05-03 15:21:40');
 
 -- --------------------------------------------------------
 

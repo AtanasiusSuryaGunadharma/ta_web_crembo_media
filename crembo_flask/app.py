@@ -1712,8 +1712,8 @@ def ensure_auth_schema() -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     ''')
 
-        ensure_inventory_schema(cursor)
-        
+    ensure_inventory_schema(cursor)
+
     conn.commit()
     cursor.close()
     conn.close()
