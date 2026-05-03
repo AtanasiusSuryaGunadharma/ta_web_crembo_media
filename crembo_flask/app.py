@@ -1405,7 +1405,7 @@ def ensure_loan_schema(cursor) -> None:
         """
     )
 
-
+# --- LOAN REQUESTS ENDPOINTS ---
 
 @app.route("/api/pengajuan", methods=["GET"])
 def list_pengajuan():
@@ -1414,7 +1414,28 @@ def list_pengajuan():
     cursor = conn.cursor(dictionary=True)
     try:
         ensure_loan_schema(cursor)
-        cursor.execute("SELECT * FROM `loan_requests` ORDER BY `created_at` DESC")
+        
+        # Ambil filter yang mungkin dikirim frontend admin
+        status_filter = request.args.get('status')
+        from_date = request.args.get('from_date')
+        to_date = request.args.get('to_date')
+
+        query = "SELECT * FROM `loan_requests` WHERE 1=1"
+        params = []
+        
+        if status_filter and status_filter != 'all':
+            query += " AND `status` = %s"
+            params.append(status_filter)
+        if from_date:
+            query += " AND `tanggal_mulai` >= %s"
+            params.append(from_date)
+        if to_date:
+            query += " AND `tanggal_mulai` <= %s"
+            params.append(to_date)
+            
+        query += " ORDER BY `created_at` DESC"
+
+        cursor.execute(query, tuple(params))
         rows = cursor.fetchall() or []
         items = []
         for r in rows:
@@ -1431,6 +1452,9 @@ def list_pengajuan():
                 "tanggalSelesai": r.get("tanggal_selesai"),
                 "tujuan": r.get("tujuan"),
                 "status": r.get("status"),
+                "adminNote": r.get("admin_note", ""),
+                "approvedBy": r.get("approved_by", ""),
+                "approvedAt": r.get("approved_at"),
                 "createdAt": r.get("created_at"),
                 "updatedAt": r.get("updated_at"),
             })
@@ -1511,6 +1535,19 @@ def create_pengajuan():
             ),
         )
         conn.commit()
+        
+        # Admin Notification
+        try:
+            ensure_notifications_schema()
+            nc = conn.cursor()
+            try:
+                create_notification(nc, "form", f"Pengajuan Peminjaman Baru: {barang_nama}", f"Pengajuan oleh user ID {session.get('user_id')}", url_for('dashboard') if False else "/persetujuan-peminjaman.html", {"pengajuan_id": pengajuan_id})
+                conn.commit()
+            finally:
+                nc.close()
+        except Exception:
+            pass
+            
         return jsonify({"success": True, "id": pengajuan_id})
     finally:
         cursor.close()
@@ -1534,6 +1571,94 @@ def cancel_pengajuan(pengajuan_id):
         cursor.execute("UPDATE `loan_requests` SET `status` = %s WHERE `id` = %s", ("cancelled", pengajuan_id))
         conn.commit()
         return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/admin/pengajuan/<pengajuan_id>/status", methods=["PUT"])
+def update_pengajuan_status(pengajuan_id):
+    # Pastikan ini hanya bisa diakses admin
+    if not can_manage_members():
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+        
+    data = request.get_json(silent=True) or {}
+    new_status = data.get("status")
+    admin_note = data.get("adminNote", "")
+    
+    if new_status not in ["approved", "rejected", "cancelled"]:
+        return jsonify({"success": False, "error": "Status tidak valid"}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Cek kolom tambahan
+        ensure_column(cursor, "loan_requests", "admin_note", "`admin_note` text DEFAULT NULL")
+        ensure_column(cursor, "loan_requests", "approved_by", "`approved_by` varchar(150) DEFAULT NULL")
+        ensure_column(cursor, "loan_requests", "approved_at", "`approved_at` datetime DEFAULT NULL")
+
+        cursor.execute("SELECT * FROM `loan_requests` WHERE `id` = %s LIMIT 1", (pengajuan_id,))
+        req = cursor.fetchone()
+        if not req:
+            return jsonify({"success": False, "error": "Pengajuan tidak ditemukan"}), 404
+            
+        current_status = req.get("status")
+        barang_id = req.get("barang_id")
+        jumlah_req = int(req.get("jumlah", 1))
+        
+        # Validasi update status berdasarkan alur yang wajar
+        if current_status != "pending" and new_status in ["approved", "rejected"]:
+             return jsonify({"success": False, "error": "Hanya pengajuan berstatus Pending yang dapat disetujui atau ditolak"}), 400
+
+        # Jika Approve, kita potong stok barang di inventory
+        if new_status == "approved":
+            cursor.execute("SELECT `total_unit`, `available_unit`, `can_borrow` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
+            inv = cursor.fetchone()
+            
+            if not inv:
+                 return jsonify({"success": False, "error": "Barang tidak ditemukan di inventaris"}), 404
+            if not bool(inv.get("can_borrow", 1)):
+                 return jsonify({"success": False, "error": "Barang tidak dapat dipinjam"}), 400
+                 
+            available = int(inv.get("available_unit", 0))
+            if available < jumlah_req:
+                 return jsonify({"success": False, "error": f"Stok tersedia ({available}) tidak mencukupi permintaan ({jumlah_req})"}), 400
+                 
+            # Update stok
+            new_available = available - jumlah_req
+            new_inv_status = "Dipinjam" if new_available <= 0 else "Tersedia"
+            cursor.execute("UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s WHERE `id` = %s", (new_available, new_inv_status, barang_id))
+            
+        # Jika Cancelled/Rejected, tetapi sebelumnya Approved (seharusnya admin tidak bisa reject setelah approved, 
+        # tapi anggap saja sebagai fitur batalkan paksa / pengembalian stok jika butuh rollback).
+        elif new_status == "cancelled" and current_status == "approved":
+             cursor.execute("SELECT `total_unit`, `available_unit` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
+             inv = cursor.fetchone()
+             if inv:
+                 total = int(inv.get("total_unit", 1))
+                 available = int(inv.get("available_unit", 0))
+                 new_available = min(total, available + jumlah_req)
+                 new_inv_status = "Tersedia" if new_available > 0 else "Dipinjam"
+                 cursor.execute("UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s WHERE `id` = %s", (new_available, new_inv_status, barang_id))
+        
+        # Update Request Status
+        admin_name = str(session.get("nama") or session.get("username") or "Admin")
+        approved_at = datetime.utcnow() if new_status != "pending" else None
+        
+        cursor.execute(
+            """
+            UPDATE `loan_requests` 
+            SET `status` = %s, `admin_note` = %s, `approved_by` = %s, `approved_at` = %s 
+            WHERE `id` = %s
+            """,
+            (new_status, admin_note, admin_name, approved_at, pengajuan_id)
+        )
+        conn.commit()
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
     finally:
         cursor.close()
         conn.close()
