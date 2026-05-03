@@ -1181,16 +1181,31 @@
       let totalUnit = Number(item.totalUnit ?? item.total ?? 0);
       let availableUnit = Number(item.availableUnit ?? item.available ?? item.tersedia ?? 0);
       let borrowedUnit = Number(item.borrowedUnit ?? item.dipinjam ?? 0);
+      let repairUnit = 0;
+      let lostUnit = 0;
 
       const unitDetails = Array.isArray(item.unitDetails) ? item.unitDetails : (Array.isArray(item.unit_details) ? item.unit_details : null);
       if (Array.isArray(unitDetails) && unitDetails.length > 0) {
         totalUnit = unitDetails.length;
-        const avail = unitDetails.filter(function (u) {
+        availableUnit = 0;
+        borrowedUnit = 0;
+        repairUnit = 0;
+        lostUnit = 0;
+        
+        // PERBAIKAN: Menghitung secara spesifik per status
+        unitDetails.forEach(function (u) {
           const s = String(u.status || u.state || u.statusName || "").toLowerCase();
-          return s === "tersedia" || s === "available";
-        }).length;
-        availableUnit = avail;
-        borrowedUnit = totalUnit - avail;
+          if (s === "tersedia" || s === "available") availableUnit++;
+          else if (s === "dipinjam" || s === "borrowed") borrowedUnit++;
+          else if (s === "perbaikan" || s === "repair") repairUnit++;
+          else if (s === "hilang" || s === "lost") lostUnit++;
+        });
+      } else {
+        // Fallback jika tidak ada unit_details
+        borrowedUnit = totalUnit - availableUnit;
+        const itemStatus = String(item.status || "").toLowerCase();
+        if (itemStatus === "perbaikan") { repairUnit = borrowedUnit; borrowedUnit = 0; }
+        if (itemStatus === "hilang") { lostUnit = borrowedUnit; borrowedUnit = 0; }
       }
 
       let fotoStr = "";
@@ -1213,12 +1228,14 @@
         foto: fotoStr,
         tanggalBeli: String(item.purchaseDate || item.tanggalBeli || ""),
         hargaBeli: item.purchasePrice !== undefined ? item.purchasePrice : item.hargaBeli,
-        total: Number.isFinite(totalUnit) ? totalUnit : Number(item.total || 0),
-        tersedia: Number.isFinite(availableUnit) ? availableUnit : Number(item.tersedia || 0),
-        dipinjam: Number.isFinite(borrowedUnit) ? borrowedUnit : 0,
+        total: totalUnit,
+        tersedia: availableUnit,
+        dipinjam: borrowedUnit,
+        perbaikan: repairUnit,
+        hilang: lostUnit,
         bisaDipinjam: item.canBorrow !== false,
         kondisi: String(item.condition || item.kondisi || "Baik"),
-        status: String(item.status || (Number.isFinite(availableUnit) && availableUnit > 0 ? "Tersedia" : "Dipinjam")),
+        status: String(item.status || (availableUnit > 0 ? "Tersedia" : "Dipinjam")),
         lokasi: String(item.location || item.lokasi || "-"),
         catatan: String(item.notes || item.catatan || ""),
         deskripsi: String(item.notes || item.catatan || item.description || item.deskripsi || ""),
@@ -1331,12 +1348,35 @@
         ? '<img class="detail-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '">'
         : '<div class="detail-photo placeholder">Tidak ada foto</div>';
 
+      let unitMarkup = '<li><strong>Status per Unit:</strong> -</li>';
+      if (item.unitDetails && item.unitDetails.length > 0) {
+        unitMarkup = '<li><strong>Status per Unit:</strong><div class="detail-list" style="margin-top:8px;">' + item.unitDetails.map(function (unit) {
+            
+            let badgeBg = '#f8fafc';
+            let badgeColor = '#334155';
+            let badgeBorder = '#cbd5e1';
+            
+            if(unit.status === 'Tersedia'){ badgeBg = '#ecf8ef'; badgeColor = '#235c2d'; badgeBorder = '#91c89c'; }
+            else if(unit.status === 'Dipinjam'){ badgeBg = '#fff8ea'; badgeColor = '#7a5a1f'; badgeBorder = '#c6b07b'; }
+            else if(unit.status === 'Perbaikan'){ badgeBg = '#fff1f1'; badgeColor = '#7c2222'; badgeBorder = '#d29a9a'; }
+            else if(unit.status === 'Hilang'){ badgeBg = '#f3f4f6'; badgeColor = '#374151'; badgeBorder = '#9ca3af'; }
+            
+            return '<div style="border: 1px solid #d1d5db; border-radius: 10px; background: #fff; padding: 10px; display: grid; gap: 8px;">' +
+                   '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                   '<strong>' + escapeHtml(unit.label || ("Unit " + (unit.index || 1))) + '</strong>' +
+                   '<span style="display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 8px; font-size: 0.72rem; font-weight: 700; border: 1px solid '+badgeBorder+'; background: '+badgeBg+'; color: '+badgeColor+';">' + escapeHtml(unit.status || "Tersedia") + '</span>' +
+                   '</div>' +
+                   '<div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: start; font-size:0.8rem; color:#4b5563;">' +
+                   '<div><span style="color:#64748b; font-size:0.75rem;">Status</span><div>' + escapeHtml(unit.status || "Tersedia") + '</div></div>' +
+                   '<div><span style="color:#64748b; font-size:0.75rem;">Alasan/Catatan</span><div>' + escapeHtml(unit.reason || "-") + '</div></div>' +
+                   '</div>' +
+                   '</div>';
+          }).join("") + '</div></li>';
+      }
+
       detailBody.innerHTML = '<div class="detail-layout">'
         + '<div class="detail-stack">'
         + photoMarkup
-        + '<div class="detail-item">'
-        + '<strong>Keterangan</strong>' + escapeHtml(item.deskripsi || item.catatan || '-')
-        + '</div>'
         + '</div>'
         + '<div class="detail-stack">'
         + '<h3 class="detail-title">' + escapeHtml(item.nama) + '</h3>'
@@ -1348,12 +1388,15 @@
         + '<div class="detail-item"><strong>Total Unit</strong>' + String(item.total) + '</div>'
         + '<div class="detail-item"><strong>Tersedia</strong>' + String(item.tersedia) + '</div>'
         + '<div class="detail-item"><strong>Dipinjam</strong>' + String(item.dipinjam) + '</div>'
+        + '<div class="detail-item"><strong>Perbaikan</strong>' + String(item.perbaikan) + '</div>' // <-- KOLOM BARU
+        + '<div class="detail-item"><strong>Hilang</strong>' + String(item.hilang) + '</div>'       // <-- KOLOM BARU
         + '<div class="detail-item"><strong>Bisa Dipinjam</strong>' + (item.bisaDipinjam ? 'Ya' : 'Tidak') + '</div>'
         + '<div class="detail-item"><strong>Kondisi</strong>' + escapeHtml(item.kondisi) + '</div>'
         + '<div class="detail-item"><strong>Status</strong>' + escapeHtml(item.status) + '</div>'
         + '<div class="detail-item" style="grid-column: 1 / -1;"><strong>Lokasi</strong>' + escapeHtml(item.lokasi) + '</div>'
         + '<div class="detail-item" style="grid-column: 1 / -1;"><strong>Catatan</strong>' + escapeHtml(item.catatan || '-') + '</div>'
         + '</div>'
+        + '<ul class="detail-list" style="margin-top:10px; padding:0; list-style:none;">' + unitMarkup + '</ul>'
         + '</div>'
         + '</div>';
 
@@ -1367,28 +1410,13 @@
     function renderBarangGrid() {
       let items = readBarang();
 
-      if (barangFilterSearch) {
-        items = items.filter(function (item) {
-          return item.nama.toLowerCase().includes(barangFilterSearch.toLowerCase());
-        });
-      }
+      if (barangFilterSearch) items = items.filter(i => i.nama.toLowerCase().includes(barangFilterSearch.toLowerCase()));
+      if (barangFilterCategory) items = items.filter(i => i.kategori === barangFilterCategory);
 
-      if (barangFilterCategory) {
-        items = items.filter(function (item) {
-          return item.kategori === barangFilterCategory;
-        });
-      }
-
-      items.sort(function (a, b) {
-        if (barangFilterSort === "nama-asc") {
-          return a.nama.localeCompare(b.nama);
-        }
-        if (barangFilterSort === "nama-desc") {
-          return b.nama.localeCompare(a.nama);
-        }
-        if (barangFilterSort === "tersedia") {
-          return b.tersedia - a.tersedia;
-        }
+      items.sort((a, b) => {
+        if (barangFilterSort === "nama-asc") return a.nama.localeCompare(b.nama);
+        if (barangFilterSort === "nama-desc") return b.nama.localeCompare(a.nama);
+        if (barangFilterSort === "tersedia") return b.tersedia - a.tersedia;
         return 0;
       });
 
@@ -1407,23 +1435,23 @@
 
         return '<div class="barang-card">'
           + photoMarkup
-          + '<h3>' + item.nama + '</h3>'
-          + '<p>' + item.deskripsi + '</p>'
+          + '<h3>' + escapeHtml(item.nama) + '</h3>'
+          + '<p>' + escapeHtml(item.deskripsi) + '</p>'
           + '<div class="barang-meta">'
-          + '<span style="background: #f1f5f9;">' + item.kategori + '</span>'
+          + '<span style="background: #f1f5f9;">' + escapeHtml(item.kategori) + '</span>'
           + '<span style="color: ' + statusColor + '; font-weight: 700;">' + statusText + ' (' + item.tersedia + ')</span>'
           + '</div>'
           + '<div class="barang-detail">'
-          + '<div><strong>Kode:</strong> ' + item.code + '</div>'
+          + '<div><strong>Kode:</strong> ' + escapeHtml(item.code) + '</div>'
           + '<div><strong>Tanggal Beli:</strong> ' + formatTanggalIndo(item.tanggalBeli) + '</div>'
-          + '<div><strong>Harga:</strong> ' + formatCurrency(item.hargaBeli) + '</div>'
-          + '<div><strong>Total/Pinjam:</strong> ' + item.total + ' / ' + item.dipinjam + '</div>'
-          + '<div><strong>Kondisi:</strong> ' + item.kondisi + '</div>'
-          + '<div><strong>Lokasi:</strong> ' + item.lokasi + '</div>'
+          + '<div><strong>Harga:</strong> ' + escapeHtml(formatCurrency(item.hargaBeli)) + '</div>'
+          + '<div><strong>Total Unit:</strong> ' + item.total + '</div>'
+          + '<div><strong>Kondisi:</strong> ' + escapeHtml(item.kondisi) + '</div>'
+          + '<div><strong>Lokasi:</strong> ' + escapeHtml(item.lokasi) + '</div>'
           + '</div>'
           + '<div class="card-actions">'
           + '<button class="btn secondary" type="button" data-detail-id="' + item.id + '" onclick="openDetailById(this)">Detail</button>'
-          + '<button class="btn" ' + disabledAttr + ' data-barang-id="' + item.id + '" data-barang-nama="' + item.nama + '" onclick="openPengajuanForm(this)">Ajukan Peminjaman</button>'
+          + '<button class="btn" ' + disabledAttr + ' data-barang-id="' + item.id + '" data-barang-nama="' + escapeHtml(item.nama) + '" onclick="openPengajuanForm(this)">Ajukan Peminjaman</button>'
           + '</div>'
           + '</div>';
       }).join("");
