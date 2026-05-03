@@ -599,9 +599,25 @@ def inventory_export_rows(items: list[dict[str, object]]):
         "Update Terakhir",
     ]
     rows = []
+    
+    # PERBAIKAN: Format domain utama (Sesuaikan URL jika di-online-kan)
+    base_url = "http://127.0.0.1:5000" 
+
     for item in items:
         photos = item.get("photos") or []
-        photo_label = f"{len(photos)} foto" if photos else "-"
+        
+        # PERBAIKAN: Ubah array foto menjadi link URL penuh yang dapat di-klik atau dipreview
+        photo_links = []
+        for p in photos:
+            if isinstance(p, dict) and p.get("url"):
+                url = str(p.get("url"))
+                # Ubah relative url jadi absolute
+                if url.startswith("/"):
+                    url = f"{base_url}{url}"
+                photo_links.append(url)
+                
+        photo_label = ", ".join(photo_links) if photo_links else "-"
+        
         rows.append([
             normalize_text(item.get("code")),
             normalize_text(item.get("name")),
@@ -656,7 +672,7 @@ def format_currency(value):
         return f"Rp {val:,}".replace(",", ".")
     except (ValueError, TypeError):
         return "-"
-        
+
 @app.route("/api/inventory/categories", methods=["GET"])
 def get_inventory_categories():
     ensure_auth_schema()
@@ -1034,7 +1050,7 @@ def export_inventory_excel():
         workbook.save(buffer)
         buffer.seek(0)
         
-        # PERBAIKAN: Gunakan send_file dengan benar dan tambahkan as_attachment=True
+        # PERBAIKAN: as_attachment True untuk Excel karena bukan file untuk dipreview browser
         return send_file(
             buffer,
             as_attachment=True,
@@ -1045,7 +1061,7 @@ def export_inventory_excel():
         cursor.close()
         conn.close()
 
-# Hapus dan Gantikan endpoint /api/inventory/export.pdf dengan yang berikut ini:
+
 @app.route("/api/inventory/export.pdf", methods=["GET"])
 def export_inventory_pdf():
     ensure_auth_schema()
@@ -1102,10 +1118,10 @@ def export_inventory_pdf():
         document.build(elements)
         buffer.seek(0)
         
-        # PERBAIKAN: Gunakan send_file dengan benar dan tambahkan as_attachment=True
+        # PERBAIKAN: as_attachment=False agar browser langsung mem-preview PDF di tab baru
         return send_file(
             buffer,
-            as_attachment=True,
+            as_attachment=False, 
             download_name=inventory_export_filename("pdf"),
             mimetype="application/pdf",
         )
