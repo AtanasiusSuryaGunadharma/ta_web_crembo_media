@@ -1168,13 +1168,13 @@
     }
 
     function normalizeBarangFromInventory(item) {
-      // Support new inventory shape with unitDetails (per-unit status)
+      // PERBAIKAN: Penanganan yang lebih robust untuk unit_details & photo dari backend API
       let totalUnit = Number(item.totalUnit ?? item.total ?? 0);
       let availableUnit = Number(item.availableUnit ?? item.available ?? item.tersedia ?? 0);
       let borrowedUnit = Number(item.borrowedUnit ?? item.dipinjam ?? 0);
 
-      const unitDetails = Array.isArray(item.unit_details) ? item.unit_details : (Array.isArray(item.unitDetails) ? item.unitDetails : null);
-      if (Array.isArray(unitDetails) && unitDetails.length) {
+      const unitDetails = Array.isArray(item.unitDetails) ? item.unitDetails : (Array.isArray(item.unit_details) ? item.unit_details : null);
+      if (Array.isArray(unitDetails) && unitDetails.length > 0) {
         totalUnit = unitDetails.length;
         const avail = unitDetails.filter(function (u) {
           const s = String(u.status || u.state || u.statusName || "").toLowerCase();
@@ -1184,12 +1184,25 @@
         borrowedUnit = totalUnit - avail;
       }
 
+      // Pastikan extract foto bisa menangani list object yang diserialisasi
+      let fotoStr = "";
+      if (item.photo && typeof item.photo === 'string' && item.photo.trim() !== '') {
+          fotoStr = item.photo.trim();
+      } else if (Array.isArray(item.photos) && item.photos.length > 0) {
+          const firstPhoto = item.photos[0];
+          if (typeof firstPhoto === 'object' && firstPhoto !== null && firstPhoto.url) {
+              fotoStr = firstPhoto.url;
+          } else if (typeof firstPhoto === 'string') {
+              fotoStr = firstPhoto;
+          }
+      }
+
       return {
         id: String(item.id || item.code || item.name || ""),
         code: String(item.code || item.kode || "-"),
         nama: String(item.name || item.nama || "Barang Inventaris"),
         kategori: String(item.category || item.kategori || "Lainnya"),
-        foto: String(item.photo || item.foto || (Array.isArray(item.photos) && (item.photos[0].url || item.photos[0]) ) || "").trim(),
+        foto: fotoStr,
         tanggalBeli: String(item.purchaseDate || item.tanggalBeli || ""),
         hargaBeli: item.purchasePrice !== undefined ? item.purchasePrice : item.hargaBeli,
         total: Number.isFinite(totalUnit) ? totalUnit : Number(item.total || 0),
@@ -1417,6 +1430,8 @@
           statusHtml = '<span class="status-ok">Sedang Dipinjam</span>';
         } else if (item.status === "returned") {
           statusHtml = '<span class="status-ok">Selesai</span>';
+        } else if (item.status === "cancelled") {
+          statusHtml = '<span class="status-danger">Dibatalkan</span>';
         }
 
         let actionHtml = '';
@@ -1524,7 +1539,7 @@
         const items = readPengajuan();
         const idx = items.findIndex(function (item) { return item.id === id; });
         if (idx >= 0 && items[idx].status === "pending") {
-          items.splice(idx, 1);
+          items[idx].status = "cancelled";
           savePengajuan(items);
           renderPengajuanTable();
         }

@@ -59,6 +59,7 @@ INVENTORY_DEFAULT_ITEMS = [
         "status": "Dipinjam",
         "notes": "Satu unit sedang dipakai untuk dokumentasi agenda.",
         "photos": [],
+        "unitDetails": [],
     },
     {
         "id": "inv-002",
@@ -76,6 +77,7 @@ INVENTORY_DEFAULT_ITEMS = [
         "status": "Tersedia",
         "notes": "Baterai cadangan tersedia 8 pcs.",
         "photos": [],
+        "unitDetails": [],
     },
     {
         "id": "inv-003",
@@ -93,6 +95,7 @@ INVENTORY_DEFAULT_ITEMS = [
         "status": "Tersedia",
         "notes": "1 unit perlu pengencangan lock kaki.",
         "photos": [],
+        "unitDetails": [],
     },
     {
         "id": "inv-004",
@@ -110,6 +113,7 @@ INVENTORY_DEFAULT_ITEMS = [
         "status": "Dipinjam",
         "notes": "Dipakai untuk misa Kamis malam.",
         "photos": [],
+        "unitDetails": [],
     },
     {
         "id": "inv-005",
@@ -127,6 +131,7 @@ INVENTORY_DEFAULT_ITEMS = [
         "status": "Tersedia",
         "notes": "Label kabel sudah diperbarui.",
         "photos": [],
+        "unitDetails": [],
     },
 ]
 

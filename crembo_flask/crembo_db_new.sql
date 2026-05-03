@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 12.56
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 15.51
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -288,12 +288,11 @@ CREATE TABLE `inventory_items` (
 
 INSERT INTO `inventory_items` (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`, `unit_details`, `created_at`, `updated_at`) VALUES
 ('inv-001', 'CAM-001', 'Kamera Sony A6400', 'Kamera', 'Lemari Studio A', '2025-11-12', 12500000, 2, 1, 1, 1, 'Baik', 'Dipinjam', 'Satu unit sedang dipakai untuk dokumentasi agenda.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
-('inv-002', 'AUD-004', 'Wireless Microphone Set', 'Audio', 'Rak Audio 2', '2025-12-03', NULL, 4, 4, 1, 1, 'Baik', 'Tersedia', 'Baterai cadangan tersedia 8 pcs.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-003', 'TRI-002', 'Tripod Heavy Duty', 'Aksesori', 'Gudang Perlengkapan', '2025-10-28', 850000, 3, 2, 1, 1, 'Rusak Ringan', 'Tersedia', '1 unit perlu pengencangan lock kaki.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-004', 'SWI-001', 'Video Switcher ATEM Mini', 'Switcher', 'Meja Kontrol', '2025-09-19', 7600000, 1, 0, 0, 1, 'Baik', 'Dipinjam', 'Dipakai untuk misa Kamis malam.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
-('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 5, 1, 1, 'Baik', 'Tersedia', 'Label kabel sudah diperbarui.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
+('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 5, 1, 1, 'Baik', 'Dipinjam', 'Label kabel sudah diperbarui.', '[{\"url\": \"/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 3, \"label\": \"Unit 3\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 4, \"label\": \"Unit 4\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 5, \"label\": \"Unit 5\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 6, \"label\": \"Unit 6\", \"status\": \"Dipinjam\", \"reason\": \"Sedang digunakan\", \"available\": false}]', '2026-05-03 15:01:06', '2026-05-03 18:05:54'),
 ('inv-1777795725826', 'LENS-012321123', 'Lensa Canon D1500', 'Lensa', 'Kotak Kamera', '2025-01-02', 1000000, 3, 3, 1, 0, 'Baik', 'Tersedia', 'Lensa nya bagus', '[{\"url\": \"/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_212f4e2321a347e9bc3b0877e722aa0b.png\", \"name\": \"screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40.png\", \"mimeType\": \"image/png\", \"size\": 215530, \"previewable\": true, \"kind\": \"image\"}]', '[]', '2026-05-03 15:08:45', '2026-05-03 17:05:33'),
-('inv-1777802841258', 'TCNX-12321', 'Tripod Cam NXxx', 'Tripod', 'Di gudang', NULL, 120000, 2, 1, 1, 1, 'Baik', 'Hilang', 'Tripod Tes Atribut Baru', '[{\"url\": \"/uploads/foto_baju_koki_0d06d142032140ed9d395695e10f1ce1.jpg\", \"name\": \"foto_baju_koki.jpg\", \"mimeType\": \"image/jpeg\", \"size\": 1124075, \"previewable\": true, \"kind\": \"image\"}, {\"url\": \"/uploads/screencapture-input-ta-ampta-wuaze-mahasiswa-dashboard-2026-04-07-11_09_29_64009672a9c14ddd966782b716b1bda5.png\", \"name\": \"screencapture-input-ta-ampta-wuaze-mahasiswa-dashboard-2026-04-07-11_09_29.png\", \"mimeType\": \"image/png\", \"size\": 829559, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Hilang\", \"reason\": \"Belum ditemukan\", \"available\": false}]', '2026-05-03 17:07:21', '2026-05-03 17:47:39');
+('inv-1777806307149', 'K1232123', 'Kamera FUJIFILM', 'Kamera', 'asdads', '2026-05-03', 1000000, 3, 3, 1, 1, 'Baik', 'Tersedia', 'asdasd', '[{\"url\": \"/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 3, \"label\": \"Unit 3\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}]', '2026-05-03 18:05:07', '2026-05-03 19:58:09');
 
 -- --------------------------------------------------------
 
@@ -353,6 +352,37 @@ CREATE TABLE `kegiatan_form` (
   `created_at` varchar(50) DEFAULT NULL,
   `updated_at` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `loan_requests`
+--
+
+CREATE TABLE `loan_requests` (
+  `id` varchar(100) NOT NULL,
+  `member_id` varchar(100) DEFAULT NULL,
+  `barang_id` varchar(100) NOT NULL,
+  `barang_name` varchar(255) NOT NULL,
+  `barang_code` varchar(100) DEFAULT NULL,
+  `barang_photo` text DEFAULT NULL,
+  `jumlah` int(11) NOT NULL DEFAULT 1,
+  `tanggal_pengajuan` date DEFAULT NULL,
+  `tanggal_mulai` date DEFAULT NULL,
+  `tanggal_selesai` date DEFAULT NULL,
+  `tujuan` text DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'pending',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `loan_requests`
+--
+
+INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`) VALUES
+('pjn-1777789587486', '21', 'inv-005', 'Kabel HDMI 10m', 'CAB-015', '/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg', 3, '2026-05-03', '2026-05-04', '2026-06-07', 'Buat acara kampus', 'cancelled', '2026-05-03 20:26:27', '2026-05-03 20:47:38'),
+('pjn-1777790916500', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 1, '2026-05-03', '2026-05-03', '2026-07-10', 'Buat party ', 'pending', '2026-05-03 20:48:36', '2026-05-03 20:48:36');
 
 -- --------------------------------------------------------
 
@@ -483,7 +513,6 @@ CREATE TABLE `notification_reads` (
 
 INSERT INTO `notification_reads` (`notification_id`, `user_key`, `read_at`) VALUES
 ('notif-1777749531636-663746', 'member:50', '2026-05-03 02:24:13'),
-('notif-1777750088225-d0a1cc', 'member:21', '2026-05-03 02:43:40'),
 ('notif-1777750140928-22f2de', 'member:21', '2026-05-03 02:40:00'),
 ('notif-1777750140928-22f2de', 'member:50', '2026-05-03 02:32:00'),
 ('notif-1777750140928-22f2de', 'member:53', '2026-05-03 02:31:31'),
@@ -2259,6 +2288,14 @@ ALTER TABLE `kegiatan`
 ALTER TABLE `kegiatan_form`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_kegiatan_form_slug` (`slug`);
+
+--
+-- Indeks untuk tabel `loan_requests`
+--
+ALTER TABLE `loan_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_loan_status` (`status`),
+  ADD KEY `idx_loan_member` (`member_id`);
 
 --
 -- Indeks untuk tabel `news`
