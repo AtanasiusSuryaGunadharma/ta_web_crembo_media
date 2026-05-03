@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 16.18
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 17.16
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -290,9 +290,9 @@ INSERT INTO `inventory_items` (`id`, `code`, `name`, `category`, `location`, `pu
 ('inv-001', 'CAM-001', 'Kamera Sony A6400', 'Kamera', 'Lemari Studio A', '2025-11-12', 12500000, 2, 1, 1, 1, 'Baik', 'Dipinjam', 'Satu unit sedang dipakai untuk dokumentasi agenda.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-003', 'TRI-002', 'Tripod Heavy Duty', 'Aksesori', 'Gudang Perlengkapan', '2025-10-28', 850000, 3, 2, 1, 1, 'Rusak Ringan', 'Tersedia', '1 unit perlu pengencangan lock kaki.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
 ('inv-004', 'SWI-001', 'Video Switcher ATEM Mini', 'Switcher', 'Meja Kontrol', '2025-09-19', 7600000, 1, 0, 0, 1, 'Baik', 'Dipinjam', 'Dipakai untuk misa Kamis malam.', '[]', '[]', '2026-05-03 15:01:06', '2026-05-03 15:01:06'),
-('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 5, 1, 1, 'Baik', 'Dipinjam', 'Label kabel sudah diperbarui.', '[{\"url\": \"/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 3, \"label\": \"Unit 3\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 4, \"label\": \"Unit 4\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 5, \"label\": \"Unit 5\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 6, \"label\": \"Unit 6\", \"status\": \"Dipinjam\", \"reason\": \"Sedang digunakan\", \"available\": false}]', '2026-05-03 15:01:06', '2026-05-03 18:05:54'),
+('inv-005', 'CAB-015', 'Kabel HDMI 10m', 'Kabel', 'Laci Kabel', '2025-11-30', 450000, 6, 4, 1, 1, 'Baik', 'Tersedia', 'Label kabel sudah diperbarui.', '[{\"url\": \"/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 3, \"label\": \"Unit 3\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 4, \"label\": \"Unit 4\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 5, \"label\": \"Unit 5\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 6, \"label\": \"Unit 6\", \"status\": \"Dipinjam\", \"reason\": \"Sedang digunakan\", \"available\": false}]', '2026-05-03 15:01:06', '2026-05-03 22:01:01'),
 ('inv-1777795725826', 'LENS-012321123', 'Lensa Canon D1500', 'Lensa', 'Kotak Kamera', '2025-01-02', 1000000, 3, 3, 1, 0, 'Baik', 'Tersedia', 'Lensa nya bagus', '[{\"url\": \"/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_212f4e2321a347e9bc3b0877e722aa0b.png\", \"name\": \"screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40.png\", \"mimeType\": \"image/png\", \"size\": 215530, \"previewable\": true, \"kind\": \"image\"}]', '[]', '2026-05-03 15:08:45', '2026-05-03 17:05:33'),
-('inv-1777806307149', 'K1232123', 'Kamera FUJIFILM', 'Kamera', 'asdads', '2026-05-03', 1000000, 3, 3, 1, 1, 'Baik', 'Tersedia', 'asdasd', '[{\"url\": \"/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 3, \"label\": \"Unit 3\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}]', '2026-05-03 18:05:07', '2026-05-03 19:58:09');
+('inv-1777806307149', 'K1232123', 'Kamera FUJIFILM', 'Kamera', 'asdads', '2026-05-03', 1000000, 3, 0, 1, 1, 'Baik', 'Dipinjam', 'asdasd', '[{\"url\": \"/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', '[{\"index\": 1, \"label\": \"Unit 1\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 2, \"label\": \"Unit 2\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}, {\"index\": 3, \"label\": \"Unit 3\", \"status\": \"Tersedia\", \"reason\": \"\", \"available\": true}]', '2026-05-03 18:05:07', '2026-05-03 22:04:32');
 
 -- --------------------------------------------------------
 
@@ -373,16 +373,21 @@ CREATE TABLE `loan_requests` (
   `tujuan` text DEFAULT NULL,
   `status` varchar(50) NOT NULL DEFAULT 'pending',
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `admin_note` text DEFAULT NULL,
+  `approved_by` varchar(150) DEFAULT NULL,
+  `approved_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `loan_requests`
 --
 
-INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`) VALUES
-('pjn-1777792029778', '53', 'inv-005', 'Kabel HDMI 10m', 'CAB-015', '/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg', 1, '2026-05-03', '2026-05-04', '2026-06-27', 'Tes Pinjam HDMI', 'pending', '2026-05-03 21:07:09', '2026-05-03 21:07:09'),
-('pjn-1777792047529', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 1, '2026-05-03', '2026-05-05', '2026-08-14', 'Tes Pinjam Kamera', 'pending', '2026-05-03 21:07:27', '2026-05-03 21:07:27');
+INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`, `admin_note`, `approved_by`, `approved_at`) VALUES
+('pjn-1777792029778', '53', 'inv-005', 'Kabel HDMI 10m', 'CAB-015', '/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg', 1, '2026-05-03', '2026-05-04', '2026-06-27', 'Tes Pinjam HDMI', 'approved', '2026-05-03 21:07:09', '2026-05-03 22:01:01', 'ada di loker', 'Atanasius Surya', '2026-05-03 15:01:01'),
+('pjn-1777792047529', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 1, '2026-05-03', '2026-05-05', '2026-08-14', 'Tes Pinjam Kamera', 'cancelled', '2026-05-03 21:07:27', '2026-05-03 22:00:49', '', 'Atanasius Surya', '2026-05-03 15:00:49'),
+('pjn-1777795373228', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 3, '2026-05-03', '2026-05-01', '2026-07-11', 'Gabut', 'rejected', '2026-05-03 22:02:53', '2026-05-03 22:03:15', 'rusak', 'Atanasius Surya', '2026-05-03 15:03:15'),
+('pjn-1777795442439', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 3, '2026-05-03', '2026-05-03', '2026-06-30', 'Test aja', 'approved', '2026-05-03 22:04:02', '2026-05-03 22:04:32', 'ada di kotak penyimpanan barang', 'Atanasius Surya', '2026-05-03 15:04:32');
 
 -- --------------------------------------------------------
 
@@ -493,7 +498,9 @@ CREATE TABLE `notifications` (
 INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `created_at`) VALUES
 ('notif-1777749531636-663746', 'agenda', 'Agenda Baru: tes notif agenda sudah mulai', 'asad', '/agenda/agenda-1777749531632', '{\"agenda_id\": \"agenda-1777749531632\"}', '2026-05-03 02:18:51'),
 ('notif-1777750088225-d0a1cc', 'news', 'Pengumuman Baru: Test Notif Berita', 'Test Notif Berita 1', '/pengumuman/news-1777750088218', '{\"news_id\": \"news-1777750088218\"}', '2026-05-03 02:28:08'),
-('notif-1777750967609-f51b8e', 'form', 'Form Pendaftaran Baru: Tes Notifikasi Form 1 baru', 'asdasdasd', '/form-pendaftaran/form-1777750967591-khe4sg', '{\"form_id\": \"form-1777750967591-khe4sg\"}', '2026-05-03 02:42:47');
+('notif-1777750967609-f51b8e', 'form', 'Form Pendaftaran Baru: Tes Notifikasi Form 1 baru', 'asdasdasd', '/form-pendaftaran/form-1777750967591-khe4sg', '{\"form_id\": \"form-1777750967591-khe4sg\"}', '2026-05-03 02:42:47'),
+('notif-1777820573233-4bf139', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777795373228\"}', '2026-05-03 22:02:53'),
+('notif-1777820642443-1dadd8', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777795442439\"}', '2026-05-03 22:04:02');
 
 -- --------------------------------------------------------
 

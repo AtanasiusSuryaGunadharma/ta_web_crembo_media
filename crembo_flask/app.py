@@ -1581,11 +1581,8 @@ def cancel_pengajuan(pengajuan_id):
         cursor.close()
         conn.close()
 
-
 @app.route("/api/admin/pengajuan/<pengajuan_id>/status", methods=["PUT"])
 def update_pengajuan_status(pengajuan_id):
-    # Cek apakah user sudah login dan role-nya admin / super_admin
-    # PERBAIKAN: Gunakan pengecekan session manual agar lebih aman dan tidak terblokir
     role = session.get("role") or ""
     if not session.get("logged_in") or role not in ["admin", "super_admin"]:
         return jsonify({"success": False, "error": "Akses Ditolak. Anda bukan Admin."}), 403
@@ -1594,13 +1591,12 @@ def update_pengajuan_status(pengajuan_id):
     new_status = data.get("status")
     admin_note = data.get("adminNote", "")
     
-    if new_status not in ["approved", "rejected", "cancelled"]:
+    if new_status not in ["approved", "rejected", "cancelled", "taken", "returned"]:
         return jsonify({"success": False, "error": "Status tidak valid"}), 400
 
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # Cek kolom tambahan (ini penting jika database belum ada kolom ini)
         ensure_column(cursor, "loan_requests", "admin_note", "`admin_note` text DEFAULT NULL")
         ensure_column(cursor, "loan_requests", "approved_by", "`approved_by` varchar(150) DEFAULT NULL")
         ensure_column(cursor, "loan_requests", "approved_at", "`approved_at` datetime DEFAULT NULL")
@@ -1614,13 +1610,13 @@ def update_pengajuan_status(pengajuan_id):
         barang_id = req.get("barang_id")
         jumlah_req = int(req.get("jumlah", 1))
         
-        # Validasi update status berdasarkan alur yang wajar
+        # Validasi update status
         if current_status != "pending" and new_status in ["approved", "rejected"]:
              return jsonify({"success": False, "error": "Hanya pengajuan berstatus Pending yang dapat disetujui atau ditolak"}), 400
 
-        # Jika Approve, kita potong stok barang di inventory
-        if new_status == "approved":
-            cursor.execute("SELECT `total_unit`, `available_unit`, `can_borrow` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
+        # Jika Setujui (Approve), potong stok
+        if new_status == "approved" and current_status == "pending":
+            cursor.execute("SELECT `total_unit`, `available_unit`, `can_borrow`, `unit_details` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
             inv = cursor.fetchone()
             
             if not inv:
@@ -1632,30 +1628,70 @@ def update_pengajuan_status(pengajuan_id):
             if available < jumlah_req:
                  return jsonify({"success": False, "error": f"Stok tersedia ({available}) tidak mencukupi permintaan ({jumlah_req})"}), 400
                  
-            # Update stok
+            # PERBAIKAN: Update unit_details JSON juga jika barang multiple unit
+            unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
+            units_changed = 0
+            
+            for unit in unit_details_raw:
+                 if unit.get("status") == "Tersedia" and units_changed < jumlah_req:
+                      unit["status"] = "Dipinjam"
+                      unit["reason"] = f"Dipinjam (Req ID: {pengajuan_id})"
+                      unit["available"] = False
+                      units_changed += 1
+                      
             new_available = available - jumlah_req
             new_inv_status = "Dipinjam" if new_available <= 0 else "Tersedia"
-            cursor.execute("UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s WHERE `id` = %s", (new_available, new_inv_status, barang_id))
             
-        # Jika Cancelled/Rejected, tetapi sebelumnya Approved (pengembalian stok)
-        elif new_status == "cancelled" and current_status == "approved":
-             cursor.execute("SELECT `total_unit`, `available_unit` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
+            cursor.execute(
+                 "UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s, `unit_details` = %s WHERE `id` = %s", 
+                 (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id)
+            )
+            
+        # Jika Cancelled/Returned, tetapi sebelumnya memotong stok (Pengembalian Stok)
+        elif (new_status in ["cancelled", "returned"]) and (current_status in ["approved", "taken"]):
+             cursor.execute("SELECT `total_unit`, `available_unit`, `unit_details` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
              inv = cursor.fetchone()
              if inv:
                  total = int(inv.get("total_unit", 1))
                  available = int(inv.get("available_unit", 0))
+                 
+                 # Kembalikan unit_details yang dipinjam oleh pengajuan ini
+                 unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
+                 units_restored = 0
+                 
+                 for unit in unit_details_raw:
+                      # Kembalikan unit yang ditandai dengan ID Pengajuan ini
+                      if unit.get("reason") == f"Dipinjam (Req ID: {pengajuan_id})":
+                           unit["status"] = "Tersedia"
+                           unit["reason"] = ""
+                           unit["available"] = True
+                           units_restored += 1
+                 
+                 # Jika tidak ada yang pakai ID spesifik, kita restore secara general
+                 if units_restored == 0:
+                      for unit in unit_details_raw:
+                           if unit.get("status") == "Dipinjam" and units_restored < jumlah_req:
+                                unit["status"] = "Tersedia"
+                                unit["reason"] = ""
+                                unit["available"] = True
+                                units_restored += 1
+                 
                  new_available = min(total, available + jumlah_req)
                  new_inv_status = "Tersedia" if new_available > 0 else "Dipinjam"
-                 cursor.execute("UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s WHERE `id` = %s", (new_available, new_inv_status, barang_id))
+                 
+                 cursor.execute(
+                      "UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s, `unit_details` = %s WHERE `id` = %s", 
+                      (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id)
+                 )
         
-        # Update Request Status
+        # Simpan status ke tabel loan_requests
         admin_name = str(session.get("nama") or session.get("username") or "Admin")
         approved_at = datetime.utcnow() if new_status != "pending" else None
         
         cursor.execute(
             """
             UPDATE `loan_requests` 
-            SET `status` = %s, `admin_note` = %s, `approved_by` = %s, `approved_at` = %s 
+            SET `status` = %s, `admin_note` = %s, `approved_by` = %s, `approved_at` = COALESCE(`approved_at`, %s)
             WHERE `id` = %s
             """,
             (new_status, admin_note, admin_name, approved_at, pengajuan_id)
