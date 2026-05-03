@@ -528,10 +528,16 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
         """,
         (MYSQL_CONFIG["database"], table_name, column_name),
     )
-    exists = cursor.fetchone()[0] > 0
+    row = cursor.fetchone()
+    
+    # PERBAIKAN: Menangani cursor dictionary maupun tuple agar tidak memicu KeyError: 0
+    if isinstance(row, dict):
+        exists = list(row.values())[0] > 0
+    else:
+        exists = row[0] > 0 if row else False
+        
     if not exists:
         cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
-
 
 def ensure_inventory_schema(cursor) -> None:
     cursor.execute(

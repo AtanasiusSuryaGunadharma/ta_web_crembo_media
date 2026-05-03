@@ -160,16 +160,16 @@
     }
 
     .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 8px; margin-top: 10px; }
-    .summary-item { border: 1px solid #c7c7c7; background: #fafafa; padding: 10px; }
-    .summary-item p { margin: 0; font-size: .8rem; color: #565656; }
+    .summary-item { border: 1px solid #c7c7c7; background: #fafafa; padding: 10px; border-radius: 10px; }
+    .summary-item p { margin: 0; font-size: .8rem; color: #565656; font-weight:600;}
     .summary-item strong { display: block; margin-top: 4px; font-size: 1.15rem; }
 
-    .table-scroll { border: 1px solid #c5c5c5; overflow: auto; background: #fff; }
+    .table-scroll { border: 1px solid #c5c5c5; overflow: auto; background: #fff; border-radius: 10px; }
     .table-scroll table { min-width: 2200px; width: 100%; border-collapse: collapse; font-size: .84rem; }
-    th, td { border: 1px solid #cbcbcb; padding: 8px; text-align: left; vertical-align: top; }
-    th { background: #efefef; font-size: .76rem; text-transform: uppercase; letter-spacing: .02em; }
+    th, td { border-bottom: 1px solid #cbcbcb; padding: 10px 12px; text-align: left; vertical-align: top; border-right: 1px solid #efefef;}
+    th { background: #efefef; font-size: .76rem; text-transform: uppercase; letter-spacing: .02em; font-weight:700; color:#555;}
 
-    .status-pill { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: .74rem; border: 1px solid #c4c4c4; background: #f6f6f6; }
+    .status-pill { display: inline-block; border-radius: 999px; padding: 4px 10px; font-size: .74rem; border: 1px solid #c4c4c4; background: #f6f6f6; font-weight:600;}
     .status-pill.pending { border-color: #d4b06b; background: #fff8ea; color: #7a5a1f; }
     .status-pill.approved { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
     .status-pill.rejected { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
@@ -177,7 +177,7 @@
     .status-pill.done { border-color: #b6b6b6; background: #f3f4f6; color: #424242; }
     .status-pill.cancelled { border-color: #b0b0b0; background: #f4f4f4; color: #525252; }
 
-    .empty-note { margin: 10px 0 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: .86rem; color: #616161; }
+    .empty-note { margin: 10px 0 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: .86rem; color: #616161; border-radius: 10px; }
 
     .thumb {
       width: 58px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #c8c8c8; background: #efefef;
@@ -248,9 +248,9 @@
       <header class="meta-header">
         <div>
           <h2 class="meta-title">Riwayat Peminjaman dan Pengembalian</h2>
-          <p class="meta-sub">Riwayat lengkap untuk monitoring admin/super admin, termasuk bukti pengambilan dan pengembalian.</p>
+          <p class="meta-sub">Riwayat lengkap untuk monitoring admin/super admin, disinkronisasikan langsung dari Database.</p>
         </div>
-        <span class="chip">Filter: Semua</span>
+        <span class="chip">Filter: <span id="activeFilterText">Semua Status</span></span>
       </header>
 
       <section class="toolbar">
@@ -321,8 +321,6 @@
   </div>
 
   <script>
-    const REQUEST_KEY = "crembo-peminjaman-requests";
-
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
     const fromDate = document.getElementById("fromDate");
@@ -333,6 +331,10 @@
     const downloadExcelBtn = document.getElementById("downloadExcelBtn");
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
     const liveDateTime = document.getElementById("liveDateTime");
+    const activeFilterText = document.getElementById("activeFilterText");
+
+    // Mengambil langsung dari API Database yang sudah Anda setujui atau tolak
+    let REMOTE_REQUESTS = [];
 
     function escapeHtml(text) {
       return String(text || "")
@@ -343,70 +345,35 @@
         .replace(/'/g, "&#039;");
     }
 
-    function readRequests() {
-      try {
-        const raw = localStorage.getItem(REQUEST_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (error) {
-        return [];
-      }
+    // Mapping Status DB ke Display Status
+    function mapDbStatus(dbStatus) {
+        const map = {
+            'pending': 'Pending',
+            'approved': 'Disetujui',
+            'rejected': 'Ditolak',
+            'taken': 'Sedang Dipinjam',
+            'returned': 'Selesai',
+            'cancelled': 'Dibatalkan'
+        };
+        return map[dbStatus] || dbStatus;
+    }
+
+    function statusClass(status) {
+      if (status === "Disetujui") return "approved";
+      if (status === "Ditolak") return "rejected";
+      if (status === "Sedang Dipinjam") return "borrowed";
+      if (status === "Selesai") return "done";
+      if (status === "Dibatalkan") return "cancelled";
+      return "pending";
     }
 
     function formatDateTime(value) {
       const date = new Date(value || "");
-      if (Number.isNaN(date.getTime())) {
-        return "-";
-      }
+      if (Number.isNaN(date.getTime())) return "-";
       return date.toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
       }) + " WIB";
-    }
-
-    function formatEventDateTime(eventData, fallbackDate, fallbackTime) {
-      if (!eventData) {
-        return "-";
-      }
-
-      const directTime = eventData.time || eventData.datetime || eventData.timestamp;
-      if (directTime && String(directTime).indexOf("T") !== -1) {
-        return formatDateTime(directTime);
-      }
-
-      const datePart = eventData.date || fallbackDate;
-      const timePart = eventData.time || fallbackTime;
-      if (datePart && timePart) {
-        return formatDateTime(datePart + "T" + timePart);
-      }
-
-      if (datePart) {
-        return escapeHtml(datePart);
-      }
-
-      return "-";
-    }
-
-    function statusClass(status) {
-      if (status === "Disetujui") {
-        return "approved";
-      }
-      if (status === "Ditolak") {
-        return "rejected";
-      }
-      if (status === "Sedang Dipinjam") {
-        return "borrowed";
-      }
-      if (status === "Selesai") {
-        return "done";
-      }
-      if (status === "Dibatalkan") {
-        return "cancelled";
-      }
-      return "pending";
     }
 
     function filteredList() {
@@ -415,7 +382,7 @@
       const start = fromDate.value;
       const end = toDate.value;
 
-      return readRequests().filter(function (item) {
+      return REMOTE_REQUESTS.filter(function (item) {
         const text = [
           item.code,
           item.borrowerName,
@@ -451,6 +418,8 @@
         '<article class="summary-item"><p>Transaksi Aktif</p><strong>' + active + '</strong></article>' +
         '<article class="summary-item"><p>Transaksi Selesai</p><strong>' + finished + '</strong></article>' +
         '<article class="summary-item"><p>Ditolak/Dibatalkan</p><strong>' + failed + '</strong></article>';
+        
+      activeFilterText.textContent = statusFilter.options[statusFilter.selectedIndex].text;
     }
 
     function renderTable() {
@@ -465,45 +434,27 @@
       emptyState.hidden = true;
 
       rows.innerHTML = list.map(function (item) {
-        const pickupLabel = item.pickup
-          ? escapeHtml(formatEventDateTime(item.pickup, item.tanggalDiambil, item.jamDiambil))
-          : '-';
-        const returnLabel = item.returnInfo
-          ? escapeHtml(formatEventDateTime(item.returnInfo, item.tanggalDikembalikan, item.jamDikembalikan))
-          : '-';
+        // Mock data untuk field yang belum ada di DB (bisa diadaptasi nanti jika sudah dibuatkan backendnya)
+        const pickupLabel = item.pickup ? escapeHtml(formatDateTime(item.pickup.time)) : '-';
+        const returnLabel = item.returnInfo ? escapeHtml(formatDateTime(item.returnInfo.time)) : '-';
+        const pickupLocation = item.pickup && item.pickup.location ? item.pickup.location : '-';
+        const returnLocation = item.returnInfo && item.returnInfo.location ? item.returnInfo.location : '-';
+        const pickupCondition = item.pickup && item.pickup.condition ? item.pickup.condition : '-';
+        const returnCondition = item.returnInfo && item.returnInfo.condition ? item.returnInfo.condition : '-';
+        const pickupNote = item.pickup && item.pickup.note ? item.pickup.note : '-';
+        const returnNote = item.returnInfo && item.returnInfo.note ? item.returnInfo.note : '-';
 
-        const pickupLocation = item.pickup && item.pickup.location
-          ? item.pickup.location
+        const pickupProof = item.pickup && item.pickup.photo
+          ? '<img class="thumb" src="' + escapeHtml(item.pickup.photo) + '" alt="Bukti">'
           : '-';
-        const returnLocation = item.returnInfo && item.returnInfo.location
-          ? item.returnInfo.location
-          : '-';
-
-        const pickupCondition = item.pickup && item.pickup.condition
-          ? item.pickup.condition
-          : (item.kondisiSebelum || '-');
-        const returnCondition = item.returnInfo && (item.returnInfo.condition || item.returnInfo.conditions)
-          ? (item.returnInfo.condition || item.returnInfo.conditions)
-          : (item.kondisiSesudah || '-');
-
-        const pickupNote = item.pickup && (item.pickup.note || item.pickup.notes)
-          ? (item.pickup.note || item.pickup.notes)
-          : '-';
-        const returnNote = item.returnInfo && (item.returnInfo.note || item.returnInfo.notes)
-          ? (item.returnInfo.note || item.returnInfo.notes)
-          : '-';
-
-        const pickupProof = item.pickup && (item.pickup.proofPhoto || item.pickup.photo)
-          ? '<img class="thumb" src="' + escapeHtml(item.pickup.proofPhoto || item.pickup.photo) + '" alt="Bukti pengambilan">'
-          : '-';
-        const returnProof = item.returnInfo && (item.returnInfo.proofPhoto || item.returnInfo.photo)
-          ? '<img class="thumb" src="' + escapeHtml(item.returnInfo.proofPhoto || item.returnInfo.photo) + '" alt="Bukti pengembalian">'
+        const returnProof = item.returnInfo && item.returnInfo.photo
+          ? '<img class="thumb" src="' + escapeHtml(item.returnInfo.photo) + '" alt="Bukti">'
           : '-';
 
         return '<tr>' +
-          '<td>' + escapeHtml(item.code || '-') + '</td>' +
-          '<td>' + escapeHtml(item.borrowerName || '-') + '<br><small>' + escapeHtml(item.borrowerPhone || '-') + '</small></td>' +
-          '<td>' + escapeHtml(item.itemName || '-') + '<br><small>' + escapeHtml(item.itemCode || '-') + '</small></td>' +
+          '<td><small style="color:#666;">' + escapeHtml(item.code || '-') + '</small></td>' +
+          '<td>' + escapeHtml(item.borrowerName || '-') + '</td>' +
+          '<td><strong>' + escapeHtml(item.itemName || '-') + '</strong><br><small style="color:#666;">' + escapeHtml(item.itemCode || '-') + '</small></td>' +
           '<td>' + escapeHtml(item.quantity || 1) + '</td>' +
           '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
           '<td>' + escapeHtml(item.expectedReturnDate || '-') + '</td>' +
@@ -523,28 +474,51 @@
       }).join('');
     }
 
+    async function loadData() {
+        try {
+            const res = await fetch('/api/pengajuan');
+            const data = await res.json();
+            if(data.success) {
+                // Map the DB structure to Riwayat format
+                REMOTE_REQUESTS = data.items.map(item => {
+                    return {
+                        id: item.id,
+                        code: item.id.split('-').pop(), // get the timestamp part
+                        borrowerName: `User ${item.memberId || 'Guest'}`,
+                        itemName: item.barangNama,
+                        itemCode: item.barangCode,
+                        quantity: item.jumlahDiminta,
+                        borrowDate: item.tanggalMulai,
+                        expectedReturnDate: item.tanggalSelesai,
+                        purpose: item.tujuan,
+                        status: mapDbStatus(item.status),
+                        adminNote: item.adminNote,
+                        createdAt: item.createdAt,
+                        pickup: null,      // Di masa depan bisa dimap dari DB jika sudah ada tabel riwayat
+                        returnInfo: null
+                    };
+                });
+                renderTable();
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+
     function downloadExcel() {
       const list = filteredList();
       let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
         '<link rel="stylesheet" href="_admin-theme.css">' +
         '</head><body>';
-      html += '<h3>Laporan Riwayat Peminjaman dan Pengembalian</h3>';
+      html += '<h3>Laporan Riwayat Peminjaman dan Pengembalian (Database Sync)</h3>';
       html += '<table border="1" cellspacing="0" cellpadding="6">';
-      html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Status</th><th>Waktu Pengambilan</th><th>Lokasi Ambil</th><th>Kondisi Ambil</th><th>Catatan Ambil</th><th>Waktu Pengembalian</th><th>Lokasi Kembali</th><th>Kondisi Kembali</th><th>Catatan Kembali</th><th>Catatan Admin</th></tr>';
+      html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Status</th><th>Catatan Admin</th></tr>';
 
       if (!list.length) {
-        html += '<tr><td colspan="16">Tidak ada data riwayat sesuai filter.</td></tr>';
+        html += '<tr><td colspan="8">Tidak ada data riwayat sesuai filter.</td></tr>';
       } else {
         list.forEach(function (item) {
-          const pickupWhen = item.pickup ? formatEventDateTime(item.pickup, item.tanggalDiambil, item.jamDiambil) : '-';
-          const returnWhen = item.returnInfo ? formatEventDateTime(item.returnInfo, item.tanggalDikembalikan, item.jamDikembalikan) : '-';
-          const pickupLocation = item.pickup && item.pickup.location ? item.pickup.location : '-';
-          const returnLocation = item.returnInfo && item.returnInfo.location ? item.returnInfo.location : '-';
-          const pickupCondition = item.pickup && item.pickup.condition ? item.pickup.condition : (item.kondisiSebelum || '-');
-          const returnCondition = item.returnInfo && (item.returnInfo.condition || item.returnInfo.conditions) ? (item.returnInfo.condition || item.returnInfo.conditions) : (item.kondisiSesudah || '-');
-          const pickupNote = item.pickup && (item.pickup.note || item.pickup.notes) ? (item.pickup.note || item.pickup.notes) : '-';
-          const returnNote = item.returnInfo && (item.returnInfo.note || item.returnInfo.notes) ? (item.returnInfo.note || item.returnInfo.notes) : '-';
-
           html += '<tr>' +
             '<td>' + escapeHtml(item.code || '-') + '</td>' +
             '<td>' + escapeHtml(item.borrowerName || '-') + '</td>' +
@@ -553,14 +527,6 @@
             '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
             '<td>' + escapeHtml(item.expectedReturnDate || '-') + '</td>' +
             '<td>' + escapeHtml(item.status || '-') + '</td>' +
-            '<td>' + escapeHtml(pickupWhen) + '</td>' +
-            '<td>' + escapeHtml(pickupLocation) + '</td>' +
-            '<td>' + escapeHtml(pickupCondition) + '</td>' +
-            '<td>' + escapeHtml(pickupNote) + '</td>' +
-            '<td>' + escapeHtml(returnWhen) + '</td>' +
-            '<td>' + escapeHtml(returnLocation) + '</td>' +
-            '<td>' + escapeHtml(returnCondition) + '</td>' +
-            '<td>' + escapeHtml(returnNote) + '</td>' +
             '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
           '</tr>';
         });
@@ -593,7 +559,7 @@
               '<td>' + escapeHtml(item.itemName || '-') + '</td>' +
               '<td>' + escapeHtml(item.status || '-') + '</td>' +
               '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
-              '<td>' + escapeHtml(item.returnInfo ? formatDateTime(item.returnInfo.time) : '-') + '</td>' +
+              '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
             '</tr>';
           }).join('')
         : '<tr><td colspan="6">Tidak ada data riwayat sesuai filter.</td></tr>';
@@ -604,7 +570,7 @@
         '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
         '<link rel="stylesheet" href="_admin-theme.css">' +
         '</head><body><h2>Laporan Riwayat Peminjaman dan Pengembalian</h2>' +
-        '<table><thead><tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Status</th><th>Tanggal Pinjam</th><th>Tanggal Pengembalian</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
+        '<table><thead><tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Status</th><th>Tanggal Pinjam</th><th>Catatan Admin</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
         '</body></html>'
       );
       popup.document.close();
@@ -638,9 +604,9 @@
     downloadExcelBtn.addEventListener('click', downloadExcel);
     downloadPdfBtn.addEventListener('click', downloadPdf);
 
-    renderTable();
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    // Initial Load Data from DB API
+    loadData();
+    
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>
