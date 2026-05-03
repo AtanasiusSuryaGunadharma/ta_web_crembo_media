@@ -1578,9 +1578,11 @@ def cancel_pengajuan(pengajuan_id):
 
 @app.route("/api/admin/pengajuan/<pengajuan_id>/status", methods=["PUT"])
 def update_pengajuan_status(pengajuan_id):
-    # Pastikan ini hanya bisa diakses admin
-    if not can_manage_members():
-        return jsonify({"success": False, "error": "Forbidden"}), 403
+    # Cek apakah user sudah login dan role-nya admin / super_admin
+    # PERBAIKAN: Gunakan pengecekan session manual agar lebih aman dan tidak terblokir
+    role = session.get("role") or ""
+    if not session.get("logged_in") or role not in ["admin", "super_admin"]:
+        return jsonify({"success": False, "error": "Akses Ditolak. Anda bukan Admin."}), 403
         
     data = request.get_json(silent=True) or {}
     new_status = data.get("status")
@@ -1592,7 +1594,7 @@ def update_pengajuan_status(pengajuan_id):
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # Cek kolom tambahan
+        # Cek kolom tambahan (ini penting jika database belum ada kolom ini)
         ensure_column(cursor, "loan_requests", "admin_note", "`admin_note` text DEFAULT NULL")
         ensure_column(cursor, "loan_requests", "approved_by", "`approved_by` varchar(150) DEFAULT NULL")
         ensure_column(cursor, "loan_requests", "approved_at", "`approved_at` datetime DEFAULT NULL")
@@ -1629,8 +1631,7 @@ def update_pengajuan_status(pengajuan_id):
             new_inv_status = "Dipinjam" if new_available <= 0 else "Tersedia"
             cursor.execute("UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s WHERE `id` = %s", (new_available, new_inv_status, barang_id))
             
-        # Jika Cancelled/Rejected, tetapi sebelumnya Approved (seharusnya admin tidak bisa reject setelah approved, 
-        # tapi anggap saja sebagai fitur batalkan paksa / pengembalian stok jika butuh rollback).
+        # Jika Cancelled/Rejected, tetapi sebelumnya Approved (pengembalian stok)
         elif new_status == "cancelled" and current_status == "approved":
              cursor.execute("SELECT `total_unit`, `available_unit` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
              inv = cursor.fetchone()

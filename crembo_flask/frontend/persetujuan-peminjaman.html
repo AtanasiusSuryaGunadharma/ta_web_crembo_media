@@ -156,7 +156,7 @@
       margin-bottom: 12px;
     }
 
-    .toolbar-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
+    .toolbar-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 8px; align-items: end; }
     .field { display: grid; gap: 6px; }
     .field label { font-size: 0.84rem; color: #444; font-weight: 600; }
     input, select {
@@ -202,6 +202,16 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
+    }
+
+    /* Foto Barang di Tabel Admin */
+    .table-foto {
+        width: 60px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        background: #f3f4f6;
     }
 
     /* Modal Styles */
@@ -301,7 +311,6 @@
       word-break: break-word;
     }
 
-
     @media (max-width: 1080px) {
       .toolbar-grid { grid-template-columns: 1fr 1fr; }
       .summary-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
@@ -397,10 +406,6 @@
             <label for="toDate">Tanggal Pinjam Sampai</label>
             <input id="toDate" type="date">
           </div>
-          <div class="field" style="display:flex; gap:8px;">
-            <button id="downloadExcelBtn" class="btn-ghost" type="button">Download Excel</button>
-            <button id="downloadPdfBtn" class="btn-ghost" type="button">Download PDF</button>
-          </div>
         </div>
         <div class="summary-grid" id="summaryGrid"></div>
       </section>
@@ -411,6 +416,7 @@
             <thead>
               <tr>
                 <th style="width: 80px;">Kode</th>
+                <th style="width: 80px;">Foto</th>
                 <th style="width: 250px;">Barang &amp; Peminjam</th>
                 <th style="width: 70px;">Jumlah</th>
                 <th>Tanggal Pinjam</th>
@@ -527,7 +533,6 @@
          if (status === "cancelled") return "Dibatalkan";
          return "Menunggu Persetujuan";
     }
-
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -648,9 +653,15 @@
         }
         
         actionHtml += `</div>`;
+        
+        // Foto barang HTML (menggunakan CSS yg sudah dibuat)
+        const photoHtml = item.barangFoto 
+            ? `<img src="${escapeHtml(item.barangFoto)}" class="table-foto" alt="Foto">` 
+            : `<div class="table-foto" style="display:grid; place-items:center; color:#999; font-size:10px;">No</div>`;
 
         return `<tr>
           <td><small style="color:#666;">${escapeHtml(item.id.split('-').pop())}</small></td>
+          <td>${photoHtml}</td>
           <td>
             <strong>${escapeHtml(item.barangNama)}</strong><br>
             <small style="color:#666;">Kode: ${escapeHtml(item.barangCode)}</small><br>
@@ -679,7 +690,6 @@
             console.error(e);
         }
     }
-
 
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
