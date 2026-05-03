@@ -963,6 +963,7 @@
                       <option value="rejected">Ditolak</option>
                       <option value="taken">Sedang Dipinjam</option>
                       <option value="returned">Selesai</option>
+                      <option value="cancelled">Dibatalkan</option>
                     </select>
                   </div>
                 </div>
@@ -1168,7 +1169,6 @@
     }
 
     function normalizeBarangFromInventory(item) {
-      // PERBAIKAN: Penanganan yang lebih robust untuk unit_details & photo dari backend API
       let totalUnit = Number(item.totalUnit ?? item.total ?? 0);
       let availableUnit = Number(item.availableUnit ?? item.available ?? item.tersedia ?? 0);
       let borrowedUnit = Number(item.borrowedUnit ?? item.dipinjam ?? 0);
@@ -1184,7 +1184,6 @@
         borrowedUnit = totalUnit - avail;
       }
 
-      // Pastikan extract foto bisa menangani list object yang diserialisasi
       let fotoStr = "";
       if (item.photo && typeof item.photo === 'string' && item.photo.trim() !== '') {
           fotoStr = item.photo.trim();
@@ -1220,7 +1219,6 @@
     }
 
     function readBarang() {
-      // prefer remote inventory when available
       if (Array.isArray(REMOTE_INVENTORY) && REMOTE_INVENTORY.length) {
         return REMOTE_INVENTORY.slice();
       }
@@ -1255,7 +1253,6 @@
     }
 
     function readPengajuan() {
-      // prefer server-backed pengajuan when available
       if (Array.isArray(REMOTE_PENGAJUAN)) return REMOTE_PENGAJUAN.slice();
       return safeParse(localStorage.getItem(PENGAJUAN_STORAGE_KEY), []);
     }
@@ -1279,6 +1276,58 @@
         .replace(/>/g, "&gt;")
         .replace(/\"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    }
+
+    function formatTanggalIndo(rawDate) {
+        if (!rawDate) return "-";
+        
+        // Buang tulisan GMT agar browser tidak otomatis menambah +7 jam
+        if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
+            rawDate = rawDate.replace(' GMT', ''); 
+        }
+
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return escapeHtml(rawDate); 
+
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        
+        return `${day} ${month} ${year}`;
+    }
+
+    // FUNGSI BARU: Untuk memformat tanggal beserta waktunya (Jam, Menit, Detik)
+    function formatWaktuIndo(rawDate) {
+        if (!rawDate) return "-";
+        
+        // Buang tulisan GMT agar browser tidak otomatis menambah +7 jam
+        if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
+            rawDate = rawDate.replace(' GMT', ''); 
+        }
+        
+        let d = new Date(rawDate);
+        
+        // Fallback untuk format ISO 'YYYY-MM-DD HH:mm:ss'
+        if (typeof rawDate === 'string' && rawDate.indexOf('T') === -1 && rawDate.indexOf(':') !== -1) {
+            const parts = rawDate.split(/[- :]/);
+            if (parts.length >= 6) {
+                d = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+            }
+        }
+
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        const s = String(d.getSeconds()).padStart(2, '0');
+        
+        return `${day} ${month} ${year} ${h}:${m}:${s}`;
     }
 
     function populateCategoryFilter(items) {
@@ -1315,7 +1364,7 @@
         + '<div class="detail-grid">'
         + '<div class="detail-item"><strong>Kode</strong>' + escapeHtml(item.code) + '</div>'
         + '<div class="detail-item"><strong>Kategori</strong>' + escapeHtml(item.kategori) + '</div>'
-        + '<div class="detail-item"><strong>Tanggal Beli</strong>' + escapeHtml(item.tanggalBeli || '-') + '</div>'
+        + '<div class="detail-item"><strong>Tanggal Beli</strong>' + formatTanggalIndo(item.tanggalBeli) + '</div>'
         + '<div class="detail-item"><strong>Harga Beli</strong>' + escapeHtml(formatCurrency(item.hargaBeli)) + '</div>'
         + '<div class="detail-item"><strong>Total Unit</strong>' + String(item.total) + '</div>'
         + '<div class="detail-item"><strong>Tersedia</strong>' + String(item.tersedia) + '</div>'
@@ -1387,7 +1436,7 @@
           + '</div>'
           + '<div class="barang-detail">'
           + '<div><strong>Kode:</strong> ' + item.code + '</div>'
-          + '<div><strong>Tanggal Beli:</strong> ' + (item.tanggalBeli || '-') + '</div>'
+          + '<div><strong>Tanggal Beli:</strong> ' + formatTanggalIndo(item.tanggalBeli) + '</div>'
           + '<div><strong>Harga:</strong> ' + formatCurrency(item.hargaBeli) + '</div>'
           + '<div><strong>Total/Pinjam:</strong> ' + item.total + ' / ' + item.dipinjam + '</div>'
           + '<div><strong>Kondisi:</strong> ' + item.kondisi + '</div>'
@@ -1402,7 +1451,6 @@
     }
 
     function renderPengajuanTable() {
-      // if remote pengajuan available, use it (already filtered by server if needed)
       let items = readPengajuan() || [];
       const q = (pengajuanSearchBox && pengajuanSearchBox.value || "").trim().toLowerCase();
       const statusFilter = (pengajuanStatusSelect && pengajuanStatusSelect.value) || "";
@@ -1413,7 +1461,18 @@
         }
         if (!q) return true;
         return (String(it.barangNama || "").toLowerCase().includes(q) || String(it.barangCode || "").toLowerCase().includes(q));
-      }).slice().reverse(); // newest first
+      }); 
+
+      items.sort(function(a, b) {
+         const timeA = new Date(a.createdAt || a.tanggalPengajuan || 0).getTime() || 0;
+         const timeB = new Date(b.createdAt || b.tanggalPengajuan || 0).getTime() || 0;
+         
+         if (timeA === timeB) {
+            return String(b.id).localeCompare(String(a.id));
+         }
+         
+         return timeB - timeA;
+      });
 
       if (!items.length) {
         pengajuanTableRows.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Belum ada pengajuan peminjaman.</td></tr>';
@@ -1439,14 +1498,20 @@
           actionHtml = '<button class="mini-btn danger" data-id="' + item.id + '" onclick="cancelPengajuan(this)">Batalkan</button>';
         }
 
-        const periode = item.tanggalMulai + " sd " + item.tanggalSelesai;
+        const tglMulai = formatTanggalIndo(item.tanggalMulai);
+        const tglSelesai = formatTanggalIndo(item.tanggalSelesai);
+        const periode = tglMulai + " sd " + tglSelesai;
+        
+        // PERBAIKAN: Gunakan formatWaktuIndo yang sudah bisa menampilkan Jam:Menit:Detik
+        const tglAjuFormatted = formatWaktuIndo(item.createdAt || item.tanggalPengajuan);
+        
         const thumb = item.barangFoto ? '<img src="' + escapeHtml(item.barangFoto) + '" alt="' + escapeHtml(item.barangNama) + '" style="width:64px; height:48px; object-fit:cover; border-radius:6px; margin-right:8px; vertical-align:middle;">' : '<div style="width:64px; height:48px; display:inline-grid; place-items:center; background:#f1f5f9; color:#64748b; border-radius:6px; margin-right:8px;">No</div>';
 
         return '<tr>'
           + '<td data-label="Barang">' + thumb + '<span style="vertical-align:middle;">' + escapeHtml(item.barangNama) + '<div style="font-size:0.78rem; color:#64748b;">' + escapeHtml(item.barangCode || '') + '</div></span></td>'
           + '<td data-label="Jumlah">' + item.jumlahDiminta + '</td>'
-          + '<td data-label="Periode" style="font-size: 0.75rem;">' + periode + '</td>'
-          + '<td data-label="Tanggal Pengajuan">' + item.tanggalPengajuan + '</td>'
+          + '<td data-label="Periode" style="font-size: 0.75rem;">' + escapeHtml(periode) + '</td>'
+          + '<td data-label="Tanggal Pengajuan">' + escapeHtml(tglAjuFormatted) + '</td>'
           + '<td data-label="Status">' + statusHtml + '</td>'
           + '<td data-label="Aksi">' + actionHtml + '</td>'
           + '</tr>';
@@ -1487,7 +1552,6 @@
         availableNoteEl.textContent = 'Tersedia: ' + String(maxAvail);
       }
 
-      // clamp on input
       jumlahInputEl.addEventListener('input', function clampQty() {
         let v = parseInt(jumlahInputEl.value || '0', 10);
         if (!Number.isFinite(v) || v < 1) v = 1;
@@ -1521,12 +1585,10 @@
         return;
       }
 
-      // try cancel on server first
       (async function () {
         try {
           const resp = await fetch('/api/pengajuan/' + encodeURIComponent(id) + '/cancel', { method: 'POST' });
           if (resp && resp.ok) {
-            // refresh list
             REMOTE_PENGAJUAN = null;
             try { const p = await fetch('/api/pengajuan'); if (p.ok) REMOTE_PENGAJUAN = (await p.json()).items; } catch(e){}
             renderPengajuanTable();
@@ -1535,7 +1597,6 @@
         } catch (e) {
         }
 
-        // fallback to localStorage behavior
         const items = readPengajuan();
         const idx = items.findIndex(function (item) { return item.id === id; });
         if (idx >= 0 && items[idx].status === "pending") {
@@ -1550,7 +1611,6 @@
     renderBarangGrid();
     renderPengajuanTable();
 
-    // Try load server data (inventory + pengajuan). If it fails, keep localStorage fallback.
     (async function loadServerData() {
       try {
         const invResp = await fetch('/api/inventory/items');
@@ -1558,13 +1618,11 @@
           const invJson = await invResp.json();
           if (invJson && Array.isArray(invJson.items)) {
             REMOTE_INVENTORY = invJson.items.map(normalizeBarangFromInventory);
-            // populate category filter from remote
             populateCategoryFilter(REMOTE_INVENTORY);
             renderBarangGrid();
           }
         }
       } catch (e) {
-        // ignore, fallback to local data
       }
 
       try {
@@ -1573,7 +1631,6 @@
           const pJson = await pResp.json();
           if (pJson && Array.isArray(pJson.items)) {
             REMOTE_PENGAJUAN = pJson.items.map(function (it) {
-              // ensure field names match frontend expectations
               return Object.assign({}, it, {
                 jumlahDiminta: it.jumlahDiminta || it.jumlah || it.jumlah_dim || 0,
                 barangNama: it.barangNama || it.barang_name || it.barangNama,
@@ -1584,7 +1641,6 @@
           }
         }
       } catch (e) {
-        // ignore
       }
     })();
 
@@ -1670,7 +1726,6 @@
             body: JSON.stringify(payload),
           });
           if (resp && resp.ok) {
-            // refresh remote pengajuan
             try {
               const p = await fetch('/api/pengajuan');
               if (p.ok) REMOTE_PENGAJUAN = (await p.json()).items;
@@ -1684,7 +1739,6 @@
         } catch (e) {
         }
 
-        // fallback: save locally
         const pengajuan = {
           id: "pjn-" + Date.now(),
           barangId: barangId,
@@ -1696,6 +1750,7 @@
           barangLokasi: barang ? barang.lokasi : "",
           jumlahDiminta: jumlah,
           tanggalPengajuan: today,
+          createdAt: now.toISOString(), // PERBAIKAN: Menambahkan waktu ke backup LocalStorage
           tanggalMulai: tanggalMulai,
           tanggalSelesai: tanggalSelesai,
           tujuan: tujuan,

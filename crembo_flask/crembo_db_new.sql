@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 15.51
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 16.18
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -381,8 +381,8 @@ CREATE TABLE `loan_requests` (
 --
 
 INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`) VALUES
-('pjn-1777789587486', '21', 'inv-005', 'Kabel HDMI 10m', 'CAB-015', '/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg', 3, '2026-05-03', '2026-05-04', '2026-06-07', 'Buat acara kampus', 'cancelled', '2026-05-03 20:26:27', '2026-05-03 20:47:38'),
-('pjn-1777790916500', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 1, '2026-05-03', '2026-05-03', '2026-07-10', 'Buat party ', 'pending', '2026-05-03 20:48:36', '2026-05-03 20:48:36');
+('pjn-1777792029778', '53', 'inv-005', 'Kabel HDMI 10m', 'CAB-015', '/uploads/IMG_1970_52e3f5ef581d4e85b6ba6412fe74fcab.jpg', 1, '2026-05-03', '2026-05-04', '2026-06-27', 'Tes Pinjam HDMI', 'pending', '2026-05-03 21:07:09', '2026-05-03 21:07:09'),
+('pjn-1777792047529', '53', 'inv-1777806307149', 'Kamera FUJIFILM', 'K1232123', '/uploads/IMG_1970_e1f6b2aaba1f45a3a771b826f7e94716.jpg', 1, '2026-05-03', '2026-05-05', '2026-08-14', 'Tes Pinjam Kamera', 'pending', '2026-05-03 21:07:27', '2026-05-03 21:07:27');
 
 -- --------------------------------------------------------
 
