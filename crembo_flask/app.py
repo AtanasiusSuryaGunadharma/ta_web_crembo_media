@@ -1730,10 +1730,12 @@ def ensure_news_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """)
 
+        # PERBAIKAN: Menghapus potongan schema inventory yang tersesat (notes, photos, dll)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news` (
                 `id` VARCHAR(100) PRIMARY KEY,
-             `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
+                `title` VARCHAR(500) NOT NULL,
+                `slug` VARCHAR(500) NOT NULL UNIQUE,
                 `content` LONGTEXT NOT NULL,
                 `summary` TEXT,
                 `thumbnails` JSON,

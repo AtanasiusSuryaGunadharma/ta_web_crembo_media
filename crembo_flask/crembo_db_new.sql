@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 17.27
+-- Waktu pembuatan: 03 Bulan Mei 2026 pada 18.46
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -490,21 +490,22 @@ CREATE TABLE `notifications` (
   `body` text DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   `data` longtext DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `target_role` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `notifications`
 --
 
-INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `created_at`) VALUES
-('notif-1777749531636-663746', 'agenda', 'Agenda Baru: tes notif agenda sudah mulai', 'asad', '/agenda/agenda-1777749531632', '{\"agenda_id\": \"agenda-1777749531632\"}', '2026-05-03 02:18:51'),
-('notif-1777750088225-d0a1cc', 'news', 'Pengumuman Baru: Test Notif Berita', 'Test Notif Berita 1', '/pengumuman/news-1777750088218', '{\"news_id\": \"news-1777750088218\"}', '2026-05-03 02:28:08'),
-('notif-1777750967609-f51b8e', 'form', 'Form Pendaftaran Baru: Tes Notifikasi Form 1 baru', 'asdasdasd', '/form-pendaftaran/form-1777750967591-khe4sg', '{\"form_id\": \"form-1777750967591-khe4sg\"}', '2026-05-03 02:42:47'),
-('notif-1777820573233-4bf139', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777795373228\"}', '2026-05-03 22:02:53'),
-('notif-1777820642443-1dadd8', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777795442439\"}', '2026-05-03 22:04:02'),
-('notif-1777821654313-c5cd27', 'form', 'Pengajuan Peminjaman Baru: Kabel HDMI 10m', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777796454309\"}', '2026-05-03 22:20:54'),
-('notif-1777821683246-e57763', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777796483242\"}', '2026-05-03 22:21:23');
+INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `created_at`, `target_role`) VALUES
+('notif-1777749531636-663746', 'agenda', 'Agenda Baru: tes notif agenda sudah mulai', 'asad', '/agenda/agenda-1777749531632', '{\"agenda_id\": \"agenda-1777749531632\"}', '2026-05-03 02:18:51', NULL),
+('notif-1777750088225-d0a1cc', 'news', 'Pengumuman Baru: Test Notif Berita', 'Test Notif Berita 1', '/pengumuman/news-1777750088218', '{\"news_id\": \"news-1777750088218\"}', '2026-05-03 02:28:08', NULL),
+('notif-1777750967609-f51b8e', 'form', 'Form Pendaftaran Baru: Tes Notifikasi Form 1 baru', 'asdasdasd', '/form-pendaftaran/form-1777750967591-khe4sg', '{\"form_id\": \"form-1777750967591-khe4sg\"}', '2026-05-03 02:42:47', NULL),
+('notif-1777820573233-4bf139', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777795373228\"}', '2026-05-03 22:02:53', NULL),
+('notif-1777820642443-1dadd8', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777795442439\"}', '2026-05-03 22:04:02', NULL),
+('notif-1777821654313-c5cd27', 'form', 'Pengajuan Peminjaman Baru: Kabel HDMI 10m', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777796454309\"}', '2026-05-03 22:20:54', NULL),
+('notif-1777821683246-e57763', 'form', 'Pengajuan Peminjaman Baru: Kamera FUJIFILM', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777796483242\"}', '2026-05-03 22:21:23', NULL);
 
 -- --------------------------------------------------------
 
