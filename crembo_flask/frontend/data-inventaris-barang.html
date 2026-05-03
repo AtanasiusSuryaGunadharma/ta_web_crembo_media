@@ -512,6 +512,91 @@
       gap: 6px;
     }
 
+    .unit-detail-panel {
+      grid-column: 1 / -1;
+    }
+
+    .unit-detail-summary {
+      border: 1px solid #d4d4d4;
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .unit-detail-summary strong {
+      font-size: 0.92rem;
+    }
+
+    .unit-detail-summary small {
+      color: #606060;
+    }
+
+    .unit-detail-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .unit-detail-row {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .unit-detail-row-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .unit-detail-row-head strong {
+      font-size: 0.9rem;
+    }
+
+    .unit-detail-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .unit-detail-fields {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .unit-detail-fields select,
+    .unit-detail-fields input {
+      width: 100%;
+    }
+
+    .unit-detail-empty {
+      border: 1px dashed #bdbdbd;
+      background: #fbfbfb;
+      border-radius: 10px;
+      padding: 10px;
+      color: #5b5b5b;
+      font-size: 0.86rem;
+    }
+
+    .unit-reason-note {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #606060;
+    }
+
     .photo-preview-note {
       margin: 0;
       font-size: 0.79rem;
@@ -883,8 +968,8 @@
           </div>
           <div class="field">
             <label for="itemAvailableInput">Unit Tersedia</label>
-            <input id="itemAvailableInput" name="availableUnit" type="number" min="0" step="1" required>
-            <p class="help-note">Nilainya mengikuti total unit saat stok lebih dari 1.</p>
+            <input id="itemAvailableInput" name="availableUnit" type="number" min="0" step="1" required readonly>
+            <p class="help-note">Dihitung otomatis dari status per unit.</p>
           </div>
           <div class="field">
             <label for="itemConditionInput">Kondisi</label>
@@ -904,6 +989,13 @@
               <option value="Hilang">Hilang</option>
             </select>
           </div>
+        </div>
+
+        <div class="field unit-detail-panel">
+          <label>Status per Unit</label>
+          <div id="unitDetailSummary" class="unit-detail-summary"></div>
+          <div id="unitDetailList" class="unit-detail-list"></div>
+          <p class="help-note">Status tersedia dihitung dari rincian tiap unit. Jika status diubah ke Tersedia, unit itu otomatis ikut dihitung tersedia.</p>
         </div>
 
         <label class="inline-toggle" for="itemBorrowableToggle">
@@ -1096,6 +1188,8 @@
     const itemConditionInput = document.getElementById("itemConditionInput");
     const itemStatusInput = document.getElementById("itemStatusInput");
     const itemNotesInput = document.getElementById("itemNotesInput");
+    const unitDetailSummary = document.getElementById("unitDetailSummary");
+    const unitDetailList = document.getElementById("unitDetailList");
     const itemPhotoInput = document.getElementById("itemPhotoInput");
     const itemPhotoPreview = document.getElementById("itemPhotoPreview");
     const itemPhotoHint = document.getElementById("itemPhotoHint");
@@ -1111,10 +1205,12 @@
 
     let editingItemId = "";
     let pendingPhotoData = [];
+    let pendingUnitDetails = [];
     let categoryEditOriginal = "";
 
     const DEFAULT_CATEGORIES = ["Kamera", "Audio", "Aksesori", "Switcher", "Kabel", "Lighting", "Lainnya"];
     const INVENTORY_API_BASE = "/api/inventory";
+    const INVENTORY_UNIT_STATUSES = ["Tersedia", "Dipinjam", "Perbaikan", "Hilang"];
 
     let inventoryCache = [];
     let categoryCache = [];
@@ -1183,6 +1279,151 @@
       return (Array.isArray(photos) ? photos : [])
         .map(normalizePhotoRecord)
         .filter(Boolean);
+    }
+
+    function unitReasonForStatus(status) {
+      if (status === "Dipinjam") {
+        return "Sedang digunakan";
+      }
+      if (status === "Perbaikan") {
+        return "Sedang diperbaiki";
+      }
+      if (status === "Hilang") {
+        return "Belum ditemukan";
+      }
+      return "";
+    }
+
+    function normalizeUnitDetail(unit, index, fallbackStatus) {
+      const raw = unit && typeof unit === "object" ? unit : {};
+      let status = String(raw.status || fallbackStatus || "Tersedia").trim();
+      if (INVENTORY_UNIT_STATUSES.indexOf(status) === -1) {
+        status = "Tersedia";
+      }
+      let reason = String(raw.reason || raw.note || raw.keterangan || "").trim();
+      if (!reason && status !== "Tersedia") {
+        reason = unitReasonForStatus(status);
+      }
+      return {
+        index: index + 1,
+        label: "Unit " + (index + 1),
+        status: status,
+        reason: reason,
+        available: status === "Tersedia"
+      };
+    }
+
+    function normalizeUnitDetails(unitDetails, totalUnit, availableUnit, fallbackStatus) {
+      const totalValue = Math.max(1, normalizeNumber(totalUnit, 1));
+      const source = Array.isArray(unitDetails) ? unitDetails : [];
+      const availableTarget = Math.min(totalValue, normalizeNumber(availableUnit, totalValue));
+      const fallback = INVENTORY_UNIT_STATUSES.indexOf(fallbackStatus) !== -1
+        ? fallbackStatus
+        : (availableTarget < totalValue ? "Dipinjam" : "Tersedia");
+
+      return Array.from({ length: totalValue }, function (_, index) {
+        const raw = source[index] || null;
+        const detail = normalizeUnitDetail(raw, index, fallback);
+        if (!raw) {
+          if (index < availableTarget) {
+            detail.status = "Tersedia";
+            detail.reason = "";
+            detail.available = true;
+          } else {
+            detail.status = fallback;
+            detail.reason = detail.reason || unitReasonForStatus(fallback);
+            detail.available = false;
+          }
+        }
+        return detail;
+      });
+    }
+
+    function countAvailableUnitDetails(unitDetails) {
+      return (Array.isArray(unitDetails) ? unitDetails : []).filter(function (unit) {
+        return unit && unit.status === "Tersedia";
+      }).length;
+    }
+
+    function resizePendingUnitDetails(totalUnit) {
+      const totalValue = Math.max(1, normalizeNumber(totalUnit, 1));
+      const source = Array.isArray(pendingUnitDetails) ? pendingUnitDetails.slice(0, totalValue) : [];
+      while (source.length < totalValue) {
+        source.push(normalizeUnitDetail(null, source.length, itemStatusInput.value || "Tersedia"));
+      }
+      pendingUnitDetails = source.map(function (unit, index) {
+        return normalizeUnitDetail(unit, index, itemStatusInput.value || "Tersedia");
+      });
+    }
+
+    function deriveInventoryStatus(unitDetails, fallbackStatus) {
+      const statuses = (Array.isArray(unitDetails) ? unitDetails : []).map(function (unit) {
+        return String(unit && unit.status || "").trim();
+      });
+
+      if (!statuses.length || statuses.every(function (status) { return status === "Tersedia"; })) {
+        return "Tersedia";
+      }
+      if (statuses.indexOf("Dipinjam") !== -1) {
+        return "Dipinjam";
+      }
+      if (statuses.indexOf("Perbaikan") !== -1) {
+        return "Perbaikan";
+      }
+      if (statuses.indexOf("Hilang") !== -1) {
+        return "Hilang";
+      }
+      return fallbackStatus || "Tersedia";
+    }
+
+    function renderUnitDetailEditor() {
+      if (!unitDetailList || !unitDetailSummary) {
+        return;
+      }
+
+      if (!isMultiUnitEnabled()) {
+        unitDetailSummary.innerHTML = '<strong>Status per unit nonaktif</strong><small>Aktifkan stok lebih dari 1 untuk mengatur status tiap unit.</small>';
+        unitDetailList.innerHTML = '<div class="unit-detail-empty">Barang unit tunggal menggunakan status umum.</div>';
+        itemAvailableInput.value = "1";
+        return;
+      }
+
+      const totalValue = Math.max(1, normalizeNumber(itemTotalInput.value, 1));
+      pendingUnitDetails = normalizeUnitDetails(pendingUnitDetails, totalValue, countAvailableUnitDetails(pendingUnitDetails), itemStatusInput.value || "Tersedia");
+
+      const availableCount = countAvailableUnitDetails(pendingUnitDetails);
+      const borrowedCount = Math.max(totalValue - availableCount, 0);
+      const breakdown = INVENTORY_UNIT_STATUSES.map(function (status) {
+        return status + ": " + pendingUnitDetails.filter(function (unit) {
+          return unit.status === status;
+        }).length;
+      }).join(" | ");
+      const derivedStatus = deriveInventoryStatus(pendingUnitDetails, itemStatusInput.value || "Tersedia");
+
+      itemAvailableInput.value = String(availableCount);
+      itemStatusInput.value = derivedStatus;
+
+      unitDetailSummary.innerHTML =
+        '<strong>' + totalValue + ' unit terdata</strong>' +
+        '<small>' + availableCount + ' tersedia, ' + borrowedCount + ' tidak tersedia</small>' +
+        '<small>' + breakdown + '</small>';
+
+      unitDetailList.innerHTML = pendingUnitDetails.map(function (unit, index) {
+        const reasonPlaceholder = unit.status === "Tersedia" ? "Opsional" : unitReasonForStatus(unit.status);
+        return '<div class="unit-detail-row" data-unit-index="' + index + '">' +
+          '<div class="unit-detail-row-head">' +
+            '<strong>' + escapeHtml(unit.label) + '</strong>' +
+            '<span class="unit-detail-badge">' + escapeHtml(unit.status) + '</span>' +
+          '</div>' +
+          '<div class="unit-detail-fields">' +
+            '<label class="field"><span class="help-note">Status unit</span><select class="unit-status-select" data-unit-status="' + index + '">' + INVENTORY_UNIT_STATUSES.map(function (status) {
+              return '<option value="' + escapeHtml(status) + '"' + (status === unit.status ? ' selected' : '') + '>' + escapeHtml(status) + '</option>';
+            }).join('') + '</select></label>' +
+            '<label class="field"><span class="help-note">Alasan / catatan</span><input class="unit-reason-input" data-unit-reason="' + index + '" type="text" placeholder="' + escapeHtml(reasonPlaceholder) + '" value="' + escapeHtml(unit.reason || '') + '"></label>' +
+          '</div>' +
+          '<p class="unit-reason-note">Jika status dipilih Tersedia, alasan boleh dikosongkan.</p>' +
+        '</div>';
+      }).join('');
     }
 
     async function loadInventoryState() {
@@ -1264,29 +1505,14 @@
       }).format(numberValue);
     }
 
-    function formatCurrency(value) {
-      if (value === null || value === undefined || value === "") {
-        return "-";
-      }
-
-      const numberValue = Number(value);
-      if (Number.isNaN(numberValue)) {
-        return "-";
-      }
-
-      return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        maximumFractionDigits: 0
-      }).format(numberValue);
-    }
-
     function normalizeItem(item, index) {
       const totalUnit = Math.max(1, normalizeNumber(item && item.totalUnit, 1));
-      const availableUnit = Math.min(totalUnit, normalizeNumber(item && item.availableUnit, totalUnit));
+      const photos = cloneInventoryPhotos(item && item.photos ? item.photos : (item && item.photo ? [item.photo] : []));
+      const unitDetails = normalizeUnitDetails(item && item.unitDetails ? item.unitDetails : [], totalUnit, item && item.availableUnit, item && item.status ? item.status : "Tersedia");
+      const availableUnit = countAvailableUnitDetails(unitDetails);
       const borrowedUnit = totalUnit - availableUnit;
       const hasMultiple = totalUnit > 1;
-      const photos = cloneInventoryPhotos(item && item.photos ? item.photos : (item && item.photo ? [item.photo] : []));
+      const defaultStatus = availableUnit > 0 ? "Tersedia" : "Dipinjam";
       return {
         id: String(item && item.id ? item.id : "inv-" + (index + 1)),
         code: String(item && item.code ? item.code : "INV-" + String(index + 1).padStart(3, "0")).trim().toUpperCase(),
@@ -1298,7 +1524,7 @@
         hasMultiple: item && typeof item.hasMultiple === "boolean" ? item.hasMultiple : hasMultiple,
         canBorrow: item && typeof item.canBorrow === "boolean" ? item.canBorrow : true,
         condition: String(item && item.condition ? item.condition : "Baik").trim(),
-        status: String(item && item.status ? item.status : (availableUnit > 0 ? "Tersedia" : "Dipinjam")).trim(),
+        status: deriveInventoryStatus(unitDetails, String(item && item.status ? item.status : defaultStatus).trim()),
         location: String(item && item.location ? item.location : "Gudang").trim(),
         purchaseDate: String(item && item.purchaseDate ? item.purchaseDate : "").trim(),
         purchasePrice: item && item.purchasePrice !== undefined && item.purchasePrice !== null && String(item.purchasePrice).trim() !== ""
@@ -1307,6 +1533,7 @@
         notes: String(item && item.notes ? item.notes : "").trim(),
         photo: photos.length ? photos[0].url : "",
         photos: photos,
+        unitDetails: unitDetails,
         updatedAt: item && item.updatedAt ? String(item.updatedAt) : new Date().toISOString(),
         createdAt: item && item.createdAt ? String(item.createdAt) : ""
       };
@@ -1461,14 +1688,23 @@
       const shouldEnable = !!enabled;
       itemMultiUnitToggle.checked = shouldEnable;
       itemTotalInput.disabled = !shouldEnable;
-      itemAvailableInput.disabled = !shouldEnable;
+      itemAvailableInput.disabled = true;
+      itemAvailableInput.readOnly = true;
 
       itemTotalInput.closest(".field").classList.toggle("field-disabled", !shouldEnable);
-      itemAvailableInput.closest(".field").classList.toggle("field-disabled", !shouldEnable);
+      itemAvailableInput.closest(".field").classList.toggle("field-disabled", false);
 
       if (!shouldEnable && !keepValue) {
         itemTotalInput.value = 1;
         itemAvailableInput.value = 1;
+        pendingUnitDetails = [];
+        renderUnitDetailEditor();
+        itemStatusInput.disabled = false;
+      }
+
+      if (shouldEnable) {
+        itemStatusInput.disabled = true;
+        renderUnitDetailEditor();
       }
     }
 
@@ -1491,7 +1727,8 @@
 
       const totalValue = Math.max(1, normalizeNumber(itemTotalInput.value, 1));
       itemTotalInput.value = totalValue;
-      itemAvailableInput.value = Math.min(totalValue, normalizeNumber(itemAvailableInput.value, totalValue));
+      resizePendingUnitDetails(totalValue);
+      renderUnitDetailEditor();
     }
 
     function setPhotoPreview(photoDataUrl) {
@@ -1722,6 +1959,7 @@
     function resetForm() {
       editingItemId = "";
       pendingPhotoData = [];
+      pendingUnitDetails = [];
       inventoryForm.reset();
       inventoryFormTitle.textContent = "Tambah Barang Inventaris";
       itemPurchaseDateInput.value = "";
@@ -1730,6 +1968,7 @@
       setMultiUnitMode(false, false);
       setBorrowableMode(true);
       populateCategorySelect();
+      renderUnitDetailEditor();
     }
 
     function openFormForCreate() {
@@ -1739,6 +1978,7 @@
       setBorrowableMode(true);
       itemPurchaseDateInput.value = "";
       inventoryFormModal.hidden = false;
+      renderUnitDetailEditor();
     }
 
     function openFormForEdit(itemId) {
@@ -1759,10 +1999,11 @@
       itemPurchasePriceInput.value = item.purchasePrice === null || item.purchasePrice === undefined ? "" : String(item.purchasePrice);
       setMultiUnitMode(!!item.hasMultiple || item.totalUnit > 1, true);
       itemTotalInput.value = item.totalUnit;
-      itemAvailableInput.value = item.availableUnit;
       itemConditionInput.value = item.condition;
       setBorrowableMode(item.canBorrow !== false);
       itemStatusInput.value = item.status;
+      pendingUnitDetails = normalizeUnitDetails(item.unitDetails || [], item.totalUnit, item.availableUnit, item.status);
+      renderUnitDetailEditor();
       itemNotesInput.value = item.notes;
       pendingPhotoData = getItemPhotos(item);
       itemPhotoInput.value = "";
@@ -1789,10 +2030,16 @@
             return '<figure><img src="' + escapeHtml(photo.url) + '" alt="' + escapeHtml(photo.name || item.name) + '"><figcaption>' + escapeHtml(photo.name || item.name) + '</figcaption></figure>';
           }).join("") + '</div></li>'
         : '<li><strong>Foto Barang:</strong> -</li>';
+      const unitMarkup = (item.unitDetails && item.unitDetails.length)
+        ? '<li><strong>Status per Unit:</strong><div class="detail-list">' + item.unitDetails.map(function (unit) {
+            return '<div class="unit-detail-row"><div class="unit-detail-row-head"><strong>' + escapeHtml(unit.label || ("Unit " + (unit.index || 1))) + '</strong><span class="unit-detail-badge">' + escapeHtml(unit.status || "Tersedia") + '</span></div><div class="unit-detail-fields"><div><span class="help-note">Status</span><div>' + escapeHtml(unit.status || "Tersedia") + '</div></div><div><span class="help-note">Alasan</span><div>' + escapeHtml(unit.reason || "-") + '</div></div></div></div>';
+          }).join("") + '</div></li>'
+        : '<li><strong>Status per Unit:</strong> -</li>';
 
       inventoryDetailBody.innerHTML =
         '<ul class="detail-list">' +
           photoMarkup +
+          unitMarkup +
           '<li><strong>Kode Barang:</strong> ' + escapeHtml(item.code) + '</li>' +
           '<li><strong>Nama Barang:</strong> ' + escapeHtml(item.name) + '</li>' +
           '<li><strong>Kategori:</strong> ' + escapeHtml(item.category) + '</li>' +
@@ -1827,12 +2074,17 @@
       const purchasePrice = purchasePriceRaw === "" ? null : normalizeNumber(purchasePriceRaw, 0);
       const multiUnit = isMultiUnitEnabled();
       const totalUnit = multiUnit ? Math.max(1, normalizeNumber(itemTotalInput.value, 1)) : 1;
-      const availableUnit = multiUnit ? Math.min(totalUnit, normalizeNumber(itemAvailableInput.value, totalUnit)) : 1;
+      const availableUnit = multiUnit ? countAvailableUnitDetails(pendingUnitDetails) : 1;
       const canBorrow = !!itemBorrowableToggle.checked;
       const condition = itemConditionInput.value;
-      const status = canBorrow ? itemStatusInput.value : "Tersedia";
+      const status = multiUnit ? deriveInventoryStatus(pendingUnitDetails, itemStatusInput.value) : (canBorrow ? itemStatusInput.value : "Tersedia");
       const notes = itemNotesInput.value.trim();
       const photos = cloneInventoryPhotos(pendingPhotoData);
+      const unitDetails = multiUnit
+        ? pendingUnitDetails.map(function (unit, index) {
+            return normalizeUnitDetail(unit, index, status);
+          })
+        : [normalizeUnitDetail({ status: status }, 0, status)];
       const payload = {
         code: code,
         name: name,
@@ -1848,6 +2100,7 @@
         status: status,
         notes: notes,
         photos: photos,
+        unitDetails: unitDetails,
       };
 
       (async function () {
@@ -2001,6 +2254,32 @@
     });
     itemTotalInput.addEventListener("input", syncQuantityFields);
     itemAvailableInput.addEventListener("input", syncQuantityFields);
+    unitDetailList.addEventListener("change", function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLSelectElement || target instanceof HTMLInputElement)) {
+        return;
+      }
+
+      const statusIndex = Number(target.getAttribute("data-unit-status"));
+      const reasonIndex = Number(target.getAttribute("data-unit-reason"));
+      if (!Number.isNaN(statusIndex) && target instanceof HTMLSelectElement) {
+        pendingUnitDetails[statusIndex] = normalizeUnitDetail({
+          status: target.value,
+          reason: target.value === "Tersedia" ? "" : (pendingUnitDetails[statusIndex] && pendingUnitDetails[statusIndex].reason) || unitReasonForStatus(target.value)
+        }, statusIndex, target.value);
+        renderUnitDetailEditor();
+        return;
+      }
+
+      if (!Number.isNaN(reasonIndex) && target instanceof HTMLInputElement) {
+        const current = pendingUnitDetails[reasonIndex] || normalizeUnitDetail(null, reasonIndex, itemStatusInput.value || "Tersedia");
+        pendingUnitDetails[reasonIndex] = normalizeUnitDetail({
+          status: current.status,
+          reason: target.value
+        }, reasonIndex, current.status);
+        updateUnitDetailSummary();
+      }
+    });
     inventoryForm.addEventListener("submit", saveFormData);
 
     closeInventoryDetailBtn.addEventListener("click", closeDetailModal);

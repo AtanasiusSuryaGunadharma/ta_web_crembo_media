@@ -306,10 +306,112 @@ def normalize_inventory_photos(value) -> list[dict[str, object]]:
     return normalized
 
 
+INVENTORY_UNIT_STATUSES = {"Tersedia", "Dipinjam", "Perbaikan", "Hilang"}
+
+
+def inventory_unit_reason_for_status(status: str) -> str:
+    return {
+        "Dipinjam": "Sedang digunakan",
+        "Perbaikan": "Sedang diperbaiki",
+        "Hilang": "Belum ditemukan",
+    }.get(normalize_text(status), "")
+
+
+def normalize_inventory_unit_detail(value, index: int, fallback_status: str = "Tersedia") -> dict[str, object]:
+    raw = value if isinstance(value, dict) else {}
+    if isinstance(value, str):
+        raw_status = normalize_text(value)
+        if raw_status in INVENTORY_UNIT_STATUSES:
+            raw = {"status": raw_status}
+    status = normalize_text(raw.get("status")) or normalize_text(fallback_status) or "Tersedia"
+    if status not in INVENTORY_UNIT_STATUSES:
+        status = "Tersedia"
+    reason = normalize_text(raw.get("reason") or raw.get("note") or raw.get("keterangan"))
+    if not reason and status != "Tersedia":
+        reason = inventory_unit_reason_for_status(status)
+    return {
+        "index": index + 1,
+        "label": f"Unit {index + 1}",
+        "status": status,
+        "reason": reason,
+        "available": status == "Tersedia",
+    }
+
+
+def normalize_inventory_unit_details(value, total_unit: int, available_unit: int | None = None, fallback_status: str = "Tersedia") -> list[dict[str, object]]:
+    total = max(1, parse_required_int(total_unit, 1))
+    raw_items = safe_json_loads(value, [])
+    if isinstance(raw_items, dict):
+        raw_items = [raw_items]
+    if not isinstance(raw_items, list):
+        raw_items = []
+
+    normalized: list[dict[str, object]] = []
+    available_target = total if available_unit is None else max(0, min(total, parse_required_int(available_unit, total)))
+    fallback = normalize_text(fallback_status) or "Tersedia"
+    if fallback not in INVENTORY_UNIT_STATUSES:
+        fallback = "Dipinjam"
+    if fallback == "Tersedia" and available_target < total:
+        fallback = "Dipinjam"
+
+    for index in range(total):
+        raw_item = raw_items[index] if index < len(raw_items) else {}
+        if not isinstance(raw_item, dict):
+            raw_item = {}
+        detail = normalize_inventory_unit_detail(raw_item, index, fallback_status=fallback)
+        if index >= len(raw_items):
+            if index < available_target:
+                detail["status"] = "Tersedia"
+                detail["reason"] = ""
+                detail["available"] = True
+            else:
+                detail["status"] = fallback
+                detail["reason"] = inventory_unit_reason_for_status(fallback) or detail["reason"]
+                detail["available"] = False
+        normalized.append(detail)
+
+    return normalized
+
+
+def inventory_status_from_unit_details(unit_details: list[dict[str, object]], fallback: str = "Tersedia") -> str:
+    statuses = [normalize_text(unit.get("status")) for unit in unit_details if isinstance(unit, dict)]
+    if not statuses or all(status == "Tersedia" for status in statuses):
+        return "Tersedia"
+    if any(status == "Dipinjam" for status in statuses):
+        return "Dipinjam"
+    if any(status == "Perbaikan" for status in statuses):
+        return "Perbaikan"
+    if any(status == "Hilang" for status in statuses):
+        return "Hilang"
+    return normalize_text(fallback) or "Tersedia"
+
+
+def inventory_unit_details_text(unit_details: list[dict[str, object]]) -> str:
+    parts: list[str] = []
+    for unit in unit_details:
+        if not isinstance(unit, dict):
+            continue
+        label = normalize_text(unit.get("label")) or f"Unit {unit.get('index') or len(parts) + 1}"
+        status = normalize_text(unit.get("status")) or "Tersedia"
+        reason = normalize_text(unit.get("reason"))
+        if reason:
+            parts.append(f"{label}: {status} - {reason}")
+        else:
+            parts.append(f"{label}: {status}")
+    return "; ".join(parts)
+
+
 def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
     photos = normalize_inventory_photos(safe_json_loads(row.get("photos"), []))
     total_unit = parse_required_int(row.get("total_unit"), 1)
-    available_unit = min(total_unit, parse_required_int(row.get("available_unit"), total_unit))
+    fallback_status = normalize_text(row.get("status")) or "Tersedia"
+    unit_details = normalize_inventory_unit_details(
+        safe_json_loads(row.get("unit_details"), []),
+        total_unit,
+        parse_required_int(row.get("available_unit"), total_unit),
+        fallback_status=fallback_status,
+    )
+    available_unit = sum(1 for unit in unit_details if unit.get("status") == "Tersedia")
     purchase_date = row.get("purchase_date")
     purchase_price = row.get("purchase_price")
     updated_at = row.get("updated_at")
@@ -329,9 +431,10 @@ def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "hasMultiple": bool(row.get("has_multiple")),
         "canBorrow": bool(row.get("can_borrow", True)),
         "condition": normalize_text(row.get("condition")) or "Baik",
-        "status": normalize_text(row.get("status")) or "Tersedia",
+        "status": inventory_status_from_unit_details(unit_details, fallback=fallback_status),
         "notes": normalize_text(row.get("notes")),
         "photos": photos,
+        "unitDetails": unit_details,
         "photo": photo_url,
         "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at),
         "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else normalize_text(updated_at),
@@ -442,6 +545,7 @@ def ensure_inventory_schema(cursor) -> None:
           `status` varchar(50) NOT NULL DEFAULT 'Tersedia',
           `notes` text DEFAULT NULL,
           `photos` longtext DEFAULT NULL,
+            `unit_details` longtext DEFAULT NULL,
           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
@@ -451,6 +555,7 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
+        ensure_column(cursor, "inventory_items", "unit_details", "`unit_details` longtext DEFAULT NULL")
 
     cursor.execute("SELECT COUNT(*) FROM `inventory_categories`")
     if cursor.fetchone()[0] == 0:
@@ -469,8 +574,8 @@ def ensure_inventory_schema(cursor) -> None:
             cursor.execute(
                 """
                 INSERT INTO `inventory_items`
-                (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`, `unit_details`)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     item.get("id") or f"inv-{index:03d}",
@@ -488,6 +593,15 @@ def ensure_inventory_schema(cursor) -> None:
                     item.get("status") or "Tersedia",
                     item.get("notes") or "",
                     json.dumps(item.get("photos") or [], ensure_ascii=False),
+                    json.dumps(
+                        normalize_inventory_unit_details(
+                            item.get("unitDetails"),
+                            int(item.get("totalUnit") or 1),
+                            int(item.get("availableUnit") or 1),
+                            fallback_status=item.get("status") or "Tersedia",
+                        ),
+                        ensure_ascii=False,
+                    ),
                 ),
             )
 
@@ -540,17 +654,13 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
     total_unit = max(1, total_unit)
     available_unit = parse_required_int(data.get("availableUnit"), total_unit) if has_multiple else 1
     available_unit = min(total_unit, max(0, available_unit))
+    fallback_status = normalize_text(data.get("status")) or (normalize_text(existing.get("status")) if existing else "Tersedia")
     purchase_date = parse_optional_date(data.get("purchaseDate"))
     purchase_price = parse_optional_int(data.get("purchasePrice"))
     can_borrow = bool(data.get("canBorrow", True))
     condition = normalize_text(data.get("condition")) or "Baik"
     if condition not in {"Baik", "Rusak Ringan", "Rusak Berat", "Hilang"}:
         condition = "Baik"
-    status = normalize_text(data.get("status")) or "Tersedia"
-    if status not in {"Tersedia", "Dipinjam", "Perbaikan", "Hilang"}:
-        status = "Tersedia"
-    if not can_borrow and status == "Dipinjam":
-        status = "Tersedia"
     notes = normalize_text(data.get("notes"))
 
     if data.get("photos") is not None:
@@ -561,6 +671,17 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
         photos = normalize_inventory_photos(safe_json_loads(existing.get("photos"), []))
     else:
         photos = []
+
+    unit_details_source = data.get("unitDetails")
+    if unit_details_source is None and existing is not None:
+        unit_details_source = safe_json_loads(existing.get("unit_details"), [])
+    unit_details = normalize_inventory_unit_details(unit_details_source, total_unit, available_unit, fallback_status=fallback_status)
+    available_unit = sum(1 for unit in unit_details if unit.get("status") == "Tersedia")
+    status = inventory_status_from_unit_details(unit_details, fallback=fallback_status)
+    if status not in INVENTORY_UNIT_STATUSES:
+        status = "Tersedia"
+    if not can_borrow and status == "Dipinjam":
+        status = "Tersedia"
 
     return {
         "code": code,
@@ -577,6 +698,7 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
         "status": status,
         "notes": notes,
         "photos": photos,
+        "unit_details": unit_details,
     }
 
 
@@ -594,6 +716,7 @@ def inventory_export_rows(items: list[dict[str, object]]):
         "Bisa Dipinjam",
         "Kondisi",
         "Status",
+        "Rincian Unit",
         "Foto",
         "Keterangan",
         "Update Terakhir",
@@ -631,6 +754,7 @@ def inventory_export_rows(items: list[dict[str, object]]):
             "Ya" if item.get("canBorrow") else "Tidak",
             normalize_text(item.get("condition")),
             normalize_text(item.get("status")),
+            inventory_unit_details_text(item.get("unitDetails") or []),
             photo_label,
             normalize_text(item.get("notes")) or "-",
             normalize_text(item.get("updatedAt")) or "-",
@@ -646,8 +770,8 @@ def fetch_inventory_items_for_report(cursor, filters: dict[str, str]) -> list[di
     cursor.execute(
         """
         SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-               `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
-               `notes`, `photos`, `created_at`, `updated_at`
+                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                   `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
         FROM `inventory_items`
         ORDER BY `updated_at` DESC, `code` ASC
         """
@@ -777,9 +901,9 @@ def get_inventory_items():
     try:
         cursor.execute(
             """
-            SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
-                   `notes`, `photos`, `created_at`, `updated_at`
+             SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
+                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                 `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
             FROM `inventory_items`
             ORDER BY `updated_at` DESC, `code` ASC
             """
@@ -819,9 +943,9 @@ def get_inventory_item(item_id):
     try:
         cursor.execute(
             """
-            SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
-                   `notes`, `photos`, `created_at`, `updated_at`
+             SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
+                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                 `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
             FROM `inventory_items`
             WHERE `id` = %s
             LIMIT 1
@@ -855,8 +979,8 @@ def create_inventory_item():
         cursor.execute(
             """
             INSERT INTO `inventory_items`
-            (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`, `unit_details`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 item_id,
@@ -874,6 +998,7 @@ def create_inventory_item():
                 payload["status"],
                 payload["notes"],
                 json.dumps(payload["photos"], ensure_ascii=False),
+                json.dumps(payload["unit_details"], ensure_ascii=False),
             ),
         )
         conn.commit()
@@ -890,8 +1015,8 @@ def get_inventory_item_response(cursor, item_id: str) -> dict[str, object]:
     cursor.execute(
         """
         SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-               `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
-               `notes`, `photos`, `created_at`, `updated_at`
+         `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+         `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
         FROM `inventory_items`
         WHERE `id` = %s
         LIMIT 1
@@ -943,7 +1068,8 @@ def update_inventory_item(item_id):
                 `condition` = %s,
                 `status` = %s,
                 `notes` = %s,
-                `photos` = %s
+                `photos` = %s,
+                `unit_details` = %s
             WHERE `id` = %s
             """,
             (
@@ -961,6 +1087,7 @@ def update_inventory_item(item_id):
                 payload["status"],
                 payload["notes"],
                 json.dumps(new_photos, ensure_ascii=False),
+                json.dumps(payload["unit_details"], ensure_ascii=False),
                 item_id,
             ),
         )
@@ -1241,8 +1368,8 @@ def ensure_news_schema() -> None:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news_categories` (
                 `id` VARCHAR(100) PRIMARY KEY,
-                `name` VARCHAR(255) NOT NULL UNIQUE,
-                `slug` VARCHAR(255) NOT NULL UNIQUE,
+                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                 `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
                 `description` TEXT,
                 `order_index` INT DEFAULT 0,
                 `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -1253,8 +1380,8 @@ def ensure_news_schema() -> None:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news` (
                 `id` VARCHAR(100) PRIMARY KEY,
-                `title` VARCHAR(500) NOT NULL,
-                `slug` VARCHAR(500) NOT NULL UNIQUE,
+             `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+             `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
                 `content` LONGTEXT NOT NULL,
                 `summary` TEXT,
                 `thumbnails` JSON,
