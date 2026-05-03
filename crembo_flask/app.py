@@ -1704,6 +1704,37 @@ def update_pengajuan_status(pengajuan_id):
             """,
             (new_status, admin_note, admin_name, approved_at, pengajuan_id)
         )
+        
+        # --- PERBAIKAN: Kirim Notifikasi ke User/Anggota ---
+        try:
+            ensure_notifications_schema()
+            # Ambil detail barang dan user dari pengajuan untuk isi notif
+            barang_name = req.get("barang_name", "Barang")
+            member_id = req.get("member_id")
+            
+            if member_id: # Pastikan pengajuan ini milik seorang user yang terdaftar
+                status_label = "Disetujui" if new_status == "approved" else ("Ditolak" if new_status == "rejected" else ("Dibatalkan" if new_status == "cancelled" else new_status))
+                
+                notif_title = f"Peminjaman {status_label}: {barang_name}"
+                notif_body = f"Pengajuan peminjaman Anda untuk {barang_name} telah {status_label.lower()} oleh Admin."
+                if admin_note:
+                    notif_body += f" Catatan: {admin_note}"
+
+                # Buat notifikasi dengan tipe 'peminjaman' dan target_role 'user'
+                # Kita letakkan member_id di data JSON agar frontend bisa memfilternya
+                nid = create_notification(
+                    cursor, 
+                    "peminjaman", 
+                    notif_title, 
+                    notif_body, 
+                    url_for('dashboard_anggota') if False else "/pengajuan-peminjaman-barang-anggota.html", 
+                    {"pengajuan_id": pengajuan_id, "target_user_id": member_id}, 
+                    target_role="user"
+                )
+        except Exception as e:
+            print(f"[WARN] Gagal mengirim notifikasi update status peminjaman: {e}")
+        # ---------------------------------------------------
+
         conn.commit()
         return jsonify({"success": True})
         

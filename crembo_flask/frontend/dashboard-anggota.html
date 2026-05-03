@@ -1455,6 +1455,15 @@
       const items = await fetchNotifications();
 
       const filtered = items.filter(function (item) {
+        // --- PERBAIKAN: Filter Notifikasi Personal ---
+        // Jika notifikasi memiliki target_user_id di payload data, cek apakah sesuai dengan ID user kita
+        if (item.data && item.data.target_user_id) {
+            if (String(item.data.target_user_id) !== String(sessionUser.user_id)) {
+                return false; // Bukan untuk user ini, sembunyikan!
+            }
+        }
+        // ---------------------------------------------
+
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
         // Penyesuaian agar filter status berdasarkan item.read
