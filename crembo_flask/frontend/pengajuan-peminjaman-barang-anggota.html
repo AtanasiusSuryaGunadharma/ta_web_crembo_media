@@ -949,6 +949,23 @@
             <header class="panel-head">
               <h2>Pengajuan Peminjaman Saya</h2>
             </header>
+                <div class="filter-bar" style="border-bottom:0;">
+                  <div class="filter-group">
+                    <label>Cari Pengajuan:</label>
+                    <input type="text" id="pengajuanSearchBox" class="search-box" placeholder="Cari barang, kode...">
+                  </div>
+                  <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="pengajuanStatusSelect" class="select-input">
+                      <option value="">Semua</option>
+                      <option value="pending">Menunggu</option>
+                      <option value="approved">Disetujui</option>
+                      <option value="rejected">Ditolak</option>
+                      <option value="taken">Sedang Dipinjam</option>
+                      <option value="returned">Selesai</option>
+                    </select>
+                  </div>
+                </div>
 
             <div class="table-wrap">
               <table>
@@ -989,6 +1006,7 @@
         <div class="form-group">
           <label>Jumlah yang Diminta *</label>
           <input type="number" id="jumlahInput" min="1" max="10" required>
+          <small id="availableNote" style="color:#64748b; display:block; margin-top:6px;">Tersedia: -</small>
         </div>
 
         <div class="form-row">
@@ -1086,6 +1104,10 @@
     const barangSortSelect = document.getElementById("barangSortSelect");
     const barangGrid = document.getElementById("barangGrid");
     const pengajuanTableRows = document.getElementById("pengajuanTableRows");
+    const pengajuanSearchBox = document.getElementById("pengajuanSearchBox");
+    const pengajuanStatusSelect = document.getElementById("pengajuanStatusSelect");
+    let REMOTE_INVENTORY = null;
+    let REMOTE_PENGAJUAN = null;
 
     const formModal = document.getElementById("formModal");
     const detailModal = document.getElementById("detailModal");
@@ -1146,34 +1168,50 @@
     }
 
     function normalizeBarangFromInventory(item) {
-      const availableUnit = Number(item.availableUnit);
-      const totalUnit = Number(item.totalUnit);
-      const borrowedUnit = Number.isFinite(Number(item.borrowedUnit))
-        ? Number(item.borrowedUnit)
-        : Math.max(0, (Number.isFinite(totalUnit) ? totalUnit : 0) - (Number.isFinite(availableUnit) ? availableUnit : 0));
+      // Support new inventory shape with unitDetails (per-unit status)
+      let totalUnit = Number(item.totalUnit ?? item.total ?? 0);
+      let availableUnit = Number(item.availableUnit ?? item.available ?? item.tersedia ?? 0);
+      let borrowedUnit = Number(item.borrowedUnit ?? item.dipinjam ?? 0);
+
+      const unitDetails = Array.isArray(item.unit_details) ? item.unit_details : (Array.isArray(item.unitDetails) ? item.unitDetails : null);
+      if (Array.isArray(unitDetails) && unitDetails.length) {
+        totalUnit = unitDetails.length;
+        const avail = unitDetails.filter(function (u) {
+          const s = String(u.status || u.state || u.statusName || "").toLowerCase();
+          return s === "tersedia" || s === "available";
+        }).length;
+        availableUnit = avail;
+        borrowedUnit = totalUnit - avail;
+      }
 
       return {
         id: String(item.id || item.code || item.name || ""),
         code: String(item.code || item.kode || "-"),
         nama: String(item.name || item.nama || "Barang Inventaris"),
         kategori: String(item.category || item.kategori || "Lainnya"),
-        foto: String(item.photo || item.foto || "").trim(),
+        foto: String(item.photo || item.foto || (Array.isArray(item.photos) && (item.photos[0].url || item.photos[0]) ) || "").trim(),
         tanggalBeli: String(item.purchaseDate || item.tanggalBeli || ""),
         hargaBeli: item.purchasePrice !== undefined ? item.purchasePrice : item.hargaBeli,
         total: Number.isFinite(totalUnit) ? totalUnit : Number(item.total || 0),
         tersedia: Number.isFinite(availableUnit) ? availableUnit : Number(item.tersedia || 0),
-        dipinjam: borrowedUnit,
+        dipinjam: Number.isFinite(borrowedUnit) ? borrowedUnit : 0,
         bisaDipinjam: item.canBorrow !== false,
         kondisi: String(item.condition || item.kondisi || "Baik"),
         status: String(item.status || (Number.isFinite(availableUnit) && availableUnit > 0 ? "Tersedia" : "Dipinjam")),
         lokasi: String(item.location || item.lokasi || "-"),
         catatan: String(item.notes || item.catatan || ""),
         deskripsi: String(item.notes || item.catatan || item.description || item.deskripsi || ""),
+        unitDetails: unitDetails,
         sumber: "admin"
       };
     }
 
     function readBarang() {
+      // prefer remote inventory when available
+      if (Array.isArray(REMOTE_INVENTORY) && REMOTE_INVENTORY.length) {
+        return REMOTE_INVENTORY.slice();
+      }
+
       const adminInventory = safeParse(localStorage.getItem(INVENTORY_STORAGE_KEY), []);
       if (Array.isArray(adminInventory) && adminInventory.length) {
         return adminInventory.map(normalizeBarangFromInventory);
@@ -1204,6 +1242,8 @@
     }
 
     function readPengajuan() {
+      // prefer server-backed pengajuan when available
+      if (Array.isArray(REMOTE_PENGAJUAN)) return REMOTE_PENGAJUAN.slice();
       return safeParse(localStorage.getItem(PENGAJUAN_STORAGE_KEY), []);
     }
 
@@ -1349,10 +1389,18 @@
     }
 
     function renderPengajuanTable() {
-      let items = readPengajuan();
-      
-      // Filter hanya pengajuan milik user saat ini (bisa ditambah user ID check kalau sudah ada auth)
-      items = items.slice().reverse(); // Terbaru di atas
+      // if remote pengajuan available, use it (already filtered by server if needed)
+      let items = readPengajuan() || [];
+      const q = (pengajuanSearchBox && pengajuanSearchBox.value || "").trim().toLowerCase();
+      const statusFilter = (pengajuanStatusSelect && pengajuanStatusSelect.value) || "";
+
+      items = items.filter(function (it) {
+        if (statusFilter) {
+          if (it.status !== statusFilter) return false;
+        }
+        if (!q) return true;
+        return (String(it.barangNama || "").toLowerCase().includes(q) || String(it.barangCode || "").toLowerCase().includes(q));
+      }).slice().reverse(); // newest first
 
       if (!items.length) {
         pengajuanTableRows.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Belum ada pengajuan peminjaman.</td></tr>';
@@ -1377,9 +1425,10 @@
         }
 
         const periode = item.tanggalMulai + " sd " + item.tanggalSelesai;
+        const thumb = item.barangFoto ? '<img src="' + escapeHtml(item.barangFoto) + '" alt="' + escapeHtml(item.barangNama) + '" style="width:64px; height:48px; object-fit:cover; border-radius:6px; margin-right:8px; vertical-align:middle;">' : '<div style="width:64px; height:48px; display:inline-grid; place-items:center; background:#f1f5f9; color:#64748b; border-radius:6px; margin-right:8px;">No</div>';
 
         return '<tr>'
-          + '<td data-label="Barang">' + item.barangNama + '</td>'
+          + '<td data-label="Barang">' + thumb + '<span style="vertical-align:middle;">' + escapeHtml(item.barangNama) + '<div style="font-size:0.78rem; color:#64748b;">' + escapeHtml(item.barangCode || '') + '</div></span></td>'
           + '<td data-label="Jumlah">' + item.jumlahDiminta + '</td>'
           + '<td data-label="Periode" style="font-size: 0.75rem;">' + periode + '</td>'
           + '<td data-label="Tanggal Pengajuan">' + item.tanggalPengajuan + '</td>'
@@ -1402,9 +1451,34 @@
       document.getElementById("tanggalSelesaiInput").value = "";
       document.getElementById("tujuanInput").value = "";
 
-      if (barang) {
-        document.getElementById("jumlahInput").max = String(Math.max(1, barang.tersedia));
+      const jumlahInputEl = document.getElementById("jumlahInput");
+      const availableNoteEl = document.getElementById("availableNote");
+
+      if (!barang) {
+        alert("Barang tidak ditemukan");
+        return;
       }
+
+      const maxAvail = Math.max(0, Number(barang.tersedia || 0));
+      if (maxAvail <= 0) {
+        alert("Maaf, barang ini tidak tersedia untuk dipinjam saat ini.");
+        return;
+      }
+
+      jumlahInputEl.min = "1";
+      jumlahInputEl.max = String(maxAvail);
+      jumlahInputEl.value = "1";
+      if (availableNoteEl) {
+        availableNoteEl.textContent = 'Tersedia: ' + String(maxAvail);
+      }
+
+      // clamp on input
+      jumlahInputEl.addEventListener('input', function clampQty() {
+        let v = parseInt(jumlahInputEl.value || '0', 10);
+        if (!Number.isFinite(v) || v < 1) v = 1;
+        if (v > maxAvail) v = maxAvail;
+        jumlahInputEl.value = String(v);
+      });
 
       formModal.classList.add("show");
     }
@@ -1432,18 +1506,72 @@
         return;
       }
 
-      const items = readPengajuan();
-      const idx = items.findIndex(function (item) { return item.id === id; });
-      if (idx >= 0 && items[idx].status === "pending") {
-        items.splice(idx, 1);
-        savePengajuan(items);
-        renderPengajuanTable();
-      }
+      // try cancel on server first
+      (async function () {
+        try {
+          const resp = await fetch('/api/pengajuan/' + encodeURIComponent(id) + '/cancel', { method: 'POST' });
+          if (resp && resp.ok) {
+            // refresh list
+            REMOTE_PENGAJUAN = null;
+            try { const p = await fetch('/api/pengajuan'); if (p.ok) REMOTE_PENGAJUAN = (await p.json()).items; } catch(e){}
+            renderPengajuanTable();
+            return;
+          }
+        } catch (e) {
+        }
+
+        // fallback to localStorage behavior
+        const items = readPengajuan();
+        const idx = items.findIndex(function (item) { return item.id === id; });
+        if (idx >= 0 && items[idx].status === "pending") {
+          items.splice(idx, 1);
+          savePengajuan(items);
+          renderPengajuanTable();
+        }
+      })();
     }
 
     seedBarangIfEmpty();
     renderBarangGrid();
     renderPengajuanTable();
+
+    // Try load server data (inventory + pengajuan). If it fails, keep localStorage fallback.
+    (async function loadServerData() {
+      try {
+        const invResp = await fetch('/api/inventory/items');
+        if (invResp && invResp.ok) {
+          const invJson = await invResp.json();
+          if (invJson && Array.isArray(invJson.items)) {
+            REMOTE_INVENTORY = invJson.items.map(normalizeBarangFromInventory);
+            // populate category filter from remote
+            populateCategoryFilter(REMOTE_INVENTORY);
+            renderBarangGrid();
+          }
+        }
+      } catch (e) {
+        // ignore, fallback to local data
+      }
+
+      try {
+        const pResp = await fetch('/api/pengajuan');
+        if (pResp && pResp.ok) {
+          const pJson = await pResp.json();
+          if (pJson && Array.isArray(pJson.items)) {
+            REMOTE_PENGAJUAN = pJson.items.map(function (it) {
+              // ensure field names match frontend expectations
+              return Object.assign({}, it, {
+                jumlahDiminta: it.jumlahDiminta || it.jumlah || it.jumlah_dim || 0,
+                barangNama: it.barangNama || it.barang_name || it.barangNama,
+                barangFoto: it.barangFoto || it.barang_photo || '',
+              });
+            });
+            renderPengajuanTable();
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
 
     tabBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -1469,6 +1597,13 @@
       barangFilterSort = event.target.value;
       renderBarangGrid();
     });
+
+    if (pengajuanSearchBox) {
+      pengajuanSearchBox.addEventListener('input', function () { renderPengajuanTable(); });
+    }
+    if (pengajuanStatusSelect) {
+      pengajuanStatusSelect.addEventListener('change', function () { renderPengajuanTable(); });
+    }
 
     formCancelBtn.addEventListener("click", closePengajuanForm);
     modalCloseBtn.addEventListener("click", closePengajuanForm);
@@ -1504,30 +1639,62 @@
       const now = new Date();
       const today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
 
-      const pengajuan = {
-        id: "pjn-" + Date.now(),
-        barangId: barangId,
-        barangNama: barangNama,
-        barangCode: barang ? barang.code : "-",
-        barangFoto: barang ? barang.foto : "",
-        barangKategori: barang ? barang.kategori : "",
-        barangKondisi: barang ? barang.kondisi : "",
-        barangLokasi: barang ? barang.lokasi : "",
-        jumlahDiminta: jumlah,
-        tanggalPengajuan: today,
-        tanggalMulai: tanggalMulai,
-        tanggalSelesai: tanggalSelesai,
-        tujuan: tujuan,
-        status: "pending"
-      };
+      (async function submitToServer() {
+        try {
+          const payload = {
+            barangId: barangId,
+            barangNama: barangNama,
+            jumlahDiminta: jumlah,
+            tanggalMulai: tanggalMulai,
+            tanggalSelesai: tanggalSelesai,
+            tujuan: tujuan,
+          };
+          const resp = await fetch('/api/pengajuan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (resp && resp.ok) {
+            // refresh remote pengajuan
+            try {
+              const p = await fetch('/api/pengajuan');
+              if (p.ok) REMOTE_PENGAJUAN = (await p.json()).items;
+            } catch (e) {}
 
-      const items = readPengajuan();
-      items.push(pengajuan);
-      savePengajuan(items);
+            closePengajuanForm();
+            renderPengajuanTable();
+            alert('Pengajuan peminjaman berhasil diajukan!');
+            return;
+          }
+        } catch (e) {
+        }
 
-      closePengajuanForm();
-      renderPengajuanTable();
-      alert("Pengajuan peminjaman berhasil diajukan!");
+        // fallback: save locally
+        const pengajuan = {
+          id: "pjn-" + Date.now(),
+          barangId: barangId,
+          barangNama: barangNama,
+          barangCode: barang ? barang.code : "-",
+          barangFoto: barang ? barang.foto : "",
+          barangKategori: barang ? barang.kategori : "",
+          barangKondisi: barang ? barang.kondisi : "",
+          barangLokasi: barang ? barang.lokasi : "",
+          jumlahDiminta: jumlah,
+          tanggalPengajuan: today,
+          tanggalMulai: tanggalMulai,
+          tanggalSelesai: tanggalSelesai,
+          tujuan: tujuan,
+          status: "pending"
+        };
+
+        const items = readPengajuan();
+        items.push(pengajuan);
+        savePengajuan(items);
+
+        closePengajuanForm();
+        renderPengajuanTable();
+        alert("Pengajuan peminjaman berhasil diajukan (disimpan lokal)!");
+      })();
     });
   </script>
 <script src="_sidebar-fix.js"></script>

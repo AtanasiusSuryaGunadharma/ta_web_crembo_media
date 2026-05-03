@@ -1347,16 +1347,176 @@ def default_password_from_birth_date(birth_date: str) -> str:
     parts = raw.split("-")
     if len(parts) == 3:
         return f"{parts[2]}/{parts[1]}/{parts[0]}"
-    return raw
+    # Ensure loan requests schema exists and provide current session info
+    return {
+        "logged_in": bool(session.get("logged_in")),
+        "user_id": session.get("user_id"),
+        "username": session.get("username") or "",
+        "nama": session.get("nama") or "",
+        "role": session.get("role") or "",
+        "telp": session.get("telp") or "",
+        "email": session.get("email") or "",
+        "alamat": session.get("alamat") or "",
+    }
 
-def ensure_column(cursor, table_name: str, column_name: str, definition: str) -> None:
+
+def ensure_loan_schema(cursor) -> None:
     cursor.execute(
         """
-        SELECT COUNT(*)
-        FROM information_schema.COLUMNS
-        WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s
-        """,
-        (MYSQL_CONFIG["database"], table_name, column_name),
+        CREATE TABLE IF NOT EXISTS `loan_requests` (
+          `id` varchar(100) NOT NULL,
+          `member_id` varchar(100) DEFAULT NULL,
+          `barang_id` varchar(100) NOT NULL,
+          `barang_name` varchar(255) NOT NULL,
+          `barang_code` varchar(100) DEFAULT NULL,
+          `barang_photo` text DEFAULT NULL,
+          `jumlah` int(11) NOT NULL DEFAULT 1,
+          `tanggal_pengajuan` date DEFAULT NULL,
+          `tanggal_mulai` date DEFAULT NULL,
+          `tanggal_selesai` date DEFAULT NULL,
+          `tujuan` text DEFAULT NULL,
+          `status` varchar(50) NOT NULL DEFAULT 'pending',
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_loan_status` (`status`),
+          KEY `idx_loan_member` (`member_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+
+
+
+@app.route("/api/pengajuan", methods=["GET"])
+def list_pengajuan():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_loan_schema(cursor)
+        cursor.execute("SELECT * FROM `loan_requests` ORDER BY `created_at` DESC")
+        rows = cursor.fetchall() or []
+        items = []
+        for r in rows:
+            items.append({
+                "id": r.get("id"),
+                "memberId": r.get("member_id"),
+                "barangId": r.get("barang_id"),
+                "barangNama": r.get("barang_name"),
+                "barangCode": r.get("barang_code"),
+                "barangFoto": r.get("barang_photo"),
+                "jumlahDiminta": r.get("jumlah"),
+                "tanggalPengajuan": r.get("tanggal_pengajuan"),
+                "tanggalMulai": r.get("tanggal_mulai"),
+                "tanggalSelesai": r.get("tanggal_selesai"),
+                "tujuan": r.get("tujuan"),
+                "status": r.get("status"),
+                "createdAt": r.get("created_at"),
+                "updatedAt": r.get("updated_at"),
+            })
+        return jsonify({"success": True, "items": items})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/pengajuan", methods=["POST"])
+def create_pengajuan():
+    ensure_auth_schema()
+    data = request.get_json(silent=True) or {}
+    barang_id = data.get("barangId")
+    barang_nama = data.get("barangNama")
+    jumlah = int(data.get("jumlahDiminta") or data.get("jumlah") or 0)
+    tanggal_mulai = data.get("tanggalMulai")
+    tanggal_selesai = data.get("tanggalSelesai")
+    tujuan = data.get("tujuan")
+
+    if not barang_id or not barang_nama or not jumlah or not tanggal_mulai or not tanggal_selesai or not tujuan:
+        return jsonify({"success": False, "error": "Field tidak lengkap"}), 400
+
+    try:
+        if datetime.fromisoformat(tanggal_mulai) >= datetime.fromisoformat(tanggal_selesai):
+            return jsonify({"success": False, "error": "Tanggal selesai harus lebih besar dari tanggal mulai"}), 400
+    except Exception:
+        pass
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        ensure_loan_schema(cursor)
+        pengajuan_id = f"pjn-{int(datetime.utcnow().timestamp() * 1000)}"
+
+        # try to get barang foto/code from inventory
+        barang_foto = None
+        barang_code = None
+        try:
+            c2 = conn.cursor(dictionary=True)
+            c2.execute("SELECT `code`, `photos` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
+            row = c2.fetchone()
+            if row:
+                barang_code = row.get("code")
+                photos_raw = row.get("photos")
+                try:
+                    photos = json.loads(photos_raw) if photos_raw else []
+                    if isinstance(photos, list) and photos:
+                        first = photos[0]
+                        if isinstance(first, dict):
+                            barang_foto = first.get("url") or first.get("uri") or None
+                        elif isinstance(first, str):
+                            barang_foto = first
+                except Exception:
+                    pass
+            c2.close()
+        except Exception:
+            pass
+
+        cursor.execute(
+            """
+            INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                pengajuan_id,
+                session.get("user_id") or None,
+                barang_id,
+                barang_nama,
+                barang_code,
+                barang_foto,
+                jumlah,
+                datetime.utcnow().date(),
+                tanggal_mulai,
+                tanggal_selesai,
+                tujuan,
+                "pending",
+            ),
+        )
+        conn.commit()
+        return jsonify({"success": True, "id": pengajuan_id})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/pengajuan/<pengajuan_id>/cancel", methods=["POST"])
+def cancel_pengajuan(pengajuan_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        ensure_loan_schema(cursor)
+        cursor.execute("SELECT `status` FROM `loan_requests` WHERE `id` = %s LIMIT 1", (pengajuan_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "error": "Pengajuan tidak ditemukan"}), 404
+        status = row[0]
+        if status != "pending":
+            return jsonify({"success": False, "error": "Hanya pengajuan dengan status pending dapat dibatalkan"}), 400
+        cursor.execute("UPDATE `loan_requests` SET `status` = %s WHERE `id` = %s", ("cancelled", pengajuan_id))
+        conn.commit()
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
     )
     exists = cursor.fetchone()[0] > 0
     if not exists:
