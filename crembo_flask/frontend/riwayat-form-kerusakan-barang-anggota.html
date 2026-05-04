@@ -293,6 +293,27 @@
       touch-action: manipulation;
     }
 
+    .btn.ghost {
+      border: 1px solid #9ca3af;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    .btn-detail {
+        background: #8a1515;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .btn-detail:hover {
+        background: #6a1010;
+    }
+
     .panel-head {
       padding: 14px 16px;
       border-bottom: 1px solid var(--line);
@@ -321,28 +342,30 @@
     th,
     td {
       border: 1px solid #d1d5db;
-      padding: 8px;
+      padding: 12px 8px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
     }
 
     th {
-      background: #f3f4f6;
+      background: #fdfaf9;
       font-size: 0.76rem;
       text-transform: uppercase;
       letter-spacing: 0.02em;
+      color: #7f1d1d;
     }
 
     .status-pill {
       display: inline-block;
       border-radius: 999px;
-      padding: 3px 8px;
-      font-size: 0.74rem;
+      padding: 3px 10px;
+      font-size: 0.76rem;
       border: 1px solid #c4c4c4;
       background: #f6f6f6;
+      font-weight: 600;
     }
 
-    .status-pill.waiting { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
+    .status-pill.waiting { border-color: #d4b572; background: #fffdf5; color: #9c6c0e; }
     .status-pill.process { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
     .status-pill.done { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
 
@@ -377,7 +400,7 @@
       background: #fff;
       border: 2px solid #1f1f1f;
       border-radius: 14px;
-      box-shadow: var(--soft-shadow);
+      box-shadow: var(--shadow);
     }
 
     .dialog-head {
@@ -419,6 +442,76 @@
       border: 1px solid #bdbdbd;
       object-fit: cover;
       background: #efefef;
+    }
+    
+    .table-thumb {
+      width: 58px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #bdbdbd;
+      background: #efefef;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .table-thumb:hover {
+      transform: scale(1.1);
+    }
+
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 4000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     @media (max-width: 1080px) {
@@ -599,11 +692,12 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Tanggal Lapor</th>
-                  <th>Barang</th>
-                  <th>Tingkat</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
+                  <th>TANGGAL LAPOR</th>
+                  <th>BARANG</th>
+                  <th>TINGKAT</th>
+                  <th>FOTO BUKTI</th>
+                  <th>STATUS</th>
+                  <th>AKSI</th>
                 </tr>
               </thead>
               <tbody id="rows"></tbody>
@@ -615,15 +709,24 @@
     </main>
   </div>
 
+  <!-- Modal Detail -->
   <section id="detailModal" class="modal" hidden aria-label="Detail riwayat laporan" aria-modal="true" role="dialog">
     <article class="dialog">
       <header class="dialog-head">
         <h3>Detail Laporan Kerusakan</h3>
-        <button id="closeDetailBtn" class="btn" type="button">Tutup</button>
+        <button id="closeDetailBtn" class="btn-ghost" type="button">Tutup</button>
       </header>
       <div id="detailBody" class="dialog-body"></div>
     </article>
   </section>
+
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto Bukti">
+    </div>
+  </div>
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
@@ -646,26 +749,44 @@
     const closeDetailBtn = document.getElementById("closeDetailBtn");
     const detailBody = document.getElementById("detailBody");
 
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
+
     let sessionUser = null;
     let allSubmissions = [];
 
-    function safeParse(raw, fallback) {
-      try { return JSON.parse(raw) == null ? fallback : JSON.parse(raw); } 
-      catch (error) { return fallback; }
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
     }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
+    if(photoLightboxClose) photoLightboxClose.addEventListener("click", closePhotoLightbox);
+    if(photoLightbox) photoLightbox.addEventListener("click", function (e) {
+      if (e.target === photoLightbox) {
+        closePhotoLightbox();
+      }
+    });
 
     function escapeHtml(text) {
       return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
+    // Format menyesuaikan screenshot (contoh: 03/05/2026, 05.18 WIB)
     function formatDateTime(value) {
       if (!value) return "-";
       try {
         const date = new Date(value);
-        return date.toLocaleString("id-ID", {
-          day: "2-digit", month: "2-digit", year: "numeric",
-          hour: "2-digit", minute: "2-digit"
-        }) + " WIB";
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}/${month}/${year}, ${hours}.${minutes} WIB`;
       } catch (e) {
         return String(value);
       }
@@ -675,14 +796,14 @@
       switch (String(status || "").trim()) {
         case "Selesai": return "done";
         case "Diproses": return "process";
-        case "Pending Review": return "waiting";
+        case "Pending Review": 
+        case "Menunggu": return "waiting";
         default: return "waiting";
       }
     }
 
     function guardMember() {
       if (!window.CREMBO_CURRENT_USER || !window.CREMBO_CURRENT_USER.logged_in) {
-        window.alert("Silakan login terlebih dahulu.");
         window.location.href = "login.html";
         return false;
       }
@@ -720,12 +841,16 @@
 
     function filteredSubmissions() {
       const searchQ = String(searchInput.value || "").toLowerCase();
-      const statusQ = String(statusFilter.value || "all");
+      // Konversi nilai dropdown "Menunggu" menjadi "Pending Review" agar pas dengan data backend
+      let statusQ = String(statusFilter.value || "all");
+      if (statusQ === "Menunggu") statusQ = "Pending Review";
+      
       const severityQ = String(severityFilter.value || "all");
 
       return allSubmissions.filter(item => {
         const matchSearch = !searchQ || 
           String(item.barangName || "").toLowerCase().indexOf(searchQ) !== -1 ||
+          String(item.id || "").toLowerCase().indexOf(searchQ) !== -1 ||
           String(item.deskripsiKerusakan || "").toLowerCase().indexOf(searchQ) !== -1;
 
         const matchStatus = statusQ === "all" || item.status === statusQ;
@@ -738,7 +863,7 @@
     function renderTable() {
       const items = filteredSubmissions();
 
-      if (countChip) countChip.textContent = items.length;
+      if (countChip) countChip.textContent = items.length + " laporan";
 
       if (!rows) return;
 
@@ -751,20 +876,35 @@
       emptyState.hidden = true;
       let html = "";
       items.forEach(function (item) {
-        const statusPill = statusClass(item.status);
-        const incident = formatDateTime(item.waktuKejadian);
         const submitted = formatDateTime(item.createdAt);
+        
+        let displayStatus = item.status;
+        if (displayStatus === "Pending Review") displayStatus = "Menunggu";
+        const statusPill = statusClass(displayStatus);
+        
+        let photoMarkup = '-';
+        if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
+           photoMarkup = '<img class="table-thumb" src="' + escapeHtml(item.fotoKerusakan[0].url) + '" alt="Bukti ' + escapeHtml(item.barangName) + '" onclick="openPhotoLightbox(this.src)">';
+        }
+
+        let barangText = escapeHtml(item.barangName || "-");
+        if (item.barangCode && item.barangCode !== "-") {
+           barangText = escapeHtml(item.barangCode) + " - " + barangText;
+        } else {
+           barangText = "- - " + barangText;
+        }
 
         html += `
           <tr>
-            <td>${escapeHtml(item.barangName || "-")}</td>
-            <td>${escapeHtml(item.barangCode || "-")}</td>
-            <td><span class="status-pill ${statusPill}">${escapeHtml(item.tingkatKerusakan || "-")}</span></td>
-            <td>${incident}</td>
-            <td style="cursor: pointer; text-align: center; color: #0066cc;" data-detail-id="${escapeHtml(item.id)}">
-              <strong>Lihat Detail →</strong>
+            <td data-label="ID">${escapeHtml(item.id || "-")}</td>
+            <td data-label="TANGGAL LAPOR">${submitted}</td>
+            <td data-label="BARANG">${barangText}</td>
+            <td data-label="TINGKAT">${escapeHtml(item.tingkatKerusakan || "-")}</td>
+            <td data-label="FOTO BUKTI">${photoMarkup}</td>
+            <td data-label="STATUS"><span class="status-pill ${statusPill}">${escapeHtml(displayStatus || "-")}</span></td>
+            <td data-label="AKSI" style="text-align: center;">
+              <button class="btn-detail" type="button" data-detail-id="${escapeHtml(item.id)}">Detail</button>
             </td>
-            <td style="font-size: 0.8rem; color: #888;">${submitted}</td>
           </tr>
         `;
       });
@@ -783,14 +923,16 @@
       if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
         photoHtml = item.fotoKerusakan.map(photo => 
           `<div class="detail-photo" style="margin: 8px 0;">
-            <a href="${escapeHtml(photo.url)}" target="_blank">
-              <img src="${escapeHtml(photo.url)}" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-            </a>
+             <img src="${escapeHtml(photo.url)}" alt="Bukti Laporan" onclick="openPhotoLightbox(this.src)" style="max-width: 100%; max-height: 300px; border-radius: 8px; cursor: pointer;">
           </div>`
         ).join("");
       }
 
       detailBody.innerHTML = `
+        <div class="detail-item">
+          <strong>ID Laporan:</strong>
+          <p>${escapeHtml(item.id || "-")}</p>
+        </div>
         <div class="detail-item">
           <strong>Nama Barang:</strong>
           <p>${escapeHtml(item.barangName || "-")}</p>
@@ -892,6 +1034,17 @@
     closeDetailBtn.addEventListener("click", closeDetail);
     detailModal.addEventListener("click", function (event) {
       if (event.target === detailModal) closeDetail();
+    });
+
+    // Escape listener
+    document.addEventListener("keydown", function(e) {
+       if (e.key === "Escape") {
+          if (photoLightbox.classList.contains("show")) {
+             closePhotoLightbox();
+          } else if (!detailModal.hidden) {
+             closeDetail();
+          }
+       }
     });
 
     if (guardMember()) {

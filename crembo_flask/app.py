@@ -5243,9 +5243,10 @@ def export_kerusakan_excel():
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Font, PatternFill
         
+        # Susunan Header baru
         headers = [
             "ID Laporan", "Barang", "Kode Barang", "Pelapor", 
-            "Tingkat Kerusakan", "Waktu Kejadian", "Status", "Deskripsi Kerusakan", "Diinput"
+            "Tingkat Kerusakan", "Deskripsi Kerusakan", "Waktu Kejadian", "Diinput", "Foto Bukti", "Status"
         ]
         
         workbook = Workbook()
@@ -5253,9 +5254,22 @@ def export_kerusakan_excel():
         worksheet.title = "Laporan Kerusakan"
         worksheet.append(headers)
         
+        base_url = "http://127.0.0.1:5000"
+        
         for item in items:
             waktu_kej = item.get("waktu_kejadian").strftime("%Y-%m-%d %H:%M:%S") if item.get("waktu_kejadian") else "-"
             diinput = item.get("created_at").strftime("%Y-%m-%d %H:%M:%S") if item.get("created_at") else "-"
+            
+            # Format foto ke full URL
+            foto_links = []
+            foto_raw = safe_json_loads(item.get("foto_kerusakan"), [])
+            if foto_raw:
+                for f in foto_raw:
+                    if isinstance(f, dict) and f.get("url"):
+                        url = str(f.get("url"))
+                        if url.startswith("/"): url = f"{base_url}{url}"
+                        foto_links.append(url)
+            foto_label = "\n".join(foto_links) if foto_links else "-"
             
             row = [
                 item.get("id"),
@@ -5263,10 +5277,11 @@ def export_kerusakan_excel():
                 item.get("barang_code") or "-",
                 item.get("member_name") or "-",
                 item.get("tingkat_kerusakan") or "-",
-                waktu_kej,
-                item.get("status") or "-",
                 item.get("deskripsi_kerusakan") or "-",
-                diinput
+                waktu_kej,
+                diinput,
+                foto_label,
+                item.get("status") or "-",
             ]
             worksheet.append(row)
             
@@ -5287,7 +5302,12 @@ def export_kerusakan_excel():
             for cell in column_cells:
                 try:
                     cell_value = str(cell.value or "")
-                    if len(cell_value) > max_length:
+                    if "\n" in cell_value:
+                        lines = cell_value.split("\n")
+                        line_lengths = [len(l) for l in lines]
+                        if line_lengths and max(line_lengths) > max_length:
+                            max_length = max(line_lengths)
+                    elif len(cell_value) > max_length:
                         max_length = len(cell_value)
                 except Exception:
                     continue
@@ -5354,18 +5374,35 @@ def export_kerusakan_pdf():
         from reportlab.lib.units import mm
         from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
 
-        headers = ["Barang", "Pelapor", "Tingkat", "Waktu", "Status", "Deskripsi"]
+        # Susunan header baru di PDF
+        headers = ["Barang", "Pelapor", "Tingkat", "Deskripsi", "Waktu", "Diinput", "Foto Bukti", "Status"]
         rows = []
+        base_url = "http://127.0.0.1:5000"
         
         for item in items:
             waktu_kej = item.get("waktu_kejadian").strftime("%Y-%m-%d %H:%M") if item.get("waktu_kejadian") else "-"
+            diinput = item.get("created_at").strftime("%Y-%m-%d %H:%M") if item.get("created_at") else "-"
+            
+            foto_links = []
+            foto_raw = safe_json_loads(item.get("foto_kerusakan"), [])
+            if foto_raw:
+                for f in foto_raw:
+                    if isinstance(f, dict) and f.get("url"):
+                        url = str(f.get("url"))
+                        if url.startswith("/"): url = f"{base_url}{url}"
+                        # Kita bungkus url foto menggunakan tag link agar bisa di klik di PDF
+                        foto_links.append(f"<a href='{url}' color='blue'>{url}</a>")
+            foto_label = "<br/>".join(foto_links) if foto_links else "-"
+
             rows.append([
                 item.get("barang_name") or "-",
                 item.get("member_name") or "-",
                 item.get("tingkat_kerusakan") or "-",
+                item.get("deskripsi_kerusakan") or "-",
                 waktu_kej,
-                item.get("status") or "-",
-                item.get("deskripsi_kerusakan") or "-"
+                diinput,
+                foto_label,
+                item.get("status") or "-"
             ])
             
         buffer = BytesIO()
@@ -5400,13 +5437,16 @@ def export_kerusakan_pdf():
         table_data = [headers] + wrapped_rows if rows else [headers, ["-" for _ in headers]]
         
         page_width = landscape(A4)[0] - (16 * mm) 
+        # Sesuaikan proporsi persentase ke-8 kolom 
         col_widths = [
-            0.20 * page_width,
             0.15 * page_width,
-            0.08 * page_width,
             0.12 * page_width,
+            0.08 * page_width,
+            0.20 * page_width,
             0.10 * page_width,
-            0.35 * page_width
+            0.10 * page_width,
+            0.15 * page_width,
+            0.10 * page_width
         ]
         
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
@@ -5439,7 +5479,7 @@ def export_kerusakan_pdf():
     finally:
         cursor.close()
         conn.close()
-        
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()

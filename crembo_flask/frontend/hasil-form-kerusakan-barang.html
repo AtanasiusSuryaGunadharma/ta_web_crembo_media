@@ -274,6 +274,7 @@
       border: 1px solid #bdbdbd;
       background: #fafafa;
       padding: 10px;
+      border-radius: 10px;
     }
 
     .summary-item p {
@@ -303,6 +304,7 @@
       border: 1px solid #c5c5c5;
       overflow: auto;
       background: #fff;
+      border-radius: 10px;
     }
 
     .table-scroll table {
@@ -347,6 +349,7 @@
       padding: 10px;
       font-size: 0.86rem;
       color: #616161;
+      border-radius: 10px;
     }
 
     .modal {
@@ -591,10 +594,9 @@
                 <th>Pelapor</th>
                 <th>Tingkat</th>
                 <th>Waktu Kejadian</th>
-                <th>Foto Bukti</th>
-                <th>Status</th>
-                <th>Aksi</th>
                 <th>Diinput</th>
+                <th>Aksi</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>
@@ -775,11 +777,6 @@
         const statusClass_ = statusClass(item.status);
         const submitted = formatDateTime(item.createdAt);
         const incident = formatDateTime(item.waktuKejadian);
-        
-        let photoMarkup = '-';
-        if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
-           photoMarkup = '<img class="table-thumb" src="' + escapeHtml(item.fotoKerusakan[0].url) + '" alt="Bukti ' + escapeHtml(item.barangName) + '" onclick="openPhotoLightbox(this.src)">';
-        }
 
         html += `
           <tr>
@@ -787,7 +784,10 @@
             <td>${escapeHtml(item.memberName || "-")}</td>
             <td><span class="status-pill ${statusClass_}">${escapeHtml(item.tingkatKerusakan || "-")}</span></td>
             <td>${incident}</td>
-            <td>${photoMarkup}</td>
+            <td>${submitted}</td>
+            <td>
+              <button class="btn-ghost" type="button" data-detail-id="${escapeHtml(item.id)}" style="padding:4px 8px; font-size:0.8rem;">Lihat Detail</button>
+            </td>
             <td>
               <select class="form-control form-control-sm" data-status-id="${escapeHtml(item.id)}" style="padding: 4px; font-size: 0.8rem;">
                 <option value="Pending Review" ${item.status === "Pending Review" ? "selected" : ""}>Pending Review</option>
@@ -795,10 +795,6 @@
                 <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
               </select>
             </td>
-            <td style="text-align: center;">
-              <button class="btn-ghost" type="button" data-detail-id="${escapeHtml(item.id)}" style="padding:4px 8px; font-size:1.1rem; border:none; background:transparent;">👁️</button>
-            </td>
-            <td style="font-size: 0.8rem; color: #888;">${submitted}</td>
           </tr>
         `;
       });
@@ -906,12 +902,19 @@
     }
 
     function updateLiveDateTime() {
-      if (liveDateTime) {
-        liveDateTime.textContent = new Date().toLocaleString("id-ID", {
-          weekday: "long", day: "2-digit", month: "long", year: "numeric",
-          hour: "2-digit", minute: "2-digit", second: "2-digit"
-        });
-      }
+      const now = new Date();
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+      const day = dayNames[now.getDay()];
+      const date = String(now.getDate()).padStart(2, "0");
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+
+      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
     function guardAdmin() {
