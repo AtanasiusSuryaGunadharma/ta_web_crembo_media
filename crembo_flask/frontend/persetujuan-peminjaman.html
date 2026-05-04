@@ -204,7 +204,6 @@
         gap: 6px;
     }
 
-    /* Foto Barang di Tabel Admin */
     .table-foto {
         width: 60px;
         height: 40px;
@@ -212,6 +211,12 @@
         border-radius: 6px;
         border: 1px solid #d1d5db;
         background: #f3f4f6;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .table-foto:hover {
+        transform: scale(1.05);
     }
 
     /* Modal Styles */
@@ -311,6 +316,60 @@
       word-break: break-word;
     }
 
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     @media (max-width: 1080px) {
       .toolbar-grid { grid-template-columns: 1fr 1fr; }
       .summary-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
@@ -322,6 +381,7 @@
     @media (max-width: 620px) {
       .toolbar-grid, .summary-grid { grid-template-columns: 1fr; }
       .detail-list li { grid-template-columns: 1fr; gap: 4px; }
+      .photo-lightbox-close { top: 10px; right: 10px; }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -345,8 +405,8 @@
       <div class="menu-group open">
         <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
         <div class="group-items">
-          <a class="menu-link active" href="data-inventaris-barang.html">Data Inventaris Barang</a>
-          <a class="menu-link" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
+          <a class="menu-link" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link active" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
           <a class="menu-link" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
           <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
         </div>
@@ -419,8 +479,8 @@
                 <th style="width: 80px;">Foto</th>
                 <th style="width: 250px;">Barang &amp; Peminjam</th>
                 <th style="width: 70px;">Jumlah</th>
-                <th>Tanggal Pinjam</th>
-                <th>Target Kembali</th>
+                <th>Waktu Pinjam</th>
+                <th>Waktu Kembali</th>
                 <th>Keperluan</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -449,6 +509,14 @@
     </div>
   </div>
 
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto barang">
+    </div>
+  </div>
+
   <script>
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
@@ -461,6 +529,9 @@
     const activeFilterText = document.getElementById("activeFilterText");
     const detailModal = document.getElementById("detailModal");
     const detailListContent = document.getElementById("detailListContent");
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
 
     let REMOTE_REQUESTS = [];
 
@@ -550,6 +621,15 @@
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
     function filteredRequests() {
       const keyword = searchInput.value.trim().toLowerCase();
       const selectedStatus = statusFilter.value;
@@ -557,7 +637,7 @@
       const end = toDate.value;
 
       return REMOTE_REQUESTS.filter(function (item) {
-        const text = [item.id, item.memberId, item.barangNama, item.barangCode, item.tujuan].join(" ").toLowerCase();
+        const text = [item.id, item.memberId, item.memberNama, item.barangNama, item.barangCode, item.tujuan].join(" ").toLowerCase();
         const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
         const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
         const matchesStart = !start || (item.tanggalMulai && item.tanggalMulai >= start);
@@ -584,12 +664,18 @@
        const item = REMOTE_REQUESTS.find(r => r.id === id);
        if(!item) return;
 
+       // Waktu Mulai & Selesai Digabungkan
+       const tanggalMulai = formatTanggalOnly(item.tanggalMulai);
+       const waktuMulai = (item.waktuMulai || "").substring(0, 5) || "-";
+       const tanggalSelesai = formatTanggalOnly(item.tanggalSelesai);
+       const waktuSelesai = (item.waktuSelesai || "").substring(0, 5) || "-";
+
        detailListContent.innerHTML = `
          <li><strong>ID Pengajuan</strong><span>${escapeHtml(item.id)}</span></li>
-         <li><strong>Peminjam (User ID)</strong><span>${escapeHtml(item.memberId || '-')}</span></li>
-         <li><strong>Barang</strong><span>${escapeHtml(item.barangNama)} <br><small class="help-note">${escapeHtml(item.barangCode)}</small></span></li>
+         <li><strong>Peminjam</strong><span>${escapeHtml(item.memberNama || 'Guest')} <br><small class="help-note">User ID: ${escapeHtml(item.memberId || '-')}</small></span></li>
+         <li><strong>Barang</strong><span>${escapeHtml(item.barangNama)} <br><small class="help-note">Kode: ${escapeHtml(item.barangCode)}</small></span></li>
          <li><strong>Jumlah</strong><span>${item.jumlahDiminta} Unit</span></li>
-         <li><strong>Tgl Peminjaman</strong><span>${formatTanggalOnly(item.tanggalMulai)} sd ${formatTanggalOnly(item.tanggalSelesai)}</span></li>
+         <li><strong>Waktu Pinjam</strong><span>${tanggalMulai} ${waktuMulai} sd <br>${tanggalSelesai} ${waktuSelesai}</span></li>
          <li><strong>Waktu Dibuat</strong><span>${formatWaktuIndo(item.createdAt)}</span></li>
          <li><strong>Tujuan</strong><span>${escapeHtml(item.tujuan)}</span></li>
          <li><strong>Status Saat Ini</strong><span>${getStatusBadge(item.status)}</span></li>
@@ -648,16 +734,20 @@
             <button class="btn-danger" type="button" onclick="changeStatus('${item.id}', 'rejected', 'Alasan penolakan:')">Tolak</button>
           `;
         } else if (item.status === "approved") {
-          // Fitur batalkan opsional jika terjadi kesalahan admin
           actionHtml += `<button class="btn-ghost" style="border-color:#b91c1c; color:#b91c1c;" type="button" onclick="changeStatus('${item.id}', 'cancelled', 'Alasan pembatalan paksa:')">Batalkan</button>`;
         }
         
         actionHtml += `</div>`;
         
-        // Foto barang HTML (menggunakan CSS yg sudah dibuat)
+        // Foto barang HTML + Klik Perbesar
         const photoHtml = item.barangFoto 
-            ? `<img src="${escapeHtml(item.barangFoto)}" class="table-foto" alt="Foto">` 
+            ? `<img src="${escapeHtml(item.barangFoto)}" class="table-foto" alt="Foto" onclick="openPhotoLightbox(this.src)">` 
             : `<div class="table-foto" style="display:grid; place-items:center; color:#999; font-size:10px;">No</div>`;
+
+        const tanggalMulai = formatTanggalOnly(item.tanggalMulai);
+        const waktuMulai = (item.waktuMulai || "").substring(0, 5) || "-";
+        const tanggalSelesai = formatTanggalOnly(item.tanggalSelesai);
+        const waktuSelesai = (item.waktuSelesai || "").substring(0, 5) || "-";
 
         return `<tr>
           <td><small style="color:#666;">${escapeHtml(item.id.split('-').pop())}</small></td>
@@ -665,12 +755,12 @@
           <td>
             <strong>${escapeHtml(item.barangNama)}</strong><br>
             <small style="color:#666;">Kode: ${escapeHtml(item.barangCode)}</small><br>
-            <small style="color:#0f52ba;">Oleh: User ${escapeHtml(item.memberId || 'Guest')}</small>
+            <small style="color:#0f52ba; font-weight:600;">Oleh: ${escapeHtml(item.memberNama || 'Guest')}</small>
           </td>
           <td>${item.jumlahDiminta}</td>
-          <td>${formatTanggalOnly(item.tanggalMulai)}</td>
-          <td>${formatTanggalOnly(item.tanggalSelesai)}</td>
-          <td>${escapeHtml(item.tujuan)}</td>
+          <td style="font-size: 0.8rem;">${tanggalMulai} <br> <strong style="color: #444;">${waktuMulai} WIB</strong></td>
+          <td style="font-size: 0.8rem;">${tanggalSelesai} <br> <strong style="color: #444;">${waktuSelesai} WIB</strong></td>
+          <td style="font-size: 0.8rem;">${escapeHtml(item.tujuan)}</td>
           <td>${getStatusBadge(item.status)}</td>
           <td>${actionHtml}</td>
         </tr>`;
@@ -679,11 +769,15 @@
 
     async function loadData() {
         try {
-            // Kita pinjam endpoint GET milik member, di Python sudah kita set agar admin bisa ambil semua + bisa di filter
             const res = await fetch('/api/pengajuan');
             const data = await res.json();
             if(data.success) {
-                REMOTE_REQUESTS = data.items;
+                REMOTE_REQUESTS = data.items.map(function (it) {
+                  return Object.assign({}, it, {
+                    waktuMulai: it.waktu_mulai || it.waktuMulai,
+                    waktuSelesai: it.waktu_selesai || it.waktuSelesai
+                  });
+                });
                 renderTable();
             }
         } catch(e) {
@@ -699,7 +793,12 @@
         if (event.target == detailModal) {
             closeDetailModal();
         }
+        if (event.target == photoLightbox) {
+            closePhotoLightbox();
+        }
     }
+
+    photoLightboxClose.addEventListener("click", closePhotoLightbox);
 
     searchInput.addEventListener("input", renderTable);
     statusFilter.addEventListener("change", renderTable);
