@@ -431,7 +431,8 @@
       border: 1px solid #dbe2ef;
       border-radius: 12px;
       padding: 12px;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 8px;
     }
 
@@ -488,6 +489,7 @@
       color: #4b5563;
       padding-top: 4px;
       border-top: 1px solid #e5e9f2;
+      margin-bottom: 8px;
     }
 
     .barang-detail strong {
@@ -521,6 +523,17 @@
 
     .btn:hover {
       filter: brightness(1.05);
+    }
+
+    /* PERBAIKAN: Style khusus ketika button di-disable */
+    .btn:disabled,
+    .btn[disabled] {
+      background: #e2e8f0 !important;
+      color: #94a3b8 !important;
+      cursor: not-allowed !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: none !important;
+      background-image: none !important;
     }
 
     .btn.secondary {
@@ -750,6 +763,7 @@
     .detail-stack {
       display: grid;
       gap: 10px;
+      align-content: start;
     }
 
     .detail-title {
@@ -1169,10 +1183,6 @@
       }
       const demo = [
         // { id: "brg-1", code: "CAM-001", nama: "Kamera Sony A6400", kategori: "Kamera", foto: "", tanggalBeli: "2025-11-12", hargaBeli: 12500000, total: 2, tersedia: 1, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Lemari Studio A", catatan: "Satu unit sedang dipakai untuk dokumentasi agenda." },
-        // { id: "brg-2", code: "AUD-004", nama: "Wireless Microphone Set", kategori: "Audio", foto: "", tanggalBeli: "2025-12-03", hargaBeli: null, total: 4, tersedia: 4, dipinjam: 0, bisaDipinjam: true, kondisi: "Baik", status: "Tersedia", lokasi: "Rak Audio 2", catatan: "Baterai cadangan tersedia 8 pcs." },
-        // { id: "brg-3", code: "TRI-002", nama: "Tripod Heavy Duty", kategori: "Aksesori", foto: "", tanggalBeli: "2025-10-28", hargaBeli: 850000, total: 3, tersedia: 2, dipinjam: 1, bisaDipinjam: true, kondisi: "Rusak Ringan", status: "Tersedia", lokasi: "Gudang Perlengkapan", catatan: "1 unit perlu pengencangan lock kaki." },
-        // { id: "brg-4", code: "SWI-001", nama: "Video Switcher ATEM Mini", kategori: "Switcher", foto: "", tanggalBeli: "2025-09-19", hargaBeli: 7600000, total: 1, tersedia: 0, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Meja Kontrol", catatan: "Dipakai untuk misa Kamis malam." },
-        // { id: "brg-5", code: "CAB-015", nama: "Kabel HDMI 10m", kategori: "Kabel", foto: "", tanggalBeli: "2025-11-30", hargaBeli: 450000, total: 6, tersedia: 5, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Tersedia", lokasi: "Laci Kabel", catatan: "Label kabel sudah diperbarui." }
       ];
       localStorage.setItem(BARANG_STORAGE_KEY, JSON.stringify(demo));
     }
@@ -1234,7 +1244,6 @@
         perbaikan: repairUnit,
         hilang: lostUnit,
         bisaDipinjam: item.canBorrow !== false,
-        kondisi: String(item.condition || item.kondisi || "Baik"),
         status: String(item.status || (availableUnit > 0 ? "Tersedia" : "Dipinjam")),
         lokasi: String(item.location || item.lokasi || "-"),
         catatan: String(item.notes || item.catatan || ""),
@@ -1293,18 +1302,15 @@
         return `${day} ${month} ${year}`;
     }
 
-    // FUNGSI BARU: Untuk memformat tanggal beserta waktunya (Jam, Menit, Detik)
     function formatWaktuIndo(rawDate) {
         if (!rawDate) return "-";
         
-        // Buang tulisan GMT agar browser tidak otomatis menambah +7 jam
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
             rawDate = rawDate.replace(' GMT', ''); 
         }
         
         let d = new Date(rawDate);
         
-        // Fallback untuk format ISO 'YYYY-MM-DD HH:mm:ss'
         if (typeof rawDate === 'string' && rawDate.indexOf('T') === -1 && rawDate.indexOf(':') !== -1) {
             const parts = rawDate.split(/[- :]/);
             if (parts.length >= 6) {
@@ -1388,10 +1394,9 @@
         + '<div class="detail-item"><strong>Total Unit</strong>' + String(item.total) + '</div>'
         + '<div class="detail-item"><strong>Tersedia</strong>' + String(item.tersedia) + '</div>'
         + '<div class="detail-item"><strong>Dipinjam</strong>' + String(item.dipinjam) + '</div>'
-        + '<div class="detail-item"><strong>Perbaikan</strong>' + String(item.perbaikan) + '</div>' // <-- KOLOM BARU
-        + '<div class="detail-item"><strong>Hilang</strong>' + String(item.hilang) + '</div>'       // <-- KOLOM BARU
+        + '<div class="detail-item"><strong>Perbaikan</strong>' + String(item.perbaikan) + '</div>'
+        + '<div class="detail-item"><strong>Hilang</strong>' + String(item.hilang) + '</div>'
         + '<div class="detail-item"><strong>Bisa Dipinjam</strong>' + (item.bisaDipinjam ? 'Ya' : 'Tidak') + '</div>'
-        + '<div class="detail-item"><strong>Kondisi</strong>' + escapeHtml(item.kondisi) + '</div>'
         + '<div class="detail-item"><strong>Status</strong>' + escapeHtml(item.status) + '</div>'
         + '<div class="detail-item" style="grid-column: 1 / -1;"><strong>Lokasi</strong>' + escapeHtml(item.lokasi) + '</div>'
         + '<div class="detail-item" style="grid-column: 1 / -1;"><strong>Catatan</strong>' + escapeHtml(item.catatan || '-') + '</div>'
@@ -1428,10 +1433,22 @@
       barangGrid.innerHTML = items.map(function (item) {
         const statusColor = item.tersedia > 0 ? "#166534" : "#991b1b";
         const statusText = item.tersedia > 0 ? "Tersedia" : "Habis";
-        const disabledAttr = item.tersedia > 0 && item.bisaDipinjam ? "" : "disabled";
+        
+        // PERBAIKAN: Check apakah tombol disable jika tidak bisa dipinjam atau stok 0
+        const isUnavailable = item.tersedia <= 0 || !item.bisaDipinjam;
+        const disabledAttr = isUnavailable ? "disabled" : "";
+        
         const photoMarkup = item.foto
           ? '<img class="barang-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '">'
           : '<div class="barang-photo placeholder">Tidak ada foto</div>';
+
+        // PERBAIKAN: Tambahkan Tagline Ketersediaan
+        let notBorrowableTag = '';
+        if (!item.bisaDipinjam) {
+            notBorrowableTag = '<div style="color: #b91c1c; font-size: 0.72rem; font-weight: 700; text-align: center; margin-bottom: 8px; background: #fee2e2; padding: 5px; border-radius: 6px;">Barang Internal (Tidak Dipinjamkan)</div>';
+        } else if (item.tersedia <= 0) {
+            notBorrowableTag = '<div style="color: #b91c1c; font-size: 0.72rem; font-weight: 700; text-align: center; margin-bottom: 8px; background: #fee2e2; padding: 5px; border-radius: 6px;">Stok Sedang Kosong</div>';
+        }
 
         return '<div class="barang-card">'
           + photoMarkup
@@ -1446,12 +1463,14 @@
           + '<div><strong>Tanggal Beli:</strong> ' + formatTanggalIndo(item.tanggalBeli) + '</div>'
           + '<div><strong>Harga:</strong> ' + escapeHtml(formatCurrency(item.hargaBeli)) + '</div>'
           + '<div><strong>Total Unit:</strong> ' + item.total + '</div>'
-          + '<div><strong>Kondisi:</strong> ' + escapeHtml(item.kondisi) + '</div>'
           + '<div><strong>Lokasi:</strong> ' + escapeHtml(item.lokasi) + '</div>'
           + '</div>'
+          + '<div style="margin-top: auto; display: flex; flex-direction: column;">'
+          + notBorrowableTag
           + '<div class="card-actions">'
           + '<button class="btn secondary" type="button" data-detail-id="' + item.id + '" onclick="openDetailById(this)">Detail</button>'
           + '<button class="btn" ' + disabledAttr + ' data-barang-id="' + item.id + '" data-barang-nama="' + escapeHtml(item.nama) + '" onclick="openPengajuanForm(this)">Ajukan Peminjaman</button>'
+          + '</div>'
           + '</div>'
           + '</div>';
       }).join("");
@@ -1509,7 +1528,6 @@
         const tglSelesai = formatTanggalIndo(item.tanggalSelesai);
         const periode = tglMulai + " sd " + tglSelesai;
         
-        // PERBAIKAN: Gunakan formatWaktuIndo yang sudah bisa menampilkan Jam:Menit:Detik
         const tglAjuFormatted = formatWaktuIndo(item.createdAt || item.tanggalPengajuan);
         
         const thumb = item.barangFoto ? '<img src="' + escapeHtml(item.barangFoto) + '" alt="' + escapeHtml(item.barangNama) + '" style="width:64px; height:48px; object-fit:cover; border-radius:6px; margin-right:8px; vertical-align:middle;">' : '<div style="width:64px; height:48px; display:inline-grid; place-items:center; background:#f1f5f9; color:#64748b; border-radius:6px; margin-right:8px;">No</div>';
@@ -1526,6 +1544,8 @@
     }
 
     function openPengajuanForm(btn) {
+      if (btn.hasAttribute("disabled")) return; // Pencegahan klik di JS
+
       const barangId = btn.getAttribute("data-barang-id");
       const barangNama = btn.getAttribute("data-barang-nama");
       const barang = readBarang().find(function (item) { return item.id === barangId; });
@@ -1547,7 +1567,7 @@
       }
 
       const maxAvail = Math.max(0, Number(barang.tersedia || 0));
-      if (maxAvail <= 0) {
+      if (maxAvail <= 0 || !barang.bisaDipinjam) {
         alert("Maaf, barang ini tidak tersedia untuk dipinjam saat ini.");
         return;
       }
@@ -1757,7 +1777,7 @@
           barangLokasi: barang ? barang.lokasi : "",
           jumlahDiminta: jumlah,
           tanggalPengajuan: today,
-          createdAt: now.toISOString(), // PERBAIKAN: Menambahkan waktu ke backup LocalStorage
+          createdAt: now.toISOString(),
           tanggalMulai: tanggalMulai,
           tanggalSelesai: tanggalSelesai,
           tujuan: tujuan,
