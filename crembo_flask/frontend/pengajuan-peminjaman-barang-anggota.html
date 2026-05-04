@@ -443,6 +443,8 @@
       object-fit: cover;
       border: 1px solid #dbe2ef;
       background: #f8fafc;
+      cursor: pointer;
+      transition: transform 0.2s ease;
     }
 
     .barang-photo.placeholder {
@@ -452,6 +454,11 @@
       font-size: 0.76rem;
       font-weight: 700;
       background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      cursor: default;
+    }
+
+    .barang-photo:hover:not(.placeholder) {
+      transform: scale(1.05);
     }
 
     .barang-card h3 {
@@ -525,7 +532,6 @@
       filter: brightness(1.05);
     }
 
-    /* PERBAIKAN: Style khusus ketika button di-disable */
     .btn:disabled,
     .btn[disabled] {
       background: #e2e8f0 !important;
@@ -771,97 +777,13 @@
       font-size: 1.05rem;
     }
 
-    @media (max-width: 640px) {
-      .detail-layout { grid-template-columns: 1fr; }
-      .detail-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 1080px) {
-      .layout { grid-template-columns: 1fr; }
-      .main { padding: 14px; }
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: min(290px, 86vw);
-        height: 100vh;
-        z-index: 30;
-        transform: translateX(-102%);
-        transition: transform 220ms ease;
-      }
-      .sidebar.show { transform: translateX(0); }
-      .mobile-toggle { display: inline-block; }
-      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
-      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
-      .topbar > div:first-child { width: 100%; min-width: 0; }
-      .quick-filter { justify-content: flex-start; }
-      .quick-filter .quick-chip { display: inline-block; width: 100%; }
-      .barang-grid { grid-template-columns: repeat(2, 1fr); }
-      .form-row { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 640px) {
-      .main { padding: 12px; }
-      .barang-grid { grid-template-columns: 1fr; }
-      .search-box { width: 100%; }
-    }
-
-    @media (max-width: 768px) {
-      #pengajuan .table-wrap {
-        overflow-x: visible;
-      }
-
-      #pengajuan table {
-        min-width: 0;
-      }
-
-      #pengajuan thead {
-        display: none;
-      }
-
-      #pengajuan tbody {
-        display: grid;
-        gap: 10px;
-      }
-
-      #pengajuan tr {
-        display: block;
-        border: 1px solid #dbe2ef;
-        border-radius: 12px;
-        background: #fff;
-        padding: 10px;
-      }
-
-      #pengajuan td {
-        display: grid;
-        grid-template-columns: 120px 1fr;
-        gap: 8px;
-        border-bottom: 1px dashed #e5e9f2;
-        padding: 8px 0;
-      }
-
-      #pengajuan td:last-child {
-        border-bottom: 0;
-        padding-bottom: 0;
-      }
-
-      #pengajuan td::before {
-        content: attr(data-label);
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: #64748b;
-        font-weight: 700;
-      }
-    }
-
     /* Lightbox styles for photo zoom */
     .photo-lightbox {
       display: none;
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.9);
-      z-index: 50;
+      z-index: 2000;
       justify-content: center;
       align-items: center;
       padding: 20px;
@@ -909,20 +831,45 @@
       background: rgba(255, 255, 255, 0.3);
     }
 
-    .barang-photo {
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .barang-photo:hover {
-      transform: scale(1.05);
-    }
-
     @media (max-width: 640px) {
-      .photo-lightbox-close {
-        top: 10px;
-        right: 10px;
+      .detail-layout { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .photo-lightbox-close { top: 10px; right: 10px; }
+    }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .main { padding: 14px; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 30;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
       }
+      .sidebar.show { transform: translateX(0); }
+      .mobile-toggle { display: inline-block; }
+      .dashboard-headline-bar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      .quick-filter { justify-content: flex-start; }
+      .quick-filter .quick-chip { display: inline-block; width: 100%; }
+      .barang-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      #pengajuan .table-wrap { overflow-x: visible; }
+      #pengajuan table { min-width: 0; }
+      #pengajuan thead { display: none; }
+      #pengajuan tbody { display: grid; gap: 10px; }
+      #pengajuan tr { display: block; border: 1px solid #dbe2ef; border-radius: 12px; background: #fff; padding: 10px; }
+      #pengajuan td { display: grid; grid-template-columns: 120px 1fr; gap: 8px; border-bottom: 1px dashed #e5e9f2; padding: 8px 0; }
+      #pengajuan td:last-child { border-bottom: 0; padding-bottom: 0; }
+      #pengajuan td::before { content: attr(data-label); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b; font-weight: 700; }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1058,7 +1005,7 @@
                   <tr>
                     <th>Barang</th>
                     <th>Jumlah</th>
-                    <th>Periode</th>
+                    <th>Periode Pinjam</th>
                     <th>Tanggal Pengajuan</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -1273,9 +1220,7 @@
       if (localStorage.getItem(BARANG_STORAGE_KEY) || localStorage.getItem(INVENTORY_STORAGE_KEY)) {
         return;
       }
-      const demo = [
-        // { id: "brg-1", code: "CAM-001", nama: "Kamera Sony A6400", kategori: "Kamera", foto: "", tanggalBeli: "2025-11-12", hargaBeli: 12500000, total: 2, tersedia: 1, dipinjam: 1, bisaDipinjam: true, kondisi: "Baik", status: "Dipinjam", lokasi: "Lemari Studio A", catatan: "Satu unit sedang dipakai untuk dokumentasi agenda." },
-      ];
+      const demo = [];
       localStorage.setItem(BARANG_STORAGE_KEY, JSON.stringify(demo));
     }
 
@@ -1294,7 +1239,6 @@
         repairUnit = 0;
         lostUnit = 0;
         
-        // PERBAIKAN: Menghitung secara spesifik per status
         unitDetails.forEach(function (u) {
           const s = String(u.status || u.state || u.statusName || "").toLowerCase();
           if (s === "tersedia" || s === "available") availableUnit++;
@@ -1303,7 +1247,6 @@
           else if (s === "hilang" || s === "lost") lostUnit++;
         });
       } else {
-        // Fallback jika tidak ada unit_details
         borrowedUnit = totalUnit - availableUnit;
         const itemStatus = String(item.status || "").toLowerCase();
         if (itemStatus === "perbaikan") { repairUnit = borrowedUnit; borrowedUnit = 0; }
@@ -1378,7 +1321,6 @@
     function formatTanggalIndo(rawDate) {
         if (!rawDate) return "-";
         
-        // Buang tulisan GMT agar browser tidak otomatis menambah +7 jam
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) {
             rawDate = rawDate.replace(' GMT', ''); 
         }
@@ -1388,6 +1330,20 @@
 
         const day = String(d.getDate()).padStart(2, '0');
         const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        
+        return `${day} ${month} ${year}`;
+    }
+
+    // PERBAIKAN: Fungsi format tanggal khusus (misal 05 Mei 2026)
+    function formatTanggalOnly(rawDate) {
+        if (!rawDate) return "-";
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+        
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
         const month = monthNames[d.getMonth()];
         const year = d.getFullYear();
         
@@ -1535,15 +1491,13 @@
         const statusColor = item.tersedia > 0 ? "#166534" : "#991b1b";
         const statusText = item.tersedia > 0 ? "Tersedia" : "Habis";
         
-        // PERBAIKAN: Check apakah tombol disable jika tidak bisa dipinjam atau stok 0
         const isUnavailable = item.tersedia <= 0 || !item.bisaDipinjam;
         const disabledAttr = isUnavailable ? "disabled" : "";
         
         const photoMarkup = item.foto
-          ? '<img class="barang-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '" onclick="openPhotoLightbox(this.src)" style="cursor: pointer;">'
+          ? '<img class="barang-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '" onclick="openPhotoLightbox(this.src)">'
           : '<div class="barang-photo placeholder">Tidak ada foto</div>';
 
-        // PERBAIKAN: Tambahkan Tagline Ketersediaan
         let notBorrowableTag = '';
         if (!item.bisaDipinjam) {
             notBorrowableTag = '<div style="color: #b91c1c; font-size: 0.72rem; font-weight: 700; text-align: center; margin-bottom: 8px; background: #fee2e2; padding: 5px; border-radius: 6px;">Barang Internal (Tidak Dipinjamkan)</div>';
@@ -1625,20 +1579,25 @@
           actionHtml = '<button class="mini-btn danger" data-id="' + item.id + '" onclick="cancelPengajuan(this)">Batalkan</button>';
         }
 
-        const tglMulai = formatTanggalIndo(item.tanggalMulai);
+        // PERBAIKAN: Menampilkan periode peminjaman dengan tanggal dan jam lengkap, dibuat rapi layaknya admin panel
+        const tglMulai = formatTanggalOnly(item.tanggalMulai);
         const waktuMulai = (item.waktuMulai || "").substring(0, 5) || "-";
-        const tglSelesai = formatTanggalIndo(item.tanggalSelesai);
+        const tglSelesai = formatTanggalOnly(item.tanggalSelesai);
         const waktuSelesai = (item.waktuSelesai || "").substring(0, 5) || "-";
-        const periode = tglMulai + " " + waktuMulai + " sd " + tglSelesai + " " + waktuSelesai;
+        
+        const periodeHtml = tglMulai + ' <br> <strong style="color:#444;">' + waktuMulai + ' WIB</strong> sd <br>' + tglSelesai + ' <br> <strong style="color:#444;">' + waktuSelesai + ' WIB</strong>';
         
         const tglAjuFormatted = formatWaktuIndo(item.createdAt || item.tanggalPengajuan);
         
-        const thumb = item.barangFoto ? '<img src="' + escapeHtml(item.barangFoto) + '" alt="' + escapeHtml(item.barangNama) + '" style="width:64px; height:48px; object-fit:cover; border-radius:6px; margin-right:8px; vertical-align:middle;">' : '<div style="width:64px; height:48px; display:inline-grid; place-items:center; background:#f1f5f9; color:#64748b; border-radius:6px; margin-right:8px;">No</div>';
+        // PERBAIKAN: Menambahkan fungsi onClick openPhotoLightbox() pada gambar tabel
+        const thumb = item.barangFoto 
+            ? '<img src="' + escapeHtml(item.barangFoto) + '" alt="' + escapeHtml(item.barangNama) + '" onclick="openPhotoLightbox(this.src)" style="width:64px; height:48px; object-fit:cover; border-radius:6px; margin-right:8px; vertical-align:middle; cursor:pointer;">' 
+            : '<div style="width:64px; height:48px; display:inline-grid; place-items:center; background:#f1f5f9; color:#64748b; border-radius:6px; margin-right:8px;">No</div>';
 
         return '<tr>'
           + '<td data-label="Barang">' + thumb + '<span style="vertical-align:middle;">' + escapeHtml(item.barangNama) + '<div style="font-size:0.78rem; color:#64748b;">' + escapeHtml(item.barangCode || '') + '</div></span></td>'
           + '<td data-label="Jumlah">' + item.jumlahDiminta + '</td>'
-          + '<td data-label="Periode" style="font-size: 0.75rem;">' + escapeHtml(periode) + '</td>'
+          + '<td data-label="Periode Pinjam" style="font-size: 0.75rem;">' + periodeHtml + '</td>'
           + '<td data-label="Tanggal Pengajuan">' + escapeHtml(tglAjuFormatted) + '</td>'
           + '<td data-label="Status">' + statusHtml + '</td>'
           + '<td data-label="Aksi">' + actionHtml + '</td>'
@@ -1647,7 +1606,7 @@
     }
 
     function openPengajuanForm(btn) {
-      if (btn.hasAttribute("disabled")) return; // Pencegahan klik di JS
+      if (btn.hasAttribute("disabled")) return; 
 
       const barangId = btn.getAttribute("data-barang-id");
       const barangNama = btn.getAttribute("data-barang-nama");
@@ -1762,11 +1721,14 @@
         if (pResp && pResp.ok) {
           const pJson = await pResp.json();
           if (pJson && Array.isArray(pJson.items)) {
+            // PERBAIKAN: Menambahkan mapping data JSON dengan assign property waktuMulai/waktuSelesai
             REMOTE_PENGAJUAN = pJson.items.map(function (it) {
               return Object.assign({}, it, {
                 jumlahDiminta: it.jumlahDiminta || it.jumlah || it.jumlah_dim || 0,
                 barangNama: it.barangNama || it.barang_name || it.barangNama,
                 barangFoto: it.barangFoto || it.barang_photo || '',
+                waktuMulai: it.waktuMulai || it.waktu_mulai,
+                waktuSelesai: it.waktuSelesai || it.waktu_selesai
               });
             });
             renderPengajuanTable();

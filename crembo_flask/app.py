@@ -1495,7 +1495,7 @@ def list_pengajuan():
             items.append({
                 "id": r.get("id"),
                 "memberId": r.get("member_id"),
-                "memberNama": r.get("member_name"), # Tambahan Nama Member Asli
+                "memberNama": r.get("member_name"),
                 "barangId": r.get("barang_id"),
                 "barangNama": r.get("barang_name"),
                 "barangCode": r.get("barang_code"),
@@ -1503,7 +1503,9 @@ def list_pengajuan():
                 "jumlahDiminta": r.get("jumlah"),
                 "tanggalPengajuan": r.get("tanggal_pengajuan"),
                 "tanggalMulai": r.get("tanggal_mulai"),
+                "waktuMulai": str(r.get("waktu_mulai") or ""), # TAMBAHKAN BARIS INI
                 "tanggalSelesai": r.get("tanggal_selesai"),
+                "waktuSelesai": str(r.get("waktu_selesai") or ""), # TAMBAHKAN BARIS INI
                 "tujuan": r.get("tujuan"),
                 "status": r.get("status"),
                 "adminNote": r.get("admin_note", ""),
