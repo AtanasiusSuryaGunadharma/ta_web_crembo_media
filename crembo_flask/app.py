@@ -920,6 +920,196 @@ def delete_inventory_category(category_name):
         conn.close()
 
 
+@app.route("/api/pengajuan/<pengajuan_id>/ambil", methods=["POST"])
+def input_pengambilan(pengajuan_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_loan_schema(cursor)
+        cursor.execute("SELECT * FROM `loan_requests` WHERE `id` = %s LIMIT 1", (pengajuan_id,))
+        req = cursor.fetchone()
+        if not req:
+            return jsonify({"success": False, "error": "Pengajuan tidak ditemukan"}), 404
+
+        # Only owner or admin can submit pickup
+        role = session.get("role") or ""
+        user_id = session.get("user_id")
+        if role not in ["admin", "super_admin"] and str(req.get("member_id")) != str(user_id):
+            return jsonify({"success": False, "error": "Akses ditolak"}), 403
+
+        if req.get("status") != "approved":
+            return jsonify({"success": False, "error": "Hanya pengajuan dengan status 'approved' dapat diambil"}), 400
+
+        # parse form fields
+        tanggal = request.form.get("tanggal") or request.form.get("date") or None
+        waktu = request.form.get("waktu") or request.form.get("time") or None
+        lokasi = request.form.get("lokasi") or request.form.get("location") or ""
+        units_raw = request.form.get("unitDetails") or request.form.get("units") or None
+        try:
+            unit_details = json.loads(units_raw) if units_raw else []
+        except Exception:
+            unit_details = []
+
+        # handle optional photo upload
+        photo_record = None
+        photo_file = request.files.get("photo") or request.files.get("bukti")
+        if photo_file:
+            try:
+                saved = save_uploaded_attachment(photo_file)
+                # saved returns dict with url/name
+                photo_record = saved.get("url") or saved.get("uri") or saved.get("name")
+            except Exception:
+                photo_record = None
+
+        # Store pickup_info JSON and set status to 'taken'
+        pickup_info = {
+            "date": tanggal,
+            "time": waktu,
+            "location": lokasi,
+            "photo": photo_record,
+            "units": unit_details,
+        }
+
+        ensure_column(cursor, "loan_requests", "pickup_info", "`pickup_info` longtext DEFAULT NULL")
+        ensure_column(cursor, "loan_requests", "pickup_at", "`pickup_at` datetime DEFAULT NULL")
+
+        cursor.execute(
+            "UPDATE `loan_requests` SET `status` = %s, `pickup_info` = %s, `pickup_at` = %s WHERE `id` = %s",
+            (
+                "taken",
+                json.dumps(pickup_info, ensure_ascii=False),
+                datetime.utcnow(),
+                pengajuan_id,
+            ),
+        )
+        conn.commit()
+
+        # Send notification (try best-effort)
+        try:
+            ensure_notifications_schema()
+            create_notification(cursor, "peminjaman", f"Pengambilan: {req.get('barang_name')}", f"Pengambilan dicatat oleh user.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="user")
+            conn.commit()
+        except Exception:
+            pass
+
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/pengajuan/<pengajuan_id>/kembali", methods=["POST"])
+def input_pengembalian(pengajuan_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_loan_schema(cursor)
+        cursor.execute("SELECT * FROM `loan_requests` WHERE `id` = %s LIMIT 1", (pengajuan_id,))
+        req = cursor.fetchone()
+        if not req:
+            return jsonify({"success": False, "error": "Pengajuan tidak ditemukan"}), 404
+
+        # Only owner or admin can submit return
+        role = session.get("role") or ""
+        user_id = session.get("user_id")
+        if role not in ["admin", "super_admin"] and str(req.get("member_id")) != str(user_id):
+            return jsonify({"success": False, "error": "Akses ditolak"}), 403
+
+        if req.get("status") not in ["taken", "approved"]:
+            return jsonify({"success": False, "error": "Hanya pengajuan yang sedang dipinjam dapat dikembalikan"}), 400
+
+        # parse return fields
+        tanggal = request.form.get("tanggal") or request.form.get("date") or None
+        waktu = request.form.get("waktu") or request.form.get("time") or None
+        lokasi = request.form.get("lokasi") or request.form.get("location") or ""
+        units_raw = request.form.get("unitDetails") or request.form.get("units") or None
+        try:
+            return_unit_details = json.loads(units_raw) if units_raw else []
+        except Exception:
+            return_unit_details = []
+
+        # handle optional photo upload
+        photo_record = None
+        photo_file = request.files.get("photo") or request.files.get("bukti")
+        if photo_file:
+            try:
+                saved = save_uploaded_attachment(photo_file)
+                photo_record = saved.get("url") or saved.get("uri") or saved.get("name")
+            except Exception:
+                photo_record = None
+
+        return_info = {
+            "date": tanggal,
+            "time": waktu,
+            "location": lokasi,
+            "photo": photo_record,
+            "units": return_unit_details,
+        }
+
+        ensure_column(cursor, "loan_requests", "return_info", "`return_info` longtext DEFAULT NULL")
+        ensure_column(cursor, "loan_requests", "return_at", "`return_at` datetime DEFAULT NULL")
+
+        # Update inventory: restore units marked with this pengajuan id
+        barang_id = req.get("barang_id")
+        jumlah_req = int(req.get("jumlah", 1))
+
+        cursor.execute("SELECT `total_unit`, `available_unit`, `unit_details` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
+        inv = cursor.fetchone()
+        if inv:
+            total = int(inv.get("total_unit", 1))
+            available = int(inv.get("available_unit", 0))
+            unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
+
+            units_restored = 0
+            for unit in unit_details_raw:
+                if unit.get("reason") == f"Dipinjam (Req ID: {pengajuan_id})":
+                    unit["status"] = "Tersedia"
+                    unit["reason"] = ""
+                    unit["available"] = True
+                    units_restored += 1
+
+            if units_restored == 0:
+                # Fallback: restore any Dipinjam units up to jumlah
+                for unit in unit_details_raw:
+                    if unit.get("status") == "Dipinjam" and units_restored < jumlah_req:
+                        unit["status"] = "Tersedia"
+                        unit["reason"] = ""
+                        unit["available"] = True
+                        units_restored += 1
+
+            new_available = min(total, available + units_restored)
+            new_inv_status = "Tersedia" if new_available > 0 else "Dipinjam"
+
+            cursor.execute(
+                "UPDATE `inventory_items` SET `available_unit` = %s, `status` = %s, `unit_details` = %s WHERE `id` = %s",
+                (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id),
+            )
+
+        # Update loan_requests with return info and set status to returned
+        cursor.execute(
+            "UPDATE `loan_requests` SET `status` = %s, `return_info` = %s, `return_at` = %s WHERE `id` = %s",
+            ("returned", json.dumps(return_info, ensure_ascii=False), datetime.utcnow(), pengajuan_id),
+        )
+
+        # Try sending notification to admin/user
+        try:
+            ensure_notifications_schema()
+            create_notification(cursor, "peminjaman", f"Pengembalian: {req.get('barang_name')}", f"Barang dikembalikan oleh user.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="admin")
+        except Exception:
+            pass
+
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route("/api/inventory/items", methods=["GET"])
 def get_inventory_items():
     ensure_auth_schema()
@@ -1401,7 +1591,11 @@ def ensure_loan_schema(cursor) -> None:
           `tanggal_mulai` date DEFAULT NULL,
           `tanggal_selesai` date DEFAULT NULL,
           `tujuan` text DEFAULT NULL,
-          `status` varchar(50) NOT NULL DEFAULT 'pending',
+                    `status` varchar(50) NOT NULL DEFAULT 'pending',
+                    `pickup_info` longtext DEFAULT NULL,
+                    `pickup_at` datetime DEFAULT NULL,
+                    `return_info` longtext DEFAULT NULL,
+                    `return_at` datetime DEFAULT NULL,
           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
@@ -1425,29 +1619,34 @@ def list_pengajuan():
         from_date = request.args.get('from_date')
         to_date = request.args.get('to_date')
 
-        query = "SELECT * FROM `loan_requests` WHERE 1=1"
+        # PERBAIKAN: Gunakan JOIN untuk mendapatkan nama asli anggota
+        query = """
+            SELECT l.*, a.nama as member_name 
+            FROM `loan_requests` l
+            LEFT JOIN `anggota` a ON l.member_id = a.id
+            WHERE 1=1
+        """
         params = []
         
-        # PERBAIKAN: Jika bukan admin, hanya ambil data milik user yang sedang login
         role = session.get("role") or ""
         if role not in ["admin", "super_admin"]:
             user_id = session.get("user_id")
             if not user_id:
                 return jsonify({"success": True, "items": []})
-            query += " AND `member_id` = %s"
+            query += " AND l.`member_id` = %s"
             params.append(str(user_id))
         
         if status_filter and status_filter != 'all':
-            query += " AND `status` = %s"
+            query += " AND l.`status` = %s"
             params.append(status_filter)
         if from_date:
-            query += " AND `tanggal_mulai` >= %s"
+            query += " AND l.`tanggal_mulai` >= %s"
             params.append(from_date)
         if to_date:
-            query += " AND `tanggal_mulai` <= %s"
+            query += " AND l.`tanggal_mulai` <= %s"
             params.append(to_date)
             
-        query += " ORDER BY `created_at` DESC"
+        query += " ORDER BY l.`created_at` DESC"
 
         cursor.execute(query, tuple(params))
         rows = cursor.fetchall() or []
@@ -1456,6 +1655,7 @@ def list_pengajuan():
             items.append({
                 "id": r.get("id"),
                 "memberId": r.get("member_id"),
+                "memberNama": r.get("member_name"), # Tambahan Nama Member Asli
                 "barangId": r.get("barang_id"),
                 "barangNama": r.get("barang_name"),
                 "barangCode": r.get("barang_code"),
@@ -1471,6 +1671,8 @@ def list_pengajuan():
                 "approvedAt": r.get("approved_at"),
                 "createdAt": r.get("created_at"),
                 "updatedAt": r.get("updated_at"),
+                "pickupInfo": safe_json_loads(r.get("pickup_info"), {}),
+                "returnInfo": safe_json_loads(r.get("return_info"), {}),
             })
         return jsonify({"success": True, "items": items})
     finally:

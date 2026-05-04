@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2026 pada 20.21
+-- Waktu pembuatan: 04 Bulan Mei 2026 pada 16.48
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -374,16 +374,18 @@ CREATE TABLE `loan_requests` (
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `admin_note` text DEFAULT NULL,
   `approved_by` varchar(150) DEFAULT NULL,
-  `approved_at` datetime DEFAULT NULL
+  `approved_at` datetime DEFAULT NULL,
+  `pickup_info` longtext DEFAULT NULL,
+  `pickup_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `loan_requests`
 --
 
-INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`, `admin_note`, `approved_by`, `approved_at`) VALUES
-('pjn-1777804447525', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-04', '2026-06-27', 'Aura Tes Minjam 2 Hp vivo', 'cancelled', '2026-05-04 00:34:07', '2026-05-04 01:12:10', 'Coba mau ganti yang lain', 'Atanasius Surya', '2026-05-03 17:35:50'),
-('pjn-1777804487923', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-05', '2026-06-27', 'Daflo cek peminjaman book', 'approved', '2026-05-04 00:34:47', '2026-05-04 01:14:19', 'Accept test notif', 'Atanasius Surya', '2026-05-03 18:14:19');
+INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`, `admin_note`, `approved_by`, `approved_at`, `pickup_info`, `pickup_at`) VALUES
+('pjn-1777804447525', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-04', '2026-06-27', 'Aura Tes Minjam 2 Hp vivo', 'cancelled', '2026-05-04 00:34:07', '2026-05-04 01:12:10', 'Coba mau ganti yang lain', 'Atanasius Surya', '2026-05-03 17:35:50', NULL, NULL),
+('pjn-1777804487923', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-05', '2026-06-27', 'Daflo cek peminjaman book', 'taken', '2026-05-04 00:34:47', '2026-05-04 21:43:33', 'Accept test notif', 'Atanasius Surya', '2026-05-03 18:14:19', '{\"date\": \"2026-05-05\", \"time\": \"21:42\", \"location\": \"Test Ambil Barang\", \"photo\": \"/uploads/Screenshot_2023-03-04_090952_7bf29e28c7964c78af2ccf166497fc23.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Mantap\"}, {\"status\": \"Baik\", \"reason\": \"Mantap\"}]}', '2026-05-04 14:43:33');
 
 -- --------------------------------------------------------
 
@@ -502,7 +504,8 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1777829647537-8815f5', 'form', 'Pengajuan Peminjaman Baru: Vivo', 'Pengajuan oleh user ID 21', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777804447525\"}', '2026-05-04 00:34:07', 'admin'),
 ('notif-1777829687932-b64756', 'form', 'Pengajuan Peminjaman Baru: Vivo', 'Pengajuan oleh user ID 53', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777804487923\"}', '2026-05-04 00:34:47', 'admin'),
 ('notif-1777831930744-085f24', 'peminjaman', 'Peminjaman Dibatalkan: Vivo', 'Pengajuan peminjaman Anda untuk Vivo telah dibatalkan oleh Admin. Catatan: Coba mau ganti yang lain', '/pengajuan-peminjaman-barang-anggota.html', '{\"pengajuan_id\": \"pjn-1777804447525\", \"target_user_id\": \"21\"}', '2026-05-04 01:12:10', 'user'),
-('notif-1777832059144-df3675', 'peminjaman', 'Peminjaman Disetujui: Vivo', 'Pengajuan peminjaman Anda untuk Vivo telah disetujui oleh Admin. Catatan: Accept test notif', '/pengajuan-peminjaman-barang-anggota.html', '{\"pengajuan_id\": \"pjn-1777804487923\", \"target_user_id\": \"53\"}', '2026-05-04 01:14:19', 'user');
+('notif-1777832059144-df3675', 'peminjaman', 'Peminjaman Disetujui: Vivo', 'Pengajuan peminjaman Anda untuk Vivo telah disetujui oleh Admin. Catatan: Accept test notif', '/pengajuan-peminjaman-barang-anggota.html', '{\"pengajuan_id\": \"pjn-1777804487923\", \"target_user_id\": \"53\"}', '2026-05-04 01:14:19', 'user'),
+('notif-1777905813487-065fc2', 'peminjaman', 'Pengambilan: Vivo', 'Pengambilan dicatat oleh user.', '/riwayat-peminjaman-barang-anggota.html', '{\"pengajuan_id\": \"pjn-1777804487923\", \"target_user_id\": \"53\"}', '2026-05-04 21:43:33', 'user');
 
 -- --------------------------------------------------------
 

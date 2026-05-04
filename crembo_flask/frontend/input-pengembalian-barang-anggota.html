@@ -460,6 +460,12 @@
       background: #fff;
     }
 
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
     .btn {
       text-decoration: none;
       border: 0;
@@ -767,14 +773,6 @@
     const pengembalianPhoto = document.getElementById("pengembalianPhoto");
     const pengembalianPhotoPreview = document.getElementById("pengembalianPhotoPreview");
 
-    const RIWAYAT_STORAGE_KEY = "crembo-peminjaman-riwayat";
-    const DEMO_RIWAYAT = [
-      { id: "rwyt-demo-1", pengajuanId: "pjn-demo-1", barangId: "inv-001", barangNama: "Kamera Sony A6400", jumlah: 1, tanggalDiambil: "2026-04-10", jamDiambil: "08:15", tanggalDikembalikan: null, jamDikembalikan: null, kondisiSebelum: "Baik", kondisiSesudah: null, keterangan: "Dipakai untuk dokumentasi Misa Harian" },
-      { id: "rwyt-demo-2", pengajuanId: "pjn-demo-2", barangId: "inv-002", barangNama: "Wireless Microphone Set", jumlah: 2, tanggalDiambil: "2026-04-09", jamDiambil: "17:30", tanggalDikembalikan: null, jamDikembalikan: null, kondisiSebelum: "Baik, Baik", kondisiSesudah: null, keterangan: "Satu set untuk live dan satu set cadangan" },
-      { id: "rwyt-demo-3", pengajuanId: "pjn-demo-3", barangId: "inv-003", barangNama: "Tripod Heavy Duty", jumlah: 1, tanggalDiambil: "2026-04-05", jamDiambil: "09:00", tanggalDikembalikan: "2026-04-08", jamDikembalikan: "16:45", kondisiSebelum: "Baik", kondisiSesudah: "Baik", keterangan: "Sudah dikembalikan setelah kegiatan" }
-    ];
-    let pengembalianPhotoData = "";
-
     function updateLiveDateTime() {
       const now = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -794,22 +792,27 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    function safeParse(raw, fallback) {
+    // --- MENGGUNAKAN API BACKEND ---
+    let REMOTE_PENGAJUAN = [];
+
+    async function loadServerData() {
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
-      } catch (error) {
-        return fallback;
-      }
+        const res = await fetch('/api/pengajuan');
+        const data = await res.json();
+        if(data.success) {
+          REMOTE_PENGAJUAN = data.items;
+          renderActiveLoanTable();
+        }
+      } catch(e) { console.error("Gagal memuat data", e); }
     }
 
-    function readRiwayat() {
-      const stored = safeParse(localStorage.getItem(RIWAYAT_STORAGE_KEY), []);
-      return stored.length ? stored : DEMO_RIWAYAT.slice();
-    }
-
-    function saveRiwayat(items) {
-      localStorage.setItem(RIWAYAT_STORAGE_KEY, JSON.stringify(items));
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     function getTodayValue() {
@@ -823,22 +826,19 @@
     }
 
     function resetPhotoPreview() {
-      pengembalianPhotoData = "";
       pengembalianPhoto.value = "";
       pengembalianPhotoPreview.style.display = "none";
       pengembalianPhotoPreview.innerHTML = "";
     }
 
     function setPhotoPreview(dataUrl, fileName) {
-      pengembalianPhotoData = dataUrl;
       pengembalianPhotoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Pratinjau bukti foto">' + '<span>' + fileName + '</span>';
       pengembalianPhotoPreview.style.display = "flex";
     }
 
     function renderActiveLoanTable() {
-      let items = readRiwayat().filter(function (item) {
-        return !item.tanggalDikembalikan;
-      });
+      // Filter status barang yang 'Sedang Dipinjam' (taken)
+      let items = REMOTE_PENGAJUAN.filter(item => item.status === "taken");
 
       if (!items.length) {
         activeLoanTableRows.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Tidak ada barang yang sedang dipinjam.</td></tr>';
@@ -847,9 +847,13 @@
       }
 
       activeLoanTableRows.innerHTML = items.map(function (item) {
+        // Ambil info dari pickupInfo JSON
+        const pickupDate = item.pickupInfo && item.pickupInfo.date ? item.pickupInfo.date : "-";
+        const pickupTime = item.pickupInfo && item.pickupInfo.time ? item.pickupInfo.time : "";
+
         return '<tr>'
           + '<td data-label="Barang">' + item.barangNama + '</td>'
-          + '<td data-label="Tanggal Pengambilan">' + item.tanggalDiambil + ' ' + item.jamDiambil + '</td>'
+          + '<td data-label="Tanggal Pengambilan">' + pickupDate + ' ' + pickupTime + '</td>'
           + '<td data-label="Status"><span class="status-warn">Sedang Dipinjam</span></td>'
           + '<td data-label="Aksi"><button class="mini-btn" data-id="' + item.id + '" onclick="openForm(this)">Input Pengembalian</button></td>'
           + '</tr>';
@@ -857,40 +861,33 @@
     }
 
     function openForm(btn) {
-      const riwayatId = btn.getAttribute("data-id");
-      const riwayat = readRiwayat().find(function (r) { return r.id === riwayatId; });
+      const pengajuanId = btn.getAttribute("data-id");
+      const riwayat = REMOTE_PENGAJUAN.find(r => r.id === pengajuanId);
+      if (!riwayat) return;
 
-      if (!riwayat) {
-        return;
-      }
-
-      pengembalianForm.setAttribute("data-riwayat-id", riwayatId);
+      pengembalianForm.setAttribute("data-riwayat-id", pengajuanId);
       pengembalianDate.value = getTodayValue();
       pengembalianTime.value = getNowTimeValue();
       pengembalianLocation.value = "";
       resetPhotoPreview();
       
+      const pickupUnits = riwayat.pickupInfo && riwayat.pickupInfo.units ? riwayat.pickupInfo.units : [];
+
       itemsContainer.innerHTML = '';
-      for (let i = 0; i < riwayat.jumlah; i += 1) {
+      for (let i = 0; i < riwayat.jumlahDiminta; i += 1) {
+        const condSebelum = pickupUnits[i] ? pickupUnits[i].status : "-";
+        
         const itemHTML = '<div class="item-form">'
           + '<h3>Unit ' + (i + 1) + '</h3>'
-          + '<div class="item-info">'
-          + '<strong>Kondisi Saat Pengambilan:</strong> ' + (riwayat.kondisiSebelum ? riwayat.kondisiSebelum.split(", ")[i] || "-" : "-")
-          + '</div>'
+          + '<div class="item-info"><strong>Kondisi Saat Pengambilan:</strong> ' + escapeHtml(condSebelum) + '</div>'
           + '<div class="form-group">'
           + '<label>Kondisi Barang Saat Pengembalian *</label>'
           + '<select class="kondisi-select" required>'
           + '<option value="">Pilih kondisi...</option>'
-          + '<option value="Baik">Baik</option>'
-          + '<option value="Sedang">Sedang</option>'
-          + '<option value="Rusak">Rusak</option>'
-          + '</select>'
-          + '</div>'
-          + '<div class="form-group">'
-          + '<label>Catatan / Kerusakan (jika ada)</label>'
-          + '<textarea class="keterangan-input" placeholder="Optional"></textarea>'
-          + '</div>'
-          + '</div>';
+          + '<option value="Baik">Baik</option><option value="Sedang">Sedang</option><option value="Rusak">Rusak</option>'
+          + '</select></div>'
+          + '<div class="form-group"><label>Catatan / Kerusakan (jika ada)</label>'
+          + '<textarea class="keterangan-input" placeholder="Optional"></textarea></div></div>';
         itemsContainer.insertAdjacentHTML("beforeend", itemHTML);
       }
 
@@ -900,12 +897,10 @@
 
     pengembalianPhoto.addEventListener("change", function () {
       const file = pengembalianPhoto.files && pengembalianPhoto.files[0];
-
       if (!file) {
         resetPhotoPreview();
         return;
       }
-
       const reader = new FileReader();
       reader.onload = function () {
         setPhotoPreview(String(reader.result || ""), file.name);
@@ -919,72 +914,57 @@
       resetPhotoPreview();
     });
 
-    pengembalianForm.addEventListener("submit", function (event) {
+    // Submit Pengembalian
+    pengembalianForm.addEventListener("submit", async function (event) {
       event.preventDefault();
-
-      const riwayatId = pengembalianForm.getAttribute("data-riwayat-id");
-      const riwayatItems = readRiwayat();
-      const idx = riwayatItems.findIndex(function (r) { return r.id === riwayatId; });
-
-      if (idx < 0) {
-        alert("Riwayat tidak ditemukan");
-        return;
-      }
-
-      const riwayat = riwayatItems[idx];
+      const pengajuanId = pengembalianForm.getAttribute("data-riwayat-id");
 
       const kondisiSelects = document.querySelectorAll(".kondisi-select");
       const keteranganInputs = document.querySelectorAll(".keterangan-input");
 
       let allValid = true;
-      kondisiSelects.forEach(function (select) {
-        if (!select.value) {
-          allValid = false;
-        }
-      });
+      kondisiSelects.forEach(s => { if (!s.value) allValid = false; });
+      if (!allValid) { alert("Mohon isi kondisi barang untuk semua unit"); return; }
 
-      if (!allValid) {
-        alert("Mohon isi kondisi barang untuk semua unit");
-        return;
-      }
-
-      if (!pengembalianPhotoData) {
-        alert("Mohon unggah bukti foto pengembalian");
-        return;
-      }
-
-      const today = pengembalianDate.value;
-      const time = pengembalianTime.value;
+      const photoFile = pengembalianPhoto.files[0];
+      if (!photoFile) { alert("Mohon unggah bukti foto pengembalian"); return; }
       const location = pengembalianLocation.value.trim();
+      if (!location) { alert("Mohon isi lokasi pengembalian"); return; }
 
-      if (!location) {
-        alert("Mohon isi lokasi pengembalian");
-        return;
+      const formData = new FormData();
+      formData.append("tanggal", pengembalianDate.value);
+      formData.append("waktu", pengembalianTime.value);
+      formData.append("lokasi", location);
+      formData.append("photo", photoFile);
+
+      const units = Array.from(kondisiSelects).map((sel, idx) => ({
+          status: sel.value,
+          reason: keteranganInputs[idx].value
+      }));
+      formData.append("unitDetails", JSON.stringify(units));
+
+      try {
+        const res = await fetch(`/api/pengajuan/${pengajuanId}/kembali`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+          alert("Pengembalian barang berhasil disimpan!");
+          formsContainer.style.display = "none";
+          pengembalianForm.reset();
+          resetPhotoPreview();
+          loadServerData();
+        } else {
+          alert("Gagal: " + data.error);
+        }
+      } catch (e) {
+        alert("Terjadi kesalahan koneksi saat mengirim data.");
       }
-
-      riwayat.tanggalDikembalikan = today;
-      riwayat.jamDikembalikan = time;
-      riwayat.kondisiSesudah = Array.from(kondisiSelects).map(function (s) { return s.value; }).join(", ");
-      riwayat.keterangan = (riwayat.keterangan || "") + " | " + Array.from(keteranganInputs).map(function (t) { return t.value; }).join(" | ");
-      riwayat.returnInfo = {
-        date: today,
-        time: time,
-        location: location,
-        photo: pengembalianPhotoData,
-        conditions: riwayat.kondisiSesudah
-      };
-
-      riwayatItems[idx] = riwayat;
-      saveRiwayat(riwayatItems);
-
-      formsContainer.style.display = "none";
-      pengembalianForm.reset();
-      resetPhotoPreview();
-      renderActiveLoanTable();
-      alert("Pengembalian barang berhasil disimpan!");
     });
 
-    renderActiveLoanTable();
+    loadServerData();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

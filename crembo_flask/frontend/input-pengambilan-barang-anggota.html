@@ -764,18 +764,6 @@
     const pengambilanPhoto = document.getElementById("pengambilanPhoto");
     const pengambilanPhotoPreview = document.getElementById("pengambilanPhotoPreview");
 
-    const PENGAJUAN_STORAGE_KEY = "crembo-peminjaman-pengajuan";
-    const RIWAYAT_STORAGE_KEY = "crembo-peminjaman-riwayat";
-    const DEMO_PENGAJUAN = [
-      { id: "pjn-demo-1", barangId: "inv-001", barangNama: "Kamera Sony A6400", barangCode: "CAM-001", jumlahDiminta: 1, tanggalPengajuan: "2026-04-08", tanggalMulai: "2026-04-10", tanggalSelesai: "2026-04-12", tujuan: "Dokumentasi Misa Harian", status: "approved" },
-      { id: "pjn-demo-2", barangId: "inv-002", barangNama: "Wireless Microphone Set", barangCode: "AUD-004", jumlahDiminta: 2, tanggalPengajuan: "2026-04-07", tanggalMulai: "2026-04-10", tanggalSelesai: "2026-04-11", tujuan: "Siaran live dan rekaman audio", status: "approved" },
-      { id: "pjn-demo-3", barangId: "inv-003", barangNama: "Tripod Heavy Duty", barangCode: "TRI-002", jumlahDiminta: 1, tanggalPengajuan: "2026-04-09", tanggalMulai: "2026-04-11", tanggalSelesai: "2026-04-13", tujuan: "Pendukung kamera misa", status: "approved" }
-    ];
-    const DEMO_RIWAYAT = [
-      { id: "rwyt-demo-3", pengajuanId: "pjn-demo-9", barangId: "inv-009", barangNama: "LED Panel Portabel", jumlah: 1, tanggalDiambil: "2026-04-05", jamDiambil: "09:00", tanggalDikembalikan: "2026-04-08", jamDikembalikan: "16:45", kondisiSebelum: "Baik", kondisiSesudah: "Baik", keterangan: "Selesai pengembalian" }
-    ];
-    let pengambilanPhotoData = "";
-
     function updateLiveDateTime() {
       const now = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -795,59 +783,19 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    function safeParse(raw, fallback) {
+    // --- MENGGUNAKAN API BACKEND ---
+    let REMOTE_PENGAJUAN = [];
+
+    // Mengambil data dari server
+    async function loadServerData() {
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
-      } catch (error) {
-        return fallback;
-      }
-    }
-
-    function getStoredPengajuan() {
-      const stored = safeParse(localStorage.getItem(PENGAJUAN_STORAGE_KEY), []);
-      return Array.isArray(stored) ? stored : [];
-    }
-
-    function seedPengajuanDemoIfNeeded() {
-      const stored = getStoredPengajuan();
-      const hasApproved = stored.some(function (item) {
-        return item && item.status === "approved";
-      });
-
-      if (hasApproved) {
-        return stored;
-      }
-
-      const merged = stored.slice();
-      DEMO_PENGAJUAN.forEach(function (demoItem) {
-        const exists = merged.some(function (item) {
-          return item && item.id === demoItem.id;
-        });
-        if (!exists) {
-          merged.push(demoItem);
+        const res = await fetch('/api/pengajuan');
+        const data = await res.json();
+        if(data.success) {
+          REMOTE_PENGAJUAN = data.items;
+          renderApprovedTable();
         }
-      });
-
-      localStorage.setItem(PENGAJUAN_STORAGE_KEY, JSON.stringify(merged));
-      return merged;
-    }
-
-    function readPengajuan() {
-      return seedPengajuanDemoIfNeeded();
-    }
-
-    function savePengajuan(items) {
-      localStorage.setItem(PENGAJUAN_STORAGE_KEY, JSON.stringify(items));
-    }
-
-    function readRiwayat() {
-      const stored = safeParse(localStorage.getItem(RIWAYAT_STORAGE_KEY), []);
-      return stored.length ? stored : DEMO_RIWAYAT.slice();
-    }
-
-    function saveRiwayat(items) {
-      localStorage.setItem(RIWAYAT_STORAGE_KEY, JSON.stringify(items));
+      } catch(e) { console.error("Gagal memuat data", e); }
     }
 
     function getTodayValue() {
@@ -861,25 +809,24 @@
     }
 
     function resetPhotoPreview() {
-      pengambilanPhotoData = "";
       pengambilanPhoto.value = "";
       pengambilanPhotoPreview.style.display = "none";
       pengambilanPhotoPreview.innerHTML = "";
     }
 
     function setPhotoPreview(dataUrl, fileName) {
-      pengambilanPhotoData = dataUrl;
       pengambilanPhotoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Pratinjau bukti foto">' + '<span>' + fileName + '</span>';
       pengambilanPhotoPreview.style.display = "flex";
     }
 
     function renderApprovedTable() {
-      let items = readPengajuan().filter(function (item) {
+      // Filter hanya yang sudah disetujui (approved)
+      let items = REMOTE_PENGAJUAN.filter(function (item) {
         return item.status === "approved";
       });
 
       if (!items.length) {
-        approvedTableRows.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Tidak ada pengajuan yang disetujui.</td></tr>';
+        approvedTableRows.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Tidak ada pengajuan yang siap diambil.</td></tr>';
         formsContainer.style.display = "none";
         return;
       }
@@ -897,11 +844,8 @@
 
     function openForm(btn) {
       const pengajuanId = btn.getAttribute("data-id");
-      const pengajuan = readPengajuan().find(function (p) { return p.id === pengajuanId; });
-
-      if (!pengajuan) {
-        return;
-      }
+      const pengajuan = REMOTE_PENGAJUAN.find(function (p) { return p.id === pengajuanId; });
+      if (!pengajuan) return;
 
       pengambilanForm.setAttribute("data-pengajuan-id", pengajuanId);
       pengambilanDate.value = getTodayValue();
@@ -920,13 +864,9 @@
           + '<option value="Baik">Baik</option>'
           + '<option value="Sedang">Sedang</option>'
           + '<option value="Rusak">Rusak</option>'
-          + '</select>'
-          + '</div>'
-          + '<div class="form-group">'
-          + '<label>Catatan / Hal Khusus</label>'
-          + '<textarea class="keterangan-input" placeholder="Optional"></textarea>'
-          + '</div>'
-          + '</div>';
+          + '</select></div>'
+          + '<div class="form-group"><label>Catatan / Hal Khusus</label>'
+          + '<textarea class="keterangan-input" placeholder="Optional"></textarea></div></div>';
         itemsContainer.insertAdjacentHTML("beforeend", itemHTML);
       }
 
@@ -936,12 +876,10 @@
 
     pengambilanPhoto.addEventListener("change", function () {
       const file = pengambilanPhoto.files && pengambilanPhoto.files[0];
-
       if (!file) {
         resetPhotoPreview();
         return;
       }
-
       const reader = new FileReader();
       reader.onload = function () {
         setPhotoPreview(String(reader.result || ""), file.name);
@@ -955,87 +893,62 @@
       resetPhotoPreview();
     });
 
-    pengambilanForm.addEventListener("submit", function (event) {
+    // Submit form ke API Pengambilan Backend
+    pengambilanForm.addEventListener("submit", async function (event) {
       event.preventDefault();
-
       const pengajuanId = pengambilanForm.getAttribute("data-pengajuan-id");
-      const pengajuan = readPengajuan().find(function (p) { return p.id === pengajuanId; });
-
-      if (!pengajuan) {
-        alert("Pengajuan tidak ditemukan");
-        return;
-      }
 
       const kondisiSelects = document.querySelectorAll(".kondisi-select");
       const keteranganInputs = document.querySelectorAll(".keterangan-input");
 
       let allValid = true;
-      kondisiSelects.forEach(function (select) {
-        if (!select.value) {
-          allValid = false;
-        }
-      });
-
-      if (!allValid) {
-        alert("Mohon isi kondisi barang untuk semua unit");
-        return;
-      }
-
-      if (!pengambilanPhotoData) {
-        alert("Mohon unggah bukti foto pengambilan");
-        return;
-      }
-
-      const today = pengambilanDate.value;
-      const time = pengambilanTime.value;
+      kondisiSelects.forEach(s => { if (!s.value) allValid = false; });
+      if (!allValid) { alert("Mohon isi kondisi barang untuk semua unit"); return; }
+      
+      const photoFile = pengambilanPhoto.files[0];
+      if (!photoFile) { alert("Mohon unggah bukti foto pengambilan"); return; }
+      
       const location = pengambilanLocation.value.trim();
+      if (!location) { alert("Mohon isi lokasi pengambilan"); return; }
 
-      if (!location) {
-        alert("Mohon isi lokasi pengambilan");
-        return;
-      }
+      // Menggunakan FormData karena butuh upload foto
+      const formData = new FormData();
+      formData.append("tanggal", pengambilanDate.value);
+      formData.append("waktu", pengambilanTime.value);
+      formData.append("lokasi", location);
+      formData.append("photo", photoFile);
 
-      const riwayat = readRiwayat();
-      const newEntry = {
-        id: "rwyt-" + Date.now(),
-        pengajuanId: pengajuanId,
-        barangId: pengajuan.barangId,
-        barangNama: pengajuan.barangNama,
-        jumlah: pengajuan.jumlahDiminta,
-        tanggalDiambil: today,
-        jamDiambil: time,
-        tanggalDikembalikan: null,
-        jamDikembalikan: null,
-        kondisiSebelum: Array.from(kondisiSelects).map(function (s) { return s.value; }).join(", "),
-        kondisiSesudah: null,
-        keterangan: Array.from(keteranganInputs).map(function (t) { return t.value; }).join(" | "),
-        pickup: {
-          date: today,
-          time: time,
-          location: location,
-          photo: pengambilanPhotoData
+      // Format rincian unit menjadi JSON String untuk backend
+      const units = Array.from(kondisiSelects).map((sel, idx) => ({
+          status: sel.value,
+          reason: keteranganInputs[idx].value
+      }));
+      formData.append("unitDetails", JSON.stringify(units));
+
+      try {
+        // Catatan: Jangan set header Content-Type manual agar browser menyetel 'multipart/form-data' beserta boundary-nya otomatis.
+        const res = await fetch(`/api/pengajuan/${pengajuanId}/ambil`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert("Pengambilan barang berhasil disimpan!");
+          formsContainer.style.display = "none";
+          pengambilanForm.reset();
+          resetPhotoPreview();
+          loadServerData(); // Refresh list
+        } else {
+          alert("Gagal menyimpan: " + data.error);
         }
-      };
-
-      riwayat.push(newEntry);
-      saveRiwayat(riwayat);
-
-      // Update pengajuan status to "taken"
-      const pengajuanItems = readPengajuan();
-      const idx = pengajuanItems.findIndex(function (p) { return p.id === pengajuanId; });
-      if (idx >= 0) {
-        pengajuanItems[idx].status = "taken";
-        savePengajuan(pengajuanItems);
+      } catch (e) {
+        alert("Terjadi kesalahan sistem saat menghubungi server.");
       }
-
-      formsContainer.style.display = "none";
-      pengambilanForm.reset();
-      resetPhotoPreview();
-      renderApprovedTable();
-      alert("Pengambilan barang berhasil disimpan!");
     });
 
-    renderApprovedTable();
+    // Inisialisasi awal
+    loadServerData();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

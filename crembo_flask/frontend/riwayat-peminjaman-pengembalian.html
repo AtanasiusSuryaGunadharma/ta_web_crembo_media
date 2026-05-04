@@ -181,6 +181,11 @@
 
     .thumb {
       width: 58px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #c8c8c8; background: #efefef;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .thumb:hover {
+      transform: scale(1.1);
     }
 
     @media (max-width: 1080px) {
@@ -298,12 +303,12 @@
                 <th>Qty</th>
                 <th>Tanggal Pinjam</th>
                 <th>Target Kembali</th>
-                <th>Pengambilan</th>
+                <th>Waktu Pengambilan</th>
                 <th>Lokasi Ambil</th>
                 <th>Kondisi Ambil</th>
                 <th>Catatan Ambil</th>
                 <th>Bukti Ambil</th>
-                <th>Pengembalian</th>
+                <th>Waktu Pengembalian</th>
                 <th>Lokasi Kembali</th>
                 <th>Kondisi Kembali</th>
                 <th>Catatan Kembali</th>
@@ -333,7 +338,6 @@
     const liveDateTime = document.getElementById("liveDateTime");
     const activeFilterText = document.getElementById("activeFilterText");
 
-    // Mengambil langsung dari API Database yang sudah Anda setujui atau tolak
     let REMOTE_REQUESTS = [];
 
     function escapeHtml(text) {
@@ -345,7 +349,6 @@
         .replace(/'/g, "&#039;");
     }
 
-    // Mapping Status DB ke Display Status
     function mapDbStatus(dbStatus) {
         const map = {
             'pending': 'Pending',
@@ -365,15 +368,6 @@
       if (status === "Selesai") return "done";
       if (status === "Dibatalkan") return "cancelled";
       return "pending";
-    }
-
-    function formatDateTime(value) {
-      const date = new Date(value || "");
-      if (Number.isNaN(date.getTime())) return "-";
-      return date.toLocaleString("id-ID", {
-        day: "2-digit", month: "2-digit", year: "numeric",
-        hour: "2-digit", minute: "2-digit"
-      }) + " WIB";
     }
 
     function filteredList() {
@@ -434,22 +428,24 @@
       emptyState.hidden = true;
 
       rows.innerHTML = list.map(function (item) {
-        // Mock data untuk field yang belum ada di DB (bisa diadaptasi nanti jika sudah dibuatkan backendnya)
-        const pickupLabel = item.pickup ? escapeHtml(formatDateTime(item.pickup.time)) : '-';
-        const returnLabel = item.returnInfo ? escapeHtml(formatDateTime(item.returnInfo.time)) : '-';
-        const pickupLocation = item.pickup && item.pickup.location ? item.pickup.location : '-';
-        const returnLocation = item.returnInfo && item.returnInfo.location ? item.returnInfo.location : '-';
-        const pickupCondition = item.pickup && item.pickup.condition ? item.pickup.condition : '-';
-        const returnCondition = item.returnInfo && item.returnInfo.condition ? item.returnInfo.condition : '-';
-        const pickupNote = item.pickup && item.pickup.note ? item.pickup.note : '-';
-        const returnNote = item.returnInfo && item.returnInfo.note ? item.returnInfo.note : '-';
+        const p = item.pickup || {};
+        const r = item.returnInfo || {};
 
-        const pickupProof = item.pickup && item.pickup.photo
-          ? '<img class="thumb" src="' + escapeHtml(item.pickup.photo) + '" alt="Bukti">'
-          : '-';
-        const returnProof = item.returnInfo && item.returnInfo.photo
-          ? '<img class="thumb" src="' + escapeHtml(item.returnInfo.photo) + '" alt="Bukti">'
-          : '-';
+        const pickupLabel = p.time ? escapeHtml(p.time) : '-';
+        const pickupLocation = p.location ? escapeHtml(p.location) : '-';
+        const pickupCondition = p.condition ? escapeHtml(p.condition) : '-';
+        const pickupNote = p.note ? escapeHtml(p.note) : '-';
+        const pickupProof = p.photo 
+            ? '<a href="'+escapeHtml(p.photo)+'" target="_blank"><img class="thumb" src="' + escapeHtml(p.photo) + '" alt="Bukti"></a>' 
+            : '-';
+
+        const returnLabel = r.time ? escapeHtml(r.time) : '-';
+        const returnLocation = r.location ? escapeHtml(r.location) : '-';
+        const returnCondition = r.condition ? escapeHtml(r.condition) : '-';
+        const returnNote = r.note ? escapeHtml(r.note) : '-';
+        const returnProof = r.photo 
+            ? '<a href="'+escapeHtml(r.photo)+'" target="_blank"><img class="thumb" src="' + escapeHtml(r.photo) + '" alt="Bukti"></a>' 
+            : '-';
 
         return '<tr>' +
           '<td><small style="color:#666;">' + escapeHtml(item.code || '-') + '</small></td>' +
@@ -459,14 +455,14 @@
           '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
           '<td>' + escapeHtml(item.expectedReturnDate || '-') + '</td>' +
           '<td>' + pickupLabel + '</td>' +
-          '<td>' + escapeHtml(pickupLocation) + '</td>' +
-          '<td>' + escapeHtml(pickupCondition) + '</td>' +
-          '<td>' + escapeHtml(pickupNote) + '</td>' +
+          '<td>' + pickupLocation + '</td>' +
+          '<td>' + pickupCondition + '</td>' +
+          '<td>' + pickupNote + '</td>' +
           '<td>' + pickupProof + '</td>' +
           '<td>' + returnLabel + '</td>' +
-          '<td>' + escapeHtml(returnLocation) + '</td>' +
-          '<td>' + escapeHtml(returnCondition) + '</td>' +
-          '<td>' + escapeHtml(returnNote) + '</td>' +
+          '<td>' + returnLocation + '</td>' +
+          '<td>' + returnCondition + '</td>' +
+          '<td>' + returnNote + '</td>' +
           '<td>' + returnProof + '</td>' +
           '<td><span class="status-pill ' + statusClass(item.status) + '">' + escapeHtml(item.status || '-') + '</span></td>' +
           '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
@@ -481,10 +477,34 @@
             if(data.success) {
                 // Map the DB structure to Riwayat format
                 REMOTE_REQUESTS = data.items.map(item => {
+                    // Extract Pickup Info Details
+                    let pickupMap = null;
+                    if (item.pickupInfo && item.pickupInfo.date) {
+                        pickupMap = {
+                            time: item.pickupInfo.date + (item.pickupInfo.time ? " " + item.pickupInfo.time : ""),
+                            location: item.pickupInfo.location,
+                            photo: item.pickupInfo.photo,
+                            condition: Array.isArray(item.pickupInfo.units) ? item.pickupInfo.units.map(u => u.status).join(", ") : "-",
+                            note: Array.isArray(item.pickupInfo.units) ? item.pickupInfo.units.map(u => u.reason).filter(r => r).join(" | ") : "-"
+                        };
+                    }
+
+                    // Extract Return Info Details
+                    let returnMap = null;
+                    if (item.returnInfo && item.returnInfo.date) {
+                        returnMap = {
+                            time: item.returnInfo.date + (item.returnInfo.time ? " " + item.returnInfo.time : ""),
+                            location: item.returnInfo.location,
+                            photo: item.returnInfo.photo,
+                            condition: Array.isArray(item.returnInfo.units) ? item.returnInfo.units.map(u => u.status).join(", ") : "-",
+                            note: Array.isArray(item.returnInfo.units) ? item.returnInfo.units.map(u => u.reason).filter(r => r).join(" | ") : "-"
+                        };
+                    }
+
                     return {
                         id: item.id,
                         code: item.id.split('-').pop(), // get the timestamp part
-                        borrowerName: `User ${item.memberId || 'Guest'}`,
+                        borrowerName: item.memberNama || `User ${item.memberId || 'Guest'}`, // Diambil dari JOIN Query terbaru backend
                         itemName: item.barangNama,
                         itemCode: item.barangCode,
                         quantity: item.jumlahDiminta,
@@ -494,8 +514,8 @@
                         status: mapDbStatus(item.status),
                         adminNote: item.adminNote,
                         createdAt: item.createdAt,
-                        pickup: null,      // Di masa depan bisa dimap dari DB jika sudah ada tabel riwayat
-                        returnInfo: null
+                        pickup: pickupMap,      
+                        returnInfo: returnMap
                     };
                 });
                 renderTable();
@@ -513,12 +533,17 @@
         '</head><body>';
       html += '<h3>Laporan Riwayat Peminjaman dan Pengembalian (Database Sync)</h3>';
       html += '<table border="1" cellspacing="0" cellpadding="6">';
-      html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Status</th><th>Catatan Admin</th></tr>';
+      html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Waktu Pengambilan</th><th>Kondisi Pengambilan</th><th>Waktu Pengembalian</th><th>Kondisi Pengembalian</th><th>Status</th><th>Catatan Admin</th></tr>';
 
       if (!list.length) {
-        html += '<tr><td colspan="8">Tidak ada data riwayat sesuai filter.</td></tr>';
+        html += '<tr><td colspan="12">Tidak ada data riwayat sesuai filter.</td></tr>';
       } else {
         list.forEach(function (item) {
+          const pLabel = item.pickup && item.pickup.time ? item.pickup.time : '-';
+          const pCond = item.pickup && item.pickup.condition ? item.pickup.condition : '-';
+          const rLabel = item.returnInfo && item.returnInfo.time ? item.returnInfo.time : '-';
+          const rCond = item.returnInfo && item.returnInfo.condition ? item.returnInfo.condition : '-';
+
           html += '<tr>' +
             '<td>' + escapeHtml(item.code || '-') + '</td>' +
             '<td>' + escapeHtml(item.borrowerName || '-') + '</td>' +
@@ -526,6 +551,10 @@
             '<td>' + escapeHtml(item.quantity || 1) + '</td>' +
             '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
             '<td>' + escapeHtml(item.expectedReturnDate || '-') + '</td>' +
+            '<td>' + escapeHtml(pLabel) + '</td>' +
+            '<td>' + escapeHtml(pCond) + '</td>' +
+            '<td>' + escapeHtml(rLabel) + '</td>' +
+            '<td>' + escapeHtml(rCond) + '</td>' +
             '<td>' + escapeHtml(item.status || '-') + '</td>' +
             '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
           '</tr>';
@@ -553,16 +582,21 @@
 
       const bodyRows = list.length
         ? list.map(function (item) {
+            const pLabel = item.pickup && item.pickup.time ? item.pickup.time : '-';
+            const rLabel = item.returnInfo && item.returnInfo.time ? item.returnInfo.time : '-';
+
             return '<tr>' +
               '<td>' + escapeHtml(item.code || '-') + '</td>' +
               '<td>' + escapeHtml(item.borrowerName || '-') + '</td>' +
               '<td>' + escapeHtml(item.itemName || '-') + '</td>' +
               '<td>' + escapeHtml(item.status || '-') + '</td>' +
               '<td>' + escapeHtml(item.borrowDate || '-') + '</td>' +
+              '<td>' + escapeHtml(pLabel) + '</td>' +
+              '<td>' + escapeHtml(rLabel) + '</td>' +
               '<td>' + escapeHtml(item.adminNote || '-') + '</td>' +
             '</tr>';
           }).join('')
-        : '<tr><td colspan="6">Tidak ada data riwayat sesuai filter.</td></tr>';
+        : '<tr><td colspan="8">Tidak ada data riwayat sesuai filter.</td></tr>';
 
       popup.document.write(
         '<!doctype html><html><head><meta charset="utf-8"><title>Laporan Riwayat Peminjaman</title>' +
@@ -570,7 +604,7 @@
         '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
         '<link rel="stylesheet" href="_admin-theme.css">' +
         '</head><body><h2>Laporan Riwayat Peminjaman dan Pengembalian</h2>' +
-        '<table><thead><tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Status</th><th>Tanggal Pinjam</th><th>Catatan Admin</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
+        '<table><thead><tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Status</th><th>Tanggal Pinjam</th><th>Tgl Ambil</th><th>Tgl Kembali</th><th>Catatan Admin</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
         '</body></html>'
       );
       popup.document.close();
