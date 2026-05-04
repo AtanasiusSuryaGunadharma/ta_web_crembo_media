@@ -1425,7 +1425,9 @@ def ensure_loan_schema(cursor) -> None:
           `jumlah` int(11) NOT NULL DEFAULT 1,
           `tanggal_pengajuan` date DEFAULT NULL,
           `tanggal_mulai` date DEFAULT NULL,
+          `waktu_mulai` time DEFAULT NULL,
           `tanggal_selesai` date DEFAULT NULL,
+          `waktu_selesai` time DEFAULT NULL,
           `tujuan` text DEFAULT NULL,
           `status` varchar(50) NOT NULL DEFAULT 'pending',
           `pickup_info` longtext DEFAULT NULL,
@@ -1440,6 +1442,9 @@ def ensure_loan_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
+    # Ensure waktu_mulai and waktu_selesai columns exist
+    ensure_column(cursor, "loan_requests", "waktu_mulai", "`waktu_mulai` time DEFAULT NULL")
+    ensure_column(cursor, "loan_requests", "waktu_selesai", "`waktu_selesai` time DEFAULT NULL")
 # --- LOAN REQUESTS ENDPOINTS ---
 
 @app.route("/api/pengajuan", methods=["GET"])
@@ -1522,7 +1527,9 @@ def create_pengajuan():
     barang_nama = data.get("barangNama")
     jumlah = int(data.get("jumlahDiminta") or data.get("jumlah") or 0)
     tanggal_mulai = data.get("tanggalMulai")
+    waktu_mulai = data.get("waktuMulai")
     tanggal_selesai = data.get("tanggalSelesai")
+    waktu_selesai = data.get("waktuSelesai")
     tujuan = data.get("tujuan")
 
     if not barang_id or not barang_nama or not jumlah or not tanggal_mulai or not tanggal_selesai or not tujuan:
@@ -1566,8 +1573,8 @@ def create_pengajuan():
 
         cursor.execute(
             """
-            INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `waktu_mulai`, `tanggal_selesai`, `waktu_selesai`, `tujuan`, `status`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 pengajuan_id,
@@ -1579,7 +1586,9 @@ def create_pengajuan():
                 jumlah,
                 datetime.utcnow().date(),
                 tanggal_mulai,
+                waktu_mulai,
                 tanggal_selesai,
+                waktu_selesai,
                 tujuan,
                 "pending",
             ),

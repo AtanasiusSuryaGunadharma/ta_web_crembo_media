@@ -854,6 +854,76 @@
         font-weight: 700;
       }
     }
+
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 50;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .barang-photo {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .barang-photo:hover {
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 640px) {
+      .photo-lightbox-close {
+        top: 10px;
+        right: 10px;
+      }
+    }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_admin-theme.css">
@@ -1030,8 +1100,19 @@
             <input type="date" id="tanggalMulaiInput" required>
           </div>
           <div class="form-group">
+            <label>Waktu Mulai *</label>
+            <input type="time" id="waktuMulaiInput" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
             <label>Tanggal Selesai *</label>
             <input type="date" id="tanggalSelesaiInput" required>
+          </div>
+          <div class="form-group">
+            <label>Waktu Selesai *</label>
+            <input type="time" id="waktuSelesaiInput" required>
           </div>
         </div>
 
@@ -1055,6 +1136,14 @@
         <button id="detailCloseBtn" class="modal-close">&times;</button>
       </div>
       <div id="detailBody"></div>
+    </div>
+  </div>
+
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto barang">
     </div>
   </div>
 
@@ -1140,6 +1229,9 @@
     const detailCloseBtn = document.getElementById("detailCloseBtn");
     const detailBody = document.getElementById("detailBody");
     const pengajuanForm = document.getElementById("pengajuanForm");
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
 
     const BARANG_STORAGE_KEY = "crembo-barang-inventaris";
     const PENGAJUAN_STORAGE_KEY = "crembo-peminjaman-pengajuan";
@@ -1349,6 +1441,15 @@
       }
     }
 
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
     function openDetailModal(item) {
       const photoMarkup = item.foto
         ? '<img class="detail-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '">'
@@ -1439,7 +1540,7 @@
         const disabledAttr = isUnavailable ? "disabled" : "";
         
         const photoMarkup = item.foto
-          ? '<img class="barang-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '">'
+          ? '<img class="barang-photo" src="' + escapeHtml(item.foto) + '" alt="' + escapeHtml(item.nama) + '" onclick="openPhotoLightbox(this.src)" style="cursor: pointer;">'
           : '<div class="barang-photo placeholder">Tidak ada foto</div>';
 
         // PERBAIKAN: Tambahkan Tagline Ketersediaan
@@ -1525,8 +1626,10 @@
         }
 
         const tglMulai = formatTanggalIndo(item.tanggalMulai);
+        const waktuMulai = (item.waktuMulai || "").substring(0, 5) || "-";
         const tglSelesai = formatTanggalIndo(item.tanggalSelesai);
-        const periode = tglMulai + " sd " + tglSelesai;
+        const waktuSelesai = (item.waktuSelesai || "").substring(0, 5) || "-";
+        const periode = tglMulai + " " + waktuMulai + " sd " + tglSelesai + " " + waktuSelesai;
         
         const tglAjuFormatted = formatWaktuIndo(item.createdAt || item.tanggalPengajuan);
         
@@ -1555,7 +1658,9 @@
       document.getElementById("displayNamaInput").value = barangNama;
       document.getElementById("jumlahInput").value = "1";
       document.getElementById("tanggalMulaiInput").value = "";
+      document.getElementById("waktuMulaiInput").value = "";
       document.getElementById("tanggalSelesaiInput").value = "";
+      document.getElementById("waktuSelesaiInput").value = "";
       document.getElementById("tujuanInput").value = "";
 
       const jumlahInputEl = document.getElementById("jumlahInput");
@@ -1706,6 +1811,12 @@
     formCancelBtn.addEventListener("click", closePengajuanForm);
     modalCloseBtn.addEventListener("click", closePengajuanForm);
     detailCloseBtn.addEventListener("click", closeDetail);
+    photoLightboxClose.addEventListener("click", closePhotoLightbox);
+    photoLightbox.addEventListener("click", function (e) {
+      if (e.target === photoLightbox) {
+        closePhotoLightbox();
+      }
+    });
 
     pengajuanForm.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -1714,12 +1825,14 @@
       const barangNama = document.getElementById("barangNamaInput").value;
       const jumlah = parseInt(document.getElementById("jumlahInput").value, 10);
       const tanggalMulai = document.getElementById("tanggalMulaiInput").value;
+      const waktuMulai = document.getElementById("waktuMulaiInput").value;
       const tanggalSelesai = document.getElementById("tanggalSelesaiInput").value;
+      const waktuSelesai = document.getElementById("waktuSelesaiInput").value;
       const tujuan = document.getElementById("tujuanInput").value;
 
       const barang = readBarang().find(function (item) { return item.id === barangId; });
 
-      if (!barangId || !jumlah || !tanggalMulai || !tanggalSelesai || !tujuan) {
+      if (!barangId || !jumlah || !tanggalMulai || !waktuMulai || !tanggalSelesai || !waktuSelesai || !tujuan) {
         alert("Mohon isi semua field yang diperlukan");
         return;
       }
@@ -1729,8 +1842,11 @@
         return;
       }
 
-      if (new Date(tanggalMulai) >= new Date(tanggalSelesai)) {
-        alert("Tanggal selesai harus lebih besar dari tanggal mulai");
+      const startDateTime = new Date(tanggalMulai + "T" + waktuMulai);
+      const endDateTime = new Date(tanggalSelesai + "T" + waktuSelesai);
+
+      if (startDateTime >= endDateTime) {
+        alert("Tanggal dan waktu selesai harus lebih besar dari tanggal dan waktu mulai");
         return;
       }
 
@@ -1744,7 +1860,9 @@
             barangNama: barangNama,
             jumlahDiminta: jumlah,
             tanggalMulai: tanggalMulai,
+            waktuMulai: waktuMulai,
             tanggalSelesai: tanggalSelesai,
+            waktuSelesai: waktuSelesai,
             tujuan: tujuan,
           };
           const resp = await fetch('/api/pengajuan', {
@@ -1779,7 +1897,9 @@
           tanggalPengajuan: today,
           createdAt: now.toISOString(),
           tanggalMulai: tanggalMulai,
+          waktuMulai: waktuMulai,
           tanggalSelesai: tanggalSelesai,
+          waktuSelesai: waktuSelesai,
           tujuan: tujuan,
           status: "pending"
         };

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 04 Bulan Mei 2026 pada 18.38
+-- Waktu pembuatan: 04 Bulan Mei 2026 pada 19.10
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -378,18 +378,20 @@ CREATE TABLE `loan_requests` (
   `pickup_info` longtext DEFAULT NULL,
   `pickup_at` datetime DEFAULT NULL,
   `return_info` longtext DEFAULT NULL,
-  `return_at` datetime DEFAULT NULL
+  `return_at` datetime DEFAULT NULL,
+  `waktu_mulai` time DEFAULT NULL,
+  `waktu_selesai` time DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `loan_requests`
 --
 
-INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`, `admin_note`, `approved_by`, `approved_at`, `pickup_info`, `pickup_at`, `return_info`, `return_at`) VALUES
-('pjn-1777804447525', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-04', '2026-06-27', 'Aura Tes Minjam 2 Hp vivo', 'cancelled', '2026-05-04 00:34:07', '2026-05-04 01:12:10', 'Coba mau ganti yang lain', 'Atanasius Surya', '2026-05-03 17:35:50', NULL, NULL, NULL, NULL),
-('pjn-1777804487923', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-05', '2026-06-27', 'Daflo cek peminjaman book', 'returned', '2026-05-04 00:34:47', '2026-05-04 22:00:16', 'Accept test notif', 'Atanasius Surya', '2026-05-03 18:14:19', '{\"date\": \"2026-05-05\", \"time\": \"21:42\", \"location\": \"Test Ambil Barang\", \"photo\": \"/uploads/Screenshot_2023-03-04_090952_7bf29e28c7964c78af2ccf166497fc23.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Mantap\"}, {\"status\": \"Baik\", \"reason\": \"Mantap\"}]}', '2026-05-04 14:43:33', '{\"date\": \"2026-05-06\", \"time\": \"04:00\", \"location\": \"Tes Input pengembalian\", \"photo\": \"/uploads/Screenshot_2026-05-04_192240_7adf6e56a87144a0a73d2de83f637e35.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"asdasd\"}, {\"status\": \"Baik\", \"reason\": \"asdadad\"}]}', '2026-05-04 15:00:16'),
-('pjn-1777882794079', '53', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', '/uploads/IMG_1970_935e1d50e9d14a179dca3e0095f463fb.jpg', 1, '2026-05-04', '2026-05-02', '2026-07-18', 'Buat acara kampus', 'returned', '2026-05-04 22:19:54', '2026-05-04 22:24:23', 'Ambil Di lemari yah', 'Atanasius Surya', '2026-05-04 15:21:12', '{\"date\": \"2026-05-04\", \"time\": \"22:22\", \"location\": \"kotak kamera\", \"photo\": \"/uploads/foto_baju_koki_476014397921460fa2542b2ac7c81bae.jpg\", \"units\": [{\"status\": \"Baik\", \"reason\": \"\"}]}', '2026-05-04 15:23:28', '{\"date\": \"2026-05-15\", \"time\": \"22:28\", \"location\": \"tempat kamera\", \"photo\": \"/uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_7adbc3908c5e429a8694ff8ed21b09b0.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"mulus aman\"}]}', '2026-05-04 15:24:23'),
-('pjn-1777882892679', '21', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', '/uploads/IMG_1970_935e1d50e9d14a179dca3e0095f463fb.jpg', 1, '2026-05-04', '2026-05-04', '2026-06-13', 'Acara sekolah', 'approved', '2026-05-04 22:21:32', '2026-05-04 22:22:23', 'Ambil di kotak penyimpanan', 'Atanasius Surya', '2026-05-04 15:22:23', NULL, NULL, NULL, NULL);
+INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `barang_photo`, `jumlah`, `tanggal_pengajuan`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `status`, `created_at`, `updated_at`, `admin_note`, `approved_by`, `approved_at`, `pickup_info`, `pickup_at`, `return_info`, `return_at`, `waktu_mulai`, `waktu_selesai`) VALUES
+('pjn-1777804447525', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-04', '2026-06-27', 'Aura Tes Minjam 2 Hp vivo', 'cancelled', '2026-05-04 00:34:07', '2026-05-04 01:12:10', 'Coba mau ganti yang lain', 'Atanasius Surya', '2026-05-03 17:35:50', NULL, NULL, NULL, NULL, NULL, NULL),
+('pjn-1777804487923', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 2, '2026-05-03', '2026-05-05', '2026-06-27', 'Daflo cek peminjaman book', 'returned', '2026-05-04 00:34:47', '2026-05-04 22:00:16', 'Accept test notif', 'Atanasius Surya', '2026-05-03 18:14:19', '{\"date\": \"2026-05-05\", \"time\": \"21:42\", \"location\": \"Test Ambil Barang\", \"photo\": \"/uploads/Screenshot_2023-03-04_090952_7bf29e28c7964c78af2ccf166497fc23.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Mantap\"}, {\"status\": \"Baik\", \"reason\": \"Mantap\"}]}', '2026-05-04 14:43:33', '{\"date\": \"2026-05-06\", \"time\": \"04:00\", \"location\": \"Tes Input pengembalian\", \"photo\": \"/uploads/Screenshot_2026-05-04_192240_7adf6e56a87144a0a73d2de83f637e35.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"asdasd\"}, {\"status\": \"Baik\", \"reason\": \"asdadad\"}]}', '2026-05-04 15:00:16', NULL, NULL),
+('pjn-1777882794079', '53', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', '/uploads/IMG_1970_935e1d50e9d14a179dca3e0095f463fb.jpg', 1, '2026-05-04', '2026-05-02', '2026-07-18', 'Buat acara kampus', 'returned', '2026-05-04 22:19:54', '2026-05-04 22:24:23', 'Ambil Di lemari yah', 'Atanasius Surya', '2026-05-04 15:21:12', '{\"date\": \"2026-05-04\", \"time\": \"22:22\", \"location\": \"kotak kamera\", \"photo\": \"/uploads/foto_baju_koki_476014397921460fa2542b2ac7c81bae.jpg\", \"units\": [{\"status\": \"Baik\", \"reason\": \"\"}]}', '2026-05-04 15:23:28', '{\"date\": \"2026-05-15\", \"time\": \"22:28\", \"location\": \"tempat kamera\", \"photo\": \"/uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_7adbc3908c5e429a8694ff8ed21b09b0.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"mulus aman\"}]}', '2026-05-04 15:24:23', NULL, NULL),
+('pjn-1777882892679', '21', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', '/uploads/IMG_1970_935e1d50e9d14a179dca3e0095f463fb.jpg', 1, '2026-05-04', '2026-05-04', '2026-06-13', 'Acara sekolah', 'approved', '2026-05-04 22:21:32', '2026-05-04 22:22:23', 'Ambil di kotak penyimpanan', 'Atanasius Surya', '2026-05-04 15:22:23', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
