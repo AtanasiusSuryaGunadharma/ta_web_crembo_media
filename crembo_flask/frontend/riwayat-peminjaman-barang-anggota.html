@@ -886,6 +886,7 @@
         return `${day} ${month} ${year}`;
     }
 
+    // PERBAIKAN: Format yang menghasilkan: 05 Mei 2026 01:50
     function formatWaktuIndo(rawDate) {
         if (!rawDate) return "-";
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
@@ -956,11 +957,16 @@
       statusTableRows.innerHTML = items.map(function (item) {
         const sClass = statusClass(item.status);
         const sLabel = statusLabel(item.status);
-        // Format Periode Lebih Singkat
-        const periode = formatTanggalSingkat(item.tanggalMulai) + " sd " + formatTanggalSingkat(item.tanggalSelesai);
+
+        // PERBAIKAN: Format Periode dengan Waktu Mulai & Waktu Selesai (Jika tersedia)
+        const wMulai = (item.waktuMulai || "").substring(0, 5);
+        const wSelesai = (item.waktuSelesai || "").substring(0, 5);
+        const periodeMulai = formatTanggalSingkat(item.tanggalMulai) + (wMulai ? " " + wMulai : "");
+        const periodeSelesai = formatTanggalSingkat(item.tanggalSelesai) + (wSelesai ? " " + wSelesai : "");
+        const periode = periodeMulai + " sd " + periodeSelesai;
+        
         const tglAju = formatWaktuIndo(item.createdAt);
 
-        // PERBAIKAN: Menampilkan "Tujuan" selengkapnya tanpa substring (...)
         return `<tr>
           <td data-label="Barang"><strong>${escapeHtml(item.barangNama)}</strong><br><small style="color:#666;">${escapeHtml(item.barangCode||'-')}</small></td>
           <td data-label="Periode" style="font-size: 0.75rem;">${escapeHtml(periode)}</td>
@@ -990,6 +996,7 @@
         const pickupStamp = pickup.date ? formatTanggalSingkat(pickup.date) + " " + (pickup.time || "") : "-";
         const pickupLocation = pickup.location || "-";
         const pickupCondition = Array.isArray(pickup.units) ? pickup.units.map(u => u.status).join(", ") : "-";
+        const pickupNotes = Array.isArray(pickup.units) ? pickup.units.map(u => u.reason).filter(r => r).join(" | ") : "-";
         
         // Data Pengembalian
         const ret = item.returnInfo || {};
@@ -1001,12 +1008,18 @@
 
         let adminNoteHtml = item.adminNote ? `<div style="padding: 10px; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; color: #92400e;"><strong>Catatan Admin:</strong> ${escapeHtml(item.adminNote)}</div>` : '';
 
-        // PERBAIKAN: Split Card / Dipisah Kiri (Pengambilan) - Kanan (Pengembalian)
+        // PERBAIKAN: Format Periode dengan Waktu Mulai & Waktu Selesai (Jika tersedia)
+        const wMulai = (item.waktuMulai || "").substring(0, 5);
+        const wSelesai = (item.waktuSelesai || "").substring(0, 5);
+        const periodeMulai = formatTanggalSingkat(item.tanggalMulai) + (wMulai ? " " + wMulai : "");
+        const periodeSelesai = formatTanggalSingkat(item.tanggalSelesai) + (wSelesai ? " " + wSelesai : "");
+
+        // PERBAIKAN: Label Catatan disederhanakan
         return `<div class="detail-card">
           <h3>${escapeHtml(item.barangNama)} <span class="${sClass}" style="padding:4px 10px; border-radius:999px; font-size:0.75rem; border:1px solid currentColor;">${sLabel}</span></h3>
           ${adminNoteHtml}
           <div class="detail-item" style="margin-bottom: 6px;"><strong>Jumlah Unit:</strong> ${item.jumlahDiminta} Unit</div>
-          <div class="detail-item" style="margin-bottom: 12px;"><strong>Periode Izin:</strong> ${formatTanggalSingkat(item.tanggalMulai)} sd ${formatTanggalSingkat(item.tanggalSelesai)}</div>
+          <div class="detail-item" style="margin-bottom: 12px;"><strong>Periode Izin:</strong> ${periodeMulai} sd ${periodeSelesai}</div>
           
           <div class="split-card">
             <!-- SISI KIRI: PENGAMBILAN -->
@@ -1018,6 +1031,7 @@
               <div class="detail-item"><strong>Waktu Diambil:</strong> ${escapeHtml(pickupStamp)}</div>
               <div class="detail-item"><strong>Lokasi Ambil:</strong> ${escapeHtml(pickupLocation)}</div>
               <div class="detail-item"><strong>Kondisi Saat Ambil:</strong> ${escapeHtml(pickupCondition)}</div>
+              <div class="detail-item"><strong>Catatan:</strong> ${escapeHtml(pickupNotes)}</div>
               <div class="evidence-box" style="margin-top: 10px;"><strong>Bukti Foto:</strong>
                 ${pickupPhoto ? `<a href="${escapeHtml(pickupPhoto)}" target="_blank"><img src="${escapeHtml(pickupPhoto)}" alt="Bukti Pengambilan"></a>` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
               </div>
@@ -1033,7 +1047,7 @@
                 <div class="detail-item"><strong>Waktu Kembali:</strong> ${escapeHtml(returnStamp)}</div>
                 <div class="detail-item"><strong>Lokasi Kembali:</strong> ${escapeHtml(returnLocation)}</div>
                 <div class="detail-item"><strong>Kondisi Saat Kembali:</strong> ${escapeHtml(returnCondition)}</div>
-                <div class="detail-item"><strong>Catatan / Kerusakan:</strong> ${escapeHtml(returnNotes)}</div>
+                <div class="detail-item"><strong>Catatan:</strong> ${escapeHtml(returnNotes)}</div>
                 <div class="evidence-box" style="margin-top: 10px;"><strong>Bukti Foto:</strong>
                   ${returnPhoto ? `<a href="${escapeHtml(returnPhoto)}" target="_blank"><img src="${escapeHtml(returnPhoto)}" alt="Bukti Pengembalian"></a>` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
                 </div>
