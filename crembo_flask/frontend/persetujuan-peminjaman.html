@@ -586,8 +586,11 @@
     }
 
     function getStatusBadge(status) {
-      if (status === "approved" || status === "taken" || status === "returned") {
-        return '<span class="status-pill approved">Disetujui / Diambil</span>';
+      if (status === "approved") {
+        return '<span class="status-pill" style="border-color: #60a5fa; background: #eff6ff; color: #1e3a8a;">Disetujui (Belum Diambil)</span>';
+      }
+      if (status === "taken" || status === "returned") {
+        return '<span class="status-pill approved">Sudah Diambil</span>';
       }
       if (status === "rejected") {
         return '<span class="status-pill rejected">Ditolak</span>';
@@ -599,7 +602,8 @@
     }
 
     function getStatusLabel(status) {
-         if (status === "approved" || status === "taken" || status === "returned") return "Disetujui";
+         if (status === "approved") return "Disetujui";
+         if (status === "taken" || status === "returned") return "Sudah Diambil";
          if (status === "rejected") return "Ditolak";
          if (status === "cancelled") return "Dibatalkan";
          return "Menunggu Persetujuan";

@@ -388,6 +388,17 @@
       font-weight: 700;
     }
 
+    .status-danger {
+      display: inline-block;
+      font-size: 0.73rem;
+      color: #991b1b;
+      border: 1px solid #f4b0b0;
+      background: #fff1f1;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
     .mini-btn {
       text-decoration: none;
       border: 0;
@@ -405,6 +416,12 @@
 
     .mini-btn:hover {
       filter: brightness(1.05);
+    }
+    
+    /* PERBAIKAN: Style tambahan untuk tombol batal berwarna merah */
+    .mini-btn.danger {
+      background: #b91c1c;
+      margin-left: 6px;
     }
 
     .form-group {
@@ -689,7 +706,7 @@
                 <div id="itemsContainer"></div>
 
                 <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
-                  <button type="button" class="btn secondary" id="cancelFormBtn">Batal</button>
+                  <button type="button" class="btn secondary" id="cancelFormBtn">Batal Pengambilan</button>
                   <button type="submit" class="btn">Simpan Pengambilan</button>
                 </div>
               </form>
@@ -829,6 +846,53 @@
       pengambilanPhotoPreview.style.display = "flex";
     }
 
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    // PERBAIKAN: Fungsi format tanggal khusus (misal 05 Mei 2026)
+    function formatTanggalOnly(rawDate) {
+        if (!rawDate) return "-";
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+        
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        
+        return `${day} ${month} ${year}`;
+    }
+
+    // PERBAIKAN: Fungsi Batalkan Pengajuan yang sudah di-Approve tapi belum Diambil
+    async function cancelPengajuan(btn) {
+      const id = btn.getAttribute("data-id");
+      if (!window.confirm("Anda yakin ingin membatalkan pengajuan ini? Stok barang akan dikembalikan.")) {
+        return;
+      }
+
+      try {
+        // PERBAIKAN: Karena ini sudah di-approve, kita batalkan lewat endpoint cancel milik admin/user 
+        // yang logic potong/kembali stoknya sudah ada.
+        const resp = await fetch('/api/pengajuan/' + encodeURIComponent(id) + '/cancel', { method: 'POST' });
+        
+        if (resp && resp.ok) {
+           alert("Pengajuan berhasil dibatalkan.");
+           loadServerData();
+        } else {
+           const data = await resp.json();
+           alert("Gagal membatalkan: " + (data.error || "Kesalahan server"));
+        }
+      } catch (e) {
+          alert("Terjadi kesalahan sistem saat menghubungi server.");
+      }
+    }
+
     function renderApprovedTable() {
       // Filter hanya yang sudah disetujui (approved)
       let items = REMOTE_PENGAJUAN.filter(function (item) {
@@ -842,12 +906,22 @@
       }
 
       approvedTableRows.innerHTML = items.map(function (item) {
-        const periode = item.tanggalMulai + " sd " + item.tanggalSelesai;
+        // PERBAIKAN: Menampilkan periode peminjaman dengan tanggal dan jam lengkap dan format Indonesia
+        const tglMulai = formatTanggalOnly(item.tanggalMulai);
+        const waktuMulai = (item.waktuMulai || "").substring(0, 5) || "-";
+        const tglSelesai = formatTanggalOnly(item.tanggalSelesai);
+        const waktuSelesai = (item.waktuSelesai || "").substring(0, 5) || "-";
+        
+        const periodeHtml = tglMulai + ' <strong style="color:#444;">' + waktuMulai + ' WIB</strong> sd ' + tglSelesai + ' <strong style="color:#444;">' + waktuSelesai + ' WIB</strong>';
+        
         return '<tr>'
-          + '<td data-label="Barang">' + item.barangNama + '</td>'
-          + '<td data-label="Periode" style="font-size: 0.75rem;">' + periode + '</td>'
+          + '<td data-label="Barang">' + escapeHtml(item.barangNama) + '</td>'
+          + '<td data-label="Periode" style="font-size: 0.75rem;">' + periodeHtml + '</td>'
           + '<td data-label="Status"><span class="status-ok">Disetujui</span></td>'
-          + '<td data-label="Aksi"><button class="mini-btn" data-id="' + item.id + '" onclick="openForm(this)">Input Pengambilan</button></td>'
+          + '<td data-label="Aksi">'
+          + '<button class="mini-btn" data-id="' + item.id + '" onclick="openForm(this)">Input Pengambilan</button>'
+          + '<button class="mini-btn danger" data-id="' + item.id + '" onclick="cancelPengajuan(this)">Batalkan</button>'
+          + '</td>'
           + '</tr>';
       }).join("");
     }
