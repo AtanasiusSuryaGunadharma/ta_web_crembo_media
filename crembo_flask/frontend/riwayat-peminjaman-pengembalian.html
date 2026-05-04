@@ -85,7 +85,7 @@
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.36);
       background: rgba(255, 255, 255, 0.14);
-      color: #fff;
+      color: #1c1f27;
       text-decoration: none;
     }
 
@@ -437,7 +437,29 @@
       return "pending";
     }
 
-    // Fungsi Format Tanggal Standar agar Seragam di Laporan dan UI
+    // Fungsi Format Tanggal Khusus untuk Mengatasi Tanggal + Jam
+    function formatTanggalJam(tanggalRaw, waktuRaw) {
+        if (!tanggalRaw) return "-";
+        
+        let t = String(tanggalRaw).replace(" GMT", "");
+        let d = new Date(t);
+        if (isNaN(d.getTime())) return escapeHtml(tanggalRaw); 
+
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+
+        let result = `${day} ${month} ${year}`;
+        
+        if (waktuRaw) {
+            let w = String(waktuRaw).substring(0, 5); 
+            if (w) result += ` ${w}`;
+        }
+        return result;
+    }
+
+    // Tetap digunakan untuk format generic seperti createdAt
     function formatWaktuIndo(rawDate) {
         if (!rawDate) return "-";
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
@@ -532,7 +554,7 @@
         const p = item.pickup || {};
         const r = item.returnInfo || {};
 
-        const pickupLabel = p.time ? escapeHtml(formatWaktuIndo(p.time)) : '-';
+        const pickupLabel = p.time ? escapeHtml(p.time) : '-';
         const pickupLocation = p.location ? escapeHtml(p.location) : '-';
         const pickupCondition = p.condition ? escapeHtml(p.condition) : '-';
         const pickupNote = p.note ? escapeHtml(p.note) : '-';
@@ -540,7 +562,7 @@
             ? '<img class="thumb" src="' + escapeHtml(p.photo) + '" alt="Bukti" onclick="openPhotoLightbox(this.src)">' 
             : '-';
 
-        const returnLabel = r.time ? escapeHtml(formatWaktuIndo(r.time)) : '-';
+        const returnLabel = r.time ? escapeHtml(r.time) : '-';
         const returnLocation = r.location ? escapeHtml(r.location) : '-';
         const returnCondition = r.condition ? escapeHtml(r.condition) : '-';
         const returnNote = r.note ? escapeHtml(r.note) : '-';
@@ -576,14 +598,11 @@
             const res = await fetch('/api/pengajuan');
             const data = await res.json();
             if(data.success) {
-                // Map the DB structure to Riwayat format
                 REMOTE_REQUESTS = data.items.map(item => {
-                    // Extract Pickup Info Details
                     let pickupMap = null;
                     if (item.pickupInfo && item.pickupInfo.date) {
-                        const timeStr = item.pickupInfo.time ? "T" + item.pickupInfo.time + ":00" : "";
                         pickupMap = {
-                            time: item.pickupInfo.date + timeStr,
+                            time: formatTanggalJam(item.pickupInfo.date, item.pickupInfo.time),
                             location: item.pickupInfo.location,
                             photo: item.pickupInfo.photo,
                             condition: Array.isArray(item.pickupInfo.units) ? item.pickupInfo.units.map(u => u.status).join(", ") : "-",
@@ -591,12 +610,10 @@
                         };
                     }
 
-                    // Extract Return Info Details
                     let returnMap = null;
                     if (item.returnInfo && item.returnInfo.date) {
-                        const timeStr = item.returnInfo.time ? "T" + item.returnInfo.time + ":00" : "";
                         returnMap = {
-                            time: item.returnInfo.date + timeStr,
+                            time: formatTanggalJam(item.returnInfo.date, item.returnInfo.time),
                             location: item.returnInfo.location,
                             photo: item.returnInfo.photo,
                             condition: Array.isArray(item.returnInfo.units) ? item.returnInfo.units.map(u => u.status).join(", ") : "-",
@@ -604,23 +621,16 @@
                         };
                     }
 
-                    // Format Waktu Mulai & Selesai seperti frontend
-                    const wMulai = (item.waktuMulai || "").substring(0, 5);
-                    const wSelesai = (item.waktuSelesai || "").substring(0, 5);
-                    
-                    const timeMulaiFormat = item.tanggalMulai + (wMulai ? "T" + wMulai + ":00" : "");
-                    const timeSelesaiFormat = item.tanggalSelesai + (wSelesai ? "T" + wSelesai + ":00" : "");
-
                     return {
                         id: item.id,
-                        code: item.id.split('-').pop(), // get the timestamp part
+                        code: item.id.split('-').pop(), 
                         borrowerName: item.memberNama || `User ${item.memberId || 'Guest'}`, 
                         itemName: item.barangNama,
                         itemCode: item.barangCode,
                         quantity: item.jumlahDiminta,
                         rawBorrowDate: item.tanggalMulai,
-                        borrowDate: formatWaktuIndo(timeMulaiFormat),
-                        expectedReturnDate: formatWaktuIndo(timeSelesaiFormat),
+                        borrowDate: formatTanggalJam(item.tanggalMulai, item.waktuMulai),
+                        expectedReturnDate: formatTanggalJam(item.tanggalSelesai, item.waktuSelesai),
                         purpose: item.tujuan,
                         status: mapDbStatus(item.status),
                         adminNote: item.adminNote,
@@ -646,15 +656,13 @@
       html += '<table border="1" cellspacing="0" cellpadding="6">';
       html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Waktu Pengambilan</th><th>Kondisi Pengambilan</th><th>Waktu Pengembalian</th><th>Kondisi Pengembalian</th><th>Status</th><th>Catatan Admin</th></tr>';
 
-      const baseUrl = "http://127.0.0.1:5000";
-
       if (!list.length) {
         html += '<tr><td colspan="12">Tidak ada data riwayat sesuai filter.</td></tr>';
       } else {
         list.forEach(function (item) {
-          const pLabel = item.pickup && item.pickup.time ? formatWaktuIndo(item.pickup.time) : '-';
+          const pLabel = item.pickup && item.pickup.time ? item.pickup.time : '-';
           const pCond = item.pickup && item.pickup.condition ? item.pickup.condition : '-';
-          const rLabel = item.returnInfo && item.returnInfo.time ? formatWaktuIndo(item.returnInfo.time) : '-';
+          const rLabel = item.returnInfo && item.returnInfo.time ? item.returnInfo.time : '-';
           const rCond = item.returnInfo && item.returnInfo.condition ? item.returnInfo.condition : '-';
 
           html += '<tr>' +
@@ -695,8 +703,8 @@
 
       const bodyRows = list.length
         ? list.map(function (item) {
-            const pLabel = item.pickup && item.pickup.time ? formatWaktuIndo(item.pickup.time) : '-';
-            const rLabel = item.returnInfo && item.returnInfo.time ? formatWaktuIndo(item.returnInfo.time) : '-';
+            const pLabel = item.pickup && item.pickup.time ? item.pickup.time : '-';
+            const rLabel = item.returnInfo && item.returnInfo.time ? item.returnInfo.time : '-';
 
             return '<tr>' +
               '<td>' + escapeHtml(item.code || '-') + '</td>' +
