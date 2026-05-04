@@ -2170,7 +2170,8 @@ def update_damage_status(damage_id):
     data = request.get_json(silent=True) or {}
     new_status = data.get("status", "").strip()
     
-    if new_status not in ["Pending Review", "Diproses", "Selesai", "Ditolak"]:
+    # HANYA 3 STATUS: Pending Review, Diproses, Selesai (Ditolak dihapus)
+    if new_status not in ["Pending Review", "Diproses", "Selesai"]:
         return jsonify({"success": False, "error": "Status tidak valid"}), 400
     
     conn = mysql_connection()
@@ -2189,18 +2190,15 @@ def update_damage_status(damage_id):
             WHERE `id` = %s
         """, (new_status, damage_id))
         
-        # Send notification to member
         try:
             ensure_notifications_schema()
             cursor.execute("SELECT `nama` FROM `anggota` WHERE `id` = %s LIMIT 1", (row.get("member_id"),))
             member_row = cursor.fetchone()
-            member_name = member_row.get("nama") if member_row else row.get("member_id")
             
             status_indo = {
                 "Pending Review": "Dalam Review",
                 "Diproses": "Sedang Diproses",
-                "Selesai": "Selesai",
-                "Ditolak": "Ditolak"
+                "Selesai": "Selesai"
             }.get(new_status, new_status)
             
             create_notification(
@@ -5203,6 +5201,245 @@ def delete_news(news_id):
         cursor.close()
         conn.close()
 
+@app.route("/api/form-kerusakan/export.xlsx", methods=["GET"])
+def export_kerusakan_excel():
+    ensure_auth_schema()
+    user_context = current_user_context()
+    role = user_context.get("role", "")
+    
+    if role not in ["admin", "super_admin"]:
+        abort(403)
+        
+    search_query = request.args.get('search', '').strip()
+    status_filter = request.args.get('status')
+    severity_filter = request.args.get('severity')
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_damage_schema(cursor)
+        
+        query = "SELECT d.*, a.nama as member_name FROM `form_kerusakan_barang` d LEFT JOIN `anggota` a ON d.member_id = a.id WHERE 1=1"
+        params = []
+        
+        if status_filter and status_filter != 'all':
+            query += " AND d.`status` = %s"
+            params.append(status_filter)
+        
+        if severity_filter and severity_filter != 'all':
+            query += " AND d.`tingkat_kerusakan` = %s"
+            params.append(severity_filter)
+        
+        if search_query:
+            query += " AND (d.`barang_name` LIKE %s OR d.`deskripsi_kerusakan` LIKE %s OR a.`nama` LIKE %s)"
+            search_param = f"%{search_query}%"
+            params.extend([search_param, search_param, search_param])
+        
+        query += " ORDER BY d.`created_at` DESC"
+        
+        cursor.execute(query, tuple(params))
+        items = cursor.fetchall() or []
+        
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        
+        headers = [
+            "ID Laporan", "Barang", "Kode Barang", "Pelapor", 
+            "Tingkat Kerusakan", "Waktu Kejadian", "Status", "Deskripsi Kerusakan", "Diinput"
+        ]
+        
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Laporan Kerusakan"
+        worksheet.append(headers)
+        
+        for item in items:
+            waktu_kej = item.get("waktu_kejadian").strftime("%Y-%m-%d %H:%M:%S") if item.get("waktu_kejadian") else "-"
+            diinput = item.get("created_at").strftime("%Y-%m-%d %H:%M:%S") if item.get("created_at") else "-"
+            
+            row = [
+                item.get("id"),
+                item.get("barang_name") or "-",
+                item.get("barang_code") or "-",
+                item.get("member_name") or "-",
+                item.get("tingkat_kerusakan") or "-",
+                waktu_kej,
+                item.get("status") or "-",
+                item.get("deskripsi_kerusakan") or "-",
+                diinput
+            ]
+            worksheet.append(row)
+            
+        header_fill = PatternFill("solid", fgColor="7F0000")
+        header_font = Font(color="FFFFFF", bold=True)
+        for cell in worksheet[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        for row_idx, row in enumerate(worksheet.iter_rows(min_row=2), 2):
+            for cell in row:
+                cell.alignment = Alignment(vertical="top", wrapText=True)
+
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+            for cell in column_cells:
+                try:
+                    cell_value = str(cell.value or "")
+                    if len(cell_value) > max_length:
+                        max_length = len(cell_value)
+                except Exception:
+                    continue
+            worksheet.column_dimensions[column_letter].width = min(max_length + 4, 60)
+
+        buffer = BytesIO()
+        workbook.save(buffer)
+        buffer.seek(0)
+        
+        filename = f"laporan-kerusakan-{datetime.now().strftime('%Y%m%d%H%M')}.xlsx"
+        
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/form-kerusakan/export.pdf", methods=["GET"])
+def export_kerusakan_pdf():
+    ensure_auth_schema()
+    user_context = current_user_context()
+    role = user_context.get("role", "")
+    
+    if role not in ["admin", "super_admin"]:
+        abort(403)
+        
+    search_query = request.args.get('search', '').strip()
+    status_filter = request.args.get('status')
+    severity_filter = request.args.get('severity')
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_damage_schema(cursor)
+        
+        query = "SELECT d.*, a.nama as member_name FROM `form_kerusakan_barang` d LEFT JOIN `anggota` a ON d.member_id = a.id WHERE 1=1"
+        params = []
+        
+        if status_filter and status_filter != 'all':
+            query += " AND d.`status` = %s"
+            params.append(status_filter)
+        
+        if severity_filter and severity_filter != 'all':
+            query += " AND d.`tingkat_kerusakan` = %s"
+            params.append(severity_filter)
+        
+        if search_query:
+            query += " AND (d.`barang_name` LIKE %s OR d.`deskripsi_kerusakan` LIKE %s OR a.`nama` LIKE %s)"
+            search_param = f"%{search_query}%"
+            params.extend([search_param, search_param, search_param])
+        
+        query += " ORDER BY d.`created_at` DESC"
+        
+        cursor.execute(query, tuple(params))
+        items = cursor.fetchall() or []
+        
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+
+        headers = ["Barang", "Pelapor", "Tingkat", "Waktu", "Status", "Deskripsi"]
+        rows = []
+        
+        for item in items:
+            waktu_kej = item.get("waktu_kejadian").strftime("%Y-%m-%d %H:%M") if item.get("waktu_kejadian") else "-"
+            rows.append([
+                item.get("barang_name") or "-",
+                item.get("member_name") or "-",
+                item.get("tingkat_kerusakan") or "-",
+                waktu_kej,
+                item.get("status") or "-",
+                item.get("deskripsi_kerusakan") or "-"
+            ])
+            
+        buffer = BytesIO()
+        document = SimpleDocTemplate(
+            buffer,
+            pagesize=landscape(A4),
+            rightMargin=8 * mm,
+            leftMargin=8 * mm,
+            topMargin=10 * mm,
+            bottomMargin=10 * mm,
+        )
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("DamageTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.HexColor("#7F0000"))
+        normal_style = ParagraphStyle("DamageNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=8, leading=10)
+        cell_style = ParagraphStyle("CellNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=7, leading=9, wordWrap='CJK')
+
+        elements = [
+            Paragraph("Rekap Data Laporan Kerusakan Barang", title_style),
+            Spacer(1, 4 * mm),
+            Paragraph(f"Dicetak pada: {datetime.now().strftime('%d %B %Y %H:%M')} WIB", normal_style),
+            Spacer(1, 4 * mm),
+        ]
+
+        wrapped_rows = []
+        for row in rows:
+            wrapped_row = []
+            for cell_data in row:
+                text = str(cell_data).replace('\n', '<br/>')
+                wrapped_row.append(Paragraph(text, cell_style))
+            wrapped_rows.append(wrapped_row)
+
+        table_data = [headers] + wrapped_rows if rows else [headers, ["-" for _ in headers]]
+        
+        page_width = landscape(A4)[0] - (16 * mm) 
+        col_widths = [
+            0.20 * page_width,
+            0.15 * page_width,
+            0.08 * page_width,
+            0.12 * page_width,
+            0.10 * page_width,
+            0.35 * page_width
+        ]
+        
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7F0000")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D5DB")),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor("#FFFFFF")]),
+                ]
+            )
+        )
+        elements.append(table)
+        document.build(elements)
+        buffer.seek(0)
+        
+        filename = f"laporan-kerusakan-{datetime.now().strftime('%Y%m%d%H%M')}.pdf"
+        
+        return send_file(
+            buffer,
+            as_attachment=False,  # FALSE agar terbuka di tab browser dulu (preview) sebelum didownload
+            download_name=filename,
+            mimetype="application/pdf",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+        
 if __name__ == "__main__":
     try:
         ensure_auth_schema()

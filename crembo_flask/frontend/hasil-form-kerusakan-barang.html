@@ -317,7 +317,7 @@
       border: 1px solid #cbcbcb;
       padding: 8px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
     }
 
     th {
@@ -339,7 +339,6 @@
     .status-pill.waiting { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
     .status-pill.process { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
     .status-pill.done { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
-    .status-pill.rejected { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
 
     .empty-note {
       margin: 10px 0 0;
@@ -405,12 +404,74 @@
       color: #111827;
     }
 
-    .detail-photo {
-      width: min(360px, 100%);
-      border-radius: 10px;
-      border: 1px solid #bdbdbd;
+    .table-thumb {
+      width: 58px;
+      height: 44px;
       object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #bdbdbd;
       background: #efefef;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .table-thumb:hover {
+      transform: scale(1.1);
+    }
+
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 4000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     @media (max-width: 1080px) {
@@ -426,6 +487,7 @@
     @media (max-width: 620px) {
       .toolbar-grid,
       .summary-grid { grid-template-columns: 1fr; }
+      .photo-lightbox-close { top: 10px; right: 10px; }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -493,7 +555,6 @@
               <option value="Pending Review">Pending Review</option>
               <option value="Diproses">Diproses</option>
               <option value="Selesai">Selesai</option>
-              <option value="Ditolak">Ditolak</option>
             </select>
           </div>
 
@@ -530,6 +591,7 @@
                 <th>Pelapor</th>
                 <th>Tingkat</th>
                 <th>Waktu Kejadian</th>
+                <th>Foto Bukti</th>
                 <th>Status</th>
                 <th>Aksi</th>
                 <th>Diinput</th>
@@ -553,6 +615,14 @@
     </article>
   </section>
 
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto Bukti">
+    </div>
+  </div>
+
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
 
@@ -571,7 +641,27 @@
     const detailBody = document.getElementById("detailBody");
     const closeDetailBtn = document.getElementById("closeDetailBtn");
 
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
+
     let allSubmissions = [];
+
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
+    if(photoLightboxClose) photoLightboxClose.addEventListener("click", closePhotoLightbox);
+    if(photoLightbox) photoLightbox.addEventListener("click", function (e) {
+      if (e.target === photoLightbox) {
+        closePhotoLightbox();
+      }
+    });
 
     function escapeHtml(text) {
       return String(text || "")
@@ -600,7 +690,6 @@
         case "Pending Review": return "waiting";
         case "Diproses": return "process";
         case "Selesai": return "done";
-        case "Ditolak": return "rejected";
         default: return "waiting";
       }
     }
@@ -686,6 +775,11 @@
         const statusClass_ = statusClass(item.status);
         const submitted = formatDateTime(item.createdAt);
         const incident = formatDateTime(item.waktuKejadian);
+        
+        let photoMarkup = '-';
+        if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
+           photoMarkup = '<img class="table-thumb" src="' + escapeHtml(item.fotoKerusakan[0].url) + '" alt="Bukti ' + escapeHtml(item.barangName) + '" onclick="openPhotoLightbox(this.src)">';
+        }
 
         html += `
           <tr>
@@ -693,16 +787,16 @@
             <td>${escapeHtml(item.memberName || "-")}</td>
             <td><span class="status-pill ${statusClass_}">${escapeHtml(item.tingkatKerusakan || "-")}</span></td>
             <td>${incident}</td>
+            <td>${photoMarkup}</td>
             <td>
               <select class="form-control form-control-sm" data-status-id="${escapeHtml(item.id)}" style="padding: 4px; font-size: 0.8rem;">
                 <option value="Pending Review" ${item.status === "Pending Review" ? "selected" : ""}>Pending Review</option>
                 <option value="Diproses" ${item.status === "Diproses" ? "selected" : ""}>Diproses</option>
                 <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
-                <option value="Ditolak" ${item.status === "Ditolak" ? "selected" : ""}>Ditolak</option>
               </select>
             </td>
-            <td style="text-align: center; cursor: pointer;" data-detail-id="${escapeHtml(item.id)}">
-              <strong>👁️</strong>
+            <td style="text-align: center;">
+              <button class="btn-ghost" type="button" data-detail-id="${escapeHtml(item.id)}" style="padding:4px 8px; font-size:1.1rem; border:none; background:transparent;">👁️</button>
             </td>
             <td style="font-size: 0.8rem; color: #888;">${submitted}</td>
           </tr>
@@ -723,9 +817,7 @@
       if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
         photoHtml = item.fotoKerusakan.map(photo => 
           `<div class="detail-photo" style="margin: 8px 0;">
-            <a href="${escapeHtml(photo.url)}" target="_blank">
-              <img src="${escapeHtml(photo.url)}" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-            </a>
+             <img src="${escapeHtml(photo.url)}" alt="Bukti Laporan" onclick="openPhotoLightbox(this.src)" style="max-width: 100%; max-height: 300px; border-radius: 8px; cursor: pointer;">
           </div>`
         ).join("");
       }
@@ -795,8 +887,23 @@
       }
     }
 
-    function exportExcel() { alert("Fitur ekspor Excel belum tersedia."); }
-    function exportPdf() { alert("Fitur ekspor PDF belum tersedia."); }
+    function exportExcel() {
+       const params = new URLSearchParams({
+        search: searchInput.value.trim(),
+        status: statusFilter.value,
+        severity: severityFilter.value
+      });
+      window.open("/api/form-kerusakan/export.xlsx?" + params.toString(), "_blank");
+    }
+    
+    function exportPdf() { 
+       const params = new URLSearchParams({
+        search: searchInput.value.trim(),
+        status: statusFilter.value,
+        severity: severityFilter.value
+      });
+      window.open("/api/form-kerusakan/export.pdf?" + params.toString(), "_blank");
+    }
 
     function updateLiveDateTime() {
       if (liveDateTime) {
@@ -831,8 +938,11 @@
     });
 
     rows.addEventListener("click", function (event) {
-      const id = event.target.getAttribute("data-detail-id");
-      if (id) openDetail(id);
+      // Perbaikan delegasi klik untuk icon mata yang mungkin klik span/ikon di dalamnya
+      const target = event.target.closest("button[data-detail-id]");
+      if (target) {
+         openDetail(target.getAttribute("data-detail-id"));
+      }
     });
 
     closeDetailBtn.addEventListener("click", closeDetail);
@@ -842,6 +952,17 @@
 
     downloadExcelBtn.addEventListener("click", exportExcel);
     downloadPdfBtn.addEventListener("click", exportPdf);
+
+    // Escape listener
+    document.addEventListener("keydown", function(e) {
+       if (e.key === "Escape") {
+          if (photoLightbox.classList.contains("show")) {
+             closePhotoLightbox();
+          } else if (!detailModal.hidden) {
+             closeDetail();
+          }
+       }
+    });
 
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
