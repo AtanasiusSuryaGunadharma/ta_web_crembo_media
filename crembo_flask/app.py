@@ -1889,8 +1889,8 @@ def search_inventory_items():
         ensure_inventory_schema(cursor)
         
         cursor.execute("""
-            SELECT `id`, `code`, `nama`, `photos` FROM `inventory_items`
-            WHERE LOWER(`nama`) LIKE %s OR LOWER(`code`) LIKE %s
+            SELECT `id`, `code`, `name`, `photos` FROM `inventory_items`
+            WHERE LOWER(`name`) LIKE %s OR LOWER(`code`) LIKE %s
             LIMIT 20
         """, (f"%{query_str}%", f"%{query_str}%"))
         
@@ -1900,7 +1900,7 @@ def search_inventory_items():
             items.append({
                 "id": r.get("id"),
                 "code": r.get("code"),
-                "name": r.get("nama"),
+                "name": r.get("name"),
                 "photos": normalize_inventory_photos(r.get("photos"))
             })
         return jsonify({"success": True, "items": items})
@@ -1941,7 +1941,7 @@ def upload_damage_photo():
         "files": saved_files,
     })
 
-@app.route("/api/form-kerusakan", methods=["POST"])
+@app.route("/api/kerusakan", methods=["POST"])
 def submit_damage_report():
     """Submit damage report form"""
     ensure_auth_schema()
@@ -1951,15 +1951,15 @@ def submit_damage_report():
         return jsonify({"success": False, "error": "Anda harus login terlebih dahulu"}), 401
     
     member_id = user_context.get("user_id")
-    data = request.get_json(silent=True) or {}
     
-    barang_id = data.get("barangId")
-    barang_name = normalize_text(data.get("barangName"), "")
-    barang_code = normalize_text(data.get("barangCode"), "")
-    tingkat_kerusakan = normalize_text(data.get("tingkatKerusakan"), "Sedang")
-    deskripsi = normalize_text(data.get("deskripsiKerusakan"), "")
-    waktu_kejadian = data.get("waktuKejadian")
-    foto_list = data.get("fotoKerusakan") or []
+    # Menangani form data biasa karena request dari FE dikirim via FormData
+    barang_id = request.form.get("barangId")
+    barang_name = normalize_text(request.form.get("itemName"), "")
+    barang_code = normalize_text(request.form.get("itemCode"), "-")
+    tingkat_kerusakan = normalize_text(request.form.get("severity"), "Sedang")
+    deskripsi = normalize_text(request.form.get("chronology"), "")
+    waktu_kejadian = request.form.get("incidentDate")
+    incident_time = request.form.get("incidentTime")
     
     if not barang_name:
         return jsonify({"success": False, "error": "Nama barang harus diisi"}), 400
@@ -1967,29 +1967,30 @@ def submit_damage_report():
     if not deskripsi:
         return jsonify({"success": False, "error": "Deskripsi kerusakan harus diisi"}), 400
     
-    if tingkat_kerusakan not in ["Ringan", "Sedang", "Berat"]:
+    if tingkat_kerusakan not in ["Ringan", "Sedang", "Berat", "Hilang"]:
         tingkat_kerusakan = "Sedang"
     
-    # Parse waktu_kejadian if provided
-    kejadian_dt = None
-    if waktu_kejadian:
+    # Process the photo if it exists in the form data
+    foto_url = None
+    photo_file = request.files.get("photo")
+    if photo_file and photo_file.filename:
         try:
-            kejadian_dt = datetime.fromisoformat(str(waktu_kejadian).replace('Z', '+00:00'))
-        except:
-            kejadian_dt = datetime.now()
-    else:
-        kejadian_dt = datetime.now()
+            saved = save_uploaded_attachment(photo_file)
+            foto_url = saved.get("url")
+        except ValueError as exc:
+            return jsonify({"success": False, "error": str(exc)}), 400
     
     # Create damage report ID
-    damage_id = f"dmg-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
+    damage_id = f"krk-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
     
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
         ensure_damage_schema(cursor)
         
-        # Store photos as JSON
-        foto_data = json.dumps(foto_list or [], ensure_ascii=False)
+        # Simpan member details untuk referensi
+        member_name = str(session.get("nama") or session.get("username") or "Anggota")
+        member_identifier = str(session.get("username") or session.get("email"))
         
         cursor.execute("""
             INSERT INTO `form_kerusakan_barang` 
@@ -1997,33 +1998,32 @@ def submit_damage_report():
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             damage_id,
-            member_id,
+            str(member_id),
             barang_id if barang_id else None,
             barang_name,
-            barang_code if barang_code else None,
+            barang_code,
             tingkat_kerusakan,
             "Pending Review",
             deskripsi,
-            kejadian_dt,
-            foto_data
+            f"{waktu_kejadian} {incident_time}" if waktu_kejadian and incident_time else datetime.now(),
+            json.dumps([{"url": foto_url, "name": photo_file.filename}] if foto_url else [], ensure_ascii=False)
         ))
         
-        # Get member name for notification
-        cursor.execute("SELECT `nama` FROM `anggota` WHERE `id` = %s LIMIT 1", (member_id,))
-        member_row = cursor.fetchone()
-        member_name = member_row[0] if member_row else member_id
-        
         # Create admin notification
-        create_notification(
-            cursor, 
-            "damage_report",
-            "Laporan Kerusakan Barang Baru",
-            f"Laporan kerusakan barang dari {member_name}: {barang_name}",
-            f"/hasil-form-kerusakan-barang.html?id={damage_id}",
-            {"damage_id": damage_id, "member_id": member_id, "barang_name": barang_name},
-            target_role="admin"
-        )
-        
+        try:
+            ensure_notifications_schema()
+            create_notification(
+                cursor, 
+                "kerusakan",
+                "Laporan Kerusakan Barang Baru",
+                f"Laporan kerusakan barang dari {member_name}: {barang_name}",
+                f"/hasil-form-kerusakan-barang.html",
+                {"report_id": damage_id, "member_id": member_id, "barang_name": barang_name},
+                target_role="admin"
+            )
+        except Exception:
+            pass
+            
         conn.commit()
         return jsonify({
             "success": True,
@@ -2059,7 +2059,7 @@ def get_damage_history():
             if not member_id:
                 return jsonify({"success": True, "items": []})
             query += " AND d.`member_id` = %s"
-            params.append(member_id)
+            params.append(str(member_id))
         
         # Apply filters
         status_filter = request.args.get('status')
@@ -2130,9 +2130,9 @@ def get_damage_detail(damage_id):
         
         # Check access permission
         role = user_context.get("role", "")
-        member_id = user_context.get("user_id")
+        member_id = str(user_context.get("user_id"))
         
-        if role not in ["admin", "super_admin"] and row.get("member_id") != member_id:
+        if role not in ["admin", "super_admin"] and str(row.get("member_id")) != member_id:
             return jsonify({"success": False, "error": "Akses ditolak"}), 403
         
         return jsonify({
@@ -2191,6 +2191,7 @@ def update_damage_status(damage_id):
         
         # Send notification to member
         try:
+            ensure_notifications_schema()
             cursor.execute("SELECT `nama` FROM `anggota` WHERE `id` = %s LIMIT 1", (row.get("member_id"),))
             member_row = cursor.fetchone()
             member_name = member_row.get("nama") if member_row else row.get("member_id")
@@ -2204,11 +2205,11 @@ def update_damage_status(damage_id):
             
             create_notification(
                 cursor,
-                "damage_status_update",
+                "kerusakan",
                 "Status Laporan Kerusakan Diperbarui",
-                f"Status laporan kerusakan Anda telah diubah menjadi: {status_indo}",
-                f"/riwayat-form-kerusakan-barang-anggota.html?id={damage_id}",
-                {"damage_id": damage_id},
+                f"Status laporan kerusakan Anda telah diubah menjadi: <b>{status_indo}</b>",
+                f"/riwayat-form-kerusakan-barang-anggota.html",
+                {"report_id": damage_id, "target_user_id": row.get("member_id")},
                 target_role="user"
             )
         except Exception as e:

@@ -585,7 +585,7 @@
                     <div id="barangOptions" class="combo-options"></div>
                   </div>
                 </div>
-                <small style="color:#64748b;font-size:0.78rem;">Pilih dari saran dummy atau ketik manual jika nama barang tidak ada.</small>
+                <small style="color:#64748b;font-size:0.78rem;">Pilih dari saran atau ketik manual jika nama barang tidak ada.</small>
               </div>
               <div class="field">
                 <label for="severitySelect">Tingkat Kerusakan</label>
@@ -615,7 +615,7 @@
 
             <div class="field">
               <label for="photoInput">Foto Bukti (opsional)</label>
-              <input id="photoInput" type="file" accept="image/*">
+              <input id="photoInput" type="file" accept="image/*" multiple>
               <img id="photoPreview" class="photo-preview" alt="Preview foto bukti" hidden>
             </div>
 
@@ -655,7 +655,6 @@
     const barangOptions = document.getElementById("barangOptions");
 
     let sessionUser = null;
-    let pendingPhotos = [];
     let barangComboOpen = false;
     let barangList = [];
     let selectedBarang = null;
@@ -694,12 +693,10 @@
       statusBox.textContent = message; 
     }
 
+    // Mengambil data inventaris melalui endpoint fetch_inventory_items_for_report yang sama dengan Data Inventaris
     async function loadInventoryItems(query = "") {
       try {
-        const url = query 
-          ? `/api/inventory/search?q=${encodeURIComponent(query)}` 
-          : `/api/inventory/search?q=`;
-        
+        const url = `/api/inventory/items?search=${encodeURIComponent(query)}`;
         const res = await fetch(url);
         const data = await res.json();
         if (data.success && data.items) {
@@ -717,12 +714,13 @@
 
       const cleanQuery = String(query || "").trim().toLowerCase();
       const selectedValue = String(itemInput.value || "").trim().toLowerCase();
+      
       const filtered = barangList.filter(item => 
         !cleanQuery || item.name.toLowerCase().indexOf(cleanQuery) !== -1 || 
         item.code.toLowerCase().indexOf(cleanQuery) !== -1
       );
 
-      let html = '<button class="combo-option' + (selectedValue ? '' : ' active') + '" type="button" data-id="">-- Ketik Manual Nama Barang --</button>';
+      let html = '<button class="combo-option' + (selectedValue === "" ? ' active' : '') + '" type="button" data-id="">-- Ketik Manual Nama Barang --</button>';
 
       filtered.forEach(item => {
         const activeClass = item.name.toLowerCase() === selectedValue ? ' active' : '';
@@ -771,7 +769,6 @@
     function handlePhotoChange(event) {
       const files = event.target.files;
       if (!files || files.length === 0) {
-        pendingPhotos = [];
         photoPreview.hidden = true;
         photoPreview.removeAttribute("src");
         return;
@@ -788,37 +785,8 @@
       reader.onload = function () {
         photoPreview.src = String(reader.result || "");
         photoPreview.hidden = false;
-        pendingPhotos = [{ filename: file.name, url: String(reader.result) }];
       };
       reader.readAsDataURL(file);
-    }
-
-    async function uploadPhotos() {
-      if (!photoInput.files || photoInput.files.length === 0) {
-        return [];
-      }
-
-      try {
-        const formData = new FormData();
-        for (let i = 0; i < photoInput.files.length; i++) {
-          formData.append("files", photoInput.files[i]);
-        }
-
-        const res = await fetch("/api/damage/upload", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await res.json();
-        if (data.success && data.files) {
-          return data.files;
-        } else {
-          throw new Error(data.error || "Gagal upload foto");
-        }
-      } catch (error) {
-        console.error("Photo upload error:", error);
-        throw error;
-      }
     }
 
     async function submitForm(event) {
@@ -843,25 +811,27 @@
       }
 
       try {
-        setStatus("Mengunggah foto...");
-        const uploadedPhotos = await uploadPhotos();
-
         setStatus("Mengirim laporan...");
         
-        const payload = {
-          barangId: selectedBarang ? selectedBarang.id : null,
-          barangName: itemName,
-          barangCode: itemCodeInput.value.trim() || "",
-          tingkatKerusakan: severitySelect.value || "Sedang",
-          deskripsiKerusakan: deskripsi,
-          waktuKejadian: waktuKejadian,
-          fotoKerusakan: uploadedPhotos
-        };
+        let formData = new FormData();
+        formData.append("barangId", selectedBarang ? selectedBarang.id : "");
+        formData.append("itemName", itemName);
+        formData.append("itemCode", itemCodeInput.value.trim() || "-");
+        formData.append("severity", severitySelect.value || "Sedang");
+        formData.append("chronology", deskripsi);
+        
+        // Memisahkan tanggal dan waktu untuk endpoint /api/kerusakan
+        const dt = new Date(waktuKejadian);
+        formData.append("incidentDate", dt.toISOString().split('T')[0]);
+        formData.append("incidentTime", dt.toTimeString().split('T')[0].substring(0, 8));
+        
+        if (photoInput.files && photoInput.files.length > 0) {
+           formData.append("photo", photoInput.files[0]);
+        }
 
-        const res = await fetch("/api/form-kerusakan", {
+        const res = await fetch("/api/kerusakan", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: formData
         });
 
         const data = await res.json();
@@ -869,14 +839,13 @@
           setStatus("✓ Laporan kerusakan berhasil dikirim!");
           reportForm.reset();
           incidentDateInput.value = new Date().toISOString().slice(0, 16);
-          pendingPhotos = [];
           photoPreview.hidden = true;
           selectedBarang = null;
           itemCodeInput.value = "";
           
           setTimeout(() => {
             window.location.href = "riwayat-form-kerusakan-barang-anggota.html";
-          }, 2000);
+          }, 1500);
         } else {
           setStatus("✗ Gagal mengirim laporan: " + (data.error || "Kesalahan tak diketahui"));
         }
@@ -964,7 +933,12 @@
     if (guardMember()) {
       fillMemberIdentity();
       loadInventoryItems("");
-      incidentDateInput.value = new Date().toISOString().slice(0, 16);
+      
+      // Setup waktu kejadian local secara otomatis saat page dimuat
+      const tzoffset = (new Date()).getTimezoneOffset() * 60000; 
+      const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
+      incidentDateInput.value = localISOTime;
+      
       setStatus("Form siap diisi.");
       updateLiveDateTime();
       setInterval(updateLiveDateTime, 1000);

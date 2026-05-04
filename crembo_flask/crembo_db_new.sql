@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 04 Bulan Mei 2026 pada 23.29
+-- Waktu pembuatan: 04 Bulan Mei 2026 pada 23.56
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -236,6 +236,13 @@ CREATE TABLE `form_kerusakan_barang` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `form_kerusakan_barang`
+--
+
+INSERT INTO `form_kerusakan_barang` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `tingkat_kerusakan`, `status`, `deskripsi_kerusakan`, `waktu_kejadian`, `foto_kerusakan`, `created_at`, `updated_at`) VALUES
+('krk-1777931365119-c4ce9e', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', 'Hilang', 'Selesai', 'Tes Vivo Barnag Hilang', '2026-05-04 04:48:00', '[{\"url\": \"/uploads/foto_baju_koki_c9085fa4e21840b8872229559696860f.jpg\", \"name\": \"foto_baju_koki.jpg\"}]', '2026-05-05 04:49:25', '2026-05-05 04:50:34');
 
 -- --------------------------------------------------------
 
@@ -586,7 +593,12 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1777927342115-a7c9d2', 'peminjaman', 'Pengambilan Tersimpan: Kamera Sony A6400', 'Data pengambilan Anda telah tersimpan.', '/riwayat-peminjaman-barang-anggota.html', '{\"pengajuan_id\": \"pjn-1777901560809\", \"target_user_id\": \"21\"}', '2026-05-05 03:42:22', 'user'),
 ('notif-1777927368309-502941', 'peminjaman', 'Barang Dikembalikan: Kamera Sony A6400', 'Pengembalian dicatat oleh <b>Aura</b>.<br><b>Lokasi:</b> Tes Pengembalian Barang Aura Notif<br><b>Kondisi:</b><br>&bull; Unit 1: Rusak - Tes Pengembalian Barang Aura Notif<br><br><a href=\'/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_cc91918a47674cd28423188c4931b60d.png\' target=\'_blank\' style=\'display:inline-block; padding:4px 8px; background:#7f1d1d; color:#fff; border-radius:4px; text-decoration:none; font-size:11px; font-weight:bold;\'>Lihat Foto Bukti</a>', '/riwayat-peminjaman-pengembalian.html', '{\"pengajuan_id\": \"pjn-1777901560809\", \"target_user_id\": \"21\"}', '2026-05-05 03:42:48', 'admin'),
 ('notif-1777927391368-738e97', 'peminjaman', 'Barang Dikembalikan: Vivo', 'Pengembalian dicatat oleh <b>Daflo</b>.<br><b>Lokasi:</b> Tes Pengembalian Barang Daflo Notif<br><b>Kondisi:</b><br>&bull; Unit 1: Baik - Tes Pengembalian Barang Daflo Notif<br><br><a href=\'/uploads/screencapture-10-10-10-85-admin-dashboard-2026-04-07-11_11_45_baf4f95570ba4abdb99a34c90bcd0820.png\' target=\'_blank\' style=\'display:inline-block; padding:4px 8px; background:#7f1d1d; color:#fff; border-radius:4px; text-decoration:none; font-size:11px; font-weight:bold;\'>Lihat Foto Bukti</a>', '/riwayat-peminjaman-pengembalian.html', '{\"pengajuan_id\": \"pjn-1777900923876\", \"target_user_id\": \"53\"}', '2026-05-05 03:43:11', 'admin'),
-('notif-1777927502342-71b0e2', 'peminjaman', 'Pengajuan Peminjaman: Vivo', 'Diajukan oleh <b>Daflo</b>. Harap ditinjau.', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777902302335\"}', '2026-05-05 03:45:02', 'admin');
+('notif-1777927502342-71b0e2', 'peminjaman', 'Pengajuan Peminjaman: Vivo', 'Diajukan oleh <b>Daflo</b>. Harap ditinjau.', '/persetujuan-peminjaman.html', '{\"pengajuan_id\": \"pjn-1777902302335\"}', '2026-05-05 03:45:02', 'admin'),
+('notif-1777931365126-0cbc0c', 'kerusakan', 'Laporan Kerusakan Barang Baru', 'Laporan kerusakan barang dari Aura: Vivo', '/hasil-form-kerusakan-barang.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"member_id\": 21, \"barang_name\": \"Vivo\"}', '2026-05-05 04:49:25', 'admin'),
+('notif-1777931429608-9bcd6a', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Sedang Diproses</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:29', 'user'),
+('notif-1777931430763-ac714d', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Dalam Review</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:30', 'user'),
+('notif-1777931432008-9fd132', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Sedang Diproses</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:32', 'user'),
+('notif-1777931434191-2d74f8', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:34', 'user');
 
 -- --------------------------------------------------------
 

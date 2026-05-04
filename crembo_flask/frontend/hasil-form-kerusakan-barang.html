@@ -339,6 +339,7 @@
     .status-pill.waiting { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
     .status-pill.process { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
     .status-pill.done { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
+    .status-pill.rejected { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
 
     .empty-note {
       margin: 10px 0 0;
@@ -441,10 +442,10 @@
       <div class="menu-group open">
         <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
         <div class="group-items">
-          <a class="menu-link active" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link" href="data-inventaris-barang.html">Data Inventaris Barang</a>
           <a class="menu-link" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
           <a class="menu-link" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
-          <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
+          <a class="menu-link active" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
         </div>
       </div>
 
@@ -489,9 +490,10 @@
             <label for="statusFilter">Status Tindak Lanjut</label>
             <select id="statusFilter">
               <option value="all">Semua Status</option>
-              <option value="Menunggu">Menunggu</option>
+              <option value="Pending Review">Pending Review</option>
               <option value="Diproses">Diproses</option>
               <option value="Selesai">Selesai</option>
+              <option value="Ditolak">Ditolak</option>
             </select>
           </div>
 
@@ -524,14 +526,13 @@
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Tanggal Lapor</th>
-                <th>Kode Barang</th>
-                <th>Nama Barang</th>
+                <th>Barang</th>
                 <th>Pelapor</th>
-                <th>Tingkat Kerusakan</th>
-                <th>Status Tindak Lanjut</th>
+                <th>Tingkat</th>
+                <th>Waktu Kejadian</th>
+                <th>Status</th>
                 <th>Aksi</th>
+                <th>Diinput</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>
@@ -847,258 +848,6 @@
 
     if (guardAdmin()) {
       loadSubmissions();
-    }
-  </script>
-      {
-        id: "krk-2026-04-11-002",
-        submittedAt: "2026-04-11T14:05:00.000Z",
-        memberName: "Sinta Lestari",
-        memberId: "anggota-002",
-        itemCode: "AUD-004",
-        itemName: "Wireless Microphone Set",
-        severity: "Ringan",
-        incidentDate: "2026-04-11",
-        location: "Gudang Audio",
-        chronology: "Salah satu receiver ditemukan longgar pada bagian slot baterai.",
-        photo: "",
-        adminStatus: "Diproses"
-      }
-    ];
-
-    let currentSubmissions = JSON.parse(JSON.stringify(DEFAULT_SUBMISSIONS));
-
-    const searchInput = document.getElementById("searchInput");
-    const statusFilter = document.getElementById("statusFilter");
-    const severityFilter = document.getElementById("severityFilter");
-    const rows = document.getElementById("rows");
-    const emptyNote = document.getElementById("emptyNote");
-    const summaryGrid = document.getElementById("summaryGrid");
-    const activeFilterChip = document.getElementById("activeFilterChip");
-    const liveDateTime = document.getElementById("liveDateTime");
-    const downloadExcelBtn = document.getElementById("downloadExcelBtn");
-    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
-
-    const detailModal = document.getElementById("detailModal");
-    const detailBody = document.getElementById("detailBody");
-    const closeDetailBtn = document.getElementById("closeDetailBtn");
-
-    function escapeHtml(text) {
-      return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    function readSubmissions() {
-      // Logic backend/localStorage tetap ada untuk dummy
-      const saved = localStorage.getItem(SUBMISSION_KEY);
-      if(saved) currentSubmissions = JSON.parse(saved);
-        
-      return currentSubmissions.map(function (item, index) {
-        const status = String(item && item.adminStatus ? item.adminStatus : "Menunggu");
-        return {
-          id: String(item && item.id ? item.id : ("krk-" + (index + 1))),
-          submittedAt: String(item && item.submittedAt ? item.submittedAt : new Date().toISOString()),
-          memberName: String(item && item.memberName ? item.memberName : "Anggota"),
-          memberId: String(item && item.memberId ? item.memberId : ""),
-          itemCode: String(item && item.itemCode ? item.itemCode : "-"),
-          itemName: String(item && item.itemName ? item.itemName : "-"),
-          severity: String(item && item.severity ? item.severity : "Ringan"),
-          incidentDate: String(item && item.incidentDate ? item.incidentDate : ""),
-          location: String(item && item.location ? item.location : "-"),
-          chronology: String(item && item.chronology ? item.chronology : "-"),
-          photo: String(item && item.photo ? item.photo : ""),
-          adminStatus: ["Menunggu", "Diproses", "Selesai"].indexOf(status) !== -1 ? status : "Menunggu"
-        };
-      });
-    }
-
-    function formatDateTime(value) {
-      const date = new Date(value || "");
-      if (Number.isNaN(date.getTime())) {
-        return "-";
-      }
-      return date.toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      }) + " WIB";
-    }
-
-    function statusClass(status) {
-      if (status === "Selesai") return "done";
-      if (status === "Diproses") return "process";
-      return "waiting";
-    }
-
-    function filteredItems() {
-      const keyword = searchInput.value.trim().toLowerCase();
-      const status = statusFilter.value;
-      const severity = severityFilter.value;
-
-      return readSubmissions().filter(function (item) {
-        const text = [
-          item.id,
-          item.itemCode,
-          item.itemName,
-          item.memberName,
-          item.chronology,
-          item.location
-        ].join(" ").toLowerCase();
-
-        const matchKeyword = !keyword || text.indexOf(keyword) !== -1;
-        const matchStatus = status === "all" || item.adminStatus === status;
-        const matchSeverity = severity === "all" || item.severity === severity;
-
-        return matchKeyword && matchStatus && matchSeverity;
-      }).sort(function (a, b) {
-        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-      });
-    }
-
-    function renderSummary(items) {
-      const total = items.length;
-      const waiting = items.filter(function (item) { return item.adminStatus === "Menunggu"; }).length;
-      const process = items.filter(function (item) { return item.adminStatus === "Diproses"; }).length;
-      const done = items.filter(function (item) { return item.adminStatus === "Selesai"; }).length;
-
-      summaryGrid.innerHTML =
-        '<article class="summary-item"><p>Total Laporan</p><strong>' + total + '</strong></article>' +
-        '<article class="summary-item"><p>Menunggu</p><strong>' + waiting + '</strong></article>' +
-        '<article class="summary-item"><p>Diproses</p><strong>' + process + '</strong></article>' +
-        '<article class="summary-item"><p>Selesai</p><strong>' + done + '</strong></article>';
-
-      activeFilterChip.textContent = "Filter: " + (statusFilter.value === "all" ? "Semua" : statusFilter.value);
-    }
-
-    function renderTable() {
-      const list = filteredItems();
-      renderSummary(list);
-
-      if (!list.length) {
-        rows.innerHTML = "";
-        emptyNote.hidden = false;
-        return;
-      }
-
-      emptyNote.hidden = true;
-      rows.innerHTML = list.map(function (item) {
-        return '<tr>' +
-          '<td>' + escapeHtml(item.id) + '</td>' +
-          '<td>' + escapeHtml(formatDateTime(item.submittedAt)) + '</td>' +
-          '<td>' + escapeHtml(item.itemCode) + '</td>' +
-          '<td>' + escapeHtml(item.itemName) + '</td>' +
-          '<td>' + escapeHtml(item.memberName) + '</td>' +
-          '<td>' + escapeHtml(item.severity) + '</td>' +
-          '<td><select data-status-id="' + escapeHtml(item.id) + '">' +
-            '<option value="Menunggu"' + (item.adminStatus === "Menunggu" ? " selected" : "") + '>Menunggu</option>' +
-            '<option value="Diproses"' + (item.adminStatus === "Diproses" ? " selected" : "") + '>Diproses</option>' +
-            '<option value="Selesai"' + (item.adminStatus === "Selesai" ? " selected" : "") + '>Selesai</option>' +
-          '</select>' +
-          '<div style="margin-top:4px;"><span class="status-pill ' + statusClass(item.adminStatus) + '">' + escapeHtml(item.adminStatus) + '</span></div></td>' +
-          '<td><button class="btn-ghost" type="button" data-detail-id="' + escapeHtml(item.id) + '">Detail</button></td>' +
-        '</tr>';
-      }).join("");
-    }
-
-    function openDetail(itemId) {
-      const item = readSubmissions().find(function (entry) {
-        return entry.id === itemId;
-      });
-      if (!item) {
-        return;
-      }
-
-      const photoHtml = item.photo
-        ? '<div class="detail-item"><strong>Foto Bukti</strong><img class="detail-photo" src="' + escapeHtml(item.photo) + '" alt="Foto bukti"></div>'
-        : '<div class="detail-item"><strong>Foto Bukti</strong>-</div>';
-
-      detailBody.innerHTML =
-        '<div class="detail-item"><strong>ID Laporan</strong>' + escapeHtml(item.id) + '</div>' +
-        '<div class="detail-item"><strong>Tanggal Lapor</strong>' + escapeHtml(formatDateTime(item.submittedAt)) + '</div>' +
-        '<div class="detail-item"><strong>Pelapor</strong>' + escapeHtml(item.memberName) + '</div>' +
-        '<div class="detail-item"><strong>Barang</strong>' + escapeHtml(item.itemCode) + ' - ' + escapeHtml(item.itemName) + '</div>' +
-        '<div class="detail-item"><strong>Tingkat Kerusakan</strong>' + escapeHtml(item.severity) + '</div>' +
-        '<div class="detail-item"><strong>Tanggal Kejadian</strong>' + escapeHtml(item.incidentDate || "-") + '</div>' +
-        '<div class="detail-item"><strong>Lokasi</strong>' + escapeHtml(item.location || "-") + '</div>' +
-        '<div class="detail-item"><strong>Kronologi</strong>' + escapeHtml(item.chronology || "-") + '</div>' +
-        photoHtml;
-      detailModal.hidden = false;
-    }
-
-    function closeDetail() {
-      detailModal.hidden = true;
-      detailBody.innerHTML = "";
-    }
-
-    function updateStatus(itemId, nextStatus) {
-      currentSubmissions = readSubmissions().map(function (item) {
-        if (item.id === itemId) {
-          return Object.assign({}, item, { adminStatus: nextStatus });
-        }
-        return item;
-      });
-      localStorage.setItem(SUBMISSION_KEY, JSON.stringify(currentSubmissions));
-      renderTable();
-    }
-
-    function exportExcel() { /* Fungsi Dummy / Ekspor */ }
-    function exportPdf() { /* Fungsi Dummy / Ekspor */ }
-
-    function updateLiveDateTime() {
-      const now = new Date();
-      liveDateTime.textContent = now.toLocaleString("id-ID", {
-        weekday: "long", day: "2-digit", month: "long", year: "numeric",
-        hour: "2-digit", minute: "2-digit", second: "2-digit"
-      }) + " WIB";
-    }
-
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
-
-    // SISTEM PERTANDINGAN SESSION BARU (FLASK SESSION)
-    function guardAdmin() {
-      if (!window.CREMBO_CURRENT_USER || !window.CREMBO_CURRENT_USER.logged_in) {
-        window.location.href = "login.html";
-        return false;
-      }
-      const role = String(window.CREMBO_CURRENT_USER.role || "").toLowerCase();
-      if (role !== "admin" && role !== "super_admin") {
-        window.alert("Halaman ini khusus admin/super admin.");
-        window.location.href = "dashboard.html";
-        return false;
-      }
-      return true;
-    }
-
-    searchInput.addEventListener("input", renderTable);
-    statusFilter.addEventListener("change", renderTable);
-    severityFilter.addEventListener("change", renderTable);
-
-    rows.addEventListener("change", function (event) {
-      const itemId = event.target.getAttribute("data-status-id");
-      if (itemId) updateStatus(itemId, event.target.value);
-    });
-
-    rows.addEventListener("click", function (event) {
-      const id = event.target.getAttribute("data-detail-id");
-      if (id) openDetail(id);
-    });
-
-    closeDetailBtn.addEventListener("click", closeDetail);
-    detailModal.addEventListener("click", function (event) {
-      if (event.target === detailModal) closeDetail();
-    });
-
-    downloadExcelBtn.addEventListener("click", exportExcel);
-    downloadPdfBtn.addEventListener("click", exportPdf);
-
-    if (guardAdmin()) {
-      renderTable();
     }
   </script>
 <script src="_sidebar-fix.js"></script>
