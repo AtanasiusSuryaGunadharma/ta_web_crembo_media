@@ -129,13 +129,13 @@
 
     .side-action {
       text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.45);
+      border: 1px solid rgba(255, 255, 255, 0.45);
       border-radius: 10px;
       color: #f8fbff;
       text-align: center;
       padding: 8px;
       font-size: 0.8rem;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .main { min-width: 0; padding: 20px; }
@@ -693,6 +693,7 @@
                 <tr>
                   <th>ID</th>
                   <th>TANGGAL LAPOR</th>
+                  <th>WAKTU KEJADIAN</th>
                   <th>BARANG</th>
                   <th>TINGKAT</th>
                   <th>FOTO BUKTI</th>
@@ -877,6 +878,7 @@
       let html = "";
       items.forEach(function (item) {
         const submitted = formatDateTime(item.createdAt);
+        const incident = formatDateTime(item.waktuKejadian);
         
         let displayStatus = item.status;
         if (displayStatus === "Pending Review") displayStatus = "Menunggu";
@@ -898,6 +900,7 @@
           <tr>
             <td data-label="ID">${escapeHtml(item.id || "-")}</td>
             <td data-label="TANGGAL LAPOR">${submitted}</td>
+            <td data-label="WAKTU KEJADIAN">${incident}</td>
             <td data-label="BARANG">${barangText}</td>
             <td data-label="TINGKAT">${escapeHtml(item.tingkatKerusakan || "-")}</td>
             <td data-label="FOTO BUKTI">${photoMarkup}</td>
