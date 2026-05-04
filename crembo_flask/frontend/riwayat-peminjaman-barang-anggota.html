@@ -499,6 +499,11 @@
       border: 1px solid #dbe2ef;
       margin-top: 8px;
       background: #f8fafc;
+      transition: transform 0.2s;
+    }
+
+    .evidence-box img:hover {
+      transform: scale(1.05);
     }
 
     .mobile-toggle {
@@ -715,18 +720,27 @@
       });
     });
 
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    const memberName = document.getElementById("memberName");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
-        }
-      } catch (error) {
-      }
+    // Mengambil session context dari Jinja/Backend
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const sessionUser = window.CREMBO_CURRENT_USER || {};
+    const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
+    
+    document.getElementById("memberName").textContent = displayName;
+    
+    // Perbarui Role
+    const accountText = document.querySelector(".account-text small");
+    if (accountText) {
+        let roleDisplay = "Anggota Multimedia";
+        if (sessionUser.role === 'super_admin') roleDisplay = 'Super Admin';
+        else if (sessionUser.role === 'admin') roleDisplay = 'Admin';
+        else if (sessionUser.role === 'user') roleDisplay = 'Anggota';
+        accountText.textContent = "Role: " + roleDisplay;
+    }
+
+    // Perbarui Avatar (Inisial 2 huruf pertama)
+    const sidebarAvatar = document.querySelector(".avatar");
+    if (sidebarAvatar && displayName) {
+        sidebarAvatar.textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
     }
 
     const liveDateTime = document.getElementById("liveDateTime");
@@ -735,20 +749,6 @@
 
     const statusTableRows = document.getElementById("statusTableRows");
     const riwayatContainer = document.getElementById("riwayatContainer");
-
-    const PENGAJUAN_STORAGE_KEY = "crembo-peminjaman-pengajuan";
-    const RIWAYAT_STORAGE_KEY = "crembo-peminjaman-riwayat";
-    const DEMO_PENGAJUAN = [
-      { id: "pjn-demo-1", barangId: "inv-001", barangNama: "Kamera Sony A6400", barangCode: "CAM-001", jumlahDiminta: 1, tanggalPengajuan: "2026-04-08", tanggalMulai: "2026-04-10", tanggalSelesai: "2026-04-12", tujuan: "Dokumentasi Misa Harian", status: "approved" },
-      { id: "pjn-demo-2", barangId: "inv-002", barangNama: "Wireless Microphone Set", barangCode: "AUD-004", jumlahDiminta: 2, tanggalPengajuan: "2026-04-07", tanggalMulai: "2026-04-10", tanggalSelesai: "2026-04-11", tujuan: "Siaran live dan rekaman audio", status: "taken" },
-      { id: "pjn-demo-3", barangId: "inv-003", barangNama: "Tripod Heavy Duty", barangCode: "TRI-002", jumlahDiminta: 1, tanggalPengajuan: "2026-04-09", tanggalMulai: "2026-04-11", tanggalSelesai: "2026-04-13", tujuan: "Pendukung kamera misa", status: "pending" },
-      { id: "pjn-demo-4", barangId: "inv-005", barangNama: "Kabel HDMI 10m", barangCode: "CAB-015", jumlahDiminta: 1, tanggalPengajuan: "2026-04-01", tanggalMulai: "2026-04-02", tanggalSelesai: "2026-04-03", tujuan: "Kebutuhan input video", status: "rejected" }
-    ];
-    const DEMO_RIWAYAT = [
-      { id: "rwyt-demo-1", pengajuanId: "pjn-demo-1", barangId: "inv-001", barangNama: "Kamera Sony A6400", jumlah: 1, tanggalDiambil: "2026-04-10", jamDiambil: "08:15", tanggalDikembalikan: null, jamDikembalikan: null, kondisiSebelum: "Baik", kondisiSesudah: null, keterangan: "Dipakai untuk dokumentasi Misa Harian", pickup: { time: "2026-04-10T08:15:00", location: "Gudang Studio" } },
-      { id: "rwyt-demo-2", pengajuanId: "pjn-demo-2", barangId: "inv-002", barangNama: "Wireless Microphone Set", jumlah: 2, tanggalDiambil: "2026-04-09", jamDiambil: "17:30", tanggalDikembalikan: null, jamDikembalikan: null, kondisiSebelum: "Baik, Baik", kondisiSesudah: null, keterangan: "Satu set untuk live dan satu set cadangan", pickup: { time: "2026-04-09T17:30:00", location: "Rak Audio 2" } },
-      { id: "rwyt-demo-3", pengajuanId: "pjn-demo-3", barangId: "inv-003", barangNama: "Tripod Heavy Duty", jumlah: 1, tanggalDiambil: "2026-04-05", jamDiambil: "09:00", tanggalDikembalikan: "2026-04-08", jamDikembalikan: "16:45", kondisiSebelum: "Baik", kondisiSesudah: "Baik", keterangan: "Sudah dikembalikan setelah kegiatan", pickup: { time: "2026-04-05T09:00:00", location: "Gudang Perlengkapan" }, returnInfo: { time: "2026-04-08T16:45:00", location: "Gudang Perlengkapan", condition: "Baik" } }
-    ];
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -769,27 +769,69 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    function safeParse(raw, fallback) {
+    // --- MENGGUNAKAN API BACKEND ---
+    let REMOTE_PENGAJUAN = [];
+
+    async function loadServerData() {
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
-      } catch (error) {
-        return fallback;
-      }
+        const res = await fetch('/api/pengajuan');
+        const data = await res.json();
+        if(data.success) {
+          REMOTE_PENGAJUAN = data.items;
+          renderStatusTable();
+          renderRiwayatCards();
+        }
+      } catch(e) { console.error("Gagal memuat data", e); }
     }
 
-    function readPengajuan() {
-      const stored = safeParse(localStorage.getItem(PENGAJUAN_STORAGE_KEY), []);
-      return stored.length ? stored : DEMO_PENGAJUAN.slice();
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
-    function readRiwayat() {
-      const stored = safeParse(localStorage.getItem(RIWAYAT_STORAGE_KEY), []);
-      return stored.length ? stored : DEMO_RIWAYAT.slice();
+    function formatWaktuIndo(rawDate) {
+        if (!rawDate) return "-";
+        if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
+        let d = new Date(rawDate);
+        if (typeof rawDate === 'string' && rawDate.indexOf('T') === -1 && rawDate.indexOf(':') !== -1) {
+            const parts = rawDate.split(/[- :]/);
+            if (parts.length >= 6) d = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+        }
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        return `${day} ${month} ${year} ${h}:${m}`;
+    }
+
+    function statusClass(status) {
+      if (status === "approved") return "status-ok";
+      if (status === "rejected") return "status-danger";
+      if (status === "taken") return "status-warn";
+      if (status === "returned") return "status-ok";
+      if (status === "cancelled") return "status-danger";
+      return "status-warn"; // pending
+    }
+
+    function statusLabel(status) {
+      if (status === "approved") return "Disetujui";
+      if (status === "rejected") return "Ditolak";
+      if (status === "taken") return "Sedang Dipinjam";
+      if (status === "returned") return "Selesai";
+      if (status === "cancelled") return "Dibatalkan";
+      return "Menunggu";
     }
 
     function renderStatusTable() {
-      let items = readPengajuan().slice().reverse();
+      let items = REMOTE_PENGAJUAN.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       if (!items.length) {
         statusTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Belum ada pengajuan.</td></tr>';
@@ -797,102 +839,82 @@
       }
 
       statusTableRows.innerHTML = items.map(function (item) {
-        let statusHtml = '<span class="status-warn">Menunggu</span>';
-        if (item.status === "approved") {
-          statusHtml = '<span class="status-ok">Disetujui</span>';
-        } else if (item.status === "rejected") {
-          statusHtml = '<span class="status-danger">Ditolak</span>';
-        } else if (item.status === "taken") {
-          statusHtml = '<span class="status-ok">Sedang Dipinjam</span>';
-        } else if (item.status === "returned") {
-          statusHtml = '<span class="status-ok">Selesai</span>';
-        }
+        const sClass = statusClass(item.status);
+        const sLabel = statusLabel(item.status);
+        const periode = (item.tanggalMulai || '-') + " sd " + (item.tanggalSelesai || '-');
+        const tglAju = formatWaktuIndo(item.createdAt);
 
-        const periode = item.tanggalMulai + " sd " + item.tanggalSelesai;
-
-        return '<tr>'
-          + '<td data-label="Barang">' + item.barangNama + '</td>'
-          + '<td data-label="Periode" style="font-size: 0.75rem;">' + periode + '</td>'
-          + '<td data-label="Tujuan">' + (item.tujuan ? item.tujuan.substring(0, 40) + "..." : "-") + '</td>'
-          + '<td data-label="Status">' + statusHtml + '</td>'
-          + '<td data-label="Tanggal Pengajuan">' + item.tanggalPengajuan + '</td>'
-          + '</tr>';
+        return `<tr>
+          <td data-label="Barang"><strong>${escapeHtml(item.barangNama)}</strong><br><small style="color:#666;">${escapeHtml(item.barangCode||'-')}</small></td>
+          <td data-label="Periode" style="font-size: 0.75rem;">${escapeHtml(periode)}</td>
+          <td data-label="Tujuan">${item.tujuan ? escapeHtml(item.tujuan.substring(0, 40)) + "..." : "-"}</td>
+          <td data-label="Status"><span class="${sClass}">${sLabel}</span></td>
+          <td data-label="Tanggal Pengajuan">${escapeHtml(tglAju)}</td>
+        </tr>`;
       }).join("");
     }
 
     function renderRiwayatCards() {
-      let items = readRiwayat().slice().reverse();
+      // Tampilkan hanya yang sedang diproses atau selesai (approved, taken, returned)
+      let items = REMOTE_PENGAJUAN.filter(item => ["approved", "taken", "returned"].includes(item.status));
+      items.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       if (!items.length) {
-        riwayatContainer.innerHTML = '<div style="text-align: center; padding: 40px 16px; color: #5b6473;">Belum ada riwayat peminjaman.</div>';
+        riwayatContainer.innerHTML = '<div style="text-align: center; padding: 40px 16px; color: #5b6473;">Belum ada riwayat peminjaman yang berjalan.</div>';
         return;
       }
 
       riwayatContainer.innerHTML = items.map(function (item) {
-        const statusPengembalian = item.tanggalDikembalikan ? "Sudah Dikembalikan" : "Sedang Dipinjam";
-        const statusColor = item.tanggalDikembalikan ? "status-ok" : "status-warn";
-        const pickupPhoto = item.pickup && item.pickup.photo ? item.pickup.photo : "";
-        const returnPhoto = item.returnInfo && item.returnInfo.photo ? item.returnInfo.photo : "";
-        const pickupStamp = item.pickup && item.pickup.date ? item.pickup.date + " " + (item.pickup.time || "") : item.tanggalDiambil + " " + item.jamDiambil;
-        const returnStamp = item.returnInfo && item.returnInfo.date ? item.returnInfo.date + " " + (item.returnInfo.time || "") : (item.tanggalDikembalikan ? item.tanggalDikembalikan + " " + (item.jamDikembalikan || "") : "-");
-        const pickupLocation = item.pickup && item.pickup.location ? item.pickup.location : (item.pickup && item.pickup.locationText ? item.pickup.locationText : "-");
-        const returnLocation = item.returnInfo && item.returnInfo.location ? item.returnInfo.location : "-";
+        const sClass = statusClass(item.status);
+        const sLabel = statusLabel(item.status);
+        
+        // Data Pengambilan
+        const pickup = item.pickupInfo || {};
+        const pickupPhoto = pickup.photo || "";
+        const pickupStamp = pickup.date ? pickup.date + " " + (pickup.time || "") : "-";
+        const pickupLocation = pickup.location || "-";
+        const pickupCondition = Array.isArray(pickup.units) ? pickup.units.map(u => u.status).join(", ") : "-";
+        
+        // Data Pengembalian
+        const ret = item.returnInfo || {};
+        const returnPhoto = ret.photo || "";
+        const returnStamp = ret.date ? ret.date + " " + (ret.time || "") : "-";
+        const returnLocation = ret.location || "-";
+        const returnCondition = Array.isArray(ret.units) ? ret.units.map(u => u.status).join(", ") : "-";
+        const returnNotes = Array.isArray(ret.units) ? ret.units.map(u => u.reason).filter(r => r).join(" | ") : "-";
 
-        return '<div class="detail-card">'
-          + '<h3>' + item.barangNama + ' <span class="' + statusColor + '">' + statusPengembalian + '</span></h3>'
-          + '<div class="detail-row">'
-          + '<div class="detail-item">'
-          + '<strong>Tanggal Pengambilan:</strong>'
-          + pickupStamp
-          + '</div>'
-          + '<div class="detail-item">'
-          + '<strong>Lokasi Pengambilan:</strong>'
-          + pickupLocation
-          + '</div>'
-          + '</div>'
-          + '<div class="detail-row">'
-          + '<div class="detail-item">'
-          + '<strong>Kondisi Saat Diambil:</strong>'
-          + item.kondisiSebelum
-          + '</div>'
-          + '<div class="detail-item">'
-          + '<strong>Jumlah Unit:</strong>'
-          + item.jumlah
-          + '</div>'
-          + '</div>'
-          + (item.tanggalDikembalikan ? 
-            '<div class="detail-row">'
-            + '<div class="detail-item">'
-            + '<strong>Tanggal Pengembalian:</strong>'
-            + returnStamp
-            + '</div>'
-            + '<div class="detail-item">'
-            + '<strong>Lokasi Pengembalian:</strong>'
-            + returnLocation
-            + '</div>'
-            + '</div>'
-            : '')
-          + '<div class="detail-row">'
-          + '<div class="detail-item">'
-          + '<strong>Kondisi Saat Dikembalikan:</strong>'
-          + (item.kondisiSesudah ? item.kondisiSesudah : "-")
-          + '</div>'
-          + '<div class="detail-item">'
-          + '<strong>Catatan:</strong>'
-          + (item.keterangan ? item.keterangan : "-")
-          + '</div>'
-          + '</div>'
-          + ((pickupPhoto || returnPhoto) ? '<div class="evidence-grid">'
-            + '<div class="evidence-box">'
-            + '<strong>Bukti Foto Pengambilan</strong>'
-            + (pickupPhoto ? '<img src="' + pickupPhoto + '" alt="Bukti foto pengambilan">' : '<div>-</div>')
-            + '</div>'
-            + '<div class="evidence-box">'
-            + '<strong>Bukti Foto Pengembalian</strong>'
-            + (returnPhoto ? '<img src="' + returnPhoto + '" alt="Bukti foto pengembalian">' : '<div>-</div>')
-            + '</div>'
-            + '</div>' : '')
-          + '</div>';
+        let adminNoteHtml = item.adminNote ? `<div class="detail-row"><div class="detail-item" style="grid-column: 1 / -1; border-left: 3px solid #f59e0b;"><strong>Catatan Admin:</strong>${escapeHtml(item.adminNote)}</div></div>` : '';
+
+        return `<div class="detail-card">
+          <h3>${escapeHtml(item.barangNama)} <span class="${sClass}" style="padding:4px 8px; border-radius:999px; font-size:0.75rem; border:1px solid currentColor;">${sLabel}</span></h3>
+          ${adminNoteHtml}
+          <div class="detail-row">
+            <div class="detail-item"><strong>Tanggal Pengambilan:</strong>${escapeHtml(pickupStamp)}</div>
+            <div class="detail-item"><strong>Lokasi Pengambilan:</strong>${escapeHtml(pickupLocation)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-item"><strong>Kondisi Saat Diambil:</strong>${escapeHtml(pickupCondition)}</div>
+            <div class="detail-item"><strong>Jumlah Unit:</strong>${item.jumlahDiminta}</div>
+          </div>
+          ${item.status === "returned" ? 
+            `<div class="detail-row">
+              <div class="detail-item"><strong>Tanggal Pengembalian:</strong>${escapeHtml(returnStamp)}</div>
+              <div class="detail-item"><strong>Lokasi Pengembalian:</strong>${escapeHtml(returnLocation)}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-item"><strong>Kondisi Saat Dikembalikan:</strong>${escapeHtml(returnCondition)}</div>
+              <div class="detail-item"><strong>Catatan Pengembalian:</strong>${escapeHtml(returnNotes)}</div>
+            </div>`
+          : ''}
+          ${(pickupPhoto || returnPhoto) ? `<div class="evidence-grid">
+            <div class="evidence-box"><strong>Bukti Foto Pengambilan</strong>
+              ${pickupPhoto ? `<a href="${escapeHtml(pickupPhoto)}" target="_blank"><img src="${escapeHtml(pickupPhoto)}" alt="Bukti foto pengambilan"></a>` : '<div>Belum ada</div>'}
+            </div>
+            <div class="evidence-box"><strong>Bukti Foto Pengembalian</strong>
+              ${returnPhoto ? `<a href="${escapeHtml(returnPhoto)}" target="_blank"><img src="${escapeHtml(returnPhoto)}" alt="Bukti foto pengembalian"></a>` : '<div>Belum ada</div>'}
+            </div>
+          </div>` : ''}
+        </div>`;
       }).join("");
     }
 
@@ -906,8 +928,8 @@
       });
     });
 
-    renderStatusTable();
-    renderRiwayatCards();
+    // Inisialisasi pengambilan data saat halaman dibuka
+    loadServerData();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>
