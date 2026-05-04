@@ -104,11 +104,6 @@
       font-weight: 700;
     }
 
-    .menu-link.pending {
-      opacity: 0.75;
-      cursor: default;
-    }
-
     .side-actions {
       margin-top: 16px;
       display: grid;
@@ -143,7 +138,7 @@
       margin: 0;
       font-size: clamp(1.25rem, 2.2vw, 2.1rem);
       font-weight: 700;
-      color: #fff;
+      color: #1c1f27;
       letter-spacing: 0.01em;
     }
 
@@ -151,7 +146,7 @@
       display: inline-flex;
       align-items: center;
       gap: 12px;
-      color: rgba(255, 255, 255, 0.88);
+      color: #444;
       font-size: clamp(0.85rem, 1.8vw, 1.02rem);
       font-weight: 600;
     }
@@ -165,7 +160,7 @@
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.36);
       background: rgba(255, 255, 255, 0.14);
-      color: #fff;
+      color: #1c1f27;
       text-decoration: none;
     }
 
@@ -232,7 +227,7 @@
 
     .toolbar-grid {
       display: grid;
-      grid-template-columns: 1.1fr 1fr 1fr 1fr auto;
+      grid-template-columns: 1.5fr 1fr 1fr auto;
       gap: 8px;
       align-items: end;
     }
@@ -309,6 +304,7 @@
       border: 1px solid #bdbdbd;
       background: #fafafa;
       padding: 10px;
+      border-radius: 10px;
     }
 
     .summary-item p {
@@ -341,6 +337,7 @@
       border: 1px solid #c5c5c5;
       overflow: auto;
       background: #fff;
+      border-radius: 10px;
     }
 
     .table-scroll table {
@@ -365,8 +362,7 @@
       letter-spacing: 0.02em;
     }
 
-    .status-pill,
-    .condition-pill {
+    .status-pill {
       display: inline-block;
       border-radius: 999px;
       padding: 3px 8px;
@@ -380,11 +376,6 @@
     .status-pill.repair { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
     .status-pill.lost { border-color: #9ca3af; background: #f3f4f6; color: #374151; }
 
-    .condition-pill.good { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
-    .condition-pill.light-damage { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
-    .condition-pill.heavy-damage { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
-    .condition-pill.lost { border-color: #9ca3af; background: #f3f4f6; color: #374151; }
-
     .empty-note {
       margin: 10px 0 0;
       border: 1px dashed #adadad;
@@ -392,6 +383,7 @@
       padding: 10px;
       font-size: 0.86rem;
       color: #616161;
+      border-radius: 10px;
     }
 
     .modal {
@@ -795,9 +787,9 @@
         <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
         <div class="group-items">
           <a class="menu-link active" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
           <a class="menu-link" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
           <a class="menu-link" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
-          <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
         </div>
       </div>
 
@@ -846,28 +838,18 @@
           </div>
 
           <div class="field">
-            <label for="conditionFilter">Kondisi</label>
-            <select id="conditionFilter">
-              <option value="all">Semua Kondisi</option>
-              <option value="Baik">Baik</option>
-              <option value="Rusak Ringan">Rusak Ringan</option>
-              <option value="Rusak Berat">Rusak Berat</option>
-              <option value="Hilang">Hilang</option>
-            </select>
-          </div>
-
-          <div class="field">
             <label for="statusFilter">Status Barang</label>
             <select id="statusFilter">
               <option value="all">Semua Status</option>
               <option value="Tersedia">Tersedia</option>
               <option value="Dipinjam">Dipinjam</option>
               <option value="Perbaikan">Perbaikan</option>
+              <option value="Rusak">Rusak</option>
               <option value="Hilang">Hilang</option>
             </select>
           </div>
 
-          <div class="result-actions">
+          <div class="result-actions" style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 8px;">
             <button id="addInventoryBtn" class="btn" type="button">Tambah Barang</button>
             <button id="downloadInventoryExcelBtn" class="btn-ghost" type="button">Download Excel</button>
             <button id="downloadInventoryPdfBtn" class="btn-ghost" type="button">Download PDF</button>
@@ -905,7 +887,6 @@
                 <th>Tersedia</th>
                 <th>Dipinjam</th>
                 <th>Bisa Dipinjam</th>
-                <th>Kondisi</th>
                 <th>Status</th>
                 <th>Lokasi</th>
                 <th>Update Terakhir</th>
@@ -972,20 +953,12 @@
             <p class="help-note">Dihitung otomatis dari status per unit.</p>
           </div>
           <div class="field">
-            <label for="itemConditionInput">Kondisi</label>
-            <select id="itemConditionInput" name="condition" required>
-              <option value="Baik">Baik</option>
-              <option value="Rusak Ringan">Rusak Ringan</option>
-              <option value="Rusak Berat">Rusak Berat</option>
-              <option value="Hilang">Hilang</option>
-            </select>
-          </div>
-          <div class="field">
             <label for="itemStatusInput">Status Barang</label>
             <select id="itemStatusInput" name="status" required>
               <option value="Tersedia">Tersedia</option>
               <option value="Dipinjam">Dipinjam</option>
               <option value="Perbaikan">Perbaikan</option>
+              <option value="Rusak">Rusak</option>
               <option value="Hilang">Hilang</option>
             </select>
           </div>
@@ -1077,7 +1050,6 @@
         availableUnit: 1,
         hasMultiple: true,
         canBorrow: true,
-        condition: "Baik",
         status: "Dipinjam",
         location: "Lemari Studio A",
         notes: "Satu unit sedang dipakai untuk dokumentasi agenda.",
@@ -1094,7 +1066,6 @@
         availableUnit: 4,
         hasMultiple: true,
         canBorrow: true,
-        condition: "Baik",
         status: "Tersedia",
         location: "Rak Audio 2",
         notes: "Baterai cadangan tersedia 8 pcs.",
@@ -1111,7 +1082,6 @@
         availableUnit: 2,
         hasMultiple: true,
         canBorrow: true,
-        condition: "Rusak Ringan",
         status: "Tersedia",
         location: "Gudang Perlengkapan",
         notes: "1 unit perlu pengencangan lock kaki.",
@@ -1128,7 +1098,6 @@
         availableUnit: 0,
         hasMultiple: false,
         canBorrow: true,
-        condition: "Baik",
         status: "Dipinjam",
         location: "Meja Kontrol",
         notes: "Dipakai untuk misa Kamis malam.",
@@ -1145,7 +1114,6 @@
         availableUnit: 5,
         hasMultiple: true,
         canBorrow: true,
-        condition: "Baik",
         status: "Tersedia",
         location: "Laci Kabel",
         notes: "Label kabel sudah diperbarui.",
@@ -1155,7 +1123,6 @@
 
     const inventorySearchInput = document.getElementById("inventorySearchInput");
     const categoryFilter = document.getElementById("categoryFilter");
-    const conditionFilter = document.getElementById("conditionFilter");
     const statusFilter = document.getElementById("statusFilter");
     const inventorySort = document.getElementById("inventorySort");
     const addInventoryBtn = document.getElementById("addInventoryBtn");
@@ -1185,7 +1152,6 @@
     const itemPurchasePriceInput = document.getElementById("itemPurchasePriceInput");
     const itemTotalInput = document.getElementById("itemTotalInput");
     const itemAvailableInput = document.getElementById("itemAvailableInput");
-    const itemConditionInput = document.getElementById("itemConditionInput");
     const itemStatusInput = document.getElementById("itemStatusInput");
     const itemNotesInput = document.getElementById("itemNotesInput");
     const unitDetailSummary = document.getElementById("unitDetailSummary");
@@ -1210,7 +1176,7 @@
 
     const DEFAULT_CATEGORIES = ["Kamera", "Audio", "Aksesori", "Switcher", "Kabel", "Lighting", "Lainnya"];
     const INVENTORY_API_BASE = "/api/inventory";
-    const INVENTORY_UNIT_STATUSES = ["Tersedia", "Dipinjam", "Perbaikan", "Hilang"];
+    const INVENTORY_UNIT_STATUSES = ["Tersedia", "Dipinjam", "Perbaikan", "Rusak", "Hilang"];
 
     let inventoryCache = [];
     let categoryCache = [];
@@ -1287,6 +1253,9 @@
       }
       if (status === "Perbaikan") {
         return "Sedang diperbaiki";
+      }
+      if (status === "Rusak") {
+        return "Kondisi barang rusak";
       }
       if (status === "Hilang") {
         return "Belum ditemukan";
@@ -1367,6 +1336,9 @@
       if (statuses.indexOf("Dipinjam") !== -1) {
         return "Dipinjam";
       }
+      if (statuses.indexOf("Rusak") !== -1) {
+        return "Rusak";
+      }
       if (statuses.indexOf("Perbaikan") !== -1) {
         return "Perbaikan";
       }
@@ -1392,7 +1364,6 @@
       pendingUnitDetails = normalizeUnitDetails(pendingUnitDetails, totalValue, countAvailableUnitDetails(pendingUnitDetails), itemStatusInput.value || "Tersedia");
 
       const availableCount = countAvailableUnitDetails(pendingUnitDetails);
-      const borrowedCount = Math.max(totalValue - availableCount, 0);
       const breakdown = INVENTORY_UNIT_STATUSES.map(function (status) {
         return status + ": " + pendingUnitDetails.filter(function (unit) {
           return unit.status === status;
@@ -1405,7 +1376,7 @@
 
       unitDetailSummary.innerHTML =
         '<strong>' + totalValue + ' unit terdata</strong>' +
-        '<small>' + availableCount + ' tersedia, ' + borrowedCount + ' tidak tersedia</small>' +
+        '<small>' + availableCount + ' tersedia, ' + Math.max(totalValue - availableCount, 0) + ' tidak tersedia</small>' +
         '<small>' + breakdown + '</small>';
 
       unitDetailList.innerHTML = pendingUnitDetails.map(function (unit, index) {
@@ -1513,6 +1484,28 @@
       const borrowedUnit = totalUnit - availableUnit;
       const hasMultiple = totalUnit > 1;
       const defaultStatus = availableUnit > 0 ? "Tersedia" : "Dipinjam";
+      
+      let brokenUnit = 0;
+      let repairUnit = 0;
+      let lostUnit = 0;
+      let dipinjamUnit = 0;
+
+      if (unitDetails && unitDetails.length > 0) {
+        unitDetails.forEach(function(u) {
+            const s = String(u.status || "").toLowerCase();
+            if (s === "rusak" || s === "broken") brokenUnit++;
+            else if (s === "perbaikan" || s === "repair") repairUnit++;
+            else if (s === "hilang" || s === "lost") lostUnit++;
+            else if (s === "dipinjam" || s === "borrowed") dipinjamUnit++;
+        });
+      } else {
+        dipinjamUnit = borrowedUnit;
+        const itemStatus = String(item.status || "").toLowerCase();
+        if (itemStatus === "rusak") { brokenUnit = borrowedUnit; dipinjamUnit = 0;}
+        if (itemStatus === "perbaikan") { repairUnit = borrowedUnit; dipinjamUnit = 0; }
+        if (itemStatus === "hilang") { lostUnit = borrowedUnit; dipinjamUnit = 0; }
+      }
+
       return {
         id: String(item && item.id ? item.id : "inv-" + (index + 1)),
         code: String(item && item.code ? item.code : "INV-" + String(index + 1).padStart(3, "0")).trim().toUpperCase(),
@@ -1520,10 +1513,12 @@
         category: String(item && item.category ? item.category : "Lainnya").trim(),
         totalUnit: totalUnit,
         availableUnit: availableUnit,
-        borrowedUnit: borrowedUnit,
+        borrowedUnit: dipinjamUnit,
+        rusak: brokenUnit,
+        perbaikan: repairUnit,
+        hilang: lostUnit,
         hasMultiple: item && typeof item.hasMultiple === "boolean" ? item.hasMultiple : hasMultiple,
         canBorrow: item && typeof item.canBorrow === "boolean" ? item.canBorrow : true,
-        condition: String(item && item.condition ? item.condition : "Baik").trim(),
         status: deriveInventoryStatus(unitDetails, String(item && item.status ? item.status : defaultStatus).trim()),
         location: String(item && item.location ? item.location : "Gudang").trim(),
         purchaseDate: String(item && item.purchaseDate ? item.purchaseDate : "").trim(),
@@ -1800,19 +1795,6 @@
       }) + " WIB";
     }
 
-    function getConditionClass(value) {
-      if (value === "Hilang") {
-        return "lost";
-      }
-      if (value === "Rusak Ringan") {
-        return "light-damage";
-      }
-      if (value === "Rusak Berat") {
-        return "heavy-damage";
-      }
-      return "good";
-    }
-
     function getStatusClass(value) {
       if (value === "Hilang") {
         return "lost";
@@ -1820,7 +1802,7 @@
       if (value === "Dipinjam") {
         return "borrowed";
       }
-      if (value === "Perbaikan") {
+      if (value === "Perbaikan" || value === "Rusak") {
         return "repair";
       }
       return "available";
@@ -1844,7 +1826,6 @@
     function filterAndSortItems(items) {
       const keyword = inventorySearchInput.value.trim().toLowerCase();
       const category = categoryFilter.value;
-      const condition = conditionFilter.value;
       const status = statusFilter.value;
       const sortMode = inventorySort.value;
 
@@ -1857,9 +1838,8 @@
           item.notes
         ].join(" ").toLowerCase().indexOf(keyword) !== -1;
         const matchesCategory = category === "all" || item.category === category;
-        const matchesCondition = condition === "all" || item.condition === condition;
         const matchesStatus = status === "all" || item.status === status;
-        return matchesKeyword && matchesCategory && matchesCondition && matchesStatus;
+        return matchesKeyword && matchesCategory && matchesStatus;
       });
 
       filtered.sort(function (a, b) {
@@ -1940,7 +1920,6 @@
           '<td>' + item.availableUnit + '</td>' +
           '<td>' + item.borrowedUnit + '</td>' +
           '<td><span class="status-pill ' + (item.canBorrow ? 'available' : 'repair') + '">' + (item.canBorrow ? 'Ya' : 'Tidak') + '</span></td>' +
-          '<td><span class="condition-pill ' + getConditionClass(item.condition) + '">' + escapeHtml(item.condition) + '</span></td>' +
           '<td><span class="status-pill ' + getStatusClass(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
           '<td>' + escapeHtml(item.location) + '</td>' +
           '<td>' + escapeHtml(formatDateTime(item.updatedAt)) + '</td>' +
@@ -2003,7 +1982,6 @@
       itemPurchasePriceInput.value = item.purchasePrice === null || item.purchasePrice === undefined ? "" : String(item.purchasePrice);
       setMultiUnitMode(!!item.hasMultiple || item.totalUnit > 1, true);
       itemTotalInput.value = item.totalUnit;
-      itemConditionInput.value = item.condition;
       setBorrowableMode(item.canBorrow !== false);
       itemStatusInput.value = item.status;
       pendingUnitDetails = normalizeUnitDetails(item.unitDetails || [], item.totalUnit, item.availableUnit, item.status);
@@ -2052,8 +2030,10 @@
           '<li><strong>Total Unit:</strong> ' + item.totalUnit + '</li>' +
           '<li><strong>Unit Tersedia:</strong> ' + item.availableUnit + '</li>' +
           '<li><strong>Unit Dipinjam:</strong> ' + item.borrowedUnit + '</li>' +
+          '<li><strong>Unit Perbaikan:</strong> ' + item.perbaikan + '</li>' +
+          '<li><strong>Unit Rusak:</strong> ' + item.rusak + '</li>' +
+          '<li><strong>Unit Hilang:</strong> ' + item.hilang + '</li>' +
           '<li><strong>Bisa Dipinjam:</strong> ' + (item.canBorrow ? 'Ya' : 'Tidak') + '</li>' +
-          '<li><strong>Kondisi:</strong> ' + escapeHtml(item.condition) + '</li>' +
           '<li><strong>Status:</strong> ' + escapeHtml(item.status) + '</li>' +
           '<li><strong>Lokasi:</strong> ' + escapeHtml(item.location) + '</li>' +
           '<li><strong>Update Terakhir:</strong> ' + escapeHtml(formatDateTime(item.updatedAt)) + '</li>' +
@@ -2080,7 +2060,6 @@
       const totalUnit = multiUnit ? Math.max(1, normalizeNumber(itemTotalInput.value, 1)) : 1;
       const availableUnit = multiUnit ? countAvailableUnitDetails(pendingUnitDetails) : 1;
       const canBorrow = !!itemBorrowableToggle.checked;
-      const condition = itemConditionInput.value;
       const status = multiUnit ? deriveInventoryStatus(pendingUnitDetails, itemStatusInput.value) : (canBorrow ? itemStatusInput.value : "Tersedia");
       const notes = itemNotesInput.value.trim();
       const photos = cloneInventoryPhotos(pendingPhotoData);
@@ -2100,7 +2079,6 @@
         availableUnit: availableUnit,
         hasMultiple: multiUnit,
         canBorrow: canBorrow,
-        condition: condition,
         status: status,
         notes: notes,
         photos: photos,
@@ -2166,7 +2144,6 @@
       const params = new URLSearchParams({
         search: inventorySearchInput.value.trim(),
         category: categoryFilter.value,
-        condition: conditionFilter.value,
         status: statusFilter.value,
         sort: inventorySort.value
       });
@@ -2178,7 +2155,6 @@
       const params = new URLSearchParams({
         search: inventorySearchInput.value.trim(),
         category: categoryFilter.value,
-        condition: conditionFilter.value,
         status: statusFilter.value,
         sort: inventorySort.value
       });
@@ -2197,7 +2173,6 @@
 
     inventorySearchInput.addEventListener("input", renderInventoryPage);
     categoryFilter.addEventListener("change", renderInventoryPage);
-    conditionFilter.addEventListener("change", renderInventoryPage);
     statusFilter.addEventListener("change", renderInventoryPage);
     inventorySort.addEventListener("change", renderInventoryPage);
 
@@ -2281,7 +2256,20 @@
           status: current.status,
           reason: target.value
         }, reasonIndex, current.status);
-        updateUnitDetailSummary();
+        
+        // Memperbarui UI Ringkasan ketika alasan diinput manual
+        const totalValue = Math.max(1, normalizeNumber(itemTotalInput.value, 1));
+        const availableCount = countAvailableUnitDetails(pendingUnitDetails);
+        const breakdown = INVENTORY_UNIT_STATUSES.map(function (status) {
+          return status + ": " + pendingUnitDetails.filter(function (unit) {
+            return unit.status === status;
+          }).length;
+        }).join(" | ");
+
+        unitDetailSummary.innerHTML =
+          '<strong>' + totalValue + ' unit terdata</strong>' +
+          '<small>' + availableCount + ' tersedia, ' + Math.max(totalValue - availableCount, 0) + ' tidak tersedia</small>' +
+          '<small>' + breakdown + '</small>';
       }
     });
     inventoryForm.addEventListener("submit", saveFormData);
@@ -2349,6 +2337,10 @@
       updatePageDateTime();
       setInterval(updatePageDateTime, 1000);
     })();
+    
+    function updatePageDateTime() {
+      updateLiveDateTime();
+    }
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

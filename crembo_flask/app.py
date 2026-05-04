@@ -42,8 +42,7 @@ PREVIEWABLE_ATTACHMENT_EXTENSIONS = {
     ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".pdf",
 }
 INVENTORY_DEFAULT_CATEGORIES = ["Kamera", "Audio", "Aksesori", "Switcher", "Kabel", "Lighting", "Lainnya"]
-INVENTORY_DEFAULT_ITEMS = [
-]
+INVENTORY_DEFAULT_ITEMS = []
 
 def template_exists(template_name: str) -> bool:
     return (FRONTEND_DIR / template_name).is_file()
@@ -55,10 +54,8 @@ def ensure_upload_folder() -> Path:
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     return UPLOAD_FOLDER
 
-
 def normalize_text(value, fallback: str = "") -> str:
     return str(value if value is not None else fallback).strip()
-
 
 def parse_optional_int(value) -> int | None:
     if value in (None, ""):
@@ -68,11 +65,9 @@ def parse_optional_int(value) -> int | None:
     except (TypeError, ValueError):
         return None
 
-
 def parse_required_int(value, fallback: int = 0) -> int:
     parsed = parse_optional_int(value)
     return fallback if parsed is None else parsed
-
 
 def fetch_scalar_value(row, default=0):
     if row is None:
@@ -83,7 +78,6 @@ def fetch_scalar_value(row, default=0):
         return row[0] if row else default
     return row
 
-
 def parse_optional_date(value) -> str | None:
     raw = normalize_text(value)
     if not raw:
@@ -93,7 +87,6 @@ def parse_optional_date(value) -> str | None:
     except ValueError:
         return None
     return raw
-
 
 def safe_json_loads(value, fallback):
     if isinstance(value, (list, dict)):
@@ -186,18 +179,15 @@ def save_uploaded_attachment(file_storage) -> dict[str, object]:
     )
 
 def remove_physical_file(file_url: str):
-    """Helper method to remove a physical file from the uploads directory."""
     if not file_url:
         return
     try:
-        # Gunakan Pathlib untuk safety cross-platform path resolution
         filename = file_url.split('/')[-1]
         file_path = UPLOAD_FOLDER / filename
         if file_path.exists() and file_path.is_file():
             file_path.unlink()
     except Exception as e:
         print(f"[WARN] Failed to delete file {file_url}: {e}")
-
 
 def normalize_inventory_photos(value) -> list[dict[str, object]]:
     photos = normalize_attachment_payload(value)
@@ -220,17 +210,16 @@ def normalize_inventory_photos(value) -> list[dict[str, object]]:
         )
     return normalized
 
-
-INVENTORY_UNIT_STATUSES = {"Tersedia", "Dipinjam", "Perbaikan", "Hilang"}
-
+# PERBAIKAN: Menambahkan 'Rusak' ke status
+INVENTORY_UNIT_STATUSES = {"Tersedia", "Dipinjam", "Perbaikan", "Rusak", "Hilang"}
 
 def inventory_unit_reason_for_status(status: str) -> str:
     return {
         "Dipinjam": "Sedang digunakan",
         "Perbaikan": "Sedang diperbaiki",
+        "Rusak": "Kondisi rusak",
         "Hilang": "Belum ditemukan",
     }.get(normalize_text(status), "")
-
 
 def normalize_inventory_unit_detail(value, index: int, fallback_status: str = "Tersedia") -> dict[str, object]:
     raw = value if isinstance(value, dict) else {}
@@ -251,7 +240,6 @@ def normalize_inventory_unit_detail(value, index: int, fallback_status: str = "T
         "reason": reason,
         "available": status == "Tersedia",
     }
-
 
 def normalize_inventory_unit_details(value, total_unit: int, available_unit: int | None = None, fallback_status: str = "Tersedia") -> list[dict[str, object]]:
     total = max(1, parse_required_int(total_unit, 1))
@@ -287,19 +275,19 @@ def normalize_inventory_unit_details(value, total_unit: int, available_unit: int
 
     return normalized
 
-
 def inventory_status_from_unit_details(unit_details: list[dict[str, object]], fallback: str = "Tersedia") -> str:
     statuses = [normalize_text(unit.get("status")) for unit in unit_details if isinstance(unit, dict)]
     if not statuses or all(status == "Tersedia" for status in statuses):
         return "Tersedia"
     if any(status == "Dipinjam" for status in statuses):
         return "Dipinjam"
+    if any(status == "Rusak" for status in statuses):
+        return "Rusak"
     if any(status == "Perbaikan" for status in statuses):
         return "Perbaikan"
     if any(status == "Hilang" for status in statuses):
         return "Hilang"
     return normalize_text(fallback) or "Tersedia"
-
 
 def inventory_unit_details_text(unit_details: list[dict[str, object]]) -> str:
     parts: list[str] = []
@@ -314,7 +302,6 @@ def inventory_unit_details_text(unit_details: list[dict[str, object]]) -> str:
         else:
             parts.append(f"{label}: {status}")
     return "; ".join(parts)
-
 
 def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
     photos = normalize_inventory_photos(safe_json_loads(row.get("photos"), []))
@@ -345,7 +332,6 @@ def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "borrowedUnit": max(total_unit - available_unit, 0),
         "hasMultiple": bool(row.get("has_multiple")),
         "canBorrow": bool(row.get("can_borrow", True)),
-        "condition": normalize_text(row.get("condition")) or "Baik",
         "status": inventory_status_from_unit_details(unit_details, fallback=fallback_status),
         "notes": normalize_text(row.get("notes")),
         "photos": photos,
@@ -354,7 +340,6 @@ def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at),
         "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else normalize_text(updated_at),
     }
-
 
 def inventory_summary_from_items(items: list[dict[str, object]]) -> dict[str, int]:
     total_unit = 0
@@ -373,10 +358,8 @@ def inventory_summary_from_items(items: list[dict[str, object]]) -> dict[str, in
         "totalBorrowed": total_borrowed,
     }
 
-
 def inventory_sort_items(items: list[dict[str, object]], sort_mode: str) -> list[dict[str, object]]:
     mode = normalize_text(sort_mode) or "updated-desc"
-
     def item_time(item: dict[str, object]) -> datetime:
         raw = normalize_text(item.get("updatedAt")) or "1970-01-01T00:00:00"
         try:
@@ -392,11 +375,9 @@ def inventory_sort_items(items: list[dict[str, object]], sort_mode: str) -> list
         return sorted(items, key=item_time)
     return sorted(items, key=item_time, reverse=True)
 
-
-def inventory_filter_items(items: list[dict[str, object]], search: str = "", category: str = "all", condition: str = "all", status: str = "all", sort_mode: str = "updated-desc") -> list[dict[str, object]]:
+def inventory_filter_items(items: list[dict[str, object]], search: str = "", category: str = "all", status: str = "all", sort_mode: str = "updated-desc") -> list[dict[str, object]]:
     keyword = normalize_text(search).lower()
     category_value = normalize_text(category) or "all"
-    condition_value = normalize_text(condition) or "all"
     status_value = normalize_text(status) or "all"
 
     filtered: list[dict[str, object]] = []
@@ -410,26 +391,21 @@ def inventory_filter_items(items: list[dict[str, object]], search: str = "", cat
         ]).lower()
         matches_keyword = not keyword or keyword in haystack
         matches_category = category_value == "all" or normalize_text(item.get("category")) == category_value
-        matches_condition = condition_value == "all" or normalize_text(item.get("condition")) == condition_value
         matches_status = status_value == "all" or normalize_text(item.get("status")) == status_value
-        if matches_keyword and matches_category and matches_condition and matches_status:
+        if matches_keyword and matches_category and matches_status:
             filtered.append(item)
 
     return inventory_sort_items(filtered, sort_mode)
-
 
 def inventory_request_filters(args) -> dict[str, str]:
     return {
         "search": normalize_text(args.get("search")),
         "category": normalize_text(args.get("category")) or "all",
-        "condition": normalize_text(args.get("condition")) or "all",
         "status": normalize_text(args.get("status")) or "all",
         "sort": normalize_text(args.get("sort")) or "updated-desc",
     }
 
-
 def ensure_column(cursor, table_name: str, column_name: str, definition: str) -> None:
-    """Ensure a column exists in a table. If not, add it using ALTER TABLE."""
     cursor.execute(
         """
         SELECT COUNT(*)
@@ -439,8 +415,6 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
         (MYSQL_CONFIG["database"], table_name, column_name),
     )
     row = cursor.fetchone()
-    
-    # PERBAIKAN: Menangani cursor dictionary maupun tuple agar tidak memicu KeyError: 0
     if isinstance(row, dict):
         exists = list(row.values())[0] > 0
     else:
@@ -477,7 +451,6 @@ def ensure_inventory_schema(cursor) -> None:
           `available_unit` int(11) NOT NULL DEFAULT 1,
           `has_multiple` tinyint(1) NOT NULL DEFAULT 0,
           `can_borrow` tinyint(1) NOT NULL DEFAULT 1,
-          `condition` varchar(50) NOT NULL DEFAULT 'Baik',
           `status` varchar(50) NOT NULL DEFAULT 'Tersedia',
           `notes` text DEFAULT NULL,
           `photos` longtext DEFAULT NULL,
@@ -491,8 +464,6 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
-    
-    # PERBAIKAN: Indentasi disejajarkan ke kiri (sejajar dengan cursor.execute)
     ensure_column(cursor, "inventory_items", "unit_details", "`unit_details` longtext DEFAULT NULL")
 
     cursor.execute("SELECT COUNT(*) FROM `inventory_categories`")
@@ -506,51 +477,12 @@ def ensure_inventory_schema(cursor) -> None:
                 (f"inv-cat-{order_index:02d}", category_name, order_index),
             )
 
-    cursor.execute("SELECT COUNT(*) FROM `inventory_items`")
-    if cursor.fetchone()[0] == 0:
-        for index, item in enumerate(INVENTORY_DEFAULT_ITEMS, start=1):
-            cursor.execute(
-                """
-                INSERT INTO `inventory_items`
-                (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`, `unit_details`)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    item.get("id") or f"inv-{index:03d}",
-                    item.get("code") or f"INV-{index:03d}",
-                    item.get("name") or f"Barang {index}",
-                    item.get("category") or "Lainnya",
-                    item.get("location") or "Gudang",
-                    item.get("purchaseDate"),
-                    item.get("purchasePrice"),
-                    int(item.get("totalUnit") or 1),
-                    int(item.get("availableUnit") or 1),
-                    1 if item.get("hasMultiple") else 0,
-                    1 if item.get("canBorrow", True) else 0,
-                    item.get("condition") or "Baik",
-                    item.get("status") or "Tersedia",
-                    item.get("notes") or "",
-                    json.dumps(item.get("photos") or [], ensure_ascii=False),
-                    json.dumps(
-                        normalize_inventory_unit_details(
-                            item.get("unitDetails"),
-                            int(item.get("totalUnit") or 1),
-                            int(item.get("availableUnit") or 1),
-                            fallback_status=item.get("status") or "Tersedia",
-                        ),
-                        ensure_ascii=False,
-                    ),
-                ),
-            )
-
-
 def inventory_category_exists(cursor, category_name: str) -> bool:
     cursor.execute("SELECT COUNT(*) FROM `inventory_categories` WHERE `name` = %s", (category_name,))
     row = cursor.fetchone()
     if isinstance(row, dict):
         return next(iter(row.values())) > 0
     return row[0] > 0 if row else False
-
 
 def ensure_inventory_category(cursor, category_name: str) -> None:
     clean_name = normalize_text(category_name)
@@ -571,7 +503,6 @@ def ensure_inventory_category(cursor, category_name: str) -> None:
         """,
         (f"inv-cat-{uuid.uuid4().hex[:12]}", clean_name, next_order),
     )
-
 
 def inventory_item_payload_from_request(data: dict[str, object], existing: dict[str, object] | None = None) -> dict[str, object]:
     code = normalize_text(data.get("code")).upper()
@@ -596,9 +527,6 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
     purchase_date = parse_optional_date(data.get("purchaseDate"))
     purchase_price = parse_optional_int(data.get("purchasePrice"))
     can_borrow = bool(data.get("canBorrow", True))
-    condition = normalize_text(data.get("condition")) or "Baik"
-    if condition not in {"Baik", "Rusak Ringan", "Rusak Berat", "Hilang"}:
-        condition = "Baik"
     notes = normalize_text(data.get("notes"))
 
     if data.get("photos") is not None:
@@ -632,13 +560,11 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
         "available_unit": available_unit,
         "has_multiple": 1 if has_multiple or total_unit > 1 else 0,
         "can_borrow": 1 if can_borrow else 0,
-        "condition": condition,
         "status": status,
         "notes": notes,
         "photos": photos,
         "unit_details": unit_details,
     }
-
 
 def inventory_export_rows(items: list[dict[str, object]]):
     headers = [
@@ -652,7 +578,6 @@ def inventory_export_rows(items: list[dict[str, object]]):
         "Unit Tersedia",
         "Dipinjam",
         "Bisa Dipinjam",
-        "Kondisi",
         "Status",
         "Rincian Unit",
         "Foto",
@@ -660,19 +585,14 @@ def inventory_export_rows(items: list[dict[str, object]]):
         "Update Terakhir",
     ]
     rows = []
-    
-    # PERBAIKAN: Format domain utama (Sesuaikan URL jika di-online-kan)
     base_url = "http://127.0.0.1:5000" 
 
     for item in items:
         photos = item.get("photos") or []
-        
-        # PERBAIKAN: Ubah array foto menjadi link URL penuh yang dapat di-klik atau dipreview
         photo_links = []
         for p in photos:
             if isinstance(p, dict) and p.get("url"):
                 url = str(p.get("url"))
-                # Ubah relative url jadi absolute
                 if url.startswith("/"):
                     url = f"{base_url}{url}"
                 photo_links.append(url)
@@ -690,7 +610,6 @@ def inventory_export_rows(items: list[dict[str, object]]):
             str(parse_required_int(item.get("availableUnit"), 0)),
             str(parse_required_int(item.get("borrowedUnit"), max(parse_required_int(item.get("totalUnit"), 0) - parse_required_int(item.get("availableUnit"), 0), 0))),
             "Ya" if item.get("canBorrow") else "Tidak",
-            normalize_text(item.get("condition")),
             normalize_text(item.get("status")),
             inventory_unit_details_text(item.get("unitDetails") or []),
             photo_label,
@@ -699,16 +618,14 @@ def inventory_export_rows(items: list[dict[str, object]]):
         ])
     return headers, rows
 
-
 def inventory_export_filename(extension: str) -> str:
     return f"laporan-data-inventaris-barang.{extension}"
-
 
 def fetch_inventory_items_for_report(cursor, filters: dict[str, str]) -> list[dict[str, object]]:
     cursor.execute(
         """
         SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                   `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `status`,
                    `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
         FROM `inventory_items`
         ORDER BY `updated_at` DESC, `code` ASC
@@ -719,13 +636,10 @@ def fetch_inventory_items_for_report(cursor, filters: dict[str, str]) -> list[di
         items,
         search=filters.get("search", ""),
         category=filters.get("category", "all"),
-        condition=filters.get("condition", "all"),
         status=filters.get("status", "all"),
         sort_mode=filters.get("sort", "updated-desc"),
     )
 
-# TAMBAHKAN PERBAIKAN INI di atas endpoint get_inventory_categories
-# Fungsi format_currency ini sebelumnya crash jika menerima data null saat akan diexport PDF
 def format_currency(value):
     if value is None or value == "" or str(value).lower() == "none":
         return "-"
@@ -750,7 +664,6 @@ def get_inventory_categories():
         cursor.close()
         conn.close()
 
-
 @app.route("/api/inventory/categories", methods=["POST"])
 def create_inventory_category():
     ensure_auth_schema()
@@ -771,7 +684,6 @@ def create_inventory_category():
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/inventory/categories/<category_name>", methods=["PUT"])
 def update_inventory_category(category_name):
@@ -805,7 +717,6 @@ def update_inventory_category(category_name):
         cursor.close()
         conn.close()
 
-
 @app.route("/api/inventory/categories/<category_name>", methods=["DELETE"])
 def delete_inventory_category(category_name):
     ensure_auth_schema()
@@ -829,7 +740,6 @@ def delete_inventory_category(category_name):
         cursor.close()
         conn.close()
 
-
 @app.route("/api/pengajuan/<pengajuan_id>/ambil", methods=["POST"])
 def input_pengambilan(pengajuan_id):
     ensure_auth_schema()
@@ -842,7 +752,6 @@ def input_pengambilan(pengajuan_id):
         if not req:
             return jsonify({"success": False, "error": "Pengajuan tidak ditemukan"}), 404
 
-        # Only owner or admin can submit pickup
         role = session.get("role") or ""
         user_id = session.get("user_id")
         if role not in ["admin", "super_admin"] and str(req.get("member_id")) != str(user_id):
@@ -851,7 +760,6 @@ def input_pengambilan(pengajuan_id):
         if req.get("status") != "approved":
             return jsonify({"success": False, "error": "Hanya pengajuan dengan status 'approved' dapat diambil"}), 400
 
-        # parse form fields
         tanggal = request.form.get("tanggal") or request.form.get("date") or None
         waktu = request.form.get("waktu") or request.form.get("time") or None
         lokasi = request.form.get("lokasi") or request.form.get("location") or ""
@@ -861,18 +769,15 @@ def input_pengambilan(pengajuan_id):
         except Exception:
             unit_details = []
 
-        # handle optional photo upload
         photo_record = None
         photo_file = request.files.get("photo") or request.files.get("bukti")
         if photo_file:
             try:
                 saved = save_uploaded_attachment(photo_file)
-                # saved returns dict with url/name
                 photo_record = saved.get("url") or saved.get("uri") or saved.get("name")
             except Exception:
                 photo_record = None
 
-        # Store pickup_info JSON and set status to 'taken'
         pickup_info = {
             "date": tanggal,
             "time": waktu,
@@ -895,7 +800,6 @@ def input_pengambilan(pengajuan_id):
         )
         conn.commit()
 
-        # Send notification (try best-effort)
         try:
             ensure_notifications_schema()
             create_notification(cursor, "peminjaman", f"Pengambilan: {req.get('barang_name')}", f"Pengambilan dicatat oleh user.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="user")
@@ -907,7 +811,6 @@ def input_pengambilan(pengajuan_id):
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/pengajuan/<pengajuan_id>/kembali", methods=["POST"])
 def input_pengembalian(pengajuan_id):
@@ -921,7 +824,6 @@ def input_pengembalian(pengajuan_id):
         if not req:
             return jsonify({"success": False, "error": "Pengajuan tidak ditemukan"}), 404
 
-        # Only owner or admin can submit return
         role = session.get("role") or ""
         user_id = session.get("user_id")
         if role not in ["admin", "super_admin"] and str(req.get("member_id")) != str(user_id):
@@ -930,7 +832,6 @@ def input_pengembalian(pengajuan_id):
         if req.get("status") not in ["taken", "approved"]:
             return jsonify({"success": False, "error": "Hanya pengajuan yang sedang dipinjam dapat dikembalikan"}), 400
 
-        # parse return fields
         tanggal = request.form.get("tanggal") or request.form.get("date") or None
         waktu = request.form.get("waktu") or request.form.get("time") or None
         lokasi = request.form.get("lokasi") or request.form.get("location") or ""
@@ -940,7 +841,6 @@ def input_pengembalian(pengajuan_id):
         except Exception:
             return_unit_details = []
 
-        # handle optional photo upload
         photo_record = None
         photo_file = request.files.get("photo") or request.files.get("bukti")
         if photo_file:
@@ -961,7 +861,6 @@ def input_pengembalian(pengajuan_id):
         ensure_column(cursor, "loan_requests", "return_info", "`return_info` longtext DEFAULT NULL")
         ensure_column(cursor, "loan_requests", "return_at", "`return_at` datetime DEFAULT NULL")
 
-        # Update inventory: restore units marked with this pengajuan id
         barang_id = req.get("barang_id")
         jumlah_req = int(req.get("jumlah", 1))
 
@@ -981,7 +880,6 @@ def input_pengembalian(pengajuan_id):
                     units_restored += 1
 
             if units_restored == 0:
-                # Fallback: restore any Dipinjam units up to jumlah
                 for unit in unit_details_raw:
                     if unit.get("status") == "Dipinjam" and units_restored < jumlah_req:
                         unit["status"] = "Tersedia"
@@ -997,13 +895,11 @@ def input_pengembalian(pengajuan_id):
                 (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id),
             )
 
-        # Update loan_requests with return info and set status to returned
         cursor.execute(
             "UPDATE `loan_requests` SET `status` = %s, `return_info` = %s, `return_at` = %s WHERE `id` = %s",
             ("returned", json.dumps(return_info, ensure_ascii=False), datetime.utcnow(), pengajuan_id),
         )
 
-        # Try sending notification to admin/user
         try:
             ensure_notifications_schema()
             create_notification(cursor, "peminjaman", f"Pengembalian: {req.get('barang_name')}", f"Barang dikembalikan oleh user.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="admin")
@@ -1019,7 +915,6 @@ def input_pengembalian(pengajuan_id):
         cursor.close()
         conn.close()
 
-
 @app.route("/api/inventory/items", methods=["GET"])
 def get_inventory_items():
     ensure_auth_schema()
@@ -1030,7 +925,7 @@ def get_inventory_items():
         cursor.execute(
             """
              SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `status`,
                  `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
             FROM `inventory_items`
             ORDER BY `updated_at` DESC, `code` ASC
@@ -1047,7 +942,6 @@ def get_inventory_items():
             raw_items,
             search=filters["search"],
             category=filters["category"],
-            condition=filters["condition"],
             status=filters["status"],
             sort_mode=filters["sort"],
         )
@@ -1062,7 +956,6 @@ def get_inventory_items():
         cursor.close()
         conn.close()
 
-
 @app.route("/api/inventory/items/<item_id>", methods=["GET"])
 def get_inventory_item(item_id):
     ensure_auth_schema()
@@ -1072,7 +965,7 @@ def get_inventory_item(item_id):
         cursor.execute(
             """
              SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+                 `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `status`,
                  `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
             FROM `inventory_items`
             WHERE `id` = %s
@@ -1087,7 +980,6 @@ def get_inventory_item(item_id):
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/inventory/items", methods=["POST"])
 def create_inventory_item():
@@ -1107,8 +999,8 @@ def create_inventory_item():
         cursor.execute(
             """
             INSERT INTO `inventory_items`
-            (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`, `notes`, `photos`, `unit_details`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (`id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`, `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `status`, `notes`, `photos`, `unit_details`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 item_id,
@@ -1122,7 +1014,6 @@ def create_inventory_item():
                 payload["available_unit"],
                 payload["has_multiple"],
                 payload["can_borrow"],
-                payload["condition"],
                 payload["status"],
                 payload["notes"],
                 json.dumps(payload["photos"], ensure_ascii=False),
@@ -1138,12 +1029,11 @@ def create_inventory_item():
         cursor.close()
         conn.close()
 
-
 def get_inventory_item_response(cursor, item_id: str) -> dict[str, object]:
     cursor.execute(
         """
         SELECT `id`, `code`, `name`, `category`, `location`, `purchase_date`, `purchase_price`,
-         `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `condition`, `status`,
+         `total_unit`, `available_unit`, `has_multiple`, `can_borrow`, `status`,
          `notes`, `photos`, `unit_details`, `created_at`, `updated_at`
         FROM `inventory_items`
         WHERE `id` = %s
@@ -1153,7 +1043,6 @@ def get_inventory_item_response(cursor, item_id: str) -> dict[str, object]:
     )
     row = cursor.fetchone() or {}
     return inventory_item_row_to_dict(row)
-
 
 @app.route("/api/inventory/items/<item_id>", methods=["PUT"])
 def update_inventory_item(item_id):
@@ -1193,7 +1082,6 @@ def update_inventory_item(item_id):
                 `available_unit` = %s,
                 `has_multiple` = %s,
                 `can_borrow` = %s,
-                `condition` = %s,
                 `status` = %s,
                 `notes` = %s,
                 `photos` = %s,
@@ -1211,7 +1099,6 @@ def update_inventory_item(item_id):
                 payload["available_unit"],
                 payload["has_multiple"],
                 payload["can_borrow"],
-                payload["condition"],
                 payload["status"],
                 payload["notes"],
                 json.dumps(new_photos, ensure_ascii=False),
@@ -1233,7 +1120,6 @@ def update_inventory_item(item_id):
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/inventory/items/<item_id>", methods=["DELETE"])
 def delete_inventory_item(item_id):
@@ -1260,8 +1146,6 @@ def delete_inventory_item(item_id):
         cursor.close()
         conn.close()
 
-
-# Hapus dan Gantikan endpoint /api/inventory/export.xlsx dengan yang berikut ini:
 @app.route("/api/inventory/export.xlsx", methods=["GET"])
 def export_inventory_excel():
     ensure_auth_schema()
@@ -1305,7 +1189,6 @@ def export_inventory_excel():
         workbook.save(buffer)
         buffer.seek(0)
         
-        # PERBAIKAN: as_attachment True untuk Excel karena bukan file untuk dipreview browser
         return send_file(
             buffer,
             as_attachment=True,
@@ -1315,7 +1198,6 @@ def export_inventory_excel():
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/inventory/export.pdf", methods=["GET"])
 def export_inventory_pdf():
@@ -1373,7 +1255,6 @@ def export_inventory_pdf():
         document.build(elements)
         buffer.seek(0)
         
-        # PERBAIKAN: as_attachment=False agar browser langsung mem-preview PDF di tab baru
         return send_file(
             buffer,
             as_attachment=False, 
@@ -1473,7 +1354,6 @@ def default_password_from_birth_date(birth_date: str) -> str:
     parts = raw.split("-")
     if len(parts) == 3:
         return f"{parts[2]}/{parts[1]}/{parts[0]}"
-    # Ensure loan requests schema exists and provide current session info
     return {
         "logged_in": bool(session.get("logged_in")),
         "user_id": session.get("user_id"),
@@ -1484,7 +1364,6 @@ def default_password_from_birth_date(birth_date: str) -> str:
         "email": session.get("email") or "",
         "alamat": session.get("alamat") or "",
     }
-
 
 def ensure_loan_schema(cursor) -> None:
     cursor.execute(
@@ -1501,11 +1380,11 @@ def ensure_loan_schema(cursor) -> None:
           `tanggal_mulai` date DEFAULT NULL,
           `tanggal_selesai` date DEFAULT NULL,
           `tujuan` text DEFAULT NULL,
-                    `status` varchar(50) NOT NULL DEFAULT 'pending',
-                    `pickup_info` longtext DEFAULT NULL,
-                    `pickup_at` datetime DEFAULT NULL,
-                    `return_info` longtext DEFAULT NULL,
-                    `return_at` datetime DEFAULT NULL,
+          `status` varchar(50) NOT NULL DEFAULT 'pending',
+          `pickup_info` longtext DEFAULT NULL,
+          `pickup_at` datetime DEFAULT NULL,
+          `return_info` longtext DEFAULT NULL,
+          `return_at` datetime DEFAULT NULL,
           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
@@ -1514,7 +1393,6 @@ def ensure_loan_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
-
 # --- LOAN REQUESTS ENDPOINTS ---
 
 @app.route("/api/pengajuan", methods=["GET"])

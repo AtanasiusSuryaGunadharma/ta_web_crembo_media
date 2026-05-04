@@ -308,6 +308,29 @@
       height: 16px;
     }
 
+    /* FILTER TOOLBAR */
+    .toolbar {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--soft-shadow);
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 0.84rem; color: #4b5563; font-weight: 600;}
+    .field input, .field select {
+      border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 0.88rem; font-family: inherit; background: #fff; width: 100%;
+    }
+
     .content {
       padding: 0;
       display: grid;
@@ -457,28 +480,44 @@
 
     .detail-item {
       color: #5b6473;
+      margin-bottom: 6px;
     }
 
     .detail-item strong {
       color: #1f2937;
-      display: block;
-      font-size: 0.8rem;
+      display: inline-block;
+      font-size: 0.82rem;
       font-weight: 600;
-      margin-bottom: 2px;
+      margin-right: 4px;
     }
 
-    .evidence-grid {
+    /* SPLIT CARD FOR PENGAMBILAN & PENGEMBALIAN */
+    .split-card {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
       margin-top: 12px;
     }
 
-    .evidence-box {
-      border: 1px solid #dbe2ef;
-      border-radius: 10px;
-      padding: 12px;
+    .split-section {
       background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .split-section h4 {
+      margin: 0 0 12px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .evidence-box {
       font-size: 0.82rem;
       color: #374151;
     }
@@ -495,9 +534,9 @@
       max-width: 220px;
       aspect-ratio: 4 / 3;
       object-fit: cover;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid #dbe2ef;
-      margin-top: 8px;
+      margin-top: 4px;
       background: #f8fafc;
       transition: transform 0.2s;
     }
@@ -538,9 +577,12 @@
       .quick-filter { justify-content: flex-start; }
       .quick-filter .quick-chip { width: 100%; }
       .detail-row { grid-template-columns: 1fr; }
+      .toolbar-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 768px) {
+      .split-card { grid-template-columns: 1fr; }
+      .toolbar-grid { grid-template-columns: 1fr; }
       #status .table-wrap { overflow-x: visible; }
       #status table { min-width: 0; }
       #status thead { display: none; }
@@ -639,6 +681,36 @@
           <span class="quick-chip"><strong>Status:</strong> Monitoring</span>
         </div>
       </header>
+
+      <!-- TAMBAHAN TOOLBAR FILTER -->
+      <div class="toolbar">
+        <div class="toolbar-grid">
+          <div class="field">
+            <label for="searchInput">Pencarian</label>
+            <input id="searchInput" type="search" placeholder="Cari barang, tujuan, catatan...">
+          </div>
+          <div class="field">
+            <label for="statusFilter">Status Peminjaman</label>
+            <select id="statusFilter">
+              <option value="all">Semua Status</option>
+              <option value="pending">Menunggu (Pending)</option>
+              <option value="approved">Disetujui</option>
+              <option value="taken">Sedang Dipinjam</option>
+              <option value="returned">Selesai (Dikembalikan)</option>
+              <option value="rejected">Ditolak</option>
+              <option value="cancelled">Dibatalkan</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fromDate">Dari Tanggal (Pengajuan)</label>
+            <input id="fromDate" type="date">
+          </div>
+          <div class="field">
+            <label for="toDate">Sampai Tanggal (Pengajuan)</label>
+            <input id="toDate" type="date">
+          </div>
+        </div>
+      </div>
 
       <div class="content">
         <div class="tabs">
@@ -749,6 +821,12 @@
 
     const statusTableRows = document.getElementById("statusTableRows");
     const riwayatContainer = document.getElementById("riwayatContainer");
+    
+    // Filter elements
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const fromDate = document.getElementById("fromDate");
+    const toDate = document.getElementById("toDate");
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -793,6 +871,21 @@
         .replace(/'/g, "&#039;");
     }
 
+    // Helper Tanggal Sederhana (Untuk Format Periode & Timestamp Frontend)
+    function formatTanggalSingkat(rawDate) {
+        if (!rawDate) return "-";
+        // Bersihkan GMT String dari Backend SQL date field
+        if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
+        let d = new Date(rawDate);
+        if (isNaN(d.getTime())) return escapeHtml(rawDate); // Fallback ke teks asli
+
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        return `${day} ${month} ${year}`;
+    }
+
     function formatWaktuIndo(rawDate) {
         if (!rawDate) return "-";
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
@@ -830,24 +923,48 @@
       return "Menunggu";
     }
 
+    // Fungsi Filter Data Array
+    function getFilteredList() {
+      const keyword = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+      const from = fromDate.value;
+      const to = toDate.value;
+
+      return REMOTE_PENGAJUAN.filter(item => {
+        const textRaw = [item.barangNama, item.barangCode, item.tujuan, item.adminNote].join(" ").toLowerCase();
+        
+        const matchKey = !keyword || textRaw.includes(keyword);
+        const matchStatus = status === "all" || item.status === status;
+        
+        // Membandingkan dengan string YYYY-MM-DD (tanggal mulai/pengajuan dari backend)
+        let compareDate = item.tanggalPengajuan || item.tanggalMulai || item.createdAt.substring(0, 10);
+        const matchFrom = !from || compareDate >= from;
+        const matchTo = !to || compareDate <= to;
+
+        return matchKey && matchStatus && matchFrom && matchTo;
+      }).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
     function renderStatusTable() {
-      let items = REMOTE_PENGAJUAN.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      let items = getFilteredList();
 
       if (!items.length) {
-        statusTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Belum ada pengajuan.</td></tr>';
+        statusTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Tidak ada data yang sesuai filter.</td></tr>';
         return;
       }
 
       statusTableRows.innerHTML = items.map(function (item) {
         const sClass = statusClass(item.status);
         const sLabel = statusLabel(item.status);
-        const periode = (item.tanggalMulai || '-') + " sd " + (item.tanggalSelesai || '-');
+        // Format Periode Lebih Singkat
+        const periode = formatTanggalSingkat(item.tanggalMulai) + " sd " + formatTanggalSingkat(item.tanggalSelesai);
         const tglAju = formatWaktuIndo(item.createdAt);
 
+        // PERBAIKAN: Menampilkan "Tujuan" selengkapnya tanpa substring (...)
         return `<tr>
           <td data-label="Barang"><strong>${escapeHtml(item.barangNama)}</strong><br><small style="color:#666;">${escapeHtml(item.barangCode||'-')}</small></td>
           <td data-label="Periode" style="font-size: 0.75rem;">${escapeHtml(periode)}</td>
-          <td data-label="Tujuan">${item.tujuan ? escapeHtml(item.tujuan.substring(0, 40)) + "..." : "-"}</td>
+          <td data-label="Tujuan" style="max-width:300px; line-height:1.4;">${item.tujuan ? escapeHtml(item.tujuan) : "-"}</td>
           <td data-label="Status"><span class="${sClass}">${sLabel}</span></td>
           <td data-label="Tanggal Pengajuan">${escapeHtml(tglAju)}</td>
         </tr>`;
@@ -855,12 +972,11 @@
     }
 
     function renderRiwayatCards() {
-      // Tampilkan hanya yang sedang diproses atau selesai (approved, taken, returned)
-      let items = REMOTE_PENGAJUAN.filter(item => ["approved", "taken", "returned"].includes(item.status));
-      items.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // Tampilkan yang valid untuk riwayat, lalu saring berdasarkan Search dan Filter
+      let items = getFilteredList().filter(item => ["approved", "taken", "returned"].includes(item.status));
 
       if (!items.length) {
-        riwayatContainer.innerHTML = '<div style="text-align: center; padding: 40px 16px; color: #5b6473;">Belum ada riwayat peminjaman yang berjalan.</div>';
+        riwayatContainer.innerHTML = '<div style="text-align: center; padding: 40px 16px; color: #5b6473;">Tidak ada riwayat peminjaman yang berjalan.</div>';
         return;
       }
 
@@ -871,53 +987,69 @@
         // Data Pengambilan
         const pickup = item.pickupInfo || {};
         const pickupPhoto = pickup.photo || "";
-        const pickupStamp = pickup.date ? pickup.date + " " + (pickup.time || "") : "-";
+        const pickupStamp = pickup.date ? formatTanggalSingkat(pickup.date) + " " + (pickup.time || "") : "-";
         const pickupLocation = pickup.location || "-";
         const pickupCondition = Array.isArray(pickup.units) ? pickup.units.map(u => u.status).join(", ") : "-";
         
         // Data Pengembalian
         const ret = item.returnInfo || {};
         const returnPhoto = ret.photo || "";
-        const returnStamp = ret.date ? ret.date + " " + (ret.time || "") : "-";
+        const returnStamp = ret.date ? formatTanggalSingkat(ret.date) + " " + (ret.time || "") : "-";
         const returnLocation = ret.location || "-";
         const returnCondition = Array.isArray(ret.units) ? ret.units.map(u => u.status).join(", ") : "-";
         const returnNotes = Array.isArray(ret.units) ? ret.units.map(u => u.reason).filter(r => r).join(" | ") : "-";
 
-        let adminNoteHtml = item.adminNote ? `<div class="detail-row"><div class="detail-item" style="grid-column: 1 / -1; border-left: 3px solid #f59e0b;"><strong>Catatan Admin:</strong>${escapeHtml(item.adminNote)}</div></div>` : '';
+        let adminNoteHtml = item.adminNote ? `<div style="padding: 10px; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; color: #92400e;"><strong>Catatan Admin:</strong> ${escapeHtml(item.adminNote)}</div>` : '';
 
+        // PERBAIKAN: Split Card / Dipisah Kiri (Pengambilan) - Kanan (Pengembalian)
         return `<div class="detail-card">
-          <h3>${escapeHtml(item.barangNama)} <span class="${sClass}" style="padding:4px 8px; border-radius:999px; font-size:0.75rem; border:1px solid currentColor;">${sLabel}</span></h3>
+          <h3>${escapeHtml(item.barangNama)} <span class="${sClass}" style="padding:4px 10px; border-radius:999px; font-size:0.75rem; border:1px solid currentColor;">${sLabel}</span></h3>
           ${adminNoteHtml}
-          <div class="detail-row">
-            <div class="detail-item"><strong>Tanggal Pengambilan:</strong>${escapeHtml(pickupStamp)}</div>
-            <div class="detail-item"><strong>Lokasi Pengambilan:</strong>${escapeHtml(pickupLocation)}</div>
+          <div class="detail-item" style="margin-bottom: 6px;"><strong>Jumlah Unit:</strong> ${item.jumlahDiminta} Unit</div>
+          <div class="detail-item" style="margin-bottom: 12px;"><strong>Periode Izin:</strong> ${formatTanggalSingkat(item.tanggalMulai)} sd ${formatTanggalSingkat(item.tanggalSelesai)}</div>
+          
+          <div class="split-card">
+            <!-- SISI KIRI: PENGAMBILAN -->
+            <div class="split-section">
+              <h4>
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                Data Pengambilan
+              </h4>
+              <div class="detail-item"><strong>Waktu Diambil:</strong> ${escapeHtml(pickupStamp)}</div>
+              <div class="detail-item"><strong>Lokasi Ambil:</strong> ${escapeHtml(pickupLocation)}</div>
+              <div class="detail-item"><strong>Kondisi Saat Ambil:</strong> ${escapeHtml(pickupCondition)}</div>
+              <div class="evidence-box" style="margin-top: 10px;"><strong>Bukti Foto:</strong>
+                ${pickupPhoto ? `<a href="${escapeHtml(pickupPhoto)}" target="_blank"><img src="${escapeHtml(pickupPhoto)}" alt="Bukti Pengambilan"></a>` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
+              </div>
+            </div>
+
+            <!-- SISI KANAN: PENGEMBALIAN -->
+            <div class="split-section">
+              <h4>
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                Data Pengembalian
+              </h4>
+              ${item.status === "returned" ? `
+                <div class="detail-item"><strong>Waktu Kembali:</strong> ${escapeHtml(returnStamp)}</div>
+                <div class="detail-item"><strong>Lokasi Kembali:</strong> ${escapeHtml(returnLocation)}</div>
+                <div class="detail-item"><strong>Kondisi Saat Kembali:</strong> ${escapeHtml(returnCondition)}</div>
+                <div class="detail-item"><strong>Catatan / Kerusakan:</strong> ${escapeHtml(returnNotes)}</div>
+                <div class="evidence-box" style="margin-top: 10px;"><strong>Bukti Foto:</strong>
+                  ${returnPhoto ? `<a href="${escapeHtml(returnPhoto)}" target="_blank"><img src="${escapeHtml(returnPhoto)}" alt="Bukti Pengembalian"></a>` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
+                </div>
+              ` : `
+                <div style="color: #6b7280; font-style: italic; font-size: 0.85rem; display:flex; align-items:center; height: 100%; justify-content:center; text-align:center;">
+                  Barang belum dikembalikan ke inventaris.
+                </div>
+              `}
+            </div>
           </div>
-          <div class="detail-row">
-            <div class="detail-item"><strong>Kondisi Saat Diambil:</strong>${escapeHtml(pickupCondition)}</div>
-            <div class="detail-item"><strong>Jumlah Unit:</strong>${item.jumlahDiminta}</div>
-          </div>
-          ${item.status === "returned" ? 
-            `<div class="detail-row">
-              <div class="detail-item"><strong>Tanggal Pengembalian:</strong>${escapeHtml(returnStamp)}</div>
-              <div class="detail-item"><strong>Lokasi Pengembalian:</strong>${escapeHtml(returnLocation)}</div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-item"><strong>Kondisi Saat Dikembalikan:</strong>${escapeHtml(returnCondition)}</div>
-              <div class="detail-item"><strong>Catatan Pengembalian:</strong>${escapeHtml(returnNotes)}</div>
-            </div>`
-          : ''}
-          ${(pickupPhoto || returnPhoto) ? `<div class="evidence-grid">
-            <div class="evidence-box"><strong>Bukti Foto Pengambilan</strong>
-              ${pickupPhoto ? `<a href="${escapeHtml(pickupPhoto)}" target="_blank"><img src="${escapeHtml(pickupPhoto)}" alt="Bukti foto pengambilan"></a>` : '<div>Belum ada</div>'}
-            </div>
-            <div class="evidence-box"><strong>Bukti Foto Pengembalian</strong>
-              ${returnPhoto ? `<a href="${escapeHtml(returnPhoto)}" target="_blank"><img src="${escapeHtml(returnPhoto)}" alt="Bukti foto pengembalian"></a>` : '<div>Belum ada</div>'}
-            </div>
-          </div>` : ''}
+
         </div>`;
       }).join("");
     }
 
+    // Event Listeners Tab
     tabBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
         const tabName = btn.getAttribute("data-tab");
@@ -927,6 +1059,12 @@
         document.getElementById(tabName).classList.add("active");
       });
     });
+
+    // Event Listeners Filter Toolbar
+    searchInput.addEventListener("input", () => { renderStatusTable(); renderRiwayatCards(); });
+    statusFilter.addEventListener("change", () => { renderStatusTable(); renderRiwayatCards(); });
+    fromDate.addEventListener("change", () => { renderStatusTable(); renderRiwayatCards(); });
+    toDate.addEventListener("change", () => { renderStatusTable(); renderRiwayatCards(); });
 
     // Inisialisasi pengambilan data saat halaman dibuka
     loadServerData();
