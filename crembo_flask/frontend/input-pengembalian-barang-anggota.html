@@ -654,6 +654,7 @@
               <thead>
                 <tr>
                   <th>Barang</th>
+                  <th>Periode Pinjam</th>
                   <th>Tanggal Pengambilan</th>
                   <th>Status</th>
                   <th>Aksi</th>
@@ -860,9 +861,11 @@
         // Ambil info dari pickupInfo JSON
         const pickupDate = item.pickupInfo && item.pickupInfo.date ? item.pickupInfo.date : "-";
         const pickupTime = item.pickupInfo && item.pickupInfo.time ? item.pickupInfo.time : "";
+        const periodeHtml = formatTanggalOnly(item.tanggalMulai) + " sd " + formatTanggalOnly(item.tanggalSelesai);
 
         return '<tr>'
-          + '<td data-label="Barang">' + item.barangNama + '</td>'
+          + '<td data-label="Barang">' + escapeHtml(item.barangNama) + '</td>'
+          + '<td data-label="Periode Pinjam">' + periodeHtml + '</td>'
           + '<td data-label="Tanggal Pengambilan">' + pickupDate + ' ' + pickupTime + '</td>'
           + '<td data-label="Status"><span class="status-warn">Sedang Dipinjam</span></td>'
           + '<td data-label="Aksi"><button class="mini-btn" data-id="' + item.id + '" onclick="openForm(this)">Input Pengembalian</button></td>'
@@ -894,7 +897,7 @@
           + '<label>Kondisi Barang Saat Pengembalian *</label>'
           + '<select class="kondisi-select" required>'
           + '<option value="">Pilih kondisi...</option>'
-          + '<option value="Baik">Baik</option><option value="Sedang">Sedang</option><option value="Rusak">Rusak</option>'
+          + '<option value="Baik">Baik (Tersedia)</option><option value="Rusak">Rusak</option><option value="Hilang">Hilang</option>'
           + '</select></div>'
           + '<div class="form-group"><label>Catatan / Kerusakan (jika ada)</label>'
           + '<textarea class="keterangan-input" placeholder="Optional"></textarea></div></div>';

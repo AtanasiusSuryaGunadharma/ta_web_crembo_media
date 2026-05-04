@@ -418,7 +418,6 @@
       filter: brightness(1.05);
     }
     
-    /* PERBAIKAN: Style tambahan untuk tombol batal berwarna merah */
     .mini-btn.danger {
       background: #b91c1c;
       margin-left: 6px;
@@ -663,6 +662,7 @@
                 <tr>
                   <th>Barang</th>
                   <th>Periode Peminjaman</th>
+                  <th>Catatan Admin</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
@@ -706,7 +706,6 @@
                 <div id="itemsContainer"></div>
 
                 <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
-                  <button type="button" class="btn secondary" id="cancelFormBtn">Batal Pengambilan</button>
                   <button type="submit" class="btn">Simpan Pengambilan</button>
                 </div>
               </form>
@@ -784,7 +783,6 @@
     const formsContainer = document.getElementById("formsContainer");
     const itemsContainer = document.getElementById("itemsContainer");
     const pengambilanForm = document.getElementById("pengambilanForm");
-    const cancelFormBtn = document.getElementById("cancelFormBtn");
     const pengambilanDate = document.getElementById("pengambilanDate");
     const pengambilanTime = document.getElementById("pengambilanTime");
     const pengambilanLocation = document.getElementById("pengambilanLocation");
@@ -900,7 +898,7 @@
       });
 
       if (!items.length) {
-        approvedTableRows.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Tidak ada pengajuan yang siap diambil.</td></tr>';
+        approvedTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Tidak ada pengajuan yang siap diambil.</td></tr>';
         formsContainer.style.display = "none";
         return;
       }
@@ -913,10 +911,12 @@
         const waktuSelesai = (item.waktuSelesai || "").substring(0, 5) || "-";
         
         const periodeHtml = tglMulai + ' <strong style="color:#444;">' + waktuMulai + ' WIB</strong> sd ' + tglSelesai + ' <strong style="color:#444;">' + waktuSelesai + ' WIB</strong>';
+        const noteHtml = item.adminNote ? escapeHtml(item.adminNote) : '-';
         
         return '<tr>'
           + '<td data-label="Barang">' + escapeHtml(item.barangNama) + '</td>'
           + '<td data-label="Periode" style="font-size: 0.75rem;">' + periodeHtml + '</td>'
+          + '<td data-label="Catatan Admin" style="font-size: 0.8rem;">' + noteHtml + '</td>'
           + '<td data-label="Status"><span class="status-ok">Disetujui</span></td>'
           + '<td data-label="Aksi">'
           + '<button class="mini-btn" data-id="' + item.id + '" onclick="openForm(this)">Input Pengambilan</button>'
@@ -971,12 +971,6 @@
       reader.readAsDataURL(file);
     });
 
-    cancelFormBtn.addEventListener("click", function () {
-      formsContainer.style.display = "none";
-      pengambilanForm.reset();
-      resetPhotoPreview();
-    });
-
     // Submit form ke API Pengambilan Backend
     pengambilanForm.addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -1004,7 +998,7 @@
 
       // Format rincian unit menjadi JSON String untuk backend
       const units = Array.from(kondisiSelects).map((sel, idx) => ({
-          status: sel.value,
+          status: sel.value, 
           reason: keteranganInputs[idx].value
       }));
       formData.append("unitDetails", JSON.stringify(units));

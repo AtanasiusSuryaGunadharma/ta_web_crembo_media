@@ -877,12 +877,29 @@ def input_pengembalian(pengajuan_id):
             unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
 
             units_restored = 0
-            for unit in unit_details_raw:
+            # Ambil data input dari user secara berurutan
+            for idx, unit in enumerate(unit_details_raw):
                 if unit.get("reason") == f"Dipinjam (Req ID: {pengajuan_id})":
-                    unit["status"] = "Tersedia"
-                    unit["reason"] = ""
-                    unit["available"] = True
-                    units_restored += 1
+                    # Ambil kondisi dari input array (jika tersedia), default "Tersedia" (Baik)
+                    kondisi_input = "Tersedia"
+                    alasan_input = ""
+                    if idx < len(return_unit_details):
+                        # Konversi input 'Baik' menjadi 'Tersedia' untuk backend
+                        input_val = return_unit_details[idx].get("status", "Baik")
+                        if input_val == "Baik":
+                            kondisi_input = "Tersedia"
+                        else:
+                            kondisi_input = input_val
+                        alasan_input = return_unit_details[idx].get("reason", "")
+                    
+                    unit["status"] = kondisi_input
+                    unit["reason"] = alasan_input
+                    # Hanya dihitung tersedia jika statusnya benar-benar Tersedia
+                    if kondisi_input == "Tersedia":
+                        unit["available"] = True
+                        units_restored += 1
+                    else:
+                        unit["available"] = False
 
             if units_restored == 0:
                 for unit in unit_details_raw:
