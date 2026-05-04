@@ -5201,6 +5201,269 @@ def delete_news(news_id):
         cursor.close()
         conn.close()
 
+# --- EXPORT EXCEL & PDF RIWAYAT PEMINJAMAN ---
+
+@app.route("/api/pengajuan/export.xlsx", methods=["GET"])
+def export_pengajuan_excel():
+    ensure_auth_schema()
+    role = session.get("role", "")
+    if role not in ["admin", "super_admin"]:
+        abort(403)
+        
+    status_filter = request.args.get('status')
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_loan_schema(cursor)
+        query = """
+            SELECT l.*, a.nama as member_name 
+            FROM `loan_requests` l
+            LEFT JOIN `anggota` a ON l.member_id = a.id
+            WHERE 1=1
+        """
+        params = []
+        if status_filter and status_filter != 'all':
+            query += " AND l.`status` = %s"
+            params.append(status_filter)
+        if from_date:
+            query += " AND l.`tanggal_mulai` >= %s"
+            params.append(from_date)
+        if to_date:
+            query += " AND l.`tanggal_mulai` <= %s"
+            params.append(to_date)
+            
+        query += " ORDER BY l.`created_at` DESC"
+        cursor.execute(query, tuple(params))
+        items = cursor.fetchall() or []
+        
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        
+        headers = [
+            "ID Laporan", "Peminjam", "Barang", "Qty", 
+            "Mulai Pinjam", "Target Kembali", "Status",
+            "Waktu Ambil", "Kondisi Ambil", "Catatan Ambil", "Bukti Ambil",
+            "Waktu Kembali", "Kondisi Kembali", "Catatan Kembali", "Bukti Kembali", "Catatan Admin"
+        ]
+        
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Riwayat Peminjaman"
+        worksheet.append(headers)
+        
+        base_url = "http://127.0.0.1:5000"
+        
+        for item in items:
+            p_info = safe_json_loads(item.get("pickup_info"), {})
+            r_info = safe_json_loads(item.get("return_info"), {})
+            
+            p_kondisi = ", ".join([u.get("status", "") for u in p_info.get("units", [])]) if p_info.get("units") else "-"
+            r_kondisi = ", ".join([u.get("status", "") for u in r_info.get("units", [])]) if r_info.get("units") else "-"
+            
+            p_catatan = " | ".join([u.get("reason", "") for u in p_info.get("units", []) if u.get("reason")]) if p_info.get("units") else "-"
+            r_catatan = " | ".join([u.get("reason", "") for u in r_info.get("units", []) if u.get("reason")]) if r_info.get("units") else "-"
+            
+            p_foto = f"{base_url}{p_info.get('photo')}" if p_info.get("photo") and str(p_info.get("photo")).startswith("/") else (p_info.get("photo") or "-")
+            r_foto = f"{base_url}{r_info.get('photo')}" if r_info.get("photo") and str(r_info.get("photo")).startswith("/") else (r_info.get("photo") or "-")
+
+            mulai_str = f"{item.get('tanggal_mulai')} {str(item.get('waktu_mulai', ''))[:5]}"
+            selesai_str = f"{item.get('tanggal_selesai')} {str(item.get('waktu_selesai', ''))[:5]}"
+            p_waktu = f"{p_info.get('date', '')} {p_info.get('time', '')}" if p_info.get("date") else "-"
+            r_waktu = f"{r_info.get('date', '')} {r_info.get('time', '')}" if r_info.get("date") else "-"
+            
+            status_map = {"pending": "Pending", "approved": "Disetujui", "taken": "Dipinjam", "returned": "Selesai", "rejected": "Ditolak", "cancelled": "Dibatalkan"}
+            status_indo = status_map.get(item.get("status"), item.get("status"))
+            
+            row = [
+                item.get("id"),
+                item.get("member_name") or "-",
+                f"{item.get('barang_name')} ({item.get('barang_code')})",
+                item.get("jumlah", 1),
+                mulai_str,
+                selesai_str,
+                status_indo,
+                p_waktu,
+                p_kondisi,
+                p_catatan,
+                p_foto,
+                r_waktu,
+                r_kondisi,
+                r_catatan,
+                r_foto,
+                item.get("admin_note") or "-"
+            ]
+            worksheet.append(row)
+            
+        header_fill = PatternFill("solid", fgColor="7F0000")
+        header_font = Font(color="FFFFFF", bold=True)
+        for cell in worksheet[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        for row_idx, row in enumerate(worksheet.iter_rows(min_row=2), 2):
+            for cell in row:
+                cell.alignment = Alignment(vertical="top", wrapText=True)
+
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+            for cell in column_cells:
+                try:
+                    cell_value = str(cell.value or "")
+                    if len(cell_value) > max_length:
+                        max_length = len(cell_value)
+                except Exception:
+                    continue
+            worksheet.column_dimensions[column_letter].width = min(max_length + 2, 40)
+
+        buffer = BytesIO()
+        workbook.save(buffer)
+        buffer.seek(0)
+        
+        filename = f"riwayat-peminjaman-{datetime.now().strftime('%Y%m%d%H%M')}.xlsx"
+        
+        return send_file(
+            buffer,
+            as_attachment=False, # Karena file excel browser cenderung akan download langsung
+            download_name=filename,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/pengajuan/export.pdf", methods=["GET"])
+def export_pengajuan_pdf():
+    ensure_auth_schema()
+    role = session.get("role", "")
+    if role not in ["admin", "super_admin"]:
+        abort(403)
+        
+    status_filter = request.args.get('status')
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_loan_schema(cursor)
+        query = """
+            SELECT l.*, a.nama as member_name 
+            FROM `loan_requests` l
+            LEFT JOIN `anggota` a ON l.member_id = a.id
+            WHERE 1=1
+        """
+        params = []
+        if status_filter and status_filter != 'all':
+            query += " AND l.`status` = %s"
+            params.append(status_filter)
+        if from_date:
+            query += " AND l.`tanggal_mulai` >= %s"
+            params.append(from_date)
+        if to_date:
+            query += " AND l.`tanggal_mulai` <= %s"
+            params.append(to_date)
+            
+        query += " ORDER BY l.`created_at` DESC"
+        cursor.execute(query, tuple(params))
+        items = cursor.fetchall() or []
+        
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+
+        headers = ["Peminjam", "Barang", "Tgl Ambil", "Kondisi/Bukti Ambil", "Tgl Kembali", "Kondisi/Bukti Kembali", "Status"]
+        rows = []
+        base_url = "http://127.0.0.1:5000"
+        
+        for item in items:
+            p_info = safe_json_loads(item.get("pickup_info"), {})
+            r_info = safe_json_loads(item.get("return_info"), {})
+            
+            p_waktu = f"{p_info.get('date', '')} {p_info.get('time', '')}" if p_info.get("date") else "-"
+            r_waktu = f"{r_info.get('date', '')} {r_info.get('time', '')}" if r_info.get("date") else "-"
+            
+            p_kondisi = ", ".join([u.get("status", "") for u in p_info.get("units", [])]) if p_info.get("units") else "-"
+            r_kondisi = ", ".join([u.get("status", "") for u in r_info.get("units", [])]) if r_info.get("units") else "-"
+            
+            p_foto = f"{base_url}{p_info.get('photo')}" if p_info.get("photo") and str(p_info.get("photo")).startswith("/") else (p_info.get("photo") or "")
+            r_foto = f"{base_url}{r_info.get('photo')}" if r_info.get("photo") and str(r_info.get("photo")).startswith("/") else (r_info.get("photo") or "")
+            
+            p_cell = f"{p_kondisi}<br/><a href='{p_foto}' color='blue'>Lihat Foto Ambil</a>" if p_foto else p_kondisi
+            r_cell = f"{r_kondisi}<br/><a href='{r_foto}' color='blue'>Lihat Foto Kembali</a>" if r_foto else r_kondisi
+            
+            status_map = {"pending": "Pending", "approved": "Disetujui", "taken": "Dipinjam", "returned": "Selesai", "rejected": "Ditolak", "cancelled": "Dibatalkan"}
+            
+            rows.append([
+                item.get("member_name") or "-",
+                item.get("barang_name") or "-",
+                p_waktu,
+                p_cell,
+                r_waktu,
+                r_cell,
+                status_map.get(item.get("status"), item.get("status"))
+            ])
+            
+        buffer = BytesIO()
+        document = SimpleDocTemplate(
+            buffer, pagesize=landscape(A4),
+            rightMargin=8 * mm, leftMargin=8 * mm, topMargin=10 * mm, bottomMargin=10 * mm,
+        )
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("Title", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.HexColor("#7F0000"))
+        normal_style = ParagraphStyle("Normal", parent=styles["BodyText"], fontName="Helvetica", fontSize=8, leading=10)
+        cell_style = ParagraphStyle("Cell", parent=styles["BodyText"], fontName="Helvetica", fontSize=7, leading=9)
+
+        elements = [
+            Paragraph("Rekap Data Riwayat Peminjaman dan Pengembalian", title_style),
+            Spacer(1, 4 * mm),
+            Paragraph(f"Dicetak pada: {datetime.now().strftime('%d %B %Y %H:%M')} WIB", normal_style),
+            Spacer(1, 4 * mm),
+        ]
+
+        wrapped_rows = []
+        for row in rows:
+            wrapped_row = []
+            for cell_data in row:
+                wrapped_row.append(Paragraph(str(cell_data), cell_style))
+            wrapped_rows.append(wrapped_row)
+
+        table_data = [headers] + wrapped_rows if rows else [headers, ["-" for _ in headers]]
+        page_width = landscape(A4)[0] - (16 * mm) 
+        col_widths = [0.15*page_width, 0.20*page_width, 0.12*page_width, 0.18*page_width, 0.12*page_width, 0.18*page_width, 0.05*page_width]
+        
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7F0000")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("ALIGN", (0, 0), (0, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D5DB")),
+        ]))
+        elements.append(table)
+        document.build(elements)
+        buffer.seek(0)
+        
+        filename = f"riwayat-peminjaman-{datetime.now().strftime('%Y%m%d%H%M')}.pdf"
+        
+        return send_file(
+            buffer,
+            as_attachment=False,  # Buka di tab baru (preview)
+            download_name=filename,
+            mimetype="application/pdf",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route("/api/form-kerusakan/export.xlsx", methods=["GET"])
 def export_kerusakan_excel():
     ensure_auth_schema()
