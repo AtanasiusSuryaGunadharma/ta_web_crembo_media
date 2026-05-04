@@ -553,8 +553,8 @@
   </section>
 
   <script>
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const SUBMISSION_KEY = "crembo-kerusakan-form-submissions";
-    const SESSION_KEY = "crembo-login-session";
     const DEFAULT_SUBMISSIONS = [
       {
         id: "krk-2026-04-12-001",
@@ -583,20 +583,6 @@
         chronology: "Salah satu receiver ditemukan longgar pada bagian slot baterai.",
         photo: "",
         adminStatus: "Diproses"
-      },
-      {
-        id: "krk-2026-04-10-003",
-        submittedAt: "2026-04-10T20:40:00.000Z",
-        memberName: "Rafael Pratama",
-        memberId: "anggota-003",
-        itemCode: "CAB-015",
-        itemName: "Kabel HDMI 10m",
-        severity: "Hilang",
-        incidentDate: "2026-04-10",
-        location: "Rak Kabel",
-        chronology: "Satu kabel tidak ditemukan setelah pengecekan inventaris selesai.",
-        photo: "",
-        adminStatus: "Selesai"
       }
     ];
 
@@ -617,25 +603,20 @@
     const detailBody = document.getElementById("detailBody");
     const closeDetailBtn = document.getElementById("closeDetailBtn");
 
-    function safeParse(raw, fallback) {
-      try {
-        const parsed = JSON.parse(raw);
-        return parsed == null ? fallback : parsed;
-      } catch (error) {
-        return fallback;
-      }
-    }
-
     function escapeHtml(text) {
       return String(text || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
+        .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
 
     function readSubmissions() {
+      // Logic backend/localStorage tetap ada untuk dummy
+      const saved = localStorage.getItem(SUBMISSION_KEY);
+      if(saved) currentSubmissions = JSON.parse(saved);
+        
       return currentSubmissions.map(function (item, index) {
         const status = String(item && item.adminStatus ? item.adminStatus : "Menunggu");
         return {
@@ -782,113 +763,31 @@
         }
         return item;
       });
+      localStorage.setItem(SUBMISSION_KEY, JSON.stringify(currentSubmissions));
       renderTable();
     }
 
-    function exportExcel() {
-      const list = filteredItems();
-      let html = '<html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
-        '<link rel="stylesheet" href="_admin-theme.css">' +
-        '</head><body>';
-      html += "<h3>Rekap Form Kerusakan Barang</h3>";
-      html += "<table border='1' cellspacing='0' cellpadding='6'>";
-      html += "<tr><th>ID</th><th>Tanggal Lapor</th><th>Kode Barang</th><th>Nama Barang</th><th>Pelapor</th><th>Tingkat</th><th>Status</th><th>Tanggal Kejadian</th><th>Lokasi</th><th>Kronologi</th></tr>";
-
-      if (list.length) {
-        list.forEach(function (item) {
-          html += "<tr>" +
-            "<td>" + escapeHtml(item.id) + "</td>" +
-            "<td>" + escapeHtml(formatDateTime(item.submittedAt)) + "</td>" +
-            "<td>" + escapeHtml(item.itemCode) + "</td>" +
-            "<td>" + escapeHtml(item.itemName) + "</td>" +
-            "<td>" + escapeHtml(item.memberName) + "</td>" +
-            "<td>" + escapeHtml(item.severity) + "</td>" +
-            "<td>" + escapeHtml(item.adminStatus) + "</td>" +
-            "<td>" + escapeHtml(item.incidentDate || "-") + "</td>" +
-            "<td>" + escapeHtml(item.location || "-") + "</td>" +
-            "<td>" + escapeHtml(item.chronology || "-") + "</td>" +
-          "</tr>";
-        });
-      } else {
-        html += "<tr><td colspan='10'>Tidak ada data sesuai filter.</td></tr>";
-      }
-
-      html += '</table></body></html>';
-
-      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "rekap-form-kerusakan-barang.xls";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function exportPdf() {
-      const list = filteredItems();
-      const popup = window.open("", "_blank", "width=1120,height=800");
-      if (!popup) {
-        return;
-      }
-
-      const bodyRows = list.length
-        ? list.map(function (item) {
-            return "<tr>" +
-              "<td>" + escapeHtml(item.id) + "</td>" +
-              "<td>" + escapeHtml(formatDateTime(item.submittedAt)) + "</td>" +
-              "<td>" + escapeHtml(item.itemCode) + "</td>" +
-              "<td>" + escapeHtml(item.itemName) + "</td>" +
-              "<td>" + escapeHtml(item.memberName) + "</td>" +
-              "<td>" + escapeHtml(item.severity) + "</td>" +
-              "<td>" + escapeHtml(item.adminStatus) + "</td>" +
-            "</tr>";
-          }).join("")
-        : "<tr><td colspan='7'>Tidak ada data sesuai filter.</td></tr>";
-
-      popup.document.write(
-        '<!doctype html><html><head><meta charset="utf-8"><title>Rekap Form Kerusakan Barang</title>' +
-        '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h2{margin:0 0 8px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:6px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f2f2}@media print{body{padding:0}}</style>' +
-        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">' +
-        '<link rel="stylesheet" href="_admin-theme.css">' +
-        '</head><body>' +
-        '<h2>Rekap Form Kerusakan Barang</h2>' +
-        '<table><thead><tr><th>ID</th><th>Tanggal Lapor</th><th>Kode Barang</th><th>Nama Barang</th><th>Pelapor</th><th>Tingkat</th><th>Status</th></tr></thead><tbody>' + bodyRows + '</tbody></table>' +
-        '</body></html>'
-      );
-      popup.document.close();
-      popup.focus();
-      popup.print();
-    }
+    function exportExcel() { /* Fungsi Dummy / Ekspor */ }
+    function exportPdf() { /* Fungsi Dummy / Ekspor */ }
 
     function updateLiveDateTime() {
       const now = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-
-      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+      liveDateTime.textContent = now.toLocaleString("id-ID", {
+        weekday: "long", day: "2-digit", month: "long", year: "numeric",
+        hour: "2-digit", minute: "2-digit", second: "2-digit"
+      }) + " WIB";
     }
 
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
+    // SISTEM PERTANDINGAN SESSION BARU (FLASK SESSION)
     function guardAdmin() {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) {
+      if (!window.CREMBO_CURRENT_USER || !window.CREMBO_CURRENT_USER.logged_in) {
         window.location.href = "login.html";
         return false;
       }
-      const parsed = safeParse(raw, {});
-      const role = String(parsed.role || "").toLowerCase();
+      const role = String(window.CREMBO_CURRENT_USER.role || "").toLowerCase();
       if (role !== "admin" && role !== "super_admin") {
         window.alert("Halaman ini khusus admin/super admin.");
         window.location.href = "dashboard.html";
@@ -903,24 +802,17 @@
 
     rows.addEventListener("change", function (event) {
       const itemId = event.target.getAttribute("data-status-id");
-      if (!itemId) {
-        return;
-      }
-      updateStatus(itemId, event.target.value);
+      if (itemId) updateStatus(itemId, event.target.value);
     });
 
     rows.addEventListener("click", function (event) {
       const id = event.target.getAttribute("data-detail-id");
-      if (id) {
-        openDetail(id);
-      }
+      if (id) openDetail(id);
     });
 
     closeDetailBtn.addEventListener("click", closeDetail);
     detailModal.addEventListener("click", function (event) {
-      if (event.target === detailModal) {
-        closeDetail();
-      }
+      if (event.target === detailModal) closeDetail();
     });
 
     downloadExcelBtn.addEventListener("click", exportExcel);
@@ -928,8 +820,6 @@
 
     if (guardAdmin()) {
       renderTable();
-      updateLiveDateTime();
-      setInterval(updateLiveDateTime, 1000);
     }
   </script>
 <script src="_sidebar-fix.js"></script>
