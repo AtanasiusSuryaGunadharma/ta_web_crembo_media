@@ -210,7 +210,6 @@ def normalize_inventory_photos(value) -> list[dict[str, object]]:
         )
     return normalized
 
-# PERBAIKAN: Menambahkan 'Rusak' ke status
 INVENTORY_UNIT_STATUSES = {"Tersedia", "Dipinjam", "Perbaikan", "Rusak", "Hilang"}
 
 def inventory_unit_reason_for_status(status: str) -> str:
@@ -437,6 +436,8 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
+    
+    # PERBAIKAN: Menghapus column condition dari schema table 
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS `inventory_items` (
@@ -464,6 +465,13 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
+    
+    # PERBAIKAN: Hapus kolom condition dari database secara paksa jika sudah terlanjur ada di server user
+    try:
+        cursor.execute("ALTER TABLE `inventory_items` DROP COLUMN `condition`")
+    except Exception:
+        pass # Akan error/diabaikan jika kolom memang sudah tidak ada
+
     ensure_column(cursor, "inventory_items", "unit_details", "`unit_details` longtext DEFAULT NULL")
 
     cursor.execute("SELECT COUNT(*) FROM `inventory_categories`")

@@ -376,6 +376,31 @@
     .status-pill.repair { border-color: #d29a9a; background: #fff1f1; color: #7c2222; }
     .status-pill.lost { border-color: #9ca3af; background: #f3f4f6; color: #374151; }
 
+    /* Gaya khusus untuk list unit di dalam sel tabel agar rapi */
+    .unit-list-table {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 6px;
+    }
+
+    .unit-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+    }
+
+    .unit-list-item span.unit-name {
+        font-weight: 600;
+        color: #334155;
+    }
+
     .empty-note {
       margin: 10px 0 0;
       border: 1px dashed #adadad;
@@ -881,15 +906,11 @@
                 <th>Foto</th>
                 <th>Nama Barang</th>
                 <th>Kategori</th>
-                <th>Tanggal Beli</th>
                 <th>Harga Beli</th>
                 <th>Total Unit</th>
-                <th>Tersedia</th>
-                <th>Dipinjam</th>
                 <th>Bisa Dipinjam</th>
                 <th>Status</th>
                 <th>Lokasi</th>
-                <th>Update Terakhir</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -1037,89 +1058,6 @@
     const STORAGE_SEED_KEY = "crembo-inventaris-seed-version";
     const CATEGORY_STORAGE_KEY = "crembo-inventaris-kategori";
     const DUMMY_SEED_VERSION = "v1";
-
-    const DUMMY_INVENTORY = [
-      {
-        id: "inv-001",
-        code: "CAM-001",
-        name: "Kamera Sony A6400",
-        category: "Kamera",
-        purchaseDate: "2025-11-12",
-        purchasePrice: 12500000,
-        totalUnit: 2,
-        availableUnit: 1,
-        hasMultiple: true,
-        canBorrow: true,
-        status: "Dipinjam",
-        location: "Lemari Studio A",
-        notes: "Satu unit sedang dipakai untuk dokumentasi agenda.",
-        updatedAt: "2026-04-09T10:15:00"
-      },
-      {
-        id: "inv-002",
-        code: "AUD-004",
-        name: "Wireless Microphone Set",
-        category: "Audio",
-        purchaseDate: "2025-12-03",
-        purchasePrice: null,
-        totalUnit: 4,
-        availableUnit: 4,
-        hasMultiple: true,
-        canBorrow: true,
-        status: "Tersedia",
-        location: "Rak Audio 2",
-        notes: "Baterai cadangan tersedia 8 pcs.",
-        updatedAt: "2026-04-08T16:02:00"
-      },
-      {
-        id: "inv-003",
-        code: "TRI-002",
-        name: "Tripod Heavy Duty",
-        category: "Aksesori",
-        purchaseDate: "2025-10-28",
-        purchasePrice: 850000,
-        totalUnit: 3,
-        availableUnit: 2,
-        hasMultiple: true,
-        canBorrow: true,
-        status: "Tersedia",
-        location: "Gudang Perlengkapan",
-        notes: "1 unit perlu pengencangan lock kaki.",
-        updatedAt: "2026-04-07T14:20:00"
-      },
-      {
-        id: "inv-004",
-        code: "SWI-001",
-        name: "Video Switcher ATEM Mini",
-        category: "Switcher",
-        purchaseDate: "2025-09-19",
-        purchasePrice: 7600000,
-        totalUnit: 1,
-        availableUnit: 0,
-        hasMultiple: false,
-        canBorrow: true,
-        status: "Dipinjam",
-        location: "Meja Kontrol",
-        notes: "Dipakai untuk misa Kamis malam.",
-        updatedAt: "2026-04-09T09:10:00"
-      },
-      {
-        id: "inv-005",
-        code: "CAB-015",
-        name: "Kabel HDMI 10m",
-        category: "Kabel",
-        purchaseDate: "2025-11-30",
-        purchasePrice: 450000,
-        totalUnit: 6,
-        availableUnit: 5,
-        hasMultiple: true,
-        canBorrow: true,
-        status: "Tersedia",
-        location: "Laci Kabel",
-        notes: "Label kabel sudah diperbarui.",
-        updatedAt: "2026-04-06T11:35:00"
-      }
-    ];
 
     const inventorySearchInput = document.getElementById("inventorySearchInput");
     const categoryFilter = document.getElementById("categoryFilter");
@@ -1909,24 +1847,33 @@
         const photoMarkup = item.photo
           ? '<img class="table-thumb" src="' + escapeHtml(item.photo) + '" alt="' + escapeHtml(item.name) + '">'
           : '-';
+          
+        // PERBAIKAN: Menampilkan rincian status per unit dalam baris tabel
+        let statusMarkup = '';
+        if (item.totalUnit > 1 && item.unitDetails && item.unitDetails.length > 0) {
+            statusMarkup = '<ul class="unit-list-table">' + item.unitDetails.map(function(u) {
+                return '<li class="unit-list-item"><span class="unit-name">' + escapeHtml(u.label || ("Unit " + u.index)) + '</span><span class="status-pill ' + getStatusClass(u.status) + '">' + escapeHtml(u.status) + '</span></li>';
+            }).join("") + '</ul>';
+        } else {
+            statusMarkup = '<span class="status-pill ' + getStatusClass(item.status) + '">' + escapeHtml(item.status) + '</span>';
+        }
+
         return '<tr>' +
           '<td>' + escapeHtml(item.code) + '</td>' +
           '<td>' + photoMarkup + '</td>' +
           '<td>' + escapeHtml(item.name) + '</td>' +
           '<td>' + escapeHtml(item.category) + '</td>' +
-          '<td>' + escapeHtml(item.purchaseDate || '-') + '</td>' +
           '<td>' + escapeHtml(formatCurrency(item.purchasePrice)) + '</td>' +
           '<td>' + item.totalUnit + '</td>' +
-          '<td>' + item.availableUnit + '</td>' +
-          '<td>' + item.borrowedUnit + '</td>' +
           '<td><span class="status-pill ' + (item.canBorrow ? 'available' : 'repair') + '">' + (item.canBorrow ? 'Ya' : 'Tidak') + '</span></td>' +
-          '<td><span class="status-pill ' + getStatusClass(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
+          '<td>' + statusMarkup + '</td>' +
           '<td>' + escapeHtml(item.location) + '</td>' +
-          '<td>' + escapeHtml(formatDateTime(item.updatedAt)) + '</td>' +
-          '<td>' +
-            '<button class="btn-ghost" type="button" data-detail-id="' + escapeHtml(item.id) + '">Detail</button> ' +
-            '<button class="btn-ghost" type="button" data-edit-id="' + escapeHtml(item.id) + '">Edit</button> ' +
-            '<button class="btn-danger" type="button" data-delete-id="' + escapeHtml(item.id) + '">Hapus</button>' +
+          '<td style="min-width: 140px;">' +
+            '<div class="mini-actions">' +
+              '<button class="mini-btn ghost" type="button" data-detail-id="' + escapeHtml(item.id) + '">Detail</button> ' +
+              '<button class="mini-btn ghost" type="button" data-edit-id="' + escapeHtml(item.id) + '">Edit</button> ' +
+              '<button class="mini-btn danger" type="button" data-delete-id="' + escapeHtml(item.id) + '">Hapus</button>' +
+            '</div>' +
           '</td>' +
         '</tr>';
       }).join("");
@@ -2147,7 +2094,6 @@
         status: statusFilter.value,
         sort: inventorySort.value
       });
-      // PERBAIKAN: Gunakan window.open alih-alih dom a.click()
       window.open(INVENTORY_API_BASE + "/export.xlsx?" + params.toString(), "_blank");
     }
 
@@ -2158,7 +2104,6 @@
         status: statusFilter.value,
         sort: inventorySort.value
       });
-      // PERBAIKAN: Gunakan window.open alih-alih dom a.click()
       window.open(INVENTORY_API_BASE + "/export.pdf?" + params.toString(), "_blank");
     }
 
