@@ -300,7 +300,7 @@ def inventory_unit_details_text(unit_details: list[dict[str, object]]) -> str:
             parts.append(f"{label}: {status} - {reason}")
         else:
             parts.append(f"{label}: {status}")
-    return "; ".join(parts)
+    return "; \n".join(parts)
 
 def inventory_item_row_to_dict(row: dict[str, object]) -> dict[str, object]:
     photos = normalize_inventory_photos(safe_json_loads(row.get("photos"), []))
@@ -436,8 +436,6 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
-    
-    # PERBAIKAN: Menghapus column condition dari schema table 
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS `inventory_items` (
@@ -465,12 +463,10 @@ def ensure_inventory_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
-    
-    # PERBAIKAN: Hapus kolom condition dari database secara paksa jika sudah terlanjur ada di server user
     try:
         cursor.execute("ALTER TABLE `inventory_items` DROP COLUMN `condition`")
     except Exception:
-        pass # Akan error/diabaikan jika kolom memang sudah tidak ada
+        pass
 
     ensure_column(cursor, "inventory_items", "unit_details", "`unit_details` longtext DEFAULT NULL")
 
@@ -575,22 +571,22 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
     }
 
 def inventory_export_rows(items: list[dict[str, object]]):
+    # PERBAIKAN: Menghapus kolom "Status"
     headers = [
         "Kode Barang",
         "Nama Barang",
         "Kategori",
         "Lokasi Simpan",
-        "Tanggal Pembelian",
-        "Harga Pembelian",
-        "Total Unit",
-        "Unit Tersedia",
+        "Tgl Pembelian",
+        "Harga",
+        "Total",
+        "Tersedia",
         "Dipinjam",
-        "Bisa Dipinjam",
-        "Status",
+        "Bisa Pinjam",
         "Rincian Unit",
         "Foto",
         "Keterangan",
-        "Update Terakhir",
+        "Update",
     ]
     rows = []
     base_url = "http://127.0.0.1:5000" 
@@ -605,8 +601,10 @@ def inventory_export_rows(items: list[dict[str, object]]):
                     url = f"{base_url}{url}"
                 photo_links.append(url)
                 
-        photo_label = ", ".join(photo_links) if photo_links else "-"
-        
+        photo_label = "\n".join(photo_links) if photo_links else "-"
+        rincian = inventory_unit_details_text(item.get("unitDetails") or [])
+        keterangan = normalize_text(item.get("notes")) or "-"
+
         rows.append([
             normalize_text(item.get("code")),
             normalize_text(item.get("name")),
@@ -618,11 +616,10 @@ def inventory_export_rows(items: list[dict[str, object]]):
             str(parse_required_int(item.get("availableUnit"), 0)),
             str(parse_required_int(item.get("borrowedUnit"), max(parse_required_int(item.get("totalUnit"), 0) - parse_required_int(item.get("availableUnit"), 0), 0))),
             "Ya" if item.get("canBorrow") else "Tidak",
-            normalize_text(item.get("status")),
-            inventory_unit_details_text(item.get("unitDetails") or []),
+            rincian,
             photo_label,
-            normalize_text(item.get("notes")) or "-",
-            normalize_text(item.get("updatedAt")) or "-",
+            keterangan,
+            normalize_text(item.get("updatedAt"))[:10] if item.get("updatedAt") else "-",
         ])
     return headers, rows
 
@@ -1172,6 +1169,7 @@ def export_inventory_excel():
         worksheet.title = "Inventaris"
         worksheet.append(headers)
         for row in rows:
+            # openpyxl bisa menghandle newline text di cell asal format wrapText diset
             worksheet.append(row)
 
         header_fill = PatternFill("solid", fgColor="7F0000")
@@ -1181,17 +1179,27 @@ def export_inventory_excel():
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center", vertical="center")
 
+        # PERBAIKAN: Wrap text agar baris bisa ke bawah
+        for row_idx, row in enumerate(worksheet.iter_rows(min_row=2), 2):
+            for cell in row:
+                cell.alignment = Alignment(vertical="top", wrapText=True)
+
         for column_cells in worksheet.columns:
             max_length = 0
             column_letter = column_cells[0].column_letter
             for cell in column_cells:
                 try:
                     cell_value = str(cell.value or "")
-                    if len(cell_value) > max_length:
+                    if "\n" in cell_value:
+                        lines = cell_value.split("\n")
+                        line_lengths = [len(l) for l in lines]
+                        if line_lengths and max(line_lengths) > max_length:
+                            max_length = max(line_lengths)
+                    elif len(cell_value) > max_length:
                         max_length = len(cell_value)
                 except Exception:
                     continue
-            worksheet.column_dimensions[column_letter].width = min(max_length + 4, 40)
+            worksheet.column_dimensions[column_letter].width = min(max_length + 4, 60)
 
         buffer = BytesIO()
         workbook.save(buffer)
@@ -1235,6 +1243,8 @@ def export_inventory_pdf():
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle("InventoryTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.HexColor("#7F0000"))
         normal_style = ParagraphStyle("InventoryNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=8, leading=10)
+        # PERBAIKAN: Buat style khusus cell tabel agar teks panjang ke wrap
+        cell_style = ParagraphStyle("CellNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=7, leading=9, wordWrap='CJK')
 
         elements = [
             Paragraph("Laporan Data Inventaris Barang", title_style),
@@ -1243,8 +1253,37 @@ def export_inventory_pdf():
             Spacer(1, 4 * mm),
         ]
 
-        table_data = [headers] + rows if rows else [headers, ["-" for _ in headers]]
-        table = Table(table_data, repeatRows=1)
+        # Konversi konten teks ke paragraph agar bisa wrapping otomatis di ReportLab
+        wrapped_rows = []
+        for row in rows:
+            wrapped_row = []
+            for cell_data in row:
+                text = str(cell_data).replace('\n', '<br/>') # Ubah newline ke break HTML
+                wrapped_row.append(Paragraph(text, cell_style))
+            wrapped_rows.append(wrapped_row)
+
+        table_data = [headers] + wrapped_rows if rows else [headers, ["-" for _ in headers]]
+        
+        # PERBAIKAN: Gunakan rasio ukuran kolom yang proporsional dengan lebar A4 Landscape
+        page_width = landscape(A4)[0] - (16 * mm) 
+        col_widths = [
+            0.07 * page_width, # Kode
+            0.10 * page_width, # Nama
+            0.06 * page_width, # Kategori
+            0.07 * page_width, # Lokasi
+            0.07 * page_width, # Tgl Beli
+            0.07 * page_width, # Harga
+            0.03 * page_width, # Total
+            0.04 * page_width, # Tersedia
+            0.04 * page_width, # Dipinjam
+            0.04 * page_width, # Bisa Pinjam
+            0.18 * page_width, # Rincian Unit (Lebrin sedikit)
+            0.10 * page_width, # Foto
+            0.08 * page_width, # Keterangan
+            0.05 * page_width  # Update
+        ]
+        
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
         table.setStyle(
             TableStyle(
                 [
