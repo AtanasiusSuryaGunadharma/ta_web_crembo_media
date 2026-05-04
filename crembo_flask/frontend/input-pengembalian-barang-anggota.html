@@ -366,17 +366,6 @@
       font-weight: 700;
     }
 
-    .status-ok {
-      display: inline-block;
-      font-size: 0.73rem;
-      color: #166534;
-      border: 1px solid #8bdb9f;
-      background: #ebf9ef;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-weight: 700;
-    }
-
     .status-warn {
       display: inline-block;
       font-size: 0.73rem;
@@ -458,12 +447,6 @@
       border-radius: 10px;
       border: 1px solid #dbe2ef;
       background: #fff;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
     }
 
     .btn {
@@ -711,7 +694,6 @@
   </div>
 
   <script>
-    // PERBAIKAN: Menggunakan variabel sesi dinamis dari backend (Jinja)
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const sessionUser = window.CREMBO_CURRENT_USER || {};
     const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
@@ -719,7 +701,6 @@
     const memberNameEl = document.getElementById("memberName");
     if (memberNameEl) memberNameEl.textContent = displayName;
     
-    // Perbarui Role
     const accountText = document.querySelector(".account-text small");
     if (accountText) {
         let roleDisplay = "Anggota Multimedia";
@@ -729,7 +710,6 @@
         accountText.textContent = "Role: " + roleDisplay;
     }
 
-    // Perbarui Avatar (Inisial 2 huruf pertama)
     const sidebarAvatar = document.querySelector(".avatar");
     if (sidebarAvatar && displayName) {
         sidebarAvatar.textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
@@ -803,7 +783,6 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    // --- MENGGUNAKAN API BACKEND ---
     let REMOTE_PENGAJUAN = [];
 
     async function loadServerData() {
@@ -847,18 +826,30 @@
       pengembalianPhotoPreview.style.display = "flex";
     }
 
+    // PERBAIKAN: Fungsi format tanggal ditambahkan di sini agar tidak memicu error
+    function formatTanggalOnly(rawDate) {
+        if (!rawDate) return "-";
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+        
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        
+        return `${day} ${month} ${year}`;
+    }
+
     function renderActiveLoanTable() {
-      // Filter status barang yang 'Sedang Dipinjam' (taken)
       let items = REMOTE_PENGAJUAN.filter(item => item.status === "taken");
 
       if (!items.length) {
-        activeLoanTableRows.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Tidak ada barang yang sedang dipinjam.</td></tr>';
+        activeLoanTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Tidak ada barang yang sedang dipinjam.</td></tr>';
         formsContainer.style.display = "none";
         return;
       }
 
       activeLoanTableRows.innerHTML = items.map(function (item) {
-        // Ambil info dari pickupInfo JSON
         const pickupDate = item.pickupInfo && item.pickupInfo.date ? item.pickupInfo.date : "-";
         const pickupTime = item.pickupInfo && item.pickupInfo.time ? item.pickupInfo.time : "";
         const periodeHtml = formatTanggalOnly(item.tanggalMulai) + " sd " + formatTanggalOnly(item.tanggalSelesai);
@@ -866,7 +857,7 @@
         return '<tr>'
           + '<td data-label="Barang">' + escapeHtml(item.barangNama) + '</td>'
           + '<td data-label="Periode Pinjam">' + periodeHtml + '</td>'
-          + '<td data-label="Tanggal Pengambilan">' + pickupDate + ' ' + pickupTime + '</td>'
+          + '<td data-label="Tanggal Pengambilan">' + escapeHtml(pickupDate) + ' ' + escapeHtml(pickupTime) + '</td>'
           + '<td data-label="Status"><span class="status-warn">Sedang Dipinjam</span></td>'
           + '<td data-label="Aksi"><button class="mini-btn" data-id="' + item.id + '" onclick="openForm(this)">Input Pengembalian</button></td>'
           + '</tr>';
@@ -888,16 +879,24 @@
 
       itemsContainer.innerHTML = '';
       for (let i = 0; i < riwayat.jumlahDiminta; i += 1) {
-        const condSebelum = pickupUnits[i] ? pickupUnits[i].status : "-";
+        const condSebelum = pickupUnits[i] ? pickupUnits[i].status : "";
+        const noteSebelum = pickupUnits[i] && pickupUnits[i].reason ? " - " + pickupUnits[i].reason : "";
+        
+        // Auto-select berdasarkan kondisi saat pengambilan
+        const optBaik = condSebelum === "Baik" ? "selected" : "";
+        const optRusak = condSebelum === "Rusak" ? "selected" : "";
+        const optHilang = condSebelum === "Hilang" ? "selected" : "";
         
         const itemHTML = '<div class="item-form">'
           + '<h3>Unit ' + (i + 1) + '</h3>'
-          + '<div class="item-info"><strong>Kondisi Saat Pengambilan:</strong> ' + escapeHtml(condSebelum) + '</div>'
+          + '<div class="item-info"><strong>Kondisi Saat Pengambilan:</strong> ' + escapeHtml(condSebelum || "-") + escapeHtml(noteSebelum) + '</div>'
           + '<div class="form-group">'
           + '<label>Kondisi Barang Saat Pengembalian *</label>'
           + '<select class="kondisi-select" required>'
           + '<option value="">Pilih kondisi...</option>'
-          + '<option value="Baik">Baik (Tersedia)</option><option value="Rusak">Rusak</option><option value="Hilang">Hilang</option>'
+          + '<option value="Baik" ' + optBaik + '>Baik (Tersedia)</option>'
+          + '<option value="Rusak" ' + optRusak + '>Rusak</option>'
+          + '<option value="Hilang" ' + optHilang + '>Hilang</option>'
           + '</select></div>'
           + '<div class="form-group"><label>Catatan / Kerusakan (jika ada)</label>'
           + '<textarea class="keterangan-input" placeholder="Optional"></textarea></div></div>';
