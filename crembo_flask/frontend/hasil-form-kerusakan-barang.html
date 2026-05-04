@@ -554,22 +554,301 @@
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
-    const SUBMISSION_KEY = "crembo-kerusakan-form-submissions";
-    const DEFAULT_SUBMISSIONS = [
-      {
-        id: "krk-2026-04-12-001",
-        submittedAt: "2026-04-12T09:20:00.000Z",
-        memberName: "Atanasius Surya Guna",
-        memberId: "anggota-001",
-        itemCode: "CAM-001",
-        itemName: "Kamera Sony A6400",
-        severity: "Berat",
-        incidentDate: "2026-04-12",
-        location: "Ruang Kontrol Streaming",
-        chronology: "Layar sempat berkedip lalu kamera tidak bisa dinyalakan saat persiapan misa.",
-        photo: "",
-        adminStatus: "Menunggu"
-      },
+
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const severityFilter = document.getElementById("severityFilter");
+    const rows = document.getElementById("rows");
+    const emptyNote = document.getElementById("emptyNote");
+    const summaryGrid = document.getElementById("summaryGrid");
+    const activeFilterChip = document.getElementById("activeFilterChip");
+    const liveDateTime = document.getElementById("liveDateTime");
+    const downloadExcelBtn = document.getElementById("downloadExcelBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+
+    const detailModal = document.getElementById("detailModal");
+    const detailBody = document.getElementById("detailBody");
+    const closeDetailBtn = document.getElementById("closeDetailBtn");
+
+    let allSubmissions = [];
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "-";
+      try {
+        const date = new Date(value);
+        return date.toLocaleString("id-ID", {
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+      } catch (e) {
+        return String(value);
+      }
+    }
+
+    function statusClass(status) {
+      switch (String(status || "").trim()) {
+        case "Pending Review": return "waiting";
+        case "Diproses": return "process";
+        case "Selesai": return "done";
+        case "Ditolak": return "rejected";
+        default: return "waiting";
+      }
+    }
+
+    async function loadSubmissions() {
+      try {
+        const res = await fetch("/api/form-kerusakan/history?limit=1000");
+        const data = await res.json();
+        if (data.success && data.items) {
+          allSubmissions = data.items;
+          renderTable();
+        } else {
+          throw new Error("Gagal memuat data");
+        }
+      } catch (error) {
+        console.error("Load error:", error);
+        emptyNote.hidden = false;
+        emptyNote.textContent = "Gagal memuat data laporan kerusakan.";
+      }
+    }
+
+    function filteredItems() {
+      const searchQ = String(searchInput.value || "").toLowerCase();
+      const statusQ = String(statusFilter.value || "all");
+      const severityQ = String(severityFilter.value || "all");
+
+      return allSubmissions.filter(item => {
+        const matchSearch = !searchQ || 
+          String(item.barangName || "").toLowerCase().indexOf(searchQ) !== -1 ||
+          String(item.memberName || "").toLowerCase().indexOf(searchQ) !== -1 ||
+          String(item.deskripsiKerusakan || "").toLowerCase().indexOf(searchQ) !== -1;
+
+        const matchStatus = statusQ === "all" || item.status === statusQ;
+        const matchSeverity = severityQ === "all" || item.tingkatKerusakan === severityQ;
+
+        return matchSearch && matchStatus && matchSeverity;
+      });
+    }
+
+    function renderSummary(items) {
+      if (!summaryGrid) return;
+
+      const total = items.length;
+      const pending = items.filter(i => i.status === "Pending Review").length;
+      const processing = items.filter(i => i.status === "Diproses").length;
+      const completed = items.filter(i => i.status === "Selesai").length;
+
+      summaryGrid.innerHTML = `
+        <div class="summary-item">
+          <p>Total Laporan</p>
+          <strong>${total}</strong>
+        </div>
+        <div class="summary-item">
+          <p>Review</p>
+          <strong>${pending}</strong>
+        </div>
+        <div class="summary-item">
+          <p>Diproses</p>
+          <strong>${processing}</strong>
+        </div>
+        <div class="summary-item">
+          <p>Selesai</p>
+          <strong>${completed}</strong>
+        </div>
+      `;
+    }
+
+    function renderTable() {
+      const items = filteredItems();
+      renderSummary(items);
+
+      if (!rows) return;
+
+      if (items.length === 0) {
+        rows.innerHTML = "";
+        emptyNote.hidden = false;
+        return;
+      }
+
+      emptyNote.hidden = true;
+      let html = "";
+      items.forEach(function (item) {
+        const statusClass_ = statusClass(item.status);
+        const submitted = formatDateTime(item.createdAt);
+        const incident = formatDateTime(item.waktuKejadian);
+
+        html += `
+          <tr>
+            <td>${escapeHtml(item.barangName || "-")}</td>
+            <td>${escapeHtml(item.memberName || "-")}</td>
+            <td><span class="status-pill ${statusClass_}">${escapeHtml(item.tingkatKerusakan || "-")}</span></td>
+            <td>${incident}</td>
+            <td>
+              <select class="form-control form-control-sm" data-status-id="${escapeHtml(item.id)}" style="padding: 4px; font-size: 0.8rem;">
+                <option value="Pending Review" ${item.status === "Pending Review" ? "selected" : ""}>Pending Review</option>
+                <option value="Diproses" ${item.status === "Diproses" ? "selected" : ""}>Diproses</option>
+                <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
+                <option value="Ditolak" ${item.status === "Ditolak" ? "selected" : ""}>Ditolak</option>
+              </select>
+            </td>
+            <td style="text-align: center; cursor: pointer;" data-detail-id="${escapeHtml(item.id)}">
+              <strong>👁️</strong>
+            </td>
+            <td style="font-size: 0.8rem; color: #888;">${submitted}</td>
+          </tr>
+        `;
+      });
+
+      rows.innerHTML = html;
+    }
+
+    function openDetail(itemId) {
+      const item = allSubmissions.find(i => i.id === itemId);
+      if (!item) return;
+
+      const incident = formatDateTime(item.waktuKejadian);
+      const submitted = formatDateTime(item.createdAt);
+      let photoHtml = "";
+      
+      if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
+        photoHtml = item.fotoKerusakan.map(photo => 
+          `<div class="detail-photo" style="margin: 8px 0;">
+            <a href="${escapeHtml(photo.url)}" target="_blank">
+              <img src="${escapeHtml(photo.url)}" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+            </a>
+          </div>`
+        ).join("");
+      }
+
+      detailBody.innerHTML = `
+        <div class="detail-item">
+          <strong>Nama Barang:</strong>
+          <p>${escapeHtml(item.barangName || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Kode Barang:</strong>
+          <p>${escapeHtml(item.barangCode || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Pelapor:</strong>
+          <p>${escapeHtml(item.memberName || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Tingkat Kerusakan:</strong>
+          <p>${escapeHtml(item.tingkatKerusakan || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Status:</strong>
+          <p>${escapeHtml(item.status || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Deskripsi Kerusakan:</strong>
+          <p>${escapeHtml(item.deskripsiKerusakan || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Waktu Kejadian:</strong>
+          <p>${incident}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Diinput:</strong>
+          <p>${submitted}</p>
+        </div>
+        ${photoHtml ? `<div class="detail-item"><strong>Bukti Foto:</strong>${photoHtml}</div>` : ""}
+      `;
+
+      detailModal.hidden = false;
+    }
+
+    function closeDetail() {
+      if (detailModal) detailModal.hidden = true;
+    }
+
+    async function updateStatus(itemId, newStatus) {
+      try {
+        const res = await fetch(`/api/form-kerusakan/${itemId}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          const item = allSubmissions.find(i => i.id === itemId);
+          if (item) item.status = newStatus;
+          renderTable();
+        } else {
+          alert("Gagal mengupdate status: " + (data.error || "Kesalahan tak diketahui"));
+        }
+      } catch (error) {
+        console.error("Update error:", error);
+        alert("Gagal mengupdate status: " + error.message);
+      }
+    }
+
+    function exportExcel() { alert("Fitur ekspor Excel belum tersedia."); }
+    function exportPdf() { alert("Fitur ekspor PDF belum tersedia."); }
+
+    function updateLiveDateTime() {
+      if (liveDateTime) {
+        liveDateTime.textContent = new Date().toLocaleString("id-ID", {
+          weekday: "long", day: "2-digit", month: "long", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+      }
+    }
+
+    function guardAdmin() {
+      if (!window.CREMBO_CURRENT_USER || !window.CREMBO_CURRENT_USER.logged_in) {
+        window.location.href = "login.html";
+        return false;
+      }
+      const role = String(window.CREMBO_CURRENT_USER.role || "").toLowerCase();
+      if (role !== "admin" && role !== "super_admin") {
+        window.alert("Halaman ini khusus admin/super admin.");
+        window.location.href = "dashboard.html";
+        return false;
+      }
+      return true;
+    }
+
+    searchInput.addEventListener("input", renderTable);
+    statusFilter.addEventListener("change", renderTable);
+    severityFilter.addEventListener("change", renderTable);
+
+    rows.addEventListener("change", function (event) {
+      const itemId = event.target.getAttribute("data-status-id");
+      if (itemId) updateStatus(itemId, event.target.value);
+    });
+
+    rows.addEventListener("click", function (event) {
+      const id = event.target.getAttribute("data-detail-id");
+      if (id) openDetail(id);
+    });
+
+    closeDetailBtn.addEventListener("click", closeDetail);
+    detailModal.addEventListener("click", function (event) {
+      if (event.target === detailModal) closeDetail();
+    });
+
+    downloadExcelBtn.addEventListener("click", exportExcel);
+    downloadPdfBtn.addEventListener("click", exportPdf);
+
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+
+    if (guardAdmin()) {
+      loadSubmissions();
+    }
+  </script>
       {
         id: "krk-2026-04-11-002",
         submittedAt: "2026-04-11T14:05:00.000Z",

@@ -1478,6 +1478,30 @@ def ensure_loan_schema(cursor) -> None:
     ensure_column(cursor, "loan_requests", "waktu_mulai", "`waktu_mulai` time DEFAULT NULL")
     ensure_column(cursor, "loan_requests", "waktu_selesai", "`waktu_selesai` time DEFAULT NULL")
 
+def ensure_damage_schema(cursor) -> None:
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `form_kerusakan_barang` (
+          `id` varchar(100) NOT NULL,
+          `member_id` varchar(100) DEFAULT NULL,
+          `barang_id` varchar(100) DEFAULT NULL,
+          `barang_name` varchar(255) NOT NULL,
+          `barang_code` varchar(100) DEFAULT NULL,
+          `tingkat_kerusakan` varchar(50) NOT NULL DEFAULT 'Sedang',
+          `status` varchar(50) NOT NULL DEFAULT 'Pending Review',
+          `deskripsi_kerusakan` longtext DEFAULT NULL,
+          `waktu_kejadian` datetime DEFAULT NULL,
+          `foto_kerusakan` longtext DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_damage_status` (`status`),
+          KEY `idx_damage_member` (`member_id`),
+          KEY `idx_damage_created` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+
 @app.route("/api/pengajuan", methods=["GET"])
 def list_pengajuan():
     ensure_auth_schema()
@@ -1842,6 +1866,356 @@ def update_pengajuan_status(pengajuan_id):
         conn.commit()
         return jsonify({"success": True})
         
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+# --- DAMAGE REPORT ENDPOINTS ---
+
+@app.route("/api/inventory/search", methods=["GET"])
+def search_inventory_items():
+    """Search inventory items for auto-lookup"""
+    ensure_auth_schema()
+    query_str = request.args.get('q', '').strip().lower()
+    if not query_str or len(query_str) < 2:
+        return jsonify({"success": True, "items": []})
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_inventory_schema(cursor)
+        
+        cursor.execute("""
+            SELECT `id`, `code`, `nama`, `photos` FROM `inventory_items`
+            WHERE LOWER(`nama`) LIKE %s OR LOWER(`code`) LIKE %s
+            LIMIT 20
+        """, (f"%{query_str}%", f"%{query_str}%"))
+        
+        rows = cursor.fetchall() or []
+        items = []
+        for r in rows:
+            items.append({
+                "id": r.get("id"),
+                "code": r.get("code"),
+                "name": r.get("nama"),
+                "photos": normalize_inventory_photos(r.get("photos"))
+            })
+        return jsonify({"success": True, "items": items})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/damage/upload", methods=["POST"])
+def upload_damage_photo():
+    """Upload damage report photos"""
+    ensure_auth_schema()
+    incoming_files = request.files.getlist("files")
+    if not incoming_files:
+        single_file = request.files.get("file")
+        incoming_files = [single_file] if single_file and single_file.filename else []
+
+    if not incoming_files:
+        return jsonify({"success": False, "error": "Tidak ada file yang dipilih"}), 400
+
+    saved_files: list[dict[str, object]] = []
+    try:
+        for file in incoming_files:
+            if not file or not file.filename:
+                continue
+            # Validate file extension for images only
+            file_ext = Path(file.filename).suffix.lower()
+            if file_ext not in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}:
+                return jsonify({"success": False, "error": f"Tipe file {file_ext} tidak diizinkan. Gunakan JPG, PNG, GIF, WebP, atau BMP"}), 400
+            saved_files.append(save_uploaded_attachment(file))
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+
+    if not saved_files:
+        return jsonify({"success": False, "error": "Gagal menyimpan file"}), 400
+
+    return jsonify({
+        "success": True,
+        "files": saved_files,
+    })
+
+@app.route("/api/form-kerusakan", methods=["POST"])
+def submit_damage_report():
+    """Submit damage report form"""
+    ensure_auth_schema()
+    user_context = current_user_context()
+    
+    if not user_context.get("logged_in"):
+        return jsonify({"success": False, "error": "Anda harus login terlebih dahulu"}), 401
+    
+    member_id = user_context.get("user_id")
+    data = request.get_json(silent=True) or {}
+    
+    barang_id = data.get("barangId")
+    barang_name = normalize_text(data.get("barangName"), "")
+    barang_code = normalize_text(data.get("barangCode"), "")
+    tingkat_kerusakan = normalize_text(data.get("tingkatKerusakan"), "Sedang")
+    deskripsi = normalize_text(data.get("deskripsiKerusakan"), "")
+    waktu_kejadian = data.get("waktuKejadian")
+    foto_list = data.get("fotoKerusakan") or []
+    
+    if not barang_name:
+        return jsonify({"success": False, "error": "Nama barang harus diisi"}), 400
+    
+    if not deskripsi:
+        return jsonify({"success": False, "error": "Deskripsi kerusakan harus diisi"}), 400
+    
+    if tingkat_kerusakan not in ["Ringan", "Sedang", "Berat"]:
+        tingkat_kerusakan = "Sedang"
+    
+    # Parse waktu_kejadian if provided
+    kejadian_dt = None
+    if waktu_kejadian:
+        try:
+            kejadian_dt = datetime.fromisoformat(str(waktu_kejadian).replace('Z', '+00:00'))
+        except:
+            kejadian_dt = datetime.now()
+    else:
+        kejadian_dt = datetime.now()
+    
+    # Create damage report ID
+    damage_id = f"dmg-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
+    
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        ensure_damage_schema(cursor)
+        
+        # Store photos as JSON
+        foto_data = json.dumps(foto_list or [], ensure_ascii=False)
+        
+        cursor.execute("""
+            INSERT INTO `form_kerusakan_barang` 
+            (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `tingkat_kerusakan`, `status`, `deskripsi_kerusakan`, `waktu_kejadian`, `foto_kerusakan`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            damage_id,
+            member_id,
+            barang_id if barang_id else None,
+            barang_name,
+            barang_code if barang_code else None,
+            tingkat_kerusakan,
+            "Pending Review",
+            deskripsi,
+            kejadian_dt,
+            foto_data
+        ))
+        
+        # Get member name for notification
+        cursor.execute("SELECT `nama` FROM `anggota` WHERE `id` = %s LIMIT 1", (member_id,))
+        member_row = cursor.fetchone()
+        member_name = member_row[0] if member_row else member_id
+        
+        # Create admin notification
+        create_notification(
+            cursor, 
+            "damage_report",
+            "Laporan Kerusakan Barang Baru",
+            f"Laporan kerusakan barang dari {member_name}: {barang_name}",
+            f"/hasil-form-kerusakan-barang.html?id={damage_id}",
+            {"damage_id": damage_id, "member_id": member_id, "barang_name": barang_name},
+            target_role="admin"
+        )
+        
+        conn.commit()
+        return jsonify({
+            "success": True,
+            "damageId": damage_id,
+            "message": "Laporan kerusakan barang berhasil dikirim"
+        })
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/form-kerusakan/history", methods=["GET"])
+def get_damage_history():
+    """Get damage report history"""
+    ensure_auth_schema()
+    user_context = current_user_context()
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_damage_schema(cursor)
+        
+        role = user_context.get("role", "")
+        member_id = user_context.get("user_id")
+        
+        query = "SELECT d.*, a.nama as member_name FROM `form_kerusakan_barang` d LEFT JOIN `anggota` a ON d.member_id = a.id WHERE 1=1"
+        params = []
+        
+        # Non-admin users only see their own damage reports
+        if role not in ["admin", "super_admin"]:
+            if not member_id:
+                return jsonify({"success": True, "items": []})
+            query += " AND d.`member_id` = %s"
+            params.append(member_id)
+        
+        # Apply filters
+        status_filter = request.args.get('status')
+        severity_filter = request.args.get('severity')
+        search_query = request.args.get('search', '').strip()
+        
+        if status_filter and status_filter != 'all':
+            query += " AND d.`status` = %s"
+            params.append(status_filter)
+        
+        if severity_filter and severity_filter != 'all':
+            query += " AND d.`tingkat_kerusakan` = %s"
+            params.append(severity_filter)
+        
+        if search_query:
+            query += " AND (d.`barang_name` LIKE %s OR d.`deskripsi_kerusakan` LIKE %s OR a.`nama` LIKE %s)"
+            search_param = f"%{search_query}%"
+            params.extend([search_param, search_param, search_param])
+        
+        query += " ORDER BY d.`created_at` DESC"
+        
+        cursor.execute(query, tuple(params))
+        rows = cursor.fetchall() or []
+        
+        items = []
+        for r in rows:
+            items.append({
+                "id": r.get("id"),
+                "memberId": r.get("member_id"),
+                "memberName": r.get("member_name"),
+                "barangId": r.get("barang_id"),
+                "barangName": r.get("barang_name"),
+                "barangCode": r.get("barang_code"),
+                "tingkatKerusakan": r.get("tingkat_kerusakan"),
+                "status": r.get("status"),
+                "deskripsiKerusakan": r.get("deskripsi_kerusakan"),
+                "waktuKejadian": r.get("waktu_kejadian").isoformat() if r.get("waktu_kejadian") else None,
+                "fotoKerusakan": json.loads(r.get("foto_kerusakan") or "[]"),
+                "createdAt": r.get("created_at").isoformat() if r.get("created_at") else None,
+                "updatedAt": r.get("updated_at").isoformat() if r.get("updated_at") else None,
+            })
+        
+        return jsonify({"success": True, "items": items})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/form-kerusakan/<damage_id>", methods=["GET"])
+def get_damage_detail(damage_id):
+    """Get single damage report detail"""
+    ensure_auth_schema()
+    user_context = current_user_context()
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_damage_schema(cursor)
+        
+        cursor.execute("""
+            SELECT d.*, a.nama as member_name FROM `form_kerusakan_barang` d
+            LEFT JOIN `anggota` a ON d.member_id = a.id
+            WHERE d.`id` = %s LIMIT 1
+        """, (damage_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "error": "Laporan tidak ditemukan"}), 404
+        
+        # Check access permission
+        role = user_context.get("role", "")
+        member_id = user_context.get("user_id")
+        
+        if role not in ["admin", "super_admin"] and row.get("member_id") != member_id:
+            return jsonify({"success": False, "error": "Akses ditolak"}), 403
+        
+        return jsonify({
+            "success": True,
+            "item": {
+                "id": row.get("id"),
+                "memberId": row.get("member_id"),
+                "memberName": row.get("member_name"),
+                "barangId": row.get("barang_id"),
+                "barangName": row.get("barang_name"),
+                "barangCode": row.get("barang_code"),
+                "tingkatKerusakan": row.get("tingkat_kerusakan"),
+                "status": row.get("status"),
+                "deskripsiKerusakan": row.get("deskripsi_kerusakan"),
+                "waktuKejadian": row.get("waktu_kejadian").isoformat() if row.get("waktu_kejadian") else None,
+                "fotoKerusakan": json.loads(row.get("foto_kerusakan") or "[]"),
+                "createdAt": row.get("created_at").isoformat() if row.get("created_at") else None,
+                "updatedAt": row.get("updated_at").isoformat() if row.get("updated_at") else None,
+            }
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/form-kerusakan/<damage_id>/status", methods=["PUT"])
+def update_damage_status(damage_id):
+    """Update damage report status (admin only)"""
+    ensure_auth_schema()
+    user_context = current_user_context()
+    role = user_context.get("role", "")
+    
+    if role not in ["admin", "super_admin"]:
+        return jsonify({"success": False, "error": "Anda tidak memiliki izin untuk operasi ini"}), 403
+    
+    data = request.get_json(silent=True) or {}
+    new_status = data.get("status", "").strip()
+    
+    if new_status not in ["Pending Review", "Diproses", "Selesai", "Ditolak"]:
+        return jsonify({"success": False, "error": "Status tidak valid"}), 400
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_damage_schema(cursor)
+        
+        cursor.execute("SELECT `member_id` FROM `form_kerusakan_barang` WHERE `id` = %s LIMIT 1", (damage_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "error": "Laporan tidak ditemukan"}), 404
+        
+        cursor.execute("""
+            UPDATE `form_kerusakan_barang` 
+            SET `status` = %s, `updated_at` = NOW()
+            WHERE `id` = %s
+        """, (new_status, damage_id))
+        
+        # Send notification to member
+        try:
+            cursor.execute("SELECT `nama` FROM `anggota` WHERE `id` = %s LIMIT 1", (row.get("member_id"),))
+            member_row = cursor.fetchone()
+            member_name = member_row.get("nama") if member_row else row.get("member_id")
+            
+            status_indo = {
+                "Pending Review": "Dalam Review",
+                "Diproses": "Sedang Diproses",
+                "Selesai": "Selesai",
+                "Ditolak": "Ditolak"
+            }.get(new_status, new_status)
+            
+            create_notification(
+                cursor,
+                "damage_status_update",
+                "Status Laporan Kerusakan Diperbarui",
+                f"Status laporan kerusakan Anda telah diubah menjadi: {status_indo}",
+                f"/riwayat-form-kerusakan-barang-anggota.html?id={damage_id}",
+                {"damage_id": damage_id},
+                target_role="user"
+            )
+        except Exception as e:
+            print(f"[WARN] Gagal mengirim notifikasi update status kerusakan: {e}")
+        
+        conn.commit()
+        return jsonify({"success": True})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "error": str(e)}), 400

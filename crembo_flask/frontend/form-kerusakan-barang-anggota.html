@@ -603,15 +603,9 @@
               <input id="itemCodeInput" type="text" placeholder="Contoh: CAM-001">
             </div>
 
-            <div class="grid-2">
-              <div class="field">
-                <label for="incidentDateInput">Tanggal Kejadian</label>
-                <input id="incidentDateInput" type="date" required>
-              </div>
-              <div class="field">
-                <label for="locationInput">Lokasi Kejadian</label>
-                <input id="locationInput" type="text" placeholder="Contoh: Ruang Kontrol Streaming" required>
-              </div>
+            <div class="field">
+              <label for="incidentDateInput">Waktu Kejadian</label>
+              <input id="incidentDateInput" type="datetime-local" required>
             </div>
 
             <div class="field">
@@ -639,8 +633,6 @@
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
-    const SUBMISSION_KEY = "crembo-kerusakan-form-submissions";
-    const NOTIFICATION_STORAGE_KEY = "crembo-admin-notifications";
 
     const sidebar = document.getElementById("sidebar");
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
@@ -653,7 +645,6 @@
     const itemCodeInput = document.getElementById("itemCodeInput");
     const severitySelect = document.getElementById("severitySelect");
     const incidentDateInput = document.getElementById("incidentDateInput");
-    const locationInput = document.getElementById("locationInput");
     const chronologyInput = document.getElementById("chronologyInput");
     const photoInput = document.getElementById("photoInput");
     const photoPreview = document.getElementById("photoPreview");
@@ -664,14 +655,10 @@
     const barangOptions = document.getElementById("barangOptions");
 
     let sessionUser = null;
-    let pendingPhotoData = "";
+    let pendingPhotos = [];
     let barangComboOpen = false;
-
-    const DUMMY_BARANG_LIST = [
-      "Kamera Sony A6400", "Wireless Microphone Set", "Tripod Heavy Duty",
-      "LED Panel Portabel", "Mixer Audio 8 Channel", "Laptop Presentasi",
-      "Speaker Aktif", "Kabel HDMI 10 Meter", "Cermin Backdrop", "Stand Mic"
-    ];
+    let barangList = [];
+    let selectedBarang = null;
 
     function safeParse(raw, fallback) {
       try { return JSON.parse(raw) == null ? fallback : JSON.parse(raw); } 
@@ -682,7 +669,6 @@
       return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // SISTEM PERTANDINGAN SESSION BARU (FLASK SESSION)
     function guardMember() {
       if (!window.CREMBO_CURRENT_USER || !window.CREMBO_CURRENT_USER.logged_in) {
         window.alert("Silakan login terlebih dahulu.");
@@ -697,48 +683,33 @@
         return false;
       }
 
-      // Mapping session dari backend ke format yang dibutuhkan javascript frontend ini
       sessionUser = window.CREMBO_CURRENT_USER;
       sessionUser.fullName = sessionUser.nama;
       sessionUser.identifier = sessionUser.username;
       sessionUser.memberId = sessionUser.user_id;
-
       return true;
     }
 
-    function readSubmissions() {
-      const parsed = safeParse(localStorage.getItem(SUBMISSION_KEY), []);
-      return Array.isArray(parsed) ? parsed : [];
+    function setStatus(message) { 
+      statusBox.textContent = message; 
     }
 
-    function saveSubmissions(items) {
-      localStorage.setItem(SUBMISSION_KEY, JSON.stringify(items));
-    }
-
-    function readAdminNotifications() {
-      const parsed = safeParse(localStorage.getItem(NOTIFICATION_STORAGE_KEY), []);
-      return Array.isArray(parsed) ? parsed : [];
-    }
-
-    function saveAdminNotifications(items) {
-      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(items));
-    }
-
-    function pushAdminNotification(item) {
-      const notifications = readAdminNotifications();
-      const exists = notifications.some(entry => String(entry && entry.id ? entry.id : "") === String(item.id || ""));
-      if (exists) return;
-      notifications.unshift(item);
-      saveAdminNotifications(notifications);
-    }
-
-    function setStatus(message) { statusBox.textContent = message; }
-
-    function seedBarangSuggestions() {
-      if (!barangOptions) return;
-      barangOptions.innerHTML = DUMMY_BARANG_LIST.map(item => 
-        '<button class="combo-option" type="button" data-value="' + escapeHtml(item) + '">' + escapeHtml(item) + '</button>'
-      ).join("");
+    async function loadInventoryItems(query = "") {
+      try {
+        const url = query 
+          ? `/api/inventory/search?q=${encodeURIComponent(query)}` 
+          : `/api/inventory/search?q=`;
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success && data.items) {
+          barangList = data.items;
+          renderBarangOptions(query);
+        }
+      } catch (error) {
+        console.error("Error loading inventory:", error);
+        setStatus("Gagal memuat daftar barang dari server.");
+      }
     }
 
     function renderBarangOptions(query) {
@@ -746,16 +717,23 @@
 
       const cleanQuery = String(query || "").trim().toLowerCase();
       const selectedValue = String(itemInput.value || "").trim().toLowerCase();
-      const filtered = DUMMY_BARANG_LIST.filter(item => !cleanQuery || item.toLowerCase().indexOf(cleanQuery) !== -1);
+      const filtered = barangList.filter(item => 
+        !cleanQuery || item.name.toLowerCase().indexOf(cleanQuery) !== -1 || 
+        item.code.toLowerCase().indexOf(cleanQuery) !== -1
+      );
 
-      let html = '<button class="combo-option' + (selectedValue ? '' : ' active') + '" type="button" data-value="">-- tetap ketik manual --</button>';
+      let html = '<button class="combo-option' + (selectedValue ? '' : ' active') + '" type="button" data-id="">-- Ketik Manual Nama Barang --</button>';
 
       filtered.forEach(item => {
-        const activeClass = item.toLowerCase() === selectedValue ? ' active' : '';
-        html += '<button class="combo-option' + activeClass + '" type="button" data-value="' + escapeHtml(item) + '">' + escapeHtml(item) + '</button>';
+        const activeClass = item.name.toLowerCase() === selectedValue ? ' active' : '';
+        const display = `${item.name} (${item.code})`;
+        html += '<button class="combo-option' + activeClass + '" type="button" data-id="' + escapeHtml(item.id) + '" data-name="' + escapeHtml(item.name) + '" data-code="' + escapeHtml(item.code) + '">' + escapeHtml(display) + '</button>';
       });
 
-      if (!filtered.length) html += '<p class="combo-empty">Nama barang tidak ditemukan. Tetap bisa diketik manual.</p>';
+      if (filtered.length === 0 && cleanQuery) {
+        html += '<p class="combo-empty">Barang tidak ditemukan. Silakan ketik nama barang manual.</p>';
+      }
+      
       barangOptions.innerHTML = html;
     }
 
@@ -764,10 +742,9 @@
       barangComboOpen = true;
       barangDropdown.classList.add("show");
       barangDropdown.setAttribute("aria-hidden", "false");
-      renderBarangOptions(barangSearchInput.value);
       barangSearchInput.value = itemInput.value;
       barangSearchInput.focus();
-      barangSearchInput.select();
+      renderBarangOptions(barangSearchInput.value);
     }
 
     function closeBarangDropdown() {
@@ -775,10 +752,6 @@
       barangComboOpen = false;
       barangDropdown.classList.remove("show");
       barangDropdown.setAttribute("aria-hidden", "true");
-    }
-
-    function toggleBarangDropdown() {
-      barangComboOpen ? closeBarangDropdown() : openBarangDropdown();
     }
 
     function fillMemberIdentity() {
@@ -796,64 +769,121 @@
     }
 
     function handlePhotoChange(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) {
-        pendingPhotoData = ""; photoPreview.hidden = true; photoPreview.removeAttribute("src"); return;
+      const files = event.target.files;
+      if (!files || files.length === 0) {
+        pendingPhotos = [];
+        photoPreview.hidden = true;
+        photoPreview.removeAttribute("src");
+        return;
       }
+
+      const file = files[0];
       if (!file.type || file.type.indexOf("image/") !== 0) {
-        window.alert("File harus berupa gambar."); photoInput.value = ""; return;
+        window.alert("File harus berupa gambar.");
+        photoInput.value = "";
+        return;
       }
 
       const reader = new FileReader();
       reader.onload = function () {
-        pendingPhotoData = String(reader.result || "");
-        photoPreview.src = pendingPhotoData;
+        photoPreview.src = String(reader.result || "");
         photoPreview.hidden = false;
+        pendingPhotos = [{ filename: file.name, url: String(reader.result) }];
       };
       reader.readAsDataURL(file);
     }
 
-    function submitForm(event) {
+    async function uploadPhotos() {
+      if (!photoInput.files || photoInput.files.length === 0) {
+        return [];
+      }
+
+      try {
+        const formData = new FormData();
+        for (let i = 0; i < photoInput.files.length; i++) {
+          formData.append("files", photoInput.files[i]);
+        }
+
+        const res = await fetch("/api/damage/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        if (data.success && data.files) {
+          return data.files;
+        } else {
+          throw new Error(data.error || "Gagal upload foto");
+        }
+      } catch (error) {
+        console.error("Photo upload error:", error);
+        throw error;
+      }
+    }
+
+    async function submitForm(event) {
       event.preventDefault();
 
       const itemName = itemInput.value.trim();
-      if (!itemName) { setStatus("Nama barang wajib diisi."); return; }
+      if (!itemName) { 
+        setStatus("Nama barang wajib diisi."); 
+        return; 
+      }
 
-      const fullName = String(sessionUser.fullName || sessionUser.identifier || "Anggota").trim();
-      const submission = {
-        id: "krk-" + Date.now(),
-        submittedAt: new Date().toISOString(),
-        memberId: String(sessionUser.memberId || sessionUser.identifier || ""),
-        memberName: fullName,
-        memberIdentifier: String(sessionUser.identifier || ""),
-        itemId: "manual-" + Date.now(),
-        itemCode: itemCodeInput.value.trim() || "-",
-        itemName: itemName,
-        severity: severitySelect.value,
-        incidentDate: incidentDateInput.value,
-        location: locationInput.value.trim(),
-        chronology: chronologyInput.value.trim(),
-        photo: pendingPhotoData,
-        adminStatus: "Menunggu"
-      };
+      const deskripsi = chronologyInput.value.trim();
+      if (!deskripsi) {
+        setStatus("Deskripsi kerusakan wajib diisi.");
+        return;
+      }
 
-      const all = readSubmissions();
-      all.push(submission);
-      saveSubmissions(all);
+      const waktuKejadian = incidentDateInput.value;
+      if (!waktuKejadian) {
+        setStatus("Waktu kejadian wajib diisi.");
+        return;
+      }
 
-      pushAdminNotification({
-        id: "damage-report-" + submission.id,
-        type: "peminjaman",
-        title: "Laporan Kerusakan Barang Baru",
-        message: fullName + " mengirim laporan kerusakan untuk barang " + submission.itemName + " (" + submission.itemCode + ").",
-        date: new Date().toISOString().slice(0, 16).replace("T", " "),
-        status: "unread"
-      });
+      try {
+        setStatus("Mengunggah foto...");
+        const uploadedPhotos = await uploadPhotos();
 
-      reportForm.reset();
-      incidentDateInput.value = new Date().toISOString().slice(0, 10);
-      pendingPhotoData = ""; photoPreview.hidden = true; photoPreview.removeAttribute("src");
-      setStatus("Form kerusakan barang berhasil dikirim.");
+        setStatus("Mengirim laporan...");
+        
+        const payload = {
+          barangId: selectedBarang ? selectedBarang.id : null,
+          barangName: itemName,
+          barangCode: itemCodeInput.value.trim() || "",
+          tingkatKerusakan: severitySelect.value || "Sedang",
+          deskripsiKerusakan: deskripsi,
+          waktuKejadian: waktuKejadian,
+          fotoKerusakan: uploadedPhotos
+        };
+
+        const res = await fetch("/api/form-kerusakan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          setStatus("✓ Laporan kerusakan berhasil dikirim!");
+          reportForm.reset();
+          incidentDateInput.value = new Date().toISOString().slice(0, 16);
+          pendingPhotos = [];
+          photoPreview.hidden = true;
+          selectedBarang = null;
+          itemCodeInput.value = "";
+          
+          setTimeout(() => {
+            window.location.href = "riwayat-form-kerusakan-barang-anggota.html";
+          }, 2000);
+        } else {
+          setStatus("✗ Gagal mengirim laporan: " + (data.error || "Kesalahan tak diketahui"));
+        }
+      } catch (error) {
+        console.error("Submission error:", error);
+        setStatus("✗ Gagal mengirim laporan: " + error.message);
+      }
     }
 
     Array.from(document.querySelectorAll(".menu-group .menu-toggle")).forEach(toggleBtn => {
@@ -864,16 +894,15 @@
       });
     });
 
-    const mobileMenuBtnSidebar = document.getElementById("mobileMenuBtn");
     function setSidebarOpen(isOpen) {
       sidebar.classList.toggle("show", isOpen);
       sidebarBackdrop.classList.toggle("show", isOpen);
-      if(mobileMenuBtnSidebar) mobileMenuBtnSidebar.setAttribute("aria-expanded", String(isOpen));
+      if(mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
       document.body.style.overflow = isOpen ? "hidden" : "";
     }
 
-    if(mobileMenuBtnSidebar) {
-        mobileMenuBtnSidebar.addEventListener("click", function () {
+    if(mobileMenuBtn) {
+        mobileMenuBtn.addEventListener("click", function () {
           setSidebarOpen(!sidebar.classList.contains("show"));
         });
     }
@@ -891,26 +920,41 @@
     itemInput.addEventListener("click", openBarangDropdown);
     itemInput.addEventListener("input", function () {
       if (barangSearchInput) barangSearchInput.value = itemInput.value;
-      renderBarangOptions(itemInput.value);
+      loadInventoryItems(itemInput.value);
     });
     itemInput.addEventListener("keydown", function (event) {
-      if (event.key === "ArrowDown" || event.key === "Enter") { event.preventDefault(); openBarangDropdown(); }
+      if (event.key === "ArrowDown" || event.key === "Enter") { 
+        event.preventDefault(); 
+        openBarangDropdown(); 
+      }
     });
     barangSearchInput.addEventListener("input", function () {
       itemInput.value = barangSearchInput.value;
-      renderBarangOptions(barangSearchInput.value);
+      loadInventoryItems(barangSearchInput.value);
     });
     barangSearchInput.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") { closeBarangDropdown(); itemInput.focus(); }
+      if (event.key === "Escape") { 
+        closeBarangDropdown(); 
+        itemInput.focus(); 
+      }
     });
     barangDropdown.addEventListener("click", function (event) {
       const option = event.target.closest(".combo-option");
       if (!option) return;
-      const value = option.getAttribute("data-value") || "";
-      itemInput.value = value;
-      barangSearchInput.value = value;
-      renderBarangOptions(value);
-      if (value) itemCodeInput.focus();
+      const barangId = option.getAttribute("data-id");
+      const barangName = option.getAttribute("data-name");
+      const barangCode = option.getAttribute("data-code");
+      
+      if (barangId) {
+        selectedBarang = { id: barangId, name: barangName, code: barangCode };
+        itemInput.value = barangName;
+        itemCodeInput.value = barangCode;
+      } else {
+        selectedBarang = null;
+        itemInput.value = "";
+        itemCodeInput.value = "";
+      }
+      closeBarangDropdown();
     });
 
     document.addEventListener("click", function (event) {
@@ -919,8 +963,8 @@
 
     if (guardMember()) {
       fillMemberIdentity();
-      seedBarangSuggestions();
-      incidentDateInput.value = new Date().toISOString().slice(0, 10);
+      loadInventoryItems("");
+      incidentDateInput.value = new Date().toISOString().slice(0, 16);
       setStatus("Form siap diisi.");
       updateLiveDateTime();
       setInterval(updateLiveDateTime, 1000);

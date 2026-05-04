@@ -627,7 +627,6 @@
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
-    const SUBMISSION_KEY = "crembo-kerusakan-form-submissions";
 
     const sidebar = document.getElementById("sidebar");
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
@@ -648,6 +647,7 @@
     const detailBody = document.getElementById("detailBody");
 
     let sessionUser = null;
+    let allSubmissions = [];
 
     function safeParse(raw, fallback) {
       try { return JSON.parse(raw) == null ? fallback : JSON.parse(raw); } 
@@ -659,19 +659,248 @@
     }
 
     function formatDateTime(value) {
-      const date = new Date(value || "");
-      if (Number.isNaN(date.getTime())) return "-";
-      return date.toLocaleString("id-ID", {
-        day: "2-digit", month: "2-digit", year: "numeric",
-        hour: "2-digit", minute: "2-digit"
-      }) + " WIB";
+      if (!value) return "-";
+      try {
+        const date = new Date(value);
+        return date.toLocaleString("id-ID", {
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        }) + " WIB";
+      } catch (e) {
+        return String(value);
+      }
     }
 
     function statusClass(status) {
-      if (status === "Selesai") return "done";
-      if (status === "Diproses") return "process";
-      return "waiting";
+      switch (String(status || "").trim()) {
+        case "Selesai": return "done";
+        case "Diproses": return "process";
+        case "Pending Review": return "waiting";
+        default: return "waiting";
+      }
     }
+
+    function guardMember() {
+      if (!window.CREMBO_CURRENT_USER || !window.CREMBO_CURRENT_USER.logged_in) {
+        window.alert("Silakan login terlebih dahulu.");
+        window.location.href = "login.html";
+        return false;
+      }
+
+      const role = String(window.CREMBO_CURRENT_USER.role || "").toLowerCase();
+      if (role !== "user" && role !== "anggota") {
+        window.alert("Halaman ini khusus anggota.");
+        window.location.href = "dashboard.html";
+        return false;
+      }
+
+      sessionUser = window.CREMBO_CURRENT_USER;
+      sessionUser.fullName = sessionUser.nama;
+      sessionUser.identifier = sessionUser.username;
+      sessionUser.memberId = sessionUser.user_id;
+      return true;
+    }
+
+    async function loadSubmissions() {
+      try {
+        const res = await fetch("/api/form-kerusakan/history");
+        const data = await res.json();
+        if (data.success && data.items) {
+          allSubmissions = data.items;
+          renderTable();
+        } else {
+          throw new Error("Gagal memuat data");
+        }
+      } catch (error) {
+        console.error("Load error:", error);
+        emptyState.hidden = false;
+        emptyState.textContent = "Gagal memuat riwayat laporan Anda.";
+      }
+    }
+
+    function filteredSubmissions() {
+      const searchQ = String(searchInput.value || "").toLowerCase();
+      const statusQ = String(statusFilter.value || "all");
+      const severityQ = String(severityFilter.value || "all");
+
+      return allSubmissions.filter(item => {
+        const matchSearch = !searchQ || 
+          String(item.barangName || "").toLowerCase().indexOf(searchQ) !== -1 ||
+          String(item.deskripsiKerusakan || "").toLowerCase().indexOf(searchQ) !== -1;
+
+        const matchStatus = statusQ === "all" || item.status === statusQ;
+        const matchSeverity = severityQ === "all" || item.tingkatKerusakan === severityQ;
+
+        return matchSearch && matchStatus && matchSeverity;
+      });
+    }
+
+    function renderTable() {
+      const items = filteredSubmissions();
+
+      if (countChip) countChip.textContent = items.length;
+
+      if (!rows) return;
+
+      if (items.length === 0) {
+        rows.innerHTML = "";
+        emptyState.hidden = false;
+        return;
+      }
+
+      emptyState.hidden = true;
+      let html = "";
+      items.forEach(function (item) {
+        const statusPill = statusClass(item.status);
+        const incident = formatDateTime(item.waktuKejadian);
+        const submitted = formatDateTime(item.createdAt);
+
+        html += `
+          <tr>
+            <td>${escapeHtml(item.barangName || "-")}</td>
+            <td>${escapeHtml(item.barangCode || "-")}</td>
+            <td><span class="status-pill ${statusPill}">${escapeHtml(item.tingkatKerusakan || "-")}</span></td>
+            <td>${incident}</td>
+            <td style="cursor: pointer; text-align: center; color: #0066cc;" data-detail-id="${escapeHtml(item.id)}">
+              <strong>Lihat Detail →</strong>
+            </td>
+            <td style="font-size: 0.8rem; color: #888;">${submitted}</td>
+          </tr>
+        `;
+      });
+
+      rows.innerHTML = html;
+    }
+
+    function openDetail(reportId) {
+      const item = allSubmissions.find(i => i.id === reportId);
+      if (!item) return;
+
+      const incident = formatDateTime(item.waktuKejadian);
+      const submitted = formatDateTime(item.createdAt);
+      let photoHtml = "";
+      
+      if (item.fotoKerusakan && item.fotoKerusakan.length > 0) {
+        photoHtml = item.fotoKerusakan.map(photo => 
+          `<div class="detail-photo" style="margin: 8px 0;">
+            <a href="${escapeHtml(photo.url)}" target="_blank">
+              <img src="${escapeHtml(photo.url)}" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+            </a>
+          </div>`
+        ).join("");
+      }
+
+      detailBody.innerHTML = `
+        <div class="detail-item">
+          <strong>Nama Barang:</strong>
+          <p>${escapeHtml(item.barangName || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Kode Barang:</strong>
+          <p>${escapeHtml(item.barangCode || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Tingkat Kerusakan:</strong>
+          <p>${escapeHtml(item.tingkatKerusakan || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Status Laporan:</strong>
+          <p>${escapeHtml(item.status || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Deskripsi Kerusakan:</strong>
+          <p>${escapeHtml(item.deskripsiKerusakan || "-")}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Waktu Kejadian:</strong>
+          <p>${incident}</p>
+        </div>
+        <div class="detail-item">
+          <strong>Diinput pada:</strong>
+          <p>${submitted}</p>
+        </div>
+        ${photoHtml ? `<div class="detail-item"><strong>Bukti Foto:</strong>${photoHtml}</div>` : ""}
+      `;
+
+      detailModal.hidden = false;
+    }
+
+    function closeDetail() {
+      if (detailModal) detailModal.hidden = true;
+    }
+
+    function fillMemberIdentity() {
+      const fullName = String(sessionUser.fullName || sessionUser.identifier || "Anggota").trim();
+      memberName.textContent = fullName;
+      const initials = fullName.split(" ").map(word => word.charAt(0).toUpperCase()).slice(0, 2).join("") || "AG";
+      memberAvatar.textContent = initials;
+    }
+
+    function updateLiveDateTime() {
+      if (liveDateTime) {
+        liveDateTime.textContent = new Date().toLocaleString("id-ID", {
+          weekday: "long", day: "2-digit", month: "long", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        }) + " WIB";
+      }
+    }
+
+    Array.from(document.querySelectorAll(".menu-group .menu-toggle")).forEach(toggleBtn => {
+      toggleBtn.addEventListener("click", function () {
+        const group = toggleBtn.closest(".menu-group");
+        group.classList.toggle("open");
+        toggleBtn.querySelector("span").textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
+    function setSidebarOpen(isOpen) {
+      sidebar.classList.toggle("show", isOpen);
+      sidebarBackdrop.classList.toggle("show", isOpen);
+      if(mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    if(mobileMenuBtn) {
+        mobileMenuBtn.addEventListener("click", function () {
+          setSidebarOpen(!sidebar.classList.contains("show"));
+        });
+    }
+
+    sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      link.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 1080px)").matches) setSidebarOpen(false);
+      });
+    });
+
+    searchInput.addEventListener("input", renderTable);
+    statusFilter.addEventListener("change", renderTable);
+    severityFilter.addEventListener("change", renderTable);
+
+    function handleDetailActivation(event) {
+      const detailBtn = event.target.closest("[data-detail-id]");
+      if (detailBtn) {
+        const reportId = detailBtn.getAttribute("data-detail-id");
+        if (reportId) openDetail(reportId);
+      }
+    }
+
+    rows.addEventListener("click", handleDetailActivation);
+    rows.addEventListener("pointerup", handleDetailActivation);
+    rows.addEventListener("touchend", handleDetailActivation, { passive: false });
+
+    closeDetailBtn.addEventListener("click", closeDetail);
+    detailModal.addEventListener("click", function (event) {
+      if (event.target === detailModal) closeDetail();
+    });
+
+    if (guardMember()) {
+      fillMemberIdentity();
+      loadSubmissions();
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    }
+  </script>
 
     // SISTEM PERTANDINGAN SESSION BARU (FLASK SESSION)
     function guardMember() {

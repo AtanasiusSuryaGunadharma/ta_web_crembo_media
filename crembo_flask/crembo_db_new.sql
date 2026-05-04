@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 04 Bulan Mei 2026 pada 22.46
+-- Waktu pembuatan: 04 Bulan Mei 2026 pada 23.29
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -182,6 +182,60 @@ INSERT INTO `carousel_slides` (`id`, `title`, `slug`, `description`, `button_tex
 ('slide-1777501533719', 'Tes Slide 1', 'tes-slide-1', 'Tes Slide 1', 'Lihat Detail', 'https://www.ampta.ac.id/', 'uploads/foto_baju_koki_1777501490.jpg', 1, 1),
 ('slide-1777501608227', 'Tes Slide 2', 'tes-slide-2', 'Tes Slide 2', 'Lihat Detail', 'https://jurnal.ampta.ac.id/', 'uploads/screencapture-regresiipkapp-hri4gibhumniyaspcxyehz-streamlit-app-2026-04-16-21_14_39_1777501565.png', 2, 1),
 ('slide-1777501680625', 'Tes Slide 3', 'tes-slide-3', 'tes slide 3', 'Lihat Detail', 'https://pascasarjana.ampta.ac.id/', 'uploads/User_Journey_Map_User_Biasa_1777504646.png', 3, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `damage_reports`
+--
+
+CREATE TABLE `damage_reports` (
+  `id` varchar(100) NOT NULL,
+  `member_id` varchar(100) DEFAULT NULL,
+  `member_name` varchar(255) DEFAULT NULL,
+  `member_identifier` varchar(150) DEFAULT NULL,
+  `item_id` varchar(100) DEFAULT NULL,
+  `item_code` varchar(100) DEFAULT '-',
+  `item_name` varchar(255) NOT NULL,
+  `severity` varchar(50) NOT NULL DEFAULT 'Ringan',
+  `incident_date` date DEFAULT NULL,
+  `incident_time` time DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `chronology` text DEFAULT NULL,
+  `photo_url` text DEFAULT NULL,
+  `admin_status` varchar(50) NOT NULL DEFAULT 'Menunggu',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `damage_reports`
+--
+
+INSERT INTO `damage_reports` (`id`, `member_id`, `member_name`, `member_identifier`, `item_id`, `item_code`, `item_name`, `severity`, `incident_date`, `incident_time`, `location`, `chronology`, `photo_url`, `admin_status`, `created_at`, `updated_at`) VALUES
+('krk-2026-04-11-002', 'anggota-002', 'Sinta Lestari', 'sinta_lestari', NULL, 'AUD-004', 'Wireless Microphone Set', 'Ringan', '2026-04-11', '10:00:00', 'Gudang Audio', 'Salah satu receiver ditemukan longgar pada bagian slot baterai.', NULL, 'Diproses', '2026-04-11 14:05:00', '2026-05-05 04:04:58'),
+('krk-2026-04-12-001', 'anggota-001', 'Atanasius Surya Guna', 'atanasiussurya', NULL, 'CAM-001', 'Kamera Sony A6400', 'Berat', '2026-04-12', '15:30:00', 'Ruang Kontrol Streaming', 'Layar sempat berkedip lalu kamera tidak bisa dinyalakan saat persiapan misa.', NULL, 'Menunggu', '2026-04-12 09:20:00', '2026-05-05 04:04:58');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `form_kerusakan_barang`
+--
+
+CREATE TABLE `form_kerusakan_barang` (
+  `id` varchar(100) NOT NULL,
+  `member_id` varchar(100) DEFAULT NULL,
+  `barang_id` varchar(100) DEFAULT NULL,
+  `barang_name` varchar(255) NOT NULL,
+  `barang_code` varchar(100) DEFAULT NULL,
+  `tingkat_kerusakan` varchar(50) NOT NULL DEFAULT 'Sedang',
+  `status` varchar(50) NOT NULL DEFAULT 'Pending Review',
+  `deskripsi_kerusakan` longtext DEFAULT NULL,
+  `waktu_kejadian` datetime DEFAULT NULL,
+  `foto_kerusakan` longtext DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -2299,6 +2353,23 @@ ALTER TABLE `anggota`
 --
 ALTER TABLE `carousel_slides`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `damage_reports`
+--
+ALTER TABLE `damage_reports`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_damage_status` (`admin_status`),
+  ADD KEY `idx_damage_member` (`member_id`);
+
+--
+-- Indeks untuk tabel `form_kerusakan_barang`
+--
+ALTER TABLE `form_kerusakan_barang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_damage_status` (`status`),
+  ADD KEY `idx_damage_member` (`member_id`),
+  ADD KEY `idx_damage_created` (`created_at`);
 
 --
 -- Indeks untuk tabel `google_maps_embed`
