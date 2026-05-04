@@ -140,7 +140,7 @@
     .todo-item{border:1px solid var(--line-soft);background:rgba(128,0,0,0.02);border-radius:var(--radius-sm);padding:10px 12px;display:grid;gap:4px;border-left:3px solid var(--primary);transition:var(--transition);}
     .todo-item:hover{background:rgba(128,0,0,0.04);}
     .todo-item strong{font-size:0.87rem;color:var(--ink);}
-    .todo-item small{color:var(--muted);font-size:0.76rem;}
+    .todo-item small{color:var(--muted);font-size:0.76rem; line-height: 1.4;}
     .role-note{margin-top:12px;border:1px solid var(--line);background:rgba(128,0,0,0.03);border-radius:var(--radius-sm);padding:10px 12px;font-size:0.82rem;color:var(--ink-secondary);border-left:3px solid var(--accent-gold);}
 
     /* CHARTS */
@@ -320,7 +320,7 @@
         <div class="quick-filter" aria-label="Role rule summary">
           <span class="chip"><strong id="logScopeChip">Log:</strong> -</span>
           <span class="chip"><strong id="memberScopeChip">Anggota:</strong> -</span>
-          <span class="chip"><strong>Request:</strong> Peminjaman barang & tugas misa besar</span>
+          <span class="chip"><strong>Request:</strong> Peminjaman & Kerusakan Barang</span>
         </div>
       </header>
 
@@ -436,7 +436,6 @@
             <span class="status">Need Action</span>
           </header>
           <div class="panel-body">
-            <!-- ID ditambahkan ke UL untuk mempermudah targeting DOM JavaScript -->
             <ul class="todo-list" id="todoList">
               <li class="todo-item" style="border-left-color: #9ca3af; background: #f9fafb;">
                 <strong>Memuat data prioritas...</strong>
@@ -456,6 +455,7 @@
             <button class="notification-tab" type="button" data-admin-notif-tab="tugas">Tugas</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="tukar">Tukar Jadwal</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="peminjaman">Peminjaman</button>
+            <button class="notification-tab" type="button" data-admin-notif-tab="kerusakan">Kerusakan Barang</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="agenda">Agenda</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="form">Form Pendaftaran</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="news">Pengumuman</button>
@@ -469,6 +469,7 @@
             <option value="tugas">Notifikasi Pengingat Tugas</option>
             <option value="tukar">Notifikasi Tukar Jadwal</option>
             <option value="peminjaman">Notifikasi Peminjaman</option>
+            <option value="kerusakan">Notifikasi Kerusakan Barang</option>
             <option value="agenda">Notifikasi Agenda</option>
             <option value="form">Notifikasi Form Pendaftaran</option>
             <option value="news">Notifikasi Pengumuman</option>
@@ -536,7 +537,6 @@
     const notificationTabs = Array.from(document.querySelectorAll("[data-admin-notif-tab]"));
     let notificationTab = "all";
 
-    // Escape text helper
     function escapeHtml(text) {
       return String(text || "")
         .replace(/&/g, "&amp;")
@@ -547,12 +547,8 @@
     }
 
     function formatRole(value) {
-      if (value === "super_admin") {
-        return "Super Admin";
-      }
-      if (value === "admin") {
-        return "Admin";
-      }
+      if (value === "super_admin") return "Super Admin";
+      if (value === "admin") return "Admin";
       return "Anggota";
     }
 
@@ -566,13 +562,11 @@
         { label: "Kelola Data Admin", href: "kelola-data-admin.html" },
       ];
 
-      const list = currentRole === "super_admin"
-        ? baseItems.concat(extraSuperAdmin)
-        : baseItems;
+      const list = currentRole === "super_admin" ? baseItems.concat(extraSuperAdmin) : baseItems;
       const currentPage = window.location.pathname.split("/").pop().toLowerCase();
 
       anggotaMenu.innerHTML = list
-        .map(function (item, index) {
+        .map(function (item) {
           const itemPage = String(item.href || "").split("/").pop().toLowerCase();
           const activeClass = itemPage && itemPage === currentPage ? " active" : "";
           return '<a class="menu-link' + activeClass + '" href="' + item.href + '">' + item.label + "</a>";
@@ -581,28 +575,16 @@
     }
 
     function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
+      try { return JSON.parse(raw); } catch (error) { return null; }
     }
 
     function defaultPermissions() {
-      return {
-        streaming: true,
-        inventaris: true,
-        publikasi: true,
-        konten: true,
-        keanggotaan: true
-      };
+      return { streaming: true, inventaris: true, publikasi: true, konten: true, keanggotaan: true };
     }
 
     function normalizePermissions(value) {
       const base = defaultPermissions();
-      if (!value || typeof value !== "object") {
-        return base;
-      }
+      if (!value || typeof value !== "object") return base;
       return {
         streaming: value.streaming !== false,
         inventaris: value.inventaris !== false,
@@ -612,82 +594,38 @@
       };
     }
 
-    function extractDateKey(rawValue) {
-      const rawText = String(rawValue || "").trim();
-      if (!rawText) {
-        return "";
-      }
-      const dateMatch = rawText.match(/^(\d{4}-\d{2}-\d{2})/);
-      if (dateMatch) {
-        return dateMatch[1];
-      }
-      const parsed = new Date(rawText);
-      if (Number.isNaN(parsed.getTime())) {
-        return "";
-      }
-      const year = parsed.getFullYear();
-      const month = String(parsed.getMonth() + 1).padStart(2, "0");
-      const day = String(parsed.getDate()).padStart(2, "0");
-      return year + "-" + month + "-" + day;
-    }
-
     function extractTimeLabel(rawValue) {
       const rawText = String(rawValue || "").trim();
-      if (!rawText) {
-        return "-";
-      }
-
+      if (!rawText) return "-";
       const timeMatch = rawText.match(/(?:T|\s)(\d{2}:\d{2})(?::\d{2})?/);
-      if (timeMatch) {
-        return timeMatch[1];
-      }
+      if (timeMatch) return timeMatch[1];
 
       const parsed = new Date(rawText);
-      if (Number.isNaN(parsed.getTime())) {
-        return rawText;
-      }
+      if (Number.isNaN(parsed.getTime())) return rawText;
+      return String(parsed.getHours()).padStart(2, "0") + ":" + String(parsed.getMinutes()).padStart(2, "0");
+    }
 
-      const hour = String(parsed.getHours()).padStart(2, "0");
-      const minute = String(parsed.getMinutes()).padStart(2, "0");
-      return hour + ":" + minute;
+    function formatDateIndo(rawDate) {
+        if (!rawDate) return "-";
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        return `${day} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
     }
 
     function seedAdminProfilesIfNeeded() {
       const existingRaw = localStorage.getItem(ADMIN_STORAGE_KEY);
       const existing = existingRaw ? safeParse(existingRaw) : null;
-      if (Array.isArray(existing) && existing.length) {
-        return;
-      }
+      if (Array.isArray(existing) && existing.length) return;
       const seed = [
         {
-          id: "adm-1",
-          fullName: "Admin Andi",
-          email: "admin.andi@example.com",
-          loginIdentifier: "admin_andi",
-          role: "admin",
-          status: "Aktif",
-          permissions: {
-            streaming: true,
-            inventaris: true,
-            publikasi: false,
-            konten: false,
-            keanggotaan: false
-          }
+          id: "adm-1", fullName: "Admin Andi", email: "admin.andi@example.com", loginIdentifier: "admin_andi", role: "admin", status: "Aktif",
+          permissions: { streaming: true, inventaris: true, publikasi: false, konten: false, keanggotaan: false }
         },
         {
-          id: "adm-2",
-          fullName: "Admin Maria",
-          email: "admin.maria@example.com",
-          loginIdentifier: "admin_maria",
-          role: "admin",
-          status: "Aktif",
-          permissions: {
-            streaming: false,
-            inventaris: false,
-            publikasi: true,
-            konten: true,
-            keanggotaan: true
-          }
+          id: "adm-2", fullName: "Admin Maria", email: "admin.maria@example.com", loginIdentifier: "admin_maria", role: "admin", status: "Aktif",
+          permissions: { streaming: false, inventaris: false, publikasi: true, konten: true, keanggotaan: true }
         }
       ];
       localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(seed));
@@ -697,80 +635,79 @@
       seedAdminProfilesIfNeeded();
       const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
       const parsed = raw ? safeParse(raw) : null;
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
+      if (!Array.isArray(parsed)) return [];
       return parsed;
     }
 
     function resolveAdminPermissions() {
-      if (role === "super_admin") {
-        return defaultPermissions();
-      }
-      if (role !== "admin") {
-        return defaultPermissions();
-      }
+      if (role === "super_admin") return defaultPermissions();
+      if (role !== "admin") return defaultPermissions();
 
       const sessionObj = storedSessionRaw ? safeParse(storedSessionRaw) : null;
-      if (sessionObj && sessionObj.adminPermissions) {
-        return normalizePermissions(sessionObj.adminPermissions);
-      }
+      if (sessionObj && sessionObj.adminPermissions) return normalizePermissions(sessionObj.adminPermissions);
 
       const identifier = String(sessionObj && sessionObj.identifier ? sessionObj.identifier : "").trim().toLowerCase();
       const fullName = String(sessionObj && sessionObj.fullName ? sessionObj.fullName : "").trim().toLowerCase();
       const admins = readAdminProfiles().filter(function (item) {
-        return String(item && item.role ? item.role : "admin") === "admin"
-          && String(item && item.status ? item.status : "Aktif") === "Aktif";
+        return String(item && item.role ? item.role : "admin") === "admin" && String(item && item.status ? item.status : "Aktif") === "Aktif";
       });
 
       const matched = admins.find(function (item) {
         const itemName = String(item && item.fullName ? item.fullName : "").trim().toLowerCase();
         const itemEmail = String(item && item.email ? item.email : "").trim().toLowerCase();
         const itemLogin = String(item && item.loginIdentifier ? item.loginIdentifier : "").trim().toLowerCase();
-        return (identifier && (itemEmail === identifier || itemLogin === identifier || itemName === identifier))
-          || (fullName && itemName === fullName);
+        return (identifier && (itemEmail === identifier || itemLogin === identifier || itemName === identifier)) || (fullName && itemName === fullName);
       });
 
       return matched ? normalizePermissions(matched.permissions) : defaultPermissions();
     }
 
-    // MEMUAT PRIORITAS HARI INI DARI DATABASE PEMINJAMAN
+    // Load Prioritas Hari Ini: Ambil dari API Peminjaman dan Laporan Kerusakan
     async function loadPrioritasHariIni() {
       const todoList = document.getElementById("todoList");
       if (!todoList) return;
 
       try {
-        const res = await fetch('/api/pengajuan');
-        const data = await res.json();
-        if (data.success && data.items) {
-          // Pakai tanggal lokal saat ini, lalu cocokkan dengan tanggal mentah dari backend
-          const now = new Date();
-          const todayStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
+        const [resLoan, resDamage] = await Promise.all([
+          fetch('/api/pengajuan'),
+          fetch('/api/form-kerusakan/history')
+        ]);
+        
+        const dataLoan = await resLoan.json();
+        const dataDamage = await resDamage.json();
+        
+        let htmlList = "";
 
-          const pendingToday = data.items.filter(item => {
-            if (item.status !== 'pending') return false;
-
-            const rawDate = item.createdAt || item.tanggalPengajuan;
-            const itemStr = extractDateKey(rawDate);
-            if (!itemStr) return false;
-
-            return itemStr === todayStr;
+        if (dataLoan.success && dataLoan.items) {
+          const pendingLoans = dataLoan.items.filter(item => item.status === 'pending');
+          pendingLoans.forEach(item => {
+            const timeStr = extractTimeLabel(item.createdAt || item.tanggalPengajuan);
+            const dateStr = formatDateIndo(item.createdAt || item.tanggalPengajuan);
+            htmlList += `<li class="todo-item">
+              <strong>Peminjaman: ${escapeHtml(item.barangNama)}</strong>
+              <small>Diajukan oleh <b>${escapeHtml(item.memberNama || 'Anggota')}</b> pada ${escapeHtml(dateStr)} pkl ${escapeHtml(timeStr)}. <a href="persetujuan-peminjaman.html" style="color:var(--primary); font-weight:700; text-decoration:underline;">Tinjau</a></small>
+            </li>`;
           });
-
-          if (pendingToday.length === 0) {
-            todoList.innerHTML = '<li class="todo-item" style="border-left-color: #9ca3af; background: #f9fafb;"><strong>Tidak ada pengajuan peminjaman baru hari ini</strong><small>Semua sudah beres!</small></li>';
-          } else {
-            todoList.innerHTML = pendingToday.map(item => {
-              const rawTimeSource = item.createdAt || item.tanggalPengajuan;
-              const timeStr = extractTimeLabel(rawTimeSource);
-
-              return `<li class="todo-item">
-                <strong>Peminjaman: ${escapeHtml(item.barangNama)}</strong>
-                <small>Diajukan oleh <b>${escapeHtml(item.memberNama || 'Anggota')}</b> pkl ${escapeHtml(timeStr)}. <a href="persetujuan-peminjaman.html" style="color:var(--primary); font-weight:700; text-decoration:underline;">Tinjau</a></small>
-              </li>`;
-            }).join('');
-          }
         }
+
+        if (dataDamage.success && dataDamage.items) {
+          const pendingDamages = dataDamage.items.filter(item => item.status === 'Pending Review');
+          pendingDamages.forEach(item => {
+            const timeStr = extractTimeLabel(item.createdAt);
+            const dateStr = formatDateIndo(item.createdAt);
+            htmlList += `<li class="todo-item" style="border-left-color: #d97706;">
+              <strong>Kerusakan: ${escapeHtml(item.barangName)}</strong>
+              <small>Dilaporkan oleh <b>${escapeHtml(item.memberName || 'Anggota')}</b> pada ${escapeHtml(dateStr)} pkl ${escapeHtml(timeStr)}. <a href="hasil-form-kerusakan-barang.html" style="color:var(--primary); font-weight:700; text-decoration:underline;">Tinjau</a></small>
+            </li>`;
+          });
+        }
+
+        if (!htmlList) {
+          todoList.innerHTML = '<li class="todo-item" style="border-left-color: #9ca3af; background: #f9fafb;"><strong>Tidak ada tugas prioritas saat ini</strong><small>Semua sudah beres!</small></li>';
+        } else {
+          todoList.innerHTML = htmlList;
+        }
+
       } catch (e) {
         console.error(e);
         todoList.innerHTML = '<li class="todo-item" style="border-left-color: #ef4444;"><strong>Gagal memuat prioritas</strong><small>Periksa koneksi internet.</small></li>';
@@ -793,6 +730,7 @@
       if (type === "tugas") return "Notifikasi Pengingat Tugas";
       if (type === "tukar") return "Notifikasi Tukar Jadwal";
       if (type === "peminjaman") return "Notifikasi Peminjaman";
+      if (type === "kerusakan") return "Notifikasi Kerusakan Barang";
       if (type === "agenda") return "Notifikasi Agenda";
       if (type === "form") return "Notifikasi Form Pendaftaran";
       if (type === "news") return "Notifikasi Pengumuman";
@@ -880,25 +818,13 @@
 
     function applyMenuAccessByPermission() {
       const permissions = resolveAdminPermissions();
-      if (role === "super_admin") {
-        return;
-      }
+      if (role === "super_admin") return;
 
-      if (streamingMenuGroup) {
-        streamingMenuGroup.style.display = permissions.streaming ? "" : "none";
-      }
-      if (inventarisMenuGroup) {
-        inventarisMenuGroup.style.display = permissions.inventaris ? "" : "none";
-      }
-      if (publikasiMenuGroup) {
-        publikasiMenuGroup.style.display = permissions.publikasi ? "" : "none";
-      }
-      if (kontenMenuGroup) {
-        kontenMenuGroup.style.display = permissions.konten ? "" : "none";
-      }
-      if (keanggotaanMenuGroup) {
-        keanggotaanMenuGroup.style.display = permissions.keanggotaan ? "" : "none";
-      }
+      if (streamingMenuGroup) streamingMenuGroup.style.display = permissions.streaming ? "" : "none";
+      if (inventarisMenuGroup) inventarisMenuGroup.style.display = permissions.inventaris ? "" : "none";
+      if (publikasiMenuGroup) publikasiMenuGroup.style.display = permissions.publikasi ? "" : "none";
+      if (kontenMenuGroup) kontenMenuGroup.style.display = permissions.konten ? "" : "none";
+      if (keanggotaanMenuGroup) keanggotaanMenuGroup.style.display = permissions.keanggotaan ? "" : "none";
     }
 
     function renderContentMenu(currentRole) {
@@ -910,13 +836,11 @@
         { label: "Kelola Embed Instagram", href: "kelola-embed-instagram.html" }
       ];
 
-      const list = currentRole === "super_admin"
-        ? baseItems
-        : baseItems;
+      const list = currentRole === "super_admin" ? baseItems : baseItems;
       const currentPage = window.location.pathname.split("/").pop().toLowerCase();
 
       contentMenu.innerHTML = list
-        .map(function (item, index) {
+        .map(function (item) {
           const itemPage = String(item.href || "").split("/").pop().toLowerCase();
           const activeClass = itemPage && itemPage === currentPage ? " active" : "";
           return '<a class="menu-link' + activeClass + '" href="' + item.href + '">' + item.label + "</a>";
@@ -939,9 +863,7 @@
     }
 
     function renderLogs(currentRole) {
-      if (currentRole !== "super_admin") {
-        return;
-      }
+      if (currentRole !== "super_admin") return;
 
       const extra = document.createElement("tr");
       extra.innerHTML = "<td data-label='Waktu'>15:05</td><td data-label='Pengguna'>admin_maria</td><td data-label='Modul'>Anggota</td><td data-label='Aktivitas'>Mengubah status anggota menjadi aktif</td>";
@@ -966,7 +888,7 @@
     renderLogs(role);
     applyMenuAccessByPermission();
     renderNotifications();
-    loadPrioritasHariIni(); // Memuat data Prioritas dari Database API
+    loadPrioritasHariIni();
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -1069,12 +991,8 @@
     }
 
     function titleByRange(range) {
-      if (range === "week") {
-        return "Minggu Ini";
-      }
-      if (range === "month") {
-        return "Bulan Ini";
-      }
+      if (range === "week") return "Minggu Ini";
+      if (range === "month") return "Bulan Ini";
       return "Tahun Ini";
     }
 
@@ -1086,9 +1004,7 @@
 
       if (range === "week") {
         const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-        const values = labels.map(function (_, index) {
-          return index >= 5 ? 3 : (index === 2 ? 2 : 1);
-        });
+        const values = labels.map(function (_, index) { return index >= 5 ? 3 : (index === 2 ? 2 : 1); });
         return { labels: labels, values: values };
       }
 
@@ -1120,10 +1036,7 @@
     function renderScheduleMetric() {
       const range = metricScheduleRange.value;
       const series = buildScheduleSeries(range);
-      const total = series.values.reduce(function (sum, value) {
-        return sum + value;
-      }, 0);
-
+      const total = series.values.reduce(function (sum, value) { return sum + value; }, 0);
       metricScheduleLabel.textContent = "Jadwal " + titleByRange(range);
       metricScheduleValue.textContent = String(total);
     }
@@ -1142,10 +1055,7 @@
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
       if (range === "week") {
-        return {
-          labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-          values: [2, 3, 1, 2, 4, 2, 1]
-        };
+        return { labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"], values: [2, 3, 1, 2, 4, 2, 1] };
       }
 
       if (range === "month") {
@@ -1158,7 +1068,6 @@
           labels.push((day === 1 || day === totalDays || day % 3 === 0) ? String(day) : "");
           values.push(dayOfWeek === 0 ? 1 : (dayOfWeek === 6 ? 2 : (day % 5 === 0 ? 3 : 1)));
         }
-
         return { labels: labels, values: values };
       }
 

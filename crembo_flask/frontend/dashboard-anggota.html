@@ -1238,6 +1238,7 @@
               <button class="notification-tab" type="button" data-notif-tab="tugas">Tugas</button>
               <button class="notification-tab" type="button" data-notif-tab="tukar">Tukar Jadwal</button>
               <button class="notification-tab" type="button" data-notif-tab="peminjaman">Peminjaman</button>
+              <button class="notification-tab" type="button" data-notif-tab="kerusakan">Kerusakan Barang</button>
               <button class="notification-tab" type="button" data-notif-tab="agenda">Agenda</button>
               <button class="notification-tab" type="button" data-notif-tab="form">Form Pendaftaran</button>
               <button class="notification-tab" type="button" data-notif-tab="news">Pengumuman</button>
@@ -1251,6 +1252,7 @@
               <option value="tugas">Notifikasi Pengingat Tugas</option>
               <option value="tukar">Notifikasi Tukar Jadwal</option>
               <option value="peminjaman">Notifikasi Peminjaman</option>
+              <option value="kerusakan">Notifikasi Kerusakan Barang</option>
               <option value="agenda">Notifikasi Agenda</option>
               <option value="form">Notifikasi Form Pendaftaran</option>
               <option value="news">Notifikasi Pengumuman</option>
@@ -1441,6 +1443,7 @@
       if (type === "tugas") return "Notifikasi Pengingat Tugas";
       if (type === "tukar") return "Notifikasi Tukar Jadwal";
       if (type === "peminjaman") return "Notifikasi Peminjaman";
+      if (type === "kerusakan") return "Notifikasi Kerusakan Barang";
       if (type === "agenda") return "Notifikasi Agenda";
       if (type === "form") return "Notifikasi Form Pendaftaran";
       if (type === "news") return "Notifikasi Pengumuman";
@@ -1455,18 +1458,14 @@
       const items = await fetchNotifications();
 
       const filtered = items.filter(function (item) {
-        // --- PERBAIKAN: Filter Notifikasi Personal ---
-        // Jika notifikasi memiliki target_user_id di payload data, cek apakah sesuai dengan ID user kita
         if (item.data && item.data.target_user_id) {
             if (String(item.data.target_user_id) !== String(sessionUser.user_id)) {
-                return false; // Bukan untuk user ini, sembunyikan!
+                return false; 
             }
         }
-        // ---------------------------------------------
 
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
-        // Penyesuaian agar filter status berdasarkan item.read
         const itemStatus = item.read ? "read" : "unread";
         const matchesStatus = statusFilter === "all" || itemStatus === statusFilter;
         
@@ -1510,7 +1509,6 @@
           + '</article>';
       }).join('');
 
-      // Attach click handlers for actions
       Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
         btn.addEventListener('click', async function(e) {
           const action = btn.getAttribute('data-notif-action');
@@ -1521,7 +1519,6 @@
               await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' });
             } catch (e) {}
             if (url) { 
-              // PERBAIKAN: Buka di tab baru
               window.open(url, '_blank'); 
             }
             else { renderNotifications(); }
