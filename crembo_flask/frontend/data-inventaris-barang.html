@@ -694,6 +694,12 @@
       object-fit: cover;
       border-radius: 8px;
       border: 1px solid #d7d7d7;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .detail-gallery img:hover {
+      transform: scale(1.05);
     }
 
     .detail-gallery figcaption {
@@ -715,6 +721,12 @@
       border: 1px solid #bdbdbd;
       background: #efefef;
       display: block;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .table-thumb:hover {
+      transform: scale(1.1);
     }
 
     .detail-photo {
@@ -758,6 +770,60 @@
       font-weight: 700;
     }
 
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 4000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     @media (max-width: 1080px) {
       .toolbar-grid {
         grid-template-columns: 1fr 1fr;
@@ -788,6 +854,7 @@
       .summary-grid {
         grid-template-columns: 1fr;
       }
+      .photo-lightbox-close { top: 10px; right: 10px; }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1053,6 +1120,14 @@
     </article>
   </section>
 
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto Barang">
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "crembo-inventaris-barang";
     const STORAGE_SEED_KEY = "crembo-inventaris-seed-version";
@@ -1107,6 +1182,10 @@
     const addCategoryBtn = document.getElementById("addCategoryBtn");
     const categoryManageList = document.getElementById("categoryManageList");
 
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
+
     let editingItemId = "";
     let pendingPhotoData = [];
     let pendingUnitDetails = [];
@@ -1118,6 +1197,22 @@
 
     let inventoryCache = [];
     let categoryCache = [];
+
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
+    if(photoLightboxClose) photoLightboxClose.addEventListener("click", closePhotoLightbox);
+    if(photoLightbox) photoLightbox.addEventListener("click", function (e) {
+      if (e.target === photoLightbox) {
+        closePhotoLightbox();
+      }
+    });
 
     function apiRequestJSON(url, options) {
       const requestOptions = Object.assign({
@@ -1845,7 +1940,7 @@
       inventoryEmpty.hidden = true;
       inventoryRows.innerHTML = rows.map(function (item) {
         const photoMarkup = item.photo
-          ? '<img class="table-thumb" src="' + escapeHtml(item.photo) + '" alt="' + escapeHtml(item.name) + '">'
+          ? '<img class="table-thumb" src="' + escapeHtml(item.photo) + '" alt="' + escapeHtml(item.name) + '" onclick="openPhotoLightbox(this.src)">'
           : '-';
           
         // PERBAIKAN: Menampilkan rincian status per unit dalam baris tabel
@@ -1956,7 +2051,7 @@
       const photos = getItemPhotos(item);
       const photoMarkup = photos.length
         ? '<li><strong>Foto Barang:</strong><div class="detail-gallery">' + photos.map(function (photo) {
-            return '<figure><img src="' + escapeHtml(photo.url) + '" alt="' + escapeHtml(photo.name || item.name) + '"><figcaption>' + escapeHtml(photo.name || item.name) + '</figcaption></figure>';
+            return '<figure><img src="' + escapeHtml(photo.url) + '" alt="' + escapeHtml(photo.name || item.name) + '" onclick="openPhotoLightbox(this.src)"><figcaption>' + escapeHtml(photo.name || item.name) + '</figcaption></figure>';
           }).join("") + '</div></li>'
         : '<li><strong>Foto Barang:</strong> -</li>';
       const unitMarkup = (item.unitDetails && item.unitDetails.length)
@@ -2109,6 +2204,10 @@
 
     function closeAllModalsByEsc(event) {
       if (event.key !== "Escape") {
+        return;
+      }
+      if (photoLightbox.classList.contains("show")) {
+        closePhotoLightbox();
         return;
       }
       closeFormModal();

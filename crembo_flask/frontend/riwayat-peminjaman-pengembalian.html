@@ -188,6 +188,60 @@
       transform: scale(1.1);
     }
 
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     @media (max-width: 1080px) {
       .toolbar-grid { grid-template-columns: 1fr 1fr; }
       .summary-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
@@ -198,6 +252,7 @@
     }
     @media (max-width: 620px) {
       .toolbar-grid, .summary-grid { grid-template-columns: 1fr; }
+      .photo-lightbox-close { top: 10px; right: 10px; }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -221,9 +276,9 @@
       <div class="menu-group open">
         <button class="group-toggle" type="button">Inventaris &amp; Peminjaman <span>-</span></button>
         <div class="group-items">
-          <a class="menu-link active" href="data-inventaris-barang.html">Data Inventaris Barang</a>
+          <a class="menu-link" href="data-inventaris-barang.html">Data Inventaris Barang</a>
           <a class="menu-link" href="persetujuan-peminjaman.html">Persetujuan Peminjaman</a>
-          <a class="menu-link" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
+          <a class="menu-link active" href="riwayat-peminjaman-pengembalian.html">Riwayat Peminjaman &amp; Pengembalian</a>
           <a class="menu-link" href="hasil-form-kerusakan-barang.html">Hasil Form Kerusakan Barang</a>
         </div>
       </div>
@@ -325,6 +380,14 @@
     </main>
   </div>
 
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto Bukti">
+    </div>
+  </div>
+
   <script>
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
@@ -337,6 +400,10 @@
     const downloadPdfBtn = document.getElementById("downloadPdfBtn");
     const liveDateTime = document.getElementById("liveDateTime");
     const activeFilterText = document.getElementById("activeFilterText");
+    
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
 
     let REMOTE_REQUESTS = [];
 
@@ -370,6 +437,40 @@
       return "pending";
     }
 
+    // Fungsi Format Tanggal Standar agar Seragam di Laporan dan UI
+    function formatWaktuIndo(rawDate) {
+        if (!rawDate) return "-";
+        if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
+        let d = new Date(rawDate);
+        if (typeof rawDate === 'string' && rawDate.indexOf('T') === -1 && rawDate.indexOf(':') !== -1) {
+            const parts = rawDate.split(/[- :]/);
+            if (parts.length >= 6) d = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+        }
+        if (isNaN(d.getTime())) return escapeHtml(rawDate);
+
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const month = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        return `${day} ${month} ${year} ${h}:${m}`;
+    }
+
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
+    if(photoLightboxClose) photoLightboxClose.addEventListener("click", closePhotoLightbox);
+    if(photoLightbox) photoLightbox.addEventListener("click", function (e) {
+      if (e.target === photoLightbox) closePhotoLightbox();
+    });
+
     function filteredList() {
       const keyword = searchInput.value.trim().toLowerCase();
       const selectedStatus = statusFilter.value;
@@ -388,8 +489,8 @@
 
         const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
         const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
-        const matchesStart = !start || (item.borrowDate || "") >= start;
-        const matchesEnd = !end || (item.borrowDate || "") <= end;
+        const matchesStart = !start || (item.rawBorrowDate || "") >= start;
+        const matchesEnd = !end || (item.rawBorrowDate || "") <= end;
 
         return matchesKeyword && matchesStatus && matchesStart && matchesEnd;
       }).sort(function (a, b) {
@@ -431,20 +532,20 @@
         const p = item.pickup || {};
         const r = item.returnInfo || {};
 
-        const pickupLabel = p.time ? escapeHtml(p.time) : '-';
+        const pickupLabel = p.time ? escapeHtml(formatWaktuIndo(p.time)) : '-';
         const pickupLocation = p.location ? escapeHtml(p.location) : '-';
         const pickupCondition = p.condition ? escapeHtml(p.condition) : '-';
         const pickupNote = p.note ? escapeHtml(p.note) : '-';
         const pickupProof = p.photo 
-            ? '<a href="'+escapeHtml(p.photo)+'" target="_blank"><img class="thumb" src="' + escapeHtml(p.photo) + '" alt="Bukti"></a>' 
+            ? '<img class="thumb" src="' + escapeHtml(p.photo) + '" alt="Bukti" onclick="openPhotoLightbox(this.src)">' 
             : '-';
 
-        const returnLabel = r.time ? escapeHtml(r.time) : '-';
+        const returnLabel = r.time ? escapeHtml(formatWaktuIndo(r.time)) : '-';
         const returnLocation = r.location ? escapeHtml(r.location) : '-';
         const returnCondition = r.condition ? escapeHtml(r.condition) : '-';
         const returnNote = r.note ? escapeHtml(r.note) : '-';
         const returnProof = r.photo 
-            ? '<a href="'+escapeHtml(r.photo)+'" target="_blank"><img class="thumb" src="' + escapeHtml(r.photo) + '" alt="Bukti"></a>' 
+            ? '<img class="thumb" src="' + escapeHtml(r.photo) + '" alt="Bukti" onclick="openPhotoLightbox(this.src)">' 
             : '-';
 
         return '<tr>' +
@@ -480,8 +581,9 @@
                     // Extract Pickup Info Details
                     let pickupMap = null;
                     if (item.pickupInfo && item.pickupInfo.date) {
+                        const timeStr = item.pickupInfo.time ? "T" + item.pickupInfo.time + ":00" : "";
                         pickupMap = {
-                            time: item.pickupInfo.date + (item.pickupInfo.time ? " " + item.pickupInfo.time : ""),
+                            time: item.pickupInfo.date + timeStr,
                             location: item.pickupInfo.location,
                             photo: item.pickupInfo.photo,
                             condition: Array.isArray(item.pickupInfo.units) ? item.pickupInfo.units.map(u => u.status).join(", ") : "-",
@@ -492,8 +594,9 @@
                     // Extract Return Info Details
                     let returnMap = null;
                     if (item.returnInfo && item.returnInfo.date) {
+                        const timeStr = item.returnInfo.time ? "T" + item.returnInfo.time + ":00" : "";
                         returnMap = {
-                            time: item.returnInfo.date + (item.returnInfo.time ? " " + item.returnInfo.time : ""),
+                            time: item.returnInfo.date + timeStr,
                             location: item.returnInfo.location,
                             photo: item.returnInfo.photo,
                             condition: Array.isArray(item.returnInfo.units) ? item.returnInfo.units.map(u => u.status).join(", ") : "-",
@@ -501,15 +604,23 @@
                         };
                     }
 
+                    // Format Waktu Mulai & Selesai seperti frontend
+                    const wMulai = (item.waktuMulai || "").substring(0, 5);
+                    const wSelesai = (item.waktuSelesai || "").substring(0, 5);
+                    
+                    const timeMulaiFormat = item.tanggalMulai + (wMulai ? "T" + wMulai + ":00" : "");
+                    const timeSelesaiFormat = item.tanggalSelesai + (wSelesai ? "T" + wSelesai + ":00" : "");
+
                     return {
                         id: item.id,
                         code: item.id.split('-').pop(), // get the timestamp part
-                        borrowerName: item.memberNama || `User ${item.memberId || 'Guest'}`, // Diambil dari JOIN Query terbaru backend
+                        borrowerName: item.memberNama || `User ${item.memberId || 'Guest'}`, 
                         itemName: item.barangNama,
                         itemCode: item.barangCode,
                         quantity: item.jumlahDiminta,
-                        borrowDate: item.tanggalMulai,
-                        expectedReturnDate: item.tanggalSelesai,
+                        rawBorrowDate: item.tanggalMulai,
+                        borrowDate: formatWaktuIndo(timeMulaiFormat),
+                        expectedReturnDate: formatWaktuIndo(timeSelesaiFormat),
                         purpose: item.tujuan,
                         status: mapDbStatus(item.status),
                         adminNote: item.adminNote,
@@ -535,13 +646,15 @@
       html += '<table border="1" cellspacing="0" cellpadding="6">';
       html += '<tr><th>Kode</th><th>Peminjam</th><th>Barang</th><th>Qty</th><th>Tanggal Pinjam</th><th>Target Kembali</th><th>Waktu Pengambilan</th><th>Kondisi Pengambilan</th><th>Waktu Pengembalian</th><th>Kondisi Pengembalian</th><th>Status</th><th>Catatan Admin</th></tr>';
 
+      const baseUrl = "http://127.0.0.1:5000";
+
       if (!list.length) {
         html += '<tr><td colspan="12">Tidak ada data riwayat sesuai filter.</td></tr>';
       } else {
         list.forEach(function (item) {
-          const pLabel = item.pickup && item.pickup.time ? item.pickup.time : '-';
+          const pLabel = item.pickup && item.pickup.time ? formatWaktuIndo(item.pickup.time) : '-';
           const pCond = item.pickup && item.pickup.condition ? item.pickup.condition : '-';
-          const rLabel = item.returnInfo && item.returnInfo.time ? item.returnInfo.time : '-';
+          const rLabel = item.returnInfo && item.returnInfo.time ? formatWaktuIndo(item.returnInfo.time) : '-';
           const rCond = item.returnInfo && item.returnInfo.condition ? item.returnInfo.condition : '-';
 
           html += '<tr>' +
@@ -582,8 +695,8 @@
 
       const bodyRows = list.length
         ? list.map(function (item) {
-            const pLabel = item.pickup && item.pickup.time ? item.pickup.time : '-';
-            const rLabel = item.returnInfo && item.returnInfo.time ? item.returnInfo.time : '-';
+            const pLabel = item.pickup && item.pickup.time ? formatWaktuIndo(item.pickup.time) : '-';
+            const rLabel = item.returnInfo && item.returnInfo.time ? formatWaktuIndo(item.returnInfo.time) : '-';
 
             return '<tr>' +
               '<td>' + escapeHtml(item.code || '-') + '</td>' +

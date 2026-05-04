@@ -539,6 +539,7 @@
       margin-top: 4px;
       background: #f8fafc;
       transition: transform 0.2s;
+      cursor: pointer;
     }
 
     .evidence-box img:hover {
@@ -554,6 +555,60 @@
       font-size: 0.8rem;
       cursor: pointer;
       font-family: inherit;
+    }
+
+    /* Lightbox styles for photo zoom */
+    .photo-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .photo-lightbox.show {
+      display: flex;
+    }
+
+    .photo-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-lightbox-image {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 32px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     @media (max-width: 1080px) {
@@ -614,6 +669,7 @@
 
     @media (max-width: 640px) {
       .main { padding: 12px; }
+      .photo-lightbox-close { top: 10px; right: 10px; }
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -754,6 +810,14 @@
     </main>
   </div>
 
+  <!-- Lightbox for photo zoom -->
+  <div id="photoLightbox" class="photo-lightbox">
+    <div class="photo-lightbox-content">
+      <button id="photoLightboxClose" class="photo-lightbox-close" aria-label="Tutup">&times;</button>
+      <img id="photoLightboxImage" class="photo-lightbox-image" alt="Foto Bukti">
+    </div>
+  </div>
+
   <script>
     const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
     menuGroups.forEach(function (group) {
@@ -815,6 +879,27 @@
         sidebarAvatar.textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
     }
 
+    // Lightbox Logic
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
+
+    function openPhotoLightbox(photoUrl) {
+      photoLightboxImage.src = photoUrl;
+      photoLightbox.classList.add("show");
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("show");
+    }
+
+    if(photoLightboxClose) photoLightboxClose.addEventListener("click", closePhotoLightbox);
+    if(photoLightbox) photoLightbox.addEventListener("click", function (e) {
+      if (e.target === photoLightbox) {
+        closePhotoLightbox();
+      }
+    });
+
     const liveDateTime = document.getElementById("liveDateTime");
     const tabBtns = document.querySelectorAll(".tab-btn");
     const tabContents = document.querySelectorAll(".tab-content");
@@ -874,10 +959,9 @@
     // Helper Tanggal Sederhana (Untuk Format Periode & Timestamp Frontend)
     function formatTanggalSingkat(rawDate) {
         if (!rawDate) return "-";
-        // Bersihkan GMT String dari Backend SQL date field
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
         let d = new Date(rawDate);
-        if (isNaN(d.getTime())) return escapeHtml(rawDate); // Fallback ke teks asli
+        if (isNaN(d.getTime())) return escapeHtml(rawDate); 
 
         const day = String(d.getDate()).padStart(2, '0');
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -886,7 +970,6 @@
         return `${day} ${month} ${year}`;
     }
 
-    // PERBAIKAN: Format yang menghasilkan: 05 Mei 2026 01:50
     function formatWaktuIndo(rawDate) {
         if (!rawDate) return "-";
         if (typeof rawDate === 'string' && rawDate.includes('GMT')) rawDate = rawDate.replace(' GMT', '');
@@ -937,7 +1020,6 @@
         const matchKey = !keyword || textRaw.includes(keyword);
         const matchStatus = status === "all" || item.status === status;
         
-        // Membandingkan dengan string YYYY-MM-DD (tanggal mulai/pengajuan dari backend)
         let compareDate = item.tanggalPengajuan || item.tanggalMulai || item.createdAt.substring(0, 10);
         const matchFrom = !from || compareDate >= from;
         const matchTo = !to || compareDate <= to;
@@ -958,7 +1040,6 @@
         const sClass = statusClass(item.status);
         const sLabel = statusLabel(item.status);
 
-        // PERBAIKAN: Format Periode dengan Waktu Mulai & Waktu Selesai (Jika tersedia)
         const wMulai = (item.waktuMulai || "").substring(0, 5);
         const wSelesai = (item.waktuSelesai || "").substring(0, 5);
         const periodeMulai = formatTanggalSingkat(item.tanggalMulai) + (wMulai ? " " + wMulai : "");
@@ -978,7 +1059,6 @@
     }
 
     function renderRiwayatCards() {
-      // Tampilkan yang valid untuk riwayat, lalu saring berdasarkan Search dan Filter
       let items = getFilteredList().filter(item => ["approved", "taken", "returned"].includes(item.status));
 
       if (!items.length) {
@@ -1008,13 +1088,11 @@
 
         let adminNoteHtml = item.adminNote ? `<div style="padding: 10px; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; color: #92400e;"><strong>Catatan Admin:</strong> ${escapeHtml(item.adminNote)}</div>` : '';
 
-        // PERBAIKAN: Format Periode dengan Waktu Mulai & Waktu Selesai (Jika tersedia)
         const wMulai = (item.waktuMulai || "").substring(0, 5);
         const wSelesai = (item.waktuSelesai || "").substring(0, 5);
         const periodeMulai = formatTanggalSingkat(item.tanggalMulai) + (wMulai ? " " + wMulai : "");
         const periodeSelesai = formatTanggalSingkat(item.tanggalSelesai) + (wSelesai ? " " + wSelesai : "");
 
-        // PERBAIKAN: Label Catatan disederhanakan
         return `<div class="detail-card">
           <h3>${escapeHtml(item.barangNama)} <span class="${sClass}" style="padding:4px 10px; border-radius:999px; font-size:0.75rem; border:1px solid currentColor;">${sLabel}</span></h3>
           ${adminNoteHtml}
@@ -1033,7 +1111,7 @@
               <div class="detail-item"><strong>Kondisi Saat Ambil:</strong> ${escapeHtml(pickupCondition)}</div>
               <div class="detail-item"><strong>Catatan:</strong> ${escapeHtml(pickupNotes)}</div>
               <div class="evidence-box" style="margin-top: 10px;"><strong>Bukti Foto:</strong>
-                ${pickupPhoto ? `<a href="${escapeHtml(pickupPhoto)}" target="_blank"><img src="${escapeHtml(pickupPhoto)}" alt="Bukti Pengambilan"></a>` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
+                ${pickupPhoto ? `<img src="${escapeHtml(pickupPhoto)}" alt="Bukti Pengambilan" onclick="openPhotoLightbox(this.src)">` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
               </div>
             </div>
 
@@ -1049,7 +1127,7 @@
                 <div class="detail-item"><strong>Kondisi Saat Kembali:</strong> ${escapeHtml(returnCondition)}</div>
                 <div class="detail-item"><strong>Catatan:</strong> ${escapeHtml(returnNotes)}</div>
                 <div class="evidence-box" style="margin-top: 10px;"><strong>Bukti Foto:</strong>
-                  ${returnPhoto ? `<a href="${escapeHtml(returnPhoto)}" target="_blank"><img src="${escapeHtml(returnPhoto)}" alt="Bukti Pengembalian"></a>` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
+                  ${returnPhoto ? `<img src="${escapeHtml(returnPhoto)}" alt="Bukti Pengembalian" onclick="openPhotoLightbox(this.src)">` : '<div style="color:#9ca3af; font-style:italic;">Belum ada / Tidak diupload</div>'}
                 </div>
               ` : `
                 <div style="color: #6b7280; font-style: italic; font-size: 0.85rem; display:flex; align-items:center; height: 100%; justify-content:center; text-align:center;">
