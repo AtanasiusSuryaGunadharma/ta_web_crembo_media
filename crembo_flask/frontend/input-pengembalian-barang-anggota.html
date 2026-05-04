@@ -710,6 +710,30 @@
   </div>
 
   <script>
+    // PERBAIKAN: Menggunakan variabel sesi dinamis dari backend (Jinja)
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const sessionUser = window.CREMBO_CURRENT_USER || {};
+    const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
+    
+    const memberNameEl = document.getElementById("memberName");
+    if (memberNameEl) memberNameEl.textContent = displayName;
+    
+    // Perbarui Role
+    const accountText = document.querySelector(".account-text small");
+    if (accountText) {
+        let roleDisplay = "Anggota Multimedia";
+        if (sessionUser.role === 'super_admin') roleDisplay = 'Super Admin';
+        else if (sessionUser.role === 'admin') roleDisplay = 'Admin';
+        else if (sessionUser.role === 'user') roleDisplay = 'Anggota';
+        accountText.textContent = "Role: " + roleDisplay;
+    }
+
+    // Perbarui Avatar (Inisial 2 huruf pertama)
+    const sidebarAvatar = document.querySelector(".avatar");
+    if (sidebarAvatar && displayName) {
+        sidebarAvatar.textContent = displayName.split(" ").map(w => w.charAt(0).toUpperCase()).slice(0, 2).join("");
+    }
+
     const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
     menuGroups.forEach(function (group) {
       const btn = group.querySelector(".menu-toggle");
@@ -746,20 +770,6 @@
         }
       });
     });
-
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    const memberName = document.getElementById("memberName");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
-        }
-      } catch (error) {
-      }
-    }
 
     const liveDateTime = document.getElementById("liveDateTime");
     const activeLoanTableRows = document.getElementById("activeLoanTableRows");
