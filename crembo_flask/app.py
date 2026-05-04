@@ -6,6 +6,7 @@ import os
 import re
 import time
 import uuid
+import html
 
 import mysql.connector
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, send_from_directory, session, url_for
@@ -571,7 +572,6 @@ def inventory_item_payload_from_request(data: dict[str, object], existing: dict[
     }
 
 def inventory_export_rows(items: list[dict[str, object]]):
-    # PERBAIKAN: Menghapus kolom "Status"
     headers = [
         "Kode Barang",
         "Nama Barang",
@@ -805,12 +805,26 @@ def input_pengambilan(pengajuan_id):
         )
         conn.commit()
 
+        # Update Notifikasi Pengambilan Barang
         try:
             ensure_notifications_schema()
-            create_notification(cursor, "peminjaman", f"Pengambilan: {req.get('barang_name')}", f"Pengambilan dicatat oleh user.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="user")
+            user_name = session.get("nama") or session.get("username") or f"User ID {user_id}"
+            safe_user = html.escape(str(user_name))
+            safe_lokasi = html.escape(str(lokasi))
+            
+            condition_texts = [f"&bull; Unit {i+1}: {html.escape(str(u.get('status')))} - {html.escape(str(u.get('reason','-')))}" for i, u in enumerate(unit_details)]
+            condition_str = "<br>".join(condition_texts)
+            photo_link = f"<br><br><a href='{photo_record}' target='_blank' style='display:inline-block; padding:4px 8px; background:#7f1d1d; color:#fff; border-radius:4px; text-decoration:none; font-size:11px; font-weight:bold;'>Lihat Foto Bukti</a>" if photo_record else ""
+            
+            body_text = f"Pengambilan dicatat oleh <b>{safe_user}</b>.<br><b>Lokasi:</b> {safe_lokasi}<br><b>Kondisi:</b><br>{condition_str}{photo_link}"
+
+            create_notification(cursor, "peminjaman", f"Barang Diambil: {req.get('barang_name')}", body_text, "/riwayat-peminjaman-pengembalian.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="admin")
+            
+            create_notification(cursor, "peminjaman", f"Pengambilan Tersimpan: {req.get('barang_name')}", "Data pengambilan Anda telah tersimpan.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="user")
+            
             conn.commit()
-        except Exception:
-            pass
+        except Exception as e:
+            print("Error notif:", e)
 
         return jsonify({"success": True})
     finally:
@@ -877,14 +891,11 @@ def input_pengembalian(pengajuan_id):
             unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
 
             units_restored = 0
-            # Ambil data input dari user secara berurutan
             for idx, unit in enumerate(unit_details_raw):
                 if unit.get("reason") == f"Dipinjam (Req ID: {pengajuan_id})":
-                    # Ambil kondisi dari input array (jika tersedia), default "Tersedia" (Baik)
                     kondisi_input = "Tersedia"
                     alasan_input = ""
                     if idx < len(return_unit_details):
-                        # Konversi input 'Baik' menjadi 'Tersedia' untuk backend
                         input_val = return_unit_details[idx].get("status", "Baik")
                         if input_val == "Baik":
                             kondisi_input = "Tersedia"
@@ -894,7 +905,6 @@ def input_pengembalian(pengajuan_id):
                     
                     unit["status"] = kondisi_input
                     unit["reason"] = alasan_input
-                    # Hanya dihitung tersedia jika statusnya benar-benar Tersedia
                     if kondisi_input == "Tersedia":
                         unit["available"] = True
                         units_restored += 1
@@ -922,11 +932,22 @@ def input_pengembalian(pengajuan_id):
             ("returned", json.dumps(return_info, ensure_ascii=False), datetime.utcnow(), pengajuan_id),
         )
 
+        # Update Notifikasi Pengembalian Barang
         try:
             ensure_notifications_schema()
-            create_notification(cursor, "peminjaman", f"Pengembalian: {req.get('barang_name')}", f"Barang dikembalikan oleh user.", "/riwayat-peminjaman-barang-anggota.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="admin")
-        except Exception:
-            pass
+            user_name = session.get("nama") or session.get("username") or f"User ID {user_id}"
+            safe_user = html.escape(str(user_name))
+            safe_lokasi = html.escape(str(lokasi))
+            
+            condition_texts = [f"&bull; Unit {i+1}: {html.escape(str(u.get('status')))} - {html.escape(str(u.get('reason','-')))}" for i, u in enumerate(return_unit_details)]
+            condition_str = "<br>".join(condition_texts)
+            photo_link = f"<br><br><a href='{photo_record}' target='_blank' style='display:inline-block; padding:4px 8px; background:#7f1d1d; color:#fff; border-radius:4px; text-decoration:none; font-size:11px; font-weight:bold;'>Lihat Foto Bukti</a>" if photo_record else ""
+            
+            body_text = f"Pengembalian dicatat oleh <b>{safe_user}</b>.<br><b>Lokasi:</b> {safe_lokasi}<br><b>Kondisi:</b><br>{condition_str}{photo_link}"
+
+            create_notification(cursor, "peminjaman", f"Barang Dikembalikan: {req.get('barang_name')}", body_text, "/riwayat-peminjaman-pengembalian.html", {"pengajuan_id": pengajuan_id, "target_user_id": req.get("member_id")}, target_role="admin")
+        except Exception as e:
+            print("Error notif:", e)
 
         conn.commit()
         return jsonify({"success": True})
@@ -1186,7 +1207,6 @@ def export_inventory_excel():
         worksheet.title = "Inventaris"
         worksheet.append(headers)
         for row in rows:
-            # openpyxl bisa menghandle newline text di cell asal format wrapText diset
             worksheet.append(row)
 
         header_fill = PatternFill("solid", fgColor="7F0000")
@@ -1196,7 +1216,6 @@ def export_inventory_excel():
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center", vertical="center")
 
-        # PERBAIKAN: Wrap text agar baris bisa ke bawah
         for row_idx, row in enumerate(worksheet.iter_rows(min_row=2), 2):
             for cell in row:
                 cell.alignment = Alignment(vertical="top", wrapText=True)
@@ -1260,7 +1279,6 @@ def export_inventory_pdf():
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle("InventoryTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=14, leading=16, textColor=colors.HexColor("#7F0000"))
         normal_style = ParagraphStyle("InventoryNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=8, leading=10)
-        # PERBAIKAN: Buat style khusus cell tabel agar teks panjang ke wrap
         cell_style = ParagraphStyle("CellNormal", parent=styles["BodyText"], fontName="Helvetica", fontSize=7, leading=9, wordWrap='CJK')
 
         elements = [
@@ -1270,34 +1288,32 @@ def export_inventory_pdf():
             Spacer(1, 4 * mm),
         ]
 
-        # Konversi konten teks ke paragraph agar bisa wrapping otomatis di ReportLab
         wrapped_rows = []
         for row in rows:
             wrapped_row = []
             for cell_data in row:
-                text = str(cell_data).replace('\n', '<br/>') # Ubah newline ke break HTML
+                text = str(cell_data).replace('\n', '<br/>')
                 wrapped_row.append(Paragraph(text, cell_style))
             wrapped_rows.append(wrapped_row)
 
         table_data = [headers] + wrapped_rows if rows else [headers, ["-" for _ in headers]]
         
-        # PERBAIKAN: Gunakan rasio ukuran kolom yang proporsional dengan lebar A4 Landscape
         page_width = landscape(A4)[0] - (16 * mm) 
         col_widths = [
-            0.07 * page_width, # Kode
-            0.10 * page_width, # Nama
-            0.06 * page_width, # Kategori
-            0.07 * page_width, # Lokasi
-            0.07 * page_width, # Tgl Beli
-            0.07 * page_width, # Harga
-            0.03 * page_width, # Total
-            0.04 * page_width, # Tersedia
-            0.04 * page_width, # Dipinjam
-            0.04 * page_width, # Bisa Pinjam
-            0.18 * page_width, # Rincian Unit (Lebrin sedikit)
-            0.10 * page_width, # Foto
-            0.08 * page_width, # Keterangan
-            0.05 * page_width  # Update
+            0.07 * page_width,
+            0.10 * page_width,
+            0.06 * page_width,
+            0.07 * page_width,
+            0.07 * page_width,
+            0.07 * page_width,
+            0.03 * page_width,
+            0.04 * page_width,
+            0.04 * page_width,
+            0.04 * page_width,
+            0.18 * page_width,
+            0.10 * page_width,
+            0.08 * page_width,
+            0.05 * page_width
         ]
         
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
@@ -1459,10 +1475,8 @@ def ensure_loan_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
-    # Ensure waktu_mulai and waktu_selesai columns exist
     ensure_column(cursor, "loan_requests", "waktu_mulai", "`waktu_mulai` time DEFAULT NULL")
     ensure_column(cursor, "loan_requests", "waktu_selesai", "`waktu_selesai` time DEFAULT NULL")
-# --- LOAN REQUESTS ENDPOINTS ---
 
 @app.route("/api/pengajuan", methods=["GET"])
 def list_pengajuan():
@@ -1476,7 +1490,6 @@ def list_pengajuan():
         from_date = request.args.get('from_date')
         to_date = request.args.get('to_date')
 
-        # PERBAIKAN: Gunakan JOIN untuk mendapatkan nama asli anggota
         query = """
             SELECT l.*, a.nama as member_name 
             FROM `loan_requests` l
@@ -1520,9 +1533,9 @@ def list_pengajuan():
                 "jumlahDiminta": r.get("jumlah"),
                 "tanggalPengajuan": r.get("tanggal_pengajuan"),
                 "tanggalMulai": r.get("tanggal_mulai"),
-                "waktuMulai": str(r.get("waktu_mulai") or ""), # TAMBAHKAN BARIS INI
+                "waktuMulai": str(r.get("waktu_mulai") or ""),
                 "tanggalSelesai": r.get("tanggal_selesai"),
-                "waktuSelesai": str(r.get("waktu_selesai") or ""), # TAMBAHKAN BARIS INI
+                "waktuSelesai": str(r.get("waktu_selesai") or ""),
                 "tujuan": r.get("tujuan"),
                 "status": r.get("status"),
                 "adminNote": r.get("admin_note", ""),
@@ -1566,7 +1579,6 @@ def create_pengajuan():
         ensure_loan_schema(cursor)
         pengajuan_id = f"pjn-{int(datetime.utcnow().timestamp() * 1000)}"
 
-        # try to get barang foto/code from inventory
         barang_foto = None
         barang_code = None
         try:
@@ -1614,13 +1626,14 @@ def create_pengajuan():
         )
         conn.commit()
         
-        # Admin Notification
+        # Update Notifikasi Admin
         try:
             ensure_notifications_schema()
             nc = conn.cursor()
             try:
-                # PERBAIKAN: Sertakan target_role="admin"
-                create_notification(nc, "form", f"Pengajuan Peminjaman Baru: {barang_nama}", f"Pengajuan oleh user ID {session.get('user_id')}", url_for('dashboard') if False else "/persetujuan-peminjaman.html", {"pengajuan_id": pengajuan_id}, target_role="admin")
+                user_name = session.get('nama') or session.get('username') or f"User ID {session.get('user_id')}"
+                safe_user = html.escape(str(user_name))
+                create_notification(nc, "peminjaman", f"Pengajuan Peminjaman: {barang_nama}", f"Diajukan oleh <b>{safe_user}</b>. Harap ditinjau.", url_for('dashboard') if False else "/persetujuan-peminjaman.html", {"pengajuan_id": pengajuan_id}, target_role="admin")
                 conn.commit()
             finally:
                 nc.close()
@@ -1637,10 +1650,9 @@ def create_pengajuan():
 def cancel_pengajuan(pengajuan_id):
     ensure_auth_schema()
     conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True) # Tambahkan dictionary=True
+    cursor = conn.cursor(dictionary=True)
     try:
         ensure_loan_schema(cursor)
-        # PERBAIKAN: Ambil lebih banyak kolom untuk mengecek jumlah dan barang_id
         cursor.execute("SELECT `status`, `barang_id`, `jumlah` FROM `loan_requests` WHERE `id` = %s LIMIT 1", (pengajuan_id,))
         row = cursor.fetchone()
         if not row:
@@ -1648,11 +1660,9 @@ def cancel_pengajuan(pengajuan_id):
             
         status = row.get("status")
         
-        # PERBAIKAN: Perbolehkan batal asalkan masih pending ATAU approved (belum diambil)
         if status not in ["pending", "approved"]:
             return jsonify({"success": False, "error": "Hanya pengajuan dengan status pending atau disetujui (sebelum diambil) yang dapat dibatalkan"}), 400
             
-        # Jika statusnya sudah approved, kita harus KEMBALIKAN STOKNYA. Logika sama persis dengan yang di Admin.
         if status == "approved":
             barang_id = row.get("barang_id")
             jumlah_req = int(row.get("jumlah", 1))
@@ -1663,19 +1673,16 @@ def cancel_pengajuan(pengajuan_id):
                 total = int(inv.get("total_unit", 1))
                 available = int(inv.get("available_unit", 0))
                 
-                # Kembalikan unit_details yang dipinjam oleh pengajuan ini
                 unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
                 units_restored = 0
                 
                 for unit in unit_details_raw:
-                     # Kembalikan unit yang ditandai dengan ID Pengajuan ini
                      if unit.get("reason") == f"Dipinjam (Req ID: {pengajuan_id})":
                           unit["status"] = "Tersedia"
                           unit["reason"] = ""
                           unit["available"] = True
                           units_restored += 1
                 
-                # Jika tidak ada yang pakai ID spesifik, kita restore secara general
                 if units_restored == 0:
                      for unit in unit_details_raw:
                           if unit.get("status") == "Dipinjam" and units_restored < jumlah_req:
@@ -1692,7 +1699,6 @@ def cancel_pengajuan(pengajuan_id):
                      (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id)
                 )
 
-        # Update statusnya menjadi cancelled
         cursor.execute("UPDATE `loan_requests` SET `status` = %s WHERE `id` = %s", ("cancelled", pengajuan_id))
         conn.commit()
         return jsonify({"success": True})
@@ -1729,11 +1735,9 @@ def update_pengajuan_status(pengajuan_id):
         barang_id = req.get("barang_id")
         jumlah_req = int(req.get("jumlah", 1))
         
-        # Validasi update status
         if current_status != "pending" and new_status in ["approved", "rejected"]:
              return jsonify({"success": False, "error": "Hanya pengajuan berstatus Pending yang dapat disetujui atau ditolak"}), 400
 
-        # Jika Setujui (Approve), potong stok
         if new_status == "approved" and current_status == "pending":
             cursor.execute("SELECT `total_unit`, `available_unit`, `can_borrow`, `unit_details` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
             inv = cursor.fetchone()
@@ -1747,7 +1751,6 @@ def update_pengajuan_status(pengajuan_id):
             if available < jumlah_req:
                  return jsonify({"success": False, "error": f"Stok tersedia ({available}) tidak mencukupi permintaan ({jumlah_req})"}), 400
                  
-            # PERBAIKAN: Update unit_details JSON juga jika barang multiple unit
             unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
             units_changed = 0
             
@@ -1766,7 +1769,6 @@ def update_pengajuan_status(pengajuan_id):
                  (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id)
             )
             
-        # Jika Cancelled/Returned, tetapi sebelumnya memotong stok (Pengembalian Stok)
         elif (new_status in ["cancelled", "returned"]) and (current_status in ["approved", "taken"]):
              cursor.execute("SELECT `total_unit`, `available_unit`, `unit_details` FROM `inventory_items` WHERE `id` = %s LIMIT 1", (barang_id,))
              inv = cursor.fetchone()
@@ -1774,19 +1776,16 @@ def update_pengajuan_status(pengajuan_id):
                  total = int(inv.get("total_unit", 1))
                  available = int(inv.get("available_unit", 0))
                  
-                 # Kembalikan unit_details yang dipinjam oleh pengajuan ini
                  unit_details_raw = safe_json_loads(inv.get("unit_details"), [])
                  units_restored = 0
                  
                  for unit in unit_details_raw:
-                      # Kembalikan unit yang ditandai dengan ID Pengajuan ini
                       if unit.get("reason") == f"Dipinjam (Req ID: {pengajuan_id})":
                            unit["status"] = "Tersedia"
                            unit["reason"] = ""
                            unit["available"] = True
                            units_restored += 1
                  
-                 # Jika tidak ada yang pakai ID spesifik, kita restore secara general
                  if units_restored == 0:
                       for unit in unit_details_raw:
                            if unit.get("status") == "Dipinjam" and units_restored < jumlah_req:
@@ -1803,7 +1802,6 @@ def update_pengajuan_status(pengajuan_id):
                       (new_available, new_inv_status, json.dumps(unit_details_raw, ensure_ascii=False), barang_id)
                  )
         
-        # Simpan status ke tabel loan_requests
         admin_name = str(session.get("nama") or session.get("username") or "Admin")
         approved_at = datetime.utcnow() if new_status != "pending" else None
         
@@ -1816,24 +1814,20 @@ def update_pengajuan_status(pengajuan_id):
             (new_status, admin_note, admin_name, approved_at, pengajuan_id)
         )
         
-        # --- PERBAIKAN: Kirim Notifikasi ke User/Anggota ---
         try:
             ensure_notifications_schema()
-            # Ambil detail barang dan user dari pengajuan untuk isi notif
             barang_name = req.get("barang_name", "Barang")
             member_id = req.get("member_id")
             
-            if member_id: # Pastikan pengajuan ini milik seorang user yang terdaftar
+            if member_id:
                 status_label = "Disetujui" if new_status == "approved" else ("Ditolak" if new_status == "rejected" else ("Dibatalkan" if new_status == "cancelled" else new_status))
                 
                 notif_title = f"Peminjaman {status_label}: {barang_name}"
                 notif_body = f"Pengajuan peminjaman Anda untuk {barang_name} telah {status_label.lower()} oleh Admin."
                 if admin_note:
-                    notif_body += f" Catatan: {admin_note}"
+                    notif_body += f"<br>Catatan: {html.escape(admin_note)}"
 
-                # Buat notifikasi dengan tipe 'peminjaman' dan target_role 'user'
-                # Kita letakkan member_id di data JSON agar frontend bisa memfilternya
-                nid = create_notification(
+                create_notification(
                     cursor, 
                     "peminjaman", 
                     notif_title, 
@@ -1844,7 +1838,6 @@ def update_pengajuan_status(pengajuan_id):
                 )
         except Exception as e:
             print(f"[WARN] Gagal mengirim notifikasi update status peminjaman: {e}")
-        # ---------------------------------------------------
 
         conn.commit()
         return jsonify({"success": True})
@@ -1857,7 +1850,6 @@ def update_pengajuan_status(pengajuan_id):
         conn.close()
 
 def ensure_news_schema() -> None:
-    """Ensure news/article tables exist in database."""
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
@@ -1872,7 +1864,6 @@ def ensure_news_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """)
 
-        # PERBAIKAN: Menghapus potongan schema inventory yang tersesat (notes, photos, dll)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `news` (
                 `id` VARCHAR(100) PRIMARY KEY,
@@ -1944,7 +1935,6 @@ def ensure_registration_form_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
-        # PERBAIKAN: Menambahkan schema image_url, image_name, dan attachments
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS `registration_forms` (
@@ -1972,7 +1962,6 @@ def ensure_registration_form_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
             """
         )
-        # ALTER TABLE IF COLUMNS DONT EXIST YET
         ensure_column(cursor, "registration_forms", "image_url", "`image_url` text DEFAULT NULL")
         ensure_column(cursor, "registration_forms", "image_name", "`image_name` varchar(255) DEFAULT NULL")
         ensure_column(cursor, "registration_forms", "attachments", "`attachments` longtext DEFAULT NULL")
@@ -2028,7 +2017,6 @@ def ensure_notifications_schema() -> None:
               PRIMARY KEY (`notification_id`,`user_key`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         ''')
-        # PERBAIKAN: Tambah kolom target_role agar bisa membedakan notif admin/user
         ensure_column(cursor, "notifications", "target_role", "`target_role` varchar(50) DEFAULT NULL")
         conn.commit()
     finally:
@@ -2049,7 +2037,7 @@ def create_notification(cursor, type_value: str, title: str, body: str, url: str
             str(body or ""),
             str(url or "") if url else None,
             json.dumps(data or {}, ensure_ascii=False),
-            target_role # Bisa spesifik diset "admin"
+            target_role 
         ),
     )
     return nid
@@ -2060,7 +2048,7 @@ def get_notifications():
     viewer = current_user_context()
     client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
     user_key = None
-    role = "user" # default
+    role = "user" 
     
     if viewer.get("logged_in"):
         user_key = f"member:{viewer.get('user_id') or viewer.get('username') or viewer.get('email') or 'member'}"
@@ -2073,7 +2061,6 @@ def get_notifications():
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # PERBAIKAN: Tampilkan notifikasi yang bersifat global (NULL) atau sesuai role-nya
         target_roles = ["admin", "super_admin"] if role in ["admin", "super_admin"] else ["user"]
         format_strings = ','.join(['%s'] * len(target_roles))
         

@@ -436,22 +436,10 @@
             <span class="status">Need Action</span>
           </header>
           <div class="panel-body">
-            <ul class="todo-list">
-              <li class="todo-item">
-                <strong>Validasi 2 pengajuan peminjaman barang</strong>
-                <small>Modul: Pengajuan Peminjaman Barang</small>
-              </li>
-              <li class="todo-item">
-                <strong>Review evaluasi misa pukul 17:00</strong>
-                <small>Modul: Form Evaluasi Streaming / Misa</small>
-              </li>
-              <li class="todo-item">
-                <strong>Update agenda publik minggu depan</strong>
-                <small>Modul: Manajemen Agenda Kegiatan</small>
-              </li>
-              <li class="todo-item">
-                <strong id="memberTaskTitle">Proses permintaan status anggota</strong>
-                <small id="memberTaskDesc">Modul: Manajemen Data Anggota</small>
+            <!-- ID ditambahkan ke UL untuk mempermudah targeting DOM JavaScript -->
+            <ul class="todo-list" id="todoList">
+              <li class="todo-item" style="border-left-color: #9ca3af; background: #f9fafb;">
+                <strong>Memuat data prioritas...</strong>
               </li>
             </ul>
 
@@ -524,8 +512,6 @@
     const logRuleStatus = document.getElementById("logRuleStatus");
     const logScopeChip = document.getElementById("logScopeChip");
     const memberScopeChip = document.getElementById("memberScopeChip");
-    const memberTaskTitle = document.getElementById("memberTaskTitle");
-    const memberTaskDesc = document.getElementById("memberTaskDesc");
     const liveDateTime = document.getElementById("liveDateTime");
     const metricScheduleRange = document.getElementById("metricScheduleRange");
     const metricScheduleLabel = document.getElementById("metricScheduleLabel");
@@ -550,6 +536,15 @@
     const notificationTabs = Array.from(document.querySelectorAll("[data-admin-notif-tab]"));
     let notificationTab = "all";
 
+    // Escape text helper
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
     function formatRole(value) {
       if (value === "super_admin") {
@@ -699,6 +694,50 @@
       return matched ? normalizePermissions(matched.permissions) : defaultPermissions();
     }
 
+    // MEMUAT PRIORITAS HARI INI DARI DATABASE PEMINJAMAN
+    async function loadPrioritasHariIni() {
+        const todoList = document.getElementById("todoList");
+        if (!todoList) return;
+
+        try {
+            const res = await fetch('/api/pengajuan');
+            const data = await res.json();
+            if (data.success && data.items) {
+                // Dapatkan tanggal hari ini khusus zona waktu Jakarta (GMT+7)
+                const now = new Date();
+                const wibTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                const todayStr = wibTime.getFullYear() + "-" + String(wibTime.getMonth() + 1).padStart(2, '0') + "-" + String(wibTime.getDate()).padStart(2, '0');
+
+                const pendingToday = data.items.filter(item => {
+                    if (item.status !== 'pending') return false;
+                    
+                    // Gunakan tanggal pengajuan atau createdAt untuk dicocokkan dengan hari ini di wilayah GMT+7
+                    const itemDate = new Date(item.createdAt || item.tanggalPengajuan);
+                    const itemWib = new Date(itemDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                    const itemStr = itemWib.getFullYear() + "-" + String(itemWib.getMonth() + 1).padStart(2, '0') + "-" + String(itemWib.getDate()).padStart(2, '0');
+                    
+                    return itemStr === todayStr;
+                });
+
+                if (pendingToday.length === 0) {
+                    todoList.innerHTML = '<li class="todo-item" style="border-left-color: #9ca3af; background: #f9fafb;"><strong>Tidak ada pengajuan peminjaman baru hari ini</strong><small>Semua sudah beres!</small></li>';
+                } else {
+                    todoList.innerHTML = pendingToday.map(item => {
+                        const timeStr = new Date(item.createdAt).toLocaleTimeString('id-ID', {timeZone: 'Asia/Jakarta', hour:'2-digit', minute:'2-digit'});
+                        return `<li class="todo-item">
+                            <strong>Peminjaman: ${escapeHtml(item.barangNama)}</strong>
+                            <small>Diajukan oleh <b>${escapeHtml(item.memberNama || 'Anggota')}</b> pkl ${timeStr} WIB. <a href="persetujuan-peminjaman.html" style="color:var(--primary); font-weight:700; text-decoration:underline;">Tinjau</a></small>
+                        </li>`;
+                    }).join('');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            todoList.innerHTML = '<li class="todo-item" style="border-left-color: #ef4444;"><strong>Gagal memuat prioritas</strong><small>Periksa koneksi internet.</small></li>';
+        }
+    }
+
+
     async function fetchNotifications() {
       try {
         const res = await fetch('/api/notifications', { credentials: 'same-origin' });
@@ -730,7 +769,6 @@
       const filtered = items.filter(function (item) {
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
-        // Penyesuaian agar filter status berdasarkan item.read
         const itemStatus = item.read ? "read" : "unread";
         const matchesStatus = statusFilter === "all" || itemStatus === statusFilter;
         
@@ -772,7 +810,6 @@
           + '</article>';
       }).join("");
 
-      // Attach click handlers for actions
       Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
         btn.addEventListener('click', async function(e) {
           const action = btn.getAttribute('data-notif-action');
@@ -781,7 +818,6 @@
             const url = btn.getAttribute('data-notif-url') || '';
             try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
             if (url) { 
-              // PERBAIKAN: Buka di tab baru
               window.open(url, '_blank'); 
             } else { 
               renderNotifications(); 
@@ -854,15 +890,11 @@
         logRuleStatus.textContent = "Log: seluruh pengguna";
         logScopeChip.textContent = "Log: semua pengguna (anggota + admin + super admin)";
         memberScopeChip.textContent = "Anggota: kelola anggota + admin";
-        memberTaskTitle.textContent = "Verifikasi perubahan role admin";
-        memberTaskDesc.textContent = "Modul: Kelola Data Admin & Audit Role";
       } else {
         roleNote.textContent = "Akses Admin: dapat mengelola data anggota, memproses permintaan status anggota, dan melihat log milik sendiri + seluruh anggota. Log admin lain tidak ditampilkan.";
         logRuleStatus.textContent = "Log: admin sendiri + anggota";
         logScopeChip.textContent = "Log: admin sendiri dan anggota";
         memberScopeChip.textContent = "Anggota: kelola anggota";
-        memberTaskTitle.textContent = "Proses permintaan status anggota";
-        memberTaskDesc.textContent = "Modul: Manajemen Data Anggota";
       }
     }
 
@@ -886,12 +918,15 @@
       query.set("role", role);
       logActivityLink.href = "log-aktivitas.html?" + query.toString();
     }
+    
+    // Inisialisasi
     renderMemberMenu(role);
     renderContentMenu(role);
     renderRoleNote(role);
     renderLogs(role);
     applyMenuAccessByPermission();
     renderNotifications();
+    loadPrioritasHariIni(); // Memuat data Prioritas dari Database API
 
     function updateLiveDateTime() {
       const now = new Date();
