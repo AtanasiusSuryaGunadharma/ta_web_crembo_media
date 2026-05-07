@@ -5946,8 +5946,8 @@ def get_current_assignments():
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # Ambil semua data penugasan
-        cursor.execute("SELECT schedule_date, CAST(schedule_time AS CHAR) as schedule_time, role_name, member_id FROM streaming_assignments")
+        # PERBAIKAN: Menggunakan DATE_FORMAT agar hasil dari DB persis berbentuk string YYYY-MM-DD dan HH:MM
+        cursor.execute("SELECT DATE_FORMAT(schedule_date, '%Y-%m-%d') as schedule_date, DATE_FORMAT(schedule_time, '%H:%i') as schedule_time, role_name, member_id FROM streaming_assignments")
         return jsonify(cursor.fetchall())
     finally:
         cursor.close()
@@ -5957,18 +5957,25 @@ def get_current_assignments():
 def save_assignments():
     """Menyimpan atau memperbarui penugasan petugas"""
     ensure_streaming_schema()
-    payload = request.json or [] # Expect list of {date, time, role, memberId}
+    payload = request.json or [] 
     
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
         for item in payload:
-            # Menggunakan INSERT ... ON DUPLICATE KEY UPDATE agar bisa update petugas jika sudah ada
-            cursor.execute("""
-                INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id)
-                VALUES (%s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE member_id = VALUES(member_id)
-            """, (item['date'], item['time'], item['role'], item['memberId']))
+            if item.get('memberId'):
+                # Simpan atau update jika ada member yang dipilih
+                cursor.execute("""
+                    INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id)
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE member_id = VALUES(member_id)
+                """, (item['date'], item['time'], item['role'], item['memberId']))
+            else:
+                # PERBAIKAN: Hapus dari tabel jika dropdown diubah menjadi kosong
+                cursor.execute("""
+                    DELETE FROM streaming_assignments 
+                    WHERE schedule_date = %s AND schedule_time = %s AND role_name = %s
+                """, (item['date'], item['time'], item['role']))
         
         conn.commit()
         return jsonify({"success": True, "message": "Penugasan berhasil disimpan"})
