@@ -2559,15 +2559,41 @@ def ensure_streaming_schema() -> None:
     cursor = conn.cursor()
     try:
         cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_weekly_config` (`id` int AUTO_INCREMENT PRIMARY KEY, `day_name` varchar(20), `start_time` time, `mass_name` varchar(255))")
+        
         cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_cancelled` (`id` int AUTO_INCREMENT PRIMARY KEY, `mass_date` date, `mass_time` time)")
+        
         cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_roles` (`id` int AUTO_INCREMENT PRIMARY KEY, `role_name` varchar(100) UNIQUE, `order_index` int DEFAULT 0)")
         
-        cursor.execute("SELECT COUNT(*) FROM `streaming_roles`")
-        if cursor.fetchone()[0] == 0:
-            cursor.execute("INSERT INTO `streaming_roles` (role_name, order_index) VALUES ('Produser', 1), ('Operator Streaming', 2), ('Kameramen 1', 3), ('Kameramen 2', 4), ('Kameramen 3', 5)")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `streaming_assignments` (
+              `id` int AUTO_INCREMENT PRIMARY KEY,
+              `schedule_date` date NOT NULL,
+              `schedule_time` time NOT NULL,
+              `role_name` varchar(100) NOT NULL,
+              `member_id` int NOT NULL,
+              UNIQUE KEY `uniq_assignment` (`schedule_date`, `schedule_time`, `role_name`)
+            )
+        """)
+
+        # Untuk menghindari "Unread result found", kita bisa menambahkan parameter buffered=True 
+        # Atau langsung commit setelah table creation dan buka cursor baru untuk SELECT
         conn.commit()
+
     finally:
         cursor.close()
+
+    # Buka cursor baru yang clean untuk proses SELECT
+    cursor2 = conn.cursor(dictionary=True)
+    try:
+        cursor2.execute("SELECT COUNT(*) as cnt FROM `streaming_roles`")
+        res = cursor2.fetchone()
+        if res and res['cnt'] == 0:
+            cursor2.execute("INSERT IGNORE INTO `streaming_roles` (role_name, order_index) VALUES ('Produser', 1), ('Operator Streaming', 2), ('Kameramen 1', 3), ('Kameramen 2', 4), ('Kameramen 3', 5)")
+            conn.commit()
+    except Exception as e:
+        print(f"[WARN] Error seeding streaming roles: {e}")
+    finally:
+        cursor2.close()
         conn.close()
 
 def format_time_hhmm(t_obj):
@@ -5895,6 +5921,60 @@ def get_streaming_schedule():
         
         schedule.sort(key=lambda x: (x['date'], x['time']))
         return jsonify({"success": True, "schedule": schedule})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/active-members", methods=["GET"])
+def get_active_members():
+    """Mengambil daftar semua anggota yang berstatus aktif untuk dropdown penugasan"""
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Mengambil ID dan Nama dari anggota yang aktif (termasuk admin/super_admin)
+        cursor.execute("SELECT id, nama as name, role FROM anggota WHERE status_akun = 'aktif' ORDER BY nama ASC")
+        return jsonify(cursor.fetchall())
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/assignments", methods=["GET"])
+def get_current_assignments():
+    """Mengambil data penugasan yang sudah tersimpan di database"""
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Ambil semua data penugasan
+        cursor.execute("SELECT schedule_date, CAST(schedule_time AS CHAR) as schedule_time, role_name, member_id FROM streaming_assignments")
+        return jsonify(cursor.fetchall())
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/assignments/save", methods=["POST"])
+def save_assignments():
+    """Menyimpan atau memperbarui penugasan petugas"""
+    ensure_streaming_schema()
+    payload = request.json or [] # Expect list of {date, time, role, memberId}
+    
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        for item in payload:
+            # Menggunakan INSERT ... ON DUPLICATE KEY UPDATE agar bisa update petugas jika sudah ada
+            cursor.execute("""
+                INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id)
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE member_id = VALUES(member_id)
+            """, (item['date'], item['time'], item['role'], item['memberId']))
+        
+        conn.commit()
+        return jsonify({"success": True, "message": "Penugasan berhasil disimpan"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
     finally:
         cursor.close()
         conn.close()

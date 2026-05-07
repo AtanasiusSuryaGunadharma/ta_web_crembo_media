@@ -8,1417 +8,205 @@
     :root {
       --bg: #ececec;
       --panel: #ffffff;
-      --panel-2: #f5f5f5;
       --line: #1f1f1f;
-      --muted: #5b5b5b;
       --text: #111111;
       --side-text: #f4f4f4;
       --radius: 16px;
       --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
     }
-
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
+      margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text); background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
       min-height: 100vh;
     }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      min-height: 100vh;
-    }
-
+    .layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
     .sidebar {
       background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
-      color: var(--side-text);
-      border-right: 2px solid var(--line);
-      padding: 18px 14px;
-      overflow-y: auto;
-      position: sticky;
-      top: 0;
-      height: 100vh;
+      color: var(--side-text); border-right: 2px solid var(--line);
+      padding: 18px 14px; position: sticky; top: 0; height: 100vh;
     }
-
-    .brand {
-      border: 1px solid #838383;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 1rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .brand p {
-      margin: 6px 0 0;
-      color: #cdcdcd;
-      font-size: 0.82rem;
-    }
-
-    .menu-group {
-      border: 1px solid #656565;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      margin-bottom: 10px;
-      overflow: hidden;
-    }
-
-    .group-toggle {
-      width: 100%;
-      text-align: left;
-      border: 0;
-      background: transparent;
-      color: var(--side-text);
-      font-weight: 700;
-      font-size: 0.88rem;
-      padding: 11px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .group-items {
-      display: block;
-      border-top: 1px solid #525252;
-      padding: 6px;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .menu-link {
-      display: block;
-      text-decoration: none;
-      color: #e5e5e5;
-      border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 0.83rem;
-      margin-bottom: 4px;
-      background: transparent;
-    }
-
-    .menu-link:hover { border-color: #8a8a8a; background: rgba(255, 255, 255, 0.08); }
-
-    .menu-link.active {
-      border-color: #cfcfcf;
-      background: #e9e9e9;
-      color: #151515;
-      font-weight: 700;
-    }
-
-    .side-actions {
-      margin-top: 16px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .side-actions a {
-      text-decoration: none;
-      border: 1px solid #8d8d8d;
-      color: #ebebeb;
-      text-align: center;
-      padding: 9px 10px;
-      border-radius: 10px;
-      font-size: 0.82rem;
-    }
-
-    .main { padding: 16px; }
-
-    .dashboard-headline-bar {
-      border: 1px solid #cfcfcf;
-      background: #f3f3f3;
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .dashboard-headline-bar h1 {
-      margin: 0;
-      font-size: clamp(1.15rem, 2vw, 1.7rem);
-      font-weight: 700;
-      color: #1c1f27;
-    }
-
-    .head-meta {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      color: #374151;
-      font-size: clamp(0.84rem, 1.6vw, 0.95rem);
-      font-weight: 600;
-    }
-
-    .world-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 999px;
-      border: 1px solid #6b7280;
-      background: #ffffff;
-      color: #374151;
-      text-decoration: none;
-    }
-
-    .world-link svg {
-      width: 18px;
-      height: 18px;
-    }
-
-    .period-controls {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .period-select {
-      border: 1px solid #999;
-      border-radius: 6px;
-      padding: 6px;
-      font-size: 0.9rem;
-      background: #fff;
-    }
-
-    .panel {
-      border: 2px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-
-    .panel-head {
-      padding: 12px 14px;
-      border-bottom: 1px solid #c8c8c8;
-      background: var(--panel-2);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .panel-head h2 {
-      margin: 0;
-      font-size: 1.02rem;
-    }
-
-    .panel-body { padding: 12px; }
-
-    .helper {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .chip-toggle {
-      display: inline-flex;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .chip-toggle button {
-      border: 0;
-      background: #f2f2f2;
-      padding: 6px 11px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .chip-toggle button.active {
-      background: #111;
-      color: #fff;
-    }
-
-    .table-wrap {
-      margin-top: 12px;
-      overflow-x: auto;
-      border: 1px solid #cbcbcb;
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1080px;
-      font-size: 0.84rem;
-      background: #fff;
-    }
-
-    th,
-    td {
-      border: 1px solid #cbcbcb;
-      padding: 8px;
-      text-align: left;
-      vertical-align: middle;
-    }
-
-    th {
-      background: #efefef;
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-
-    .slot {
-      display: grid;
-      gap: 6px;
-      min-width: 150px;
-    }
-
-    .slot-combo {
-      position: relative;
-    }
-
-    .slot-trigger {
-      width: 100%;
-      text-align: left;
-      border: 1px solid #cbcbcb;
-      border-radius: 6px;
-      padding: 6px 8px;
-      background: #fff;
-      cursor: pointer;
-      font-size: 0.84rem;
-    }
-
-    .slot-trigger::after {
-      content: "▾";
-      float: right;
-      color: #5c5c5c;
-      font-size: 0.76rem;
-      margin-top: 2px;
-    }
-
-    .slot-panel {
-      position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      right: 0;
-      border: 1px solid #a7a7a7;
-      border-radius: 6px;
-      background: #fff;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
-      z-index: 40;
-      display: none;
-    }
-
-    .slot-panel.show {
-      display: block;
-    }
-
-    .slot-search-box {
-      padding: 7px;
-      border-bottom: 1px solid #dddddd;
-      background: #f7f7f7;
-    }
-
-    .slot-search-input {
-      width: 100%;
-      border: 1px solid #b9b9b9;
-      border-radius: 4px;
-      padding: 6px 7px;
-      font-size: 0.82rem;
-    }
-
-    .slot-options {
-      max-height: 180px;
-      overflow-y: auto;
-    }
-
-    .slot-option {
-      width: 100%;
-      border: 0;
-      border-bottom: 1px solid #f0f0f0;
-      border-radius: 0;
-      background: #fff;
-      text-align: left;
-      padding: 7px 8px;
-      font-size: 0.82rem;
-      cursor: pointer;
-    }
-
-    .slot-option:hover,
-    .slot-option.active {
-      background: #ebebeb;
-    }
-
-    .slot-empty {
-      margin: 0;
-      padding: 8px;
-      font-size: 0.78rem;
-      color: #666;
-      font-style: italic;
-    }
-
-    select,
-    button,
-    input {
-      font: inherit;
-      border: 1px solid #cbcbcb;
-      border-radius: 6px;
-      padding: 6px 8px;
-      background: #fff;
-    }
-
-    .tag {
-      display: inline-block;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.75rem;
-      border: 1px solid #9f9f9f;
-      background: #f6f6f6;
-    }
-
-    .tag.empty {
-      border-color: #adadad;
-      color: #4b4b4b;
-      background: #efefef;
-    }
-
-    .btn {
-      border: 1px solid var(--line);
-      background: #111;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-
-    .btn.secondary {
-      background: #f7f7f7;
-      color: #222;
-    }
-
-    .btn.danger {
-      background: #222;
-      color: #fff;
-    }
-
-    .footer-actions {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .swap-grid {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr auto;
-      gap: 10px;
-      align-items: end;
-      margin-top: 10px;
-    }
-
-    .field { display: grid; gap: 5px; }
-
-    label {
-      font-size: 0.8rem;
-      color: #3d3d3d;
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-    }
-
-    @media (max-width: 1080px) {
-      .layout { grid-template-columns: 1fr; }
-      .swap-grid { grid-template-columns: 1fr; }
-    }
+    .brand { border: 1px solid #838383; background: rgba(255,255,255,0.04); padding: 12px; border-radius: 12px; margin-bottom: 16px; }
+    .brand h1 { margin: 0; font-size: 1rem; text-transform: uppercase; }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
+    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255,255,255,0.03); margin-bottom: 10px; overflow: hidden; }
+    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: 0.88rem; padding: 11px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255,255,255,0.02); }
+    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; }
+    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
+    .main { padding: 16px; min-width: 0; }
+    .dashboard-headline-bar { border: 1px solid #cfcfcf; background: #f3f3f3; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .dashboard-headline-bar h1 { margin: 0; font-size: clamp(1.2rem, 2.2vw, 2rem); font-weight: 700; color: #1c1f27; }
+    .toolbar, .panel { border: 2px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); padding: 12px; margin-bottom: 12px; }
+    .toolbar-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 0.85rem; font-weight: 700; }
+    input, select { border: 1px solid #bdbdbd; border-radius: 8px; padding: 8px; font-size: 0.88rem; font-family: inherit; width: 100%; }
+    .btn { border-radius: 9px; font-weight: 700; padding: 8px 12px; font-size: 0.82rem; cursor: pointer; border: 1px solid var(--line); background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%); color: #fff; }
+    .table-wrap { overflow-x: auto; border: 1px solid #cbcbcb; border-radius: 10px; background: #fff; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; min-width: 1000px; }
+    th, td { border: 1px solid #d1d1d1; padding: 10px; text-align: left; vertical-align: middle; }
+    th { background: #f1f1f1; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    select.member-select { border-color: #ddd; background: #fdfdfd; font-size: 0.8rem; cursor: pointer; padding: 5px; }
+    select.member-select:focus { border-color: #111; outline: none; }
   </style>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
-    <aside id="sidebar" class="sidebar" aria-label="Sidebar penugasan misa">
-      <div class="brand">
-        <h1>Crembo Media Panel</h1>
-        <p>Modul penugasan petugas misa</p>
-      </div>
-
-      <div class="menu-group">
-        <button class="group-toggle" type="button">Tugas Streaming <span>-</span></button>
+    <aside class="sidebar">
+      <div class="brand"><h1>Crembo Media Admin</h1><p>Panel Penugasan Petugas</p></div>
+      <div class="menu-group open">
+        <button class="group-toggle" type="button">Streaming <span>-</span></button>
         <div class="group-items">
           <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
-          <a class="menu-link" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
-          <a class="menu-link active" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
-          <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
-          <a class="menu-link" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
-          <a class="menu-link" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
+          <a class="menu-link active" href="#">Penugasan Petugas Misa</a>
         </div>
       </div>
-
-      <div class="side-actions">
-        <a href="dashboard.html">Kembali ke Dashboard</a>
-        <a href="/logout">Keluar / Logout</a>
-      </div>
+      <div style="margin-top: 20px;"><a href="dashboard.html" class="menu-link" style="border:1px solid #555; text-align:center;">Kembali</a></div>
     </aside>
 
     <main class="main">
-      <header class="dashboard-headline-bar" aria-label="Header modul penugasan">
+      <header class="dashboard-headline-bar">
         <h1>Penugasan Petugas Misa</h1>
-        <div class="head-meta">
-          <span id="liveDateTime">-</span>
-          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
-              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
-              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
-              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
-            </svg>
-          </a>
-        </div>
+        <div id="liveDateTime" style="font-weight: 600;">-</div>
       </header>
 
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Tabel Penugasan</h2>
-          <div class="period-controls" aria-label="Pilih periode penugasan">
-            <select id="periodMonth" class="period-select" aria-label="Pilih bulan">
-              <option value="0">Januari</option>
-              <option value="1">Februari</option>
-              <option value="2">Maret</option>
-              <option value="3" selected>April</option>
-              <option value="4">Mei</option>
-              <option value="5">Juni</option>
-              <option value="6">Juli</option>
-              <option value="7">Agustus</option>
-              <option value="8">September</option>
-              <option value="9">Oktober</option>
-              <option value="10">November</option>
-              <option value="11">Desember</option>
-            </select>
-            <select id="periodYear" class="period-select" aria-label="Pilih tahun">
-              <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-            </select>
-          </div>
-          <div class="chip-toggle" aria-label="Pilih jenis misa">
-            <button id="modeBiasa" class="active" type="button">Misa Biasa</button>
-            <button id="modeBesar" type="button">Misa Besar</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <p class="helper">Admin dapat isi slot kosong, mengganti petugas, dan menghapus petugas sesuai jadwal. Status penugasan mengikuti data Draft/Published dari registrasi misa besar.</p>
-
-          <div class="table-wrap">
-            <table>
-              <thead id="assignmentHead"></thead>
-              <tbody id="assignmentRows"></tbody>
-            </table>
-          </div>
-
-          <div class="footer-actions">
-            <button id="saveAssignmentBtn" class="btn" type="button">Simpan Penugasan</button>
-          </div>
+      <section class="toolbar">
+        <div class="toolbar-grid">
+          <div class="field"><label>Bulan</label><select id="monthFilter"><option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select></div>
+          <div class="field"><label>Tahun</label><select id="yearFilter"><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+          <button class="btn" id="saveAllBtn">Simpan Semua Penugasan</button>
         </div>
       </section>
 
       <section class="panel">
-        <div class="panel-head">
-          <h2>Tukar Petugas Antar Role</h2>
+        <div class="table-wrap">
+          <table id="assignmentTable">
+            <thead id="tableHeader"></thead>
+            <tbody id="tableRows"></tbody>
+          </table>
         </div>
-        <div class="panel-body">
-          <div class="swap-grid">
-            <div class="field">
-              <label for="swapSchedule">Jadwal</label>
-              <select id="swapSchedule"></select>
-            </div>
-            <div class="field">
-              <label for="swapRoleA">Role A</label>
-              <select id="swapRoleA"></select>
-            </div>
-            <div class="field">
-              <label for="swapRoleB">Role B</label>
-              <select id="swapRoleB"></select>
-            </div>
-            <button id="swapBtn" class="btn" type="button">Tukar</button>
-          </div>
-        </div>
+        <p id="emptyNote" style="text-align:center; padding:20px; color:#666;">Memuat data...</p>
       </section>
     </main>
   </div>
 
   <script>
-    const memberOptions = ["Rikha", "Jeni", "Tyas", "Lisa", "Evan", "Jose", "Rossa", "Aurel", "Asha", "Bima", "Niko", "Sinta"];
-    const DRAFT_STORAGE_KEY = "crembo-registrasi-misa-besar-drafts";
-    const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
-    const HIDDEN_DEFAULT_SCHEDULE_KEY = "crembo-registrasi-misa-besar-hidden-default";
-    const BLACKOUT_KEY = "crembo-admin-streaming-blackout";
-    const WEEKLY_TIMES_KEY = "crembo-admin-weekly-mass-times";
+    let ROLES = [];
+    let ACTIVE_MEMBERS = [];
+    let SAVED_ASSIGNMENTS = [];
+    const monthFilter = document.getElementById("monthFilter");
+    const yearFilter = document.getElementById("yearFilter");
 
-    const BIG_MASS_DEFAULTS = [
-      { name: "Misa Kamis Putih", date: "2026-04-02", time: "18:00", type: "Misa Besar", location: "Gereja Utama", note: "Registrasi petugas lengkap" },
-      { name: "Misa Jumat Agung", date: "2026-04-03", time: "17:30", type: "Misa Besar", location: "Gereja Utama", note: "Koordinasi liturgi dan dokumentasi" },
-      { name: "Misa Vigili Paskah", date: "2026-04-04", time: "19:00", type: "Misa Besar", location: "Gereja Utama", note: "Pastikan semua role terisi" },
-      { name: "Misa Pentahbisan", date: "2026-05-10", time: "09:00", type: "Misa Besar", location: "Aula Paroki", note: "Jadwal cadangan besar" },
-      { name: "Misa Syukur Ulang Tahun Paroki", date: "2026-07-20", time: "10:00", type: "Misa Besar", location: "Gereja Utama", note: "Agenda paroki tahunan" }
-    ];
+    const now = new Date();
+    monthFilter.value = now.getMonth() + 1;
+    yearFilter.value = now.getFullYear();
 
-    const DEFAULT_WEEKLY_TIMES = {
-      0: ["07:30", "10:00", "16:30", "18:00"],
-      1: ["18:00"],
-      2: ["18:00"],
-      3: ["18:00"],
-      4: ["18:00"],
-      5: ["18:00"],
-      6: ["18:00"]
-    };
-    const OPERATOR_POOL = ["Rikha", "Lisa", "Asha", "Nadia", "Tita", "Vio", "Belinda", "Doni"];
-    const CAMERA_POOL = ["Jeni", "Evan", "Kanes", "Paul", "Reva", "Arya", "Chessa", "Jose"];
-    const SUPERVISOR_POOL = ["Tyas", "Claire", "Christoforus", "Luciana", "Panji", "Stella", "Bolun", "There"];
-
-    let schedulesBiasa = [];
-
-    const schedulesBesarDummy = [
-      {
-        id: "besar-dummy-1",
-        misa: "Misa Kamis Putih",
-        date: "2026-04-02",
-        time: "18:00",
-        status: "published",
-        source: "default",
-        roles: [
-          { key: "pd-1", label: "PD", member: "Rikha" },
-          { key: "op-1", label: "OP", member: "" },
-          { key: "kamera-1", label: "Kamera 1", member: "Jeni" },
-          { key: "kamera-2", label: "Kamera 2", member: "" }
-        ]
-      },
-      {
-        id: "besar-dummy-2",
-        misa: "Misa Jumat Agung",
-        date: "2026-04-03",
-        time: "17:30",
-        status: "draft",
-        source: "draft",
-        roles: [
-          { key: "pd-1", label: "PD", member: "Lisa" },
-          { key: "switcher-1", label: "Switcher", member: "Evan" },
-          { key: "audio-1", label: "Audio", member: "" }
-        ]
-      }
-    ];
-
-    const ROLE_KEYS_BIASA = [
-      { key: "dp", label: "DP" },
-      { key: "op", label: "OP" },
-      { key: "kamera", label: "Kamera" },
-      { key: "supervisor", label: "Supervisor" },
-      { key: "fotografer", label: "Fotografer" }
-    ];
-
-    let schedulesBesar = [];
-    let currentMode = "biasa";
-
-    const assignmentHead = document.getElementById("assignmentHead");
-    const assignmentRows = document.getElementById("assignmentRows");
-    const periodMonth = document.getElementById("periodMonth");
-    const periodYear = document.getElementById("periodYear");
-    const swapSchedule = document.getElementById("swapSchedule");
-    const swapRoleA = document.getElementById("swapRoleA");
-    const swapRoleB = document.getElementById("swapRoleB");
-    const swapBtn = document.getElementById("swapBtn");
-    const modeBiasa = document.getElementById("modeBiasa");
-    const modeBesar = document.getElementById("modeBesar");
-    const saveAssignmentBtn = document.getElementById("saveAssignmentBtn");
-
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    async function fetchData() {
+        try {
+            const [rolesRes, membersRes, assignmentsRes] = await Promise.all([
+                fetch("/api/streaming/roles"),
+                fetch("/api/streaming/active-members"),
+                fetch("/api/streaming/assignments")
+            ]);
+            ROLES = await rolesRes.json();
+            ACTIVE_MEMBERS = await membersRes.json();
+            SAVED_ASSIGNMENTS = await assignmentsRes.json();
+            
+            renderHeader();
+            loadSchedule();
+        } catch (e) { console.error("Error fetching data:", e); }
     }
 
-    function normalizeName(value) {
-      return String(value || "").trim();
+    function renderHeader() {
+        let html = `<tr><th>TANGGAL & PERAYAAN</th><th>JAM</th>`;
+        ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
+        html += `</tr>`;
+        document.getElementById("tableHeader").innerHTML = html;
     }
 
-    function slugify(value) {
-      return normalizeName(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    }
-
-    function getDefaultScheduleId(item) {
-      const parts = [item.name || "", item.date || "", item.time || ""];
-      return "default-" + parts.join("-").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    }
-
-    function normalizeTimesArray(times) {
-      const seen = {};
-      return (Array.isArray(times) ? times : []).filter(function (time) {
-        return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-      }).filter(function (time) {
-        if (seen[time]) {
-          return false;
-        }
-        seen[time] = true;
-        return true;
-      }).sort();
-    }
-
-    function getWeeklyTimesConfig() {
-      const result = {};
-      for (let day = 0; day <= 6; day += 1) {
-        const source = DEFAULT_WEEKLY_TIMES[day];
-        result[day] = normalizeTimesArray(source);
-      }
-      return result;
-    }
-
-    function getMassTitleByWeekday(dayOfWeek) {
-      return dayOfWeek === 0 || dayOfWeek === 6 ? "Misa Mingguan" : "Misa Harian";
-    }
-
-    function toIsoDate(year, month, day) {
-      return String(year) + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
-    }
-
-    function parseBlackoutKey(key) {
-      if (key.indexOf("|") === -1) {
-        return { date: key, time: "*" };
-      }
-      const parts = key.split("|");
-      return { date: parts[0], time: parts[1] || "*" };
-    }
-
-    function getBlackoutEntries() {
-      return [];
-    }
-
-    function isBlackoutSlot(dateStr, timeStr) {
-      return getBlackoutEntries().some(function (key) {
-        const parsed = parseBlackoutKey(String(key || ""));
-        return parsed.date === dateStr && (parsed.time === "*" || parsed.time === timeStr);
-      });
-    }
-
-    function buildRoutineMonthAssignments(year, month) {
-      const totalDays = new Date(year, month, 0).getDate();
-      const weeklyTimes = getWeeklyTimesConfig();
-      const rows = [];
-      let idx = 0;
-
-      for (let day = 1; day <= totalDays; day += 1) {
-        const dateObj = new Date(year, month - 1, day);
-        const dayOfWeek = dateObj.getDay();
-        const dateStr = toIsoDate(year, month, day);
-        const times = weeklyTimes[dayOfWeek] || [];
-
-        times.forEach(function (time, timeIndex) {
-          const seed = idx + timeIndex;
-          const dp = OPERATOR_POOL[seed % OPERATOR_POOL.length];
-          const kamera = CAMERA_POOL[(seed + 2) % CAMERA_POOL.length];
-          const supervisor = SUPERVISOR_POOL[(seed + 4) % SUPERVISOR_POOL.length];
-          const op = memberOptions[(seed + 3) % memberOptions.length];
-          const fotografer = memberOptions[(seed + 5) % memberOptions.length];
-          const pending = day % 7 === 0 && time === "18:00";
-
-          rows.push({
-            id: "reg-" + dateStr + "-" + time.replace(":", ""),
-            misa: getMassTitleByWeekday(dayOfWeek),
-            date: dateStr,
-            time: time,
-            status: pending ? "pending" : "siap",
-            dp: pending ? "" : dp,
-            op: pending ? "" : op,
-            kamera: kamera,
-            supervisor: supervisor,
-            fotografer: pending ? "" : fotografer
-          });
-        });
-
-        idx += 1;
-      }
-
-      return rows;
-    }
-
-    function setCurrentPeriodDefaults() {
-      const now = new Date();
-      const currentMonthValue = String(now.getMonth());
-      const currentYearValue = String(now.getFullYear());
-
-      periodMonth.value = currentMonthValue;
-      periodYear.value = currentYearValue;
-
-      if (periodYear.value !== currentYearValue) {
-        const opt = document.createElement("option");
-        opt.value = currentYearValue;
-        opt.textContent = currentYearValue;
-        periodYear.appendChild(opt);
-        periodYear.value = currentYearValue;
-      }
-    }
-
-    function refreshBiasaSchedulesFromPeriod() {
-      const selected = getSelectedPeriod();
-      schedulesBiasa = buildRoutineMonthAssignments(selected.year, selected.month + 1);
-    }
-
-    function readDrafts() {
-      return [];
-    }
-
-    function readPublishedSchedules() {
-      return schedulesBesarDummy.slice();
-    }
-
-    function savePublishedSchedules(items) {
-      void items;
-    }
-
-    function readHiddenDefaultIds() {
-      return [];
-    }
-
-    function roleSlotsFromRegistrasiRoles(roleItems, scheduleId) {
-      const slots = [];
-      const source = Array.isArray(roleItems) ? roleItems : [];
-
-      source.forEach(function (roleItem, roleIndex) {
-        const baseLabel = normalizeName(roleItem && roleItem.role) || ("Role " + (roleIndex + 1));
-        const listedMembers = Array.isArray(roleItem && roleItem.members)
-          ? roleItem.members.map(normalizeName)
-          : [normalizeName(roleItem && roleItem.member)];
-        const cleanMembers = listedMembers.filter(Boolean);
-        const desiredCount = roleItem && roleItem.multi
-          ? Math.max(2, Number(roleItem.count) || cleanMembers.length || 2)
-          : Math.max(1, Number(roleItem && roleItem.count) || cleanMembers.length || 1);
-
-        for (let i = 0; i < desiredCount; i += 1) {
-          const memberName = listedMembers[i] || "";
-          const label = desiredCount === 1 ? baseLabel : (baseLabel + " " + (i + 1));
-          slots.push({
-            key: slugify(baseLabel) + "-" + (i + 1) + "-" + roleIndex + "-" + slugify(scheduleId),
-            label: label,
-            member: normalizeName(memberName)
-          });
-        }
-      });
-
-      return slots;
-    }
-
-    function getCombinedBesarRows() {
-      const rowsById = {};
-      const priority = { default: 1, published: 2, draft: 3 };
-      const hiddenDefaultIds = readHiddenDefaultIds();
-
-      BIG_MASS_DEFAULTS.forEach(function (item) {
-        const id = getDefaultScheduleId(item);
-        if (hiddenDefaultIds.indexOf(id) !== -1) {
-          return;
-        }
-        rowsById[id] = {
-          id: id,
-          name: item.name,
-          date: item.date,
-          time: item.time,
-          roles: [],
-          status: "published",
-          source: "default",
-          _rank: priority.published
-        };
-      });
-
-      readPublishedSchedules().forEach(function (item, index) {
-        const id = normalizeName(item.id) || ("pub-" + index);
-        const next = {
-          id: id,
-          name: normalizeName(item.name),
-          date: normalizeName(item.date),
-          time: normalizeName(item.time),
-          roles: Array.isArray(item.roles) ? item.roles : [],
-          status: "published",
-          source: "registrasi",
-          _rank: priority.published
-        };
-        if (!rowsById[id] || next._rank >= rowsById[id]._rank) {
-          rowsById[id] = next;
-        }
-      });
-
-      readDrafts().forEach(function (item, index) {
-        const id = normalizeName(item.id) || ("draft-" + index);
-        const next = {
-          id: id,
-          name: normalizeName(item.misaName),
-          date: normalizeName(item.misaDate),
-          time: normalizeName(item.misaTime),
-          roles: Array.isArray(item.roles) ? item.roles : [],
-          status: "draft",
-          source: "draft",
-          _rank: priority.draft
-        };
-        if (!rowsById[id] || next._rank >= rowsById[id]._rank) {
-          rowsById[id] = next;
-        }
-      });
-
-      return Object.keys(rowsById).map(function (id) {
-        const item = rowsById[id];
-        return {
-          id: item.id,
-          misa: item.name || "Misa Besar",
-          date: item.date,
-          time: item.time,
-          status: item.status,
-          source: item.source,
-          roles: roleSlotsFromRegistrasiRoles(item.roles, item.id)
-        };
-      });
-    }
-
-    function buildBesarSchedules() {
-      const synced = getCombinedBesarRows();
-      if (!synced.length) {
-        return schedulesBesarDummy.map(function (item) {
-          return {
-            id: item.id,
-            misa: item.misa,
-            date: item.date,
-            time: item.time,
-            status: item.status,
-            source: item.source,
-            roles: item.roles.map(function (role) {
-              return Object.assign({}, role);
-            })
-          };
-        });
-      }
-
-      return synced.map(function (item) {
-        if (item.roles.length) {
-          return item;
-        }
-
-        return Object.assign({}, item, {
-          roles: [
-            { key: "pd-1-" + slugify(item.id), label: "PD", member: "Rikha" },
-            { key: "kamera-1-" + slugify(item.id), label: "Kamera", member: "" }
-          ]
-        });
-      });
-    }
-
-    function getSelectedPeriod() {
-      return {
-        month: Number(periodMonth.value),
-        year: Number(periodYear.value)
-      };
-    }
-
-    function matchesSelectedPeriod(schedule) {
-      const selected = getSelectedPeriod();
-      const date = new Date((schedule.date || "") + "T00:00:00");
-      if (Number.isNaN(date.getTime())) {
-        return true;
-      }
-
-      return date.getMonth() === selected.month && date.getFullYear() === selected.year;
-    }
-
-    function activeSchedules() {
-      return currentMode === "biasa" ? schedulesBiasa : schedulesBesar;
-    }
-
-    function visibleSchedules() {
-      return activeSchedules().map(function (schedule, index) {
-        return { schedule: schedule, index: index };
-      }).filter(function (entry) {
-        if (!matchesSelectedPeriod(entry.schedule)) {
-          return false;
-        }
-        if (currentMode === "biasa") {
-          return !isBlackoutSlot(entry.schedule.date, entry.schedule.time);
-        }
-        return true;
-      });
-    }
-
-    function findRoleSlotBesar(scheduleIndex, roleKey) {
-      const schedule = schedulesBesar[scheduleIndex];
-      if (!schedule || !Array.isArray(schedule.roles)) {
-        return null;
-      }
-
-      return schedule.roles.find(function (slot) {
-        return slot.key === roleKey;
-      }) || null;
-    }
-
-    function roleColumnsBesar(entries) {
-      const labels = [];
-      entries.forEach(function (entry) {
-        (entry.schedule.roles || []).forEach(function (slot) {
-          if (labels.indexOf(slot.label) === -1) {
-            labels.push(slot.label);
-          }
-        });
-      });
-      return labels;
-    }
-
-    function buildMemberSelect(selectedValue, scheduleIndex, roleKey) {
-      const clean = normalizeName(selectedValue);
-      const label = clean || "-- kosong --";
-
-      return '<div class="slot-combo" data-index="' + scheduleIndex + '" data-role="' + escapeHtml(roleKey) + '">' +
-        '<button class="slot-trigger" type="button" aria-expanded="false">' + escapeHtml(label) + '</button>' +
-        '<div class="slot-panel">' +
-          '<div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari anggota..."></div>' +
-          '<div class="slot-options"></div>' +
-        '</div>' +
-      '</div>';
-    }
-
-    function buildRoleCell(value, scheduleIndex, roleKey) {
-      const tagClass = value ? "tag" : "tag empty";
-      const tagText = value ? "Terisi: " + value : "Slot kosong";
-
-      return '<div class="slot">' +
-        '<span class="' + tagClass + '">' + escapeHtml(tagText) + '</span>' +
-        buildMemberSelect(value, scheduleIndex, roleKey) +
-        '<button class="btn danger clear-slot" data-index="' + scheduleIndex + '" data-role="' + escapeHtml(roleKey) + '" type="button">Hapus</button>' +
-      '</div>';
-    }
-
-    function buildMissingRoleCell() {
-      return '<div class="slot"><span class="tag empty">Role tidak ada</span></div>';
-    }
-
-    function renderStatusChip(status) {
-      if (status === "siap") {
-        return '<span class="tag">Siap</span>';
-      }
-      if (status === "pending") {
-        return '<span class="tag empty">Belum Lengkap</span>';
-      }
-      if (status === "draft") {
-        return '<span class="tag empty">Draft</span>';
-      }
-      return '<span class="tag">Published</span>';
-    }
-
-    function renderHeadBiasa() {
-      assignmentHead.innerHTML = '<tr>' +
-        '<th>Nama Misa</th>' +
-        '<th>Tanggal</th>' +
-        '<th>Jam</th>' +
-        '<th>DP</th>' +
-        '<th>OP</th>' +
-        '<th>Kamera</th>' +
-        '<th>Supervisor</th>' +
-        '<th>Fotografer</th>' +
-        '<th>Status</th>' +
-      '</tr>';
-    }
-
-    function renderHeadBesar(columns) {
-      const roleHeaders = columns.map(function (label) {
-        return '<th>' + escapeHtml(label) + '</th>';
-      }).join("");
-
-      assignmentHead.innerHTML = '<tr>' +
-        '<th>Nama Misa</th>' +
-        '<th>Tanggal</th>' +
-        '<th>Jam</th>' +
-        roleHeaders +
-        '<th>Status</th>' +
-      '</tr>';
-    }
-
-    function renderAssignmentsBiasa() {
-      const rows = visibleSchedules();
-      renderHeadBiasa();
-      assignmentRows.innerHTML = rows.map(function (entry) {
-        const schedule = entry.schedule;
-        const index = entry.index;
-
-        return '<tr>' +
-          '<td><strong>' + escapeHtml(schedule.misa) + '</strong></td>' +
-          '<td>' + escapeHtml(schedule.date) + '</td>' +
-          '<td>' + escapeHtml(schedule.time) + '</td>' +
-          '<td>' + buildRoleCell(schedule.dp || "", index, "dp") + '</td>' +
-          '<td>' + buildRoleCell(schedule.op || "", index, "op") + '</td>' +
-          '<td>' + buildRoleCell(schedule.kamera || "", index, "kamera") + '</td>' +
-          '<td>' + buildRoleCell(schedule.supervisor || "", index, "supervisor") + '</td>' +
-          '<td>' + buildRoleCell(schedule.fotografer || "", index, "fotografer") + '</td>' +
-          '<td>' + renderStatusChip(schedule.status || "published") + '</td>' +
-        '</tr>';
-      }).join("");
-    }
-
-    function renderAssignmentsBesar() {
-      const rows = visibleSchedules();
-      const columns = roleColumnsBesar(rows);
-      renderHeadBesar(columns);
-
-      assignmentRows.innerHTML = rows.map(function (entry) {
-        const schedule = entry.schedule;
-        const index = entry.index;
-        const roleCells = columns.map(function (columnLabel) {
-          const slot = (schedule.roles || []).find(function (item) {
-            return item.label === columnLabel;
-          });
-          return '<td>' + (slot ? buildRoleCell(slot.member || "", index, slot.key) : buildMissingRoleCell()) + '</td>';
-        }).join("");
-
-        return '<tr>' +
-          '<td><strong>' + escapeHtml(schedule.misa) + '</strong></td>' +
-          '<td>' + escapeHtml(schedule.date || "-") + '</td>' +
-          '<td>' + escapeHtml(schedule.time || "-") + '</td>' +
-          roleCells +
-          '<td>' + renderStatusChip(schedule.status) + '</td>' +
-        '</tr>';
-      }).join("");
-    }
-
-    function renderAssignments() {
-      if (currentMode === "biasa") {
-        renderAssignmentsBiasa();
-      } else {
-        renderAssignmentsBesar();
-      }
-      initSlotCombos();
-    }
-
-    function renderSlotOptions(comboEl, query) {
-      const scheduleIndex = Number(comboEl.getAttribute("data-index"));
-      const roleKey = comboEl.getAttribute("data-role");
-      const schedule = activeSchedules()[scheduleIndex];
-      if (!schedule) {
-        return;
-      }
-
-      let selectedValue = "";
-      if (currentMode === "biasa") {
-        selectedValue = normalizeName(schedule[roleKey]);
-      } else {
-        const slot = findRoleSlotBesar(scheduleIndex, roleKey);
-        selectedValue = slot ? normalizeName(slot.member) : "";
-      }
-
-      const optionsWrap = comboEl.querySelector(".slot-options");
-      const cleanQuery = normalizeName(query).toLowerCase();
-
-      const filtered = memberOptions.filter(function (name) {
-        return !cleanQuery || name.toLowerCase().indexOf(cleanQuery) !== -1;
-      });
-
-      let html = '<button class="slot-option' + (selectedValue ? '' : ' active') + '" type="button" data-value="">-- kosong --</button>';
-
-      filtered.forEach(function (name) {
-        const activeClass = name.toLowerCase() === selectedValue.toLowerCase() ? " active" : "";
-        html += '<button class="slot-option' + activeClass + '" type="button" data-value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</button>';
-      });
-
-      if (!filtered.length) {
-        html += '<p class="slot-empty">Nama anggota tidak ditemukan.</p>';
-      }
-
-      optionsWrap.innerHTML = html;
-    }
-
-    function closeAllSlotPanels(exceptCombo) {
-      assignmentRows.querySelectorAll(".slot-combo").forEach(function (comboEl) {
-        if (exceptCombo && comboEl === exceptCombo) {
-          return;
-        }
-
-        const panel = comboEl.querySelector(".slot-panel");
-        const trigger = comboEl.querySelector(".slot-trigger");
-        panel.classList.remove("show");
-        trigger.setAttribute("aria-expanded", "false");
-      });
-    }
-
-    function initSlotCombos() {
-      assignmentRows.querySelectorAll(".slot-combo").forEach(function (comboEl) {
-        renderSlotOptions(comboEl, "");
-      });
-    }
-
-    function getScheduleByCurrentSwapSelection() {
-      const index = Number(swapSchedule.value);
-      if (swapSchedule.value === "" || Number.isNaN(index)) {
-        return null;
-      }
-      return activeSchedules()[index] || null;
-    }
-
-    function renderSwapRoleOptions() {
-      const schedule = getScheduleByCurrentSwapSelection();
-      if (!schedule) {
-        swapRoleA.innerHTML = '<option value="">-- tidak ada role --</option>';
-        swapRoleB.innerHTML = '<option value="">-- tidak ada role --</option>';
-        return;
-      }
-
-      let options = "";
-      if (currentMode === "biasa") {
-        options = ROLE_KEYS_BIASA.map(function (role) {
-          return '<option value="' + role.key + '">' + role.label + '</option>';
-        }).join("");
-      } else {
-        options = (schedule.roles || []).map(function (slot) {
-          return '<option value="' + escapeHtml(slot.key) + '">' + escapeHtml(slot.label) + '</option>';
-        }).join("");
-      }
-
-      if (!options) {
-        swapRoleA.innerHTML = '<option value="">-- tidak ada role --</option>';
-        swapRoleB.innerHTML = '<option value="">-- tidak ada role --</option>';
-        return;
-      }
-
-      swapRoleA.innerHTML = options;
-      swapRoleB.innerHTML = options;
-      if (swapRoleB.options.length > 1) {
-        swapRoleB.selectedIndex = 1;
-      }
-    }
-
-    function renderSwapSchedules() {
-      const schedules = visibleSchedules();
-      if (!schedules.length) {
-        swapSchedule.innerHTML = '<option value="">-- tidak ada jadwal pada periode ini --</option>';
-        renderSwapRoleOptions();
-        return;
-      }
-
-      swapSchedule.innerHTML = schedules.map(function (entry) {
-        const schedule = entry.schedule;
-        return '<option value="' + entry.index + '">' + escapeHtml(schedule.misa) + ' - ' + escapeHtml(schedule.date || "-") + ' ' + escapeHtml(schedule.time || "-") + '</option>';
-      }).join("");
-      renderSwapRoleOptions();
-    }
-
-    function setMode(mode) {
-      currentMode = mode;
-      if (mode === "besar") {
-        schedulesBesar = buildBesarSchedules();
-      } else {
-        refreshBiasaSchedulesFromPeriod();
-      }
-      modeBiasa.classList.toggle("active", mode === "biasa");
-      modeBesar.classList.toggle("active", mode === "besar");
-      renderAssignments();
-      renderSwapSchedules();
-    }
-
-    function persistBesarAssignments() {
-      const published = readPublishedSchedules();
-      const publishedById = {};
-      published.forEach(function (item) {
-        publishedById[item.id] = item;
-      });
-
-      const updatedPublished = published.map(function (item) {
-        const local = schedulesBesar.find(function (schedule) {
-          return schedule.id === item.id && schedule.status === "published";
-        });
-        if (!local) {
-          return item;
-        }
-
-        return Object.assign({}, item, {
-          roles: local.roles.map(function (slot) {
-            return {
-              role: slot.label,
-              member: slot.member || "",
-              members: [slot.member || ""].filter(Boolean),
-              multi: false,
-              count: 1
-            };
-          })
-        });
-      });
-
-      savePublishedSchedules(updatedPublished);
-    }
-
-    periodMonth.addEventListener("change", function () {
-      if (currentMode === "biasa") {
-        refreshBiasaSchedulesFromPeriod();
-      }
-      renderAssignments();
-      renderSwapSchedules();
-    });
-
-    periodYear.addEventListener("change", function () {
-      if (currentMode === "biasa") {
-        refreshBiasaSchedulesFromPeriod();
-      }
-      renderAssignments();
-      renderSwapSchedules();
-    });
-
-    modeBiasa.addEventListener("click", function () { setMode("biasa"); });
-    modeBesar.addEventListener("click", function () { setMode("besar"); });
-    swapSchedule.addEventListener("change", renderSwapRoleOptions);
-
-    assignmentRows.addEventListener("click", function (event) {
-      const trigger = event.target.closest(".slot-trigger");
-      if (trigger) {
-        const comboEl = trigger.closest(".slot-combo");
-        const panel = comboEl.querySelector(".slot-panel");
-        const searchInput = comboEl.querySelector(".slot-search-input");
-        const willOpen = !panel.classList.contains("show");
-
-        closeAllSlotPanels(comboEl);
-        panel.classList.toggle("show", willOpen);
-        trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
-        if (willOpen) {
-          renderSlotOptions(comboEl, searchInput.value);
-          searchInput.focus();
-        }
-        return;
-      }
-
-      const option = event.target.closest(".slot-option");
-      if (option) {
-        const comboEl = option.closest(".slot-combo");
-        const index = Number(comboEl.getAttribute("data-index"));
-        const role = comboEl.getAttribute("data-role");
-        const picked = normalizeName(option.getAttribute("data-value") || "");
-
-        if (currentMode === "biasa") {
-          if (!schedulesBiasa[index]) {
-            return;
-          }
-          schedulesBiasa[index][role] = picked;
+    async function loadSchedule() {
+        const m = monthFilter.value;
+        const y = yearFilter.value;
+        const res = await fetch(`/api/streaming/schedule?month=${m}&year=${y}`);
+        const data = await res.json();
+        
+        if (data.success && data.schedule.length > 0) {
+            document.getElementById("emptyNote").hidden = true;
+            renderRows(data.schedule);
         } else {
-          const slot = findRoleSlotBesar(index, role);
-          if (!slot) {
-            return;
-          }
-          slot.member = picked;
+            document.getElementById("tableRows").innerHTML = "";
+            document.getElementById("emptyNote").hidden = false;
+            document.getElementById("emptyNote").innerText = "Tidak ada jadwal rutin bulan ini.";
         }
-
-        renderAssignments();
-        renderSwapSchedules();
-      }
-    });
-
-    assignmentRows.addEventListener("input", function (event) {
-      const searchInput = event.target.closest(".slot-search-input");
-      if (!searchInput) {
-        return;
-      }
-
-      const comboEl = searchInput.closest(".slot-combo");
-      renderSlotOptions(comboEl, searchInput.value);
-    });
-
-    assignmentRows.addEventListener("click", function (event) {
-      const button = event.target.closest(".clear-slot");
-      if (!button) {
-        return;
-      }
-
-      const index = Number(button.getAttribute("data-index"));
-      const role = button.getAttribute("data-role");
-
-      if (currentMode === "biasa") {
-        if (!schedulesBiasa[index]) {
-          return;
-        }
-        schedulesBiasa[index][role] = "";
-      } else {
-        const slot = findRoleSlotBesar(index, role);
-        if (!slot) {
-          return;
-        }
-        slot.member = "";
-      }
-
-      renderAssignments();
-      renderSwapSchedules();
-    });
-
-    document.addEventListener("click", function (event) {
-      const comboRoot = event.target.closest(".slot-combo");
-      if (!comboRoot) {
-        closeAllSlotPanels();
-      }
-    });
-
-    swapBtn.addEventListener("click", function () {
-      const schedule = getScheduleByCurrentSwapSelection();
-      const roleA = swapRoleA.value;
-      const roleB = swapRoleB.value;
-      if (!schedule || !roleA || !roleB || roleA === roleB) {
-        return;
-      }
-
-      if (currentMode === "biasa") {
-        const temp = schedule[roleA] || "";
-        schedule[roleA] = schedule[roleB] || "";
-        schedule[roleB] = temp;
-      } else {
-        const slotA = (schedule.roles || []).find(function (slot) { return slot.key === roleA; });
-        const slotB = (schedule.roles || []).find(function (slot) { return slot.key === roleB; });
-        if (!slotA || !slotB) {
-          return;
-        }
-
-        const temp = slotA.member;
-        slotA.member = slotB.member;
-        slotB.member = temp;
-      }
-
-      renderAssignments();
-      renderSwapSchedules();
-    });
-
-    saveAssignmentBtn.addEventListener("click", function () {
-      if (currentMode === "besar") {
-        persistBesarAssignments();
-      }
-      window.alert("Penugasan berhasil disimpan. Status jadwal tetap mengikuti Draft/Published pada data registrasi.");
-    });
-
-    function updateLiveDateTime() {
-      const now = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
-    setCurrentPeriodDefaults();
-    refreshBiasaSchedulesFromPeriod();
-    setMode("biasa");
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    function renderRows(schedule) {
+        document.getElementById("tableRows").innerHTML = schedule.map(item => {
+            let rowHtml = `<td><strong>${item.dayName}</strong>, ${item.date.split('-').reverse().join('/')}<br><small>${item.massName}</small></td>
+                           <td style="font-weight:bold; color:#7f0000;">${item.time}</td>`;
+            
+            ROLES.forEach(role => {
+                // Cari apakah sudah ada petugas yang tersimpan untuk slot ini
+                const assigned = SAVED_ASSIGNMENTS.find(a => 
+                    a.schedule_date === item.date && 
+                    a.schedule_time.substring(0,5) === item.time && 
+                    a.role_name === role.name
+                );
+
+                let options = `<option value="">-- Pilih Petugas --</option>`;
+                ACTIVE_MEMBERS.forEach(m => {
+                    const selected = assigned && String(assigned.member_id) === String(m.id) ? "selected" : "";
+                    options += `<option value="${m.id}" ${selected}>${m.name} (${m.role})</option>`;
+                });
+
+                rowHtml += `<td><select class="member-select" data-date="${item.date}" data-time="${item.time}" data-role="${role.name}">${options}</select></td>`;
+            });
+
+            return `<tr>${rowHtml}</tr>`;
+        }).join("");
+    }
+
+    document.getElementById("saveAllBtn").onclick = async () => {
+        const selects = document.querySelectorAll(".member-select");
+        const payload = [];
+        
+        selects.forEach(sel => {
+            if (sel.value) {
+                payload.push({
+                    date: sel.getAttribute("data-date"),
+                    time: sel.getAttribute("data-time"),
+                    role: sel.getAttribute("data-role"),
+                    memberId: sel.value
+                });
+            }
+        });
+
+        if (payload.length === 0) return alert("Belum ada petugas yang dipilih.");
+
+        const res = await fetch("/api/streaming/assignments/save", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(data.success) {
+            alert("Semua penugasan berhasil disimpan!");
+            fetchData(); // Refresh data
+        } else {
+            alert("Gagal menyimpan: " + data.error);
+        }
+    };
+
+    monthFilter.onchange = loadSchedule;
+    yearFilter.onchange = loadSchedule;
+
+    setInterval(() => {
+        const n = new Date();
+        document.getElementById("liveDateTime").textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";
+    }, 1000);
+
+    fetchData();
   </script>
-<script src="_sidebar-fix.js"></script>
 </body>
 </html>

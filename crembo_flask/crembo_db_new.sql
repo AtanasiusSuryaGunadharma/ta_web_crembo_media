@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 07 Bulan Mei 2026 pada 13.44
+-- Waktu pembuatan: 07 Bulan Mei 2026 pada 16.46
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -723,6 +723,29 @@ INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `streaming_assignments`
+--
+
+CREATE TABLE `streaming_assignments` (
+  `id` int(11) NOT NULL,
+  `schedule_date` date NOT NULL,
+  `schedule_time` time NOT NULL,
+  `role_name` varchar(100) NOT NULL,
+  `member_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `streaming_assignments`
+--
+
+INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `role_name`, `member_id`) VALUES
+(1, '2026-05-01', '18:00:00', 'Operator', 36),
+(2, '2026-05-01', '18:00:00', 'Kameramen', 73),
+(3, '2026-05-01', '18:00:00', 'SPV', 67);
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `streaming_cancelled`
 --
 
@@ -731,13 +754,6 @@ CREATE TABLE `streaming_cancelled` (
   `mass_date` date NOT NULL,
   `mass_time` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `streaming_cancelled`
---
-
-INSERT INTO `streaming_cancelled` (`id`, `mass_date`, `mass_time`) VALUES
-(5, '2026-05-01', '18:00:00');
 
 -- --------------------------------------------------------
 
@@ -2521,6 +2537,14 @@ ALTER TABLE `sertifikat_config`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indeks untuk tabel `streaming_assignments`
+--
+ALTER TABLE `streaming_assignments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_assignment` (`schedule_date`,`schedule_time`,`role_name`),
+  ADD KEY `fk_assign_member` (`member_id`);
+
+--
 -- Indeks untuk tabel `streaming_cancelled`
 --
 ALTER TABLE `streaming_cancelled`
@@ -2672,10 +2696,16 @@ ALTER TABLE `sertifikat_config`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT untuk tabel `streaming_assignments`
+--
+ALTER TABLE `streaming_assignments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
 --
 ALTER TABLE `streaming_cancelled`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_roles`
@@ -2711,6 +2741,12 @@ ALTER TABLE `news_category_mapping`
 --
 ALTER TABLE `registration_form_submissions`
   ADD CONSTRAINT `fk_registration_submissions_form` FOREIGN KEY (`form_id`) REFERENCES `registration_forms` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `streaming_assignments`
+--
+ALTER TABLE `streaming_assignments`
+  ADD CONSTRAINT `fk_assign_member` FOREIGN KEY (`member_id`) REFERENCES `anggota` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
