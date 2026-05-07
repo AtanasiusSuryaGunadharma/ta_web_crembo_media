@@ -56,9 +56,30 @@
       margin-bottom: 16px;
     }
 
-    .brand h1 { margin: 0; font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
-    .role-chip { display: inline-block; border: 1px solid #1f1f1f; background: #fafafa; border-radius: 999px; padding: 5px 10px; font-size: 0.76rem; font-weight: 700; color: #111; margin-top: 8px;}
+    .brand h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: #cdcdcd;
+      font-size: 0.82rem;
+    }
+
+    .role-chip { 
+      display: inline-block; 
+      border: 1px solid #1f1f1f; 
+      background: #fafafa; 
+      border-radius: 999px; 
+      padding: 5px 10px; 
+      font-size: 0.76rem; 
+      font-weight: 700; 
+      color: #111; 
+      margin-top: 8px;
+    }
 
     .menu-group {
       border: 1px solid #656565;
@@ -101,10 +122,24 @@
       margin-bottom: 4px;
     }
 
-    .menu-link:hover { border-color: #8a8a8a; background: rgba(255, 255, 255, 0.08); }
-    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
+    .menu-link:hover {
+      border-color: #8a8a8a;
+      background: rgba(255, 255, 255, 0.08);
+    }
 
-    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
+    .menu-link.active {
+      border-color: #cfcfcf;
+      background: #e9e9e9;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .side-actions {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
     .side-actions a {
       text-decoration: none;
       border: 1px solid #8d8d8d;
@@ -115,7 +150,9 @@
       font-size: 0.82rem;
     }
 
-    .main { padding: 16px; }
+    .main {
+      padding: 16px;
+    }
 
     .dashboard-headline-bar {
       border: 1px solid #cfcfcf;
@@ -135,9 +172,35 @@
       font-size: clamp(1.2rem, 2.2vw, 2rem);
       font-weight: 700;
       color: #1c1f27;
+      letter-spacing: 0.01em;
     }
 
-    .head-meta { display: inline-flex; align-items: center; gap: 12px; color: #374151; font-size: 0.95rem; font-weight: 600; }
+    .head-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: #374151;
+      font-size: clamp(0.85rem, 1.8vw, 1.02rem);
+      font-weight: 600;
+    }
+
+    .world-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #6b7280;
+      background: #ffffff;
+      color: #374151;
+      text-decoration: none;
+    }
+
+    .world-link svg {
+      width: 18px;
+      height: 18px;
+    }
 
     .schedule-topbar {
       border: 2px solid var(--line);
@@ -153,8 +216,18 @@
       flex-wrap: wrap;
     }
 
-    .schedule-headline { margin: 0; font-size: clamp(1.05rem, 2.5vw, 1.5rem); color: #111827; font-weight: 700; }
-    .schedule-subhead { margin: 3px 0 0; color: var(--muted); font-size: 0.85rem; }
+    .schedule-headline {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .schedule-subhead {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
 
     .cards {
       margin-bottom: 12px;
@@ -171,8 +244,19 @@
       box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
     }
 
-    .metric p { margin: 0; color: #616161; font-size: 0.75rem; text-transform: uppercase; font-weight:700;}
-    .metric h3 { margin: 8px 0 0; font-size: 1.45rem; line-height: 1; }
+    .metric p {
+      margin: 0;
+      color: #616161;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric h3 {
+      margin: 8px 0 0;
+      font-size: 1.45rem;
+      line-height: 1;
+    }
 
     .panel {
       border: 2px solid var(--line);
@@ -191,12 +275,21 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .panel-head h2 { margin: 0; font-size: 1rem; }
-    .panel-body { padding: 12px; }
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
 
-    #weeklySettingsBody[hidden] { display: none !important; }
+    .panel-body {
+      padding: 12px;
+    }
+
+    #weeklySettingsBody[hidden] {
+      display: none !important;
+    }
 
     .toolbar {
       display: grid;
@@ -207,18 +300,31 @@
     }
 
     .filters {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
 
-    .field { display: grid; gap: 6px; }
-    .field label { font-size: 0.82rem; color: #4f4f4f; font-weight:700; }
-    .field select, .field input {
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.82rem;
+      color: #4f4f4f;
+      font-weight: 700;
+    }
+
+    .field select,
+    .field input {
       border: 1px solid #bdbdbd;
       border-radius: 10px;
       padding: 8px 10px;
       font-size: 0.86rem;
       background: #fff;
+      font-family: inherit;
+      width: 100%;
     }
 
     .toggle {
@@ -228,6 +334,7 @@
       padding: 4px;
       border-radius: 10px;
       gap: 5px;
+      width: fit-content;
     }
 
     .toggle button {
@@ -241,7 +348,11 @@
       color: #2a2a2a;
     }
 
-    .toggle button.active { background: #111111; color: #fff; border-color: #111111; }
+    .toggle button.active {
+      background: #111111;
+      color: #fff;
+      border-color: #111111;
+    }
 
     .btn {
       border: 1px solid #1f2937;
@@ -254,14 +365,58 @@
       cursor: pointer;
       text-decoration: none;
       display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
     }
-    .btn.primary { background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%); border-color: #295fc2; }
-    .btn.ghost { background: #fff; color: #1f2937; border-color: #9ca3af; }
 
-    .table-wrap { overflow: auto; border: 1px solid #cdcdcd; border-radius: 10px; background: #fff; }
-    table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: 0.84rem; }
-    th, td { border: 1px solid #d1d1d1; padding: 8px; text-align: left; }
-    th { background: #f1f1f1; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    .btn.primary {
+      background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%);
+      border-color: #295fc2;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: #1f2937;
+      border-color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .action-set {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid #cdcdcd;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #d1d1d1;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f1f1;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
 
     .state-pill {
       display: inline-block;
@@ -270,48 +425,202 @@
       padding: 2px 8px;
       font-size: 0.74rem;
       background: #f7f7f7;
+      white-space: nowrap;
     }
-    .state-pill.ok { border-color: #99c8ab; background: #eef8ef; color: var(--ok); font-weight: 700; }
-    .state-pill.warn { border-color: #e3c188; background: #fff8ea; color: var(--warn); font-weight: 700; }
-    .state-pill.danger { border-color: #ef4444; background: #fff1f1; color: var(--danger); font-weight: 700; }
 
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 100; justify-content: center; align-items: center; }
-    .modal-overlay.show { display: flex; }
-    .modal { background: #fff; border: 2px solid #1f1f1f; border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-    .modal-head { padding: 14px 16px; border-bottom: 1px solid #c8c8c8; background: #f5f5f5; display: flex; justify-content: space-between; }
-    .modal-head h3 { margin: 0; font-size: 1rem; }
-    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #5b5b5b; }
-    .modal-body { padding: 16px; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid #d1d1d1; background: #fafafa; }
+    .state-pill.warn {
+      border-color: #e3c188;
+      background: #fff8ea;
+      color: var(--warn);
+      font-weight: 700;
+    }
 
-    /* Custom Weekly Settings */
-    .weekly-settings { border: 1px dashed #c8c8c8; border-radius: 10px; padding: 15px; background: #fcfcfc; flex:1;}
-    .weekday-grid { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .weekday-grid label { margin: 0; font-size: 0.8rem; font-weight: 700; color: #4b5563; }
-    .weekday-grid input { width: 100%; border: 1px solid #b7b7b7; border-radius: 8px; padding: 7px 8px; font-size: 0.82rem; }
+    .weekly-settings-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .weekly-settings {
+      border: 1px dashed #c8c8c8;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fcfcfc;
+    }
+
+    .weekly-settings h4 {
+      margin: 0 0 8px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #4b5563;
+    }
+
+    .setting-section { 
+        border: 1px solid #ddd; 
+        border-radius: 10px; 
+        padding: 12px; 
+        margin-bottom: 10px; 
+        background: #fff;
+    }
     
-    .setting-section { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-bottom: 10px; background:#fff;}
-    .time-chip { background: #f0f0f0; border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; margin: 0 4px 4px 0;}
-    .time-chip button { border: 0; background: transparent; cursor: pointer; font-weight: 700; color: var(--danger); padding:0; line-height:1;}
-    
-    .blackout-list { border: 1px solid #d1d1d1; border-radius: 8px; max-height: 200px; overflow-y: auto; background: #fafafa; margin-top:10px;}
-    .blackout-item { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #e1e1e1; font-size: 0.85rem; }
-    .blackout-item button { border: 1px solid #ef4444; background: #fff1f1; color: #b42323; border-radius: 6px; cursor: pointer; font-weight: 600; padding:2px 8px;}
+    .time-chip { 
+        background: #f0f0f0; 
+        border: 1px solid #ccc; 
+        border-radius: 6px; 
+        padding: 4px 8px; 
+        font-size: 0.8rem; 
+        display: inline-flex; 
+        align-items: center; 
+        gap: 6px; 
+        margin: 0 4px 4px 0;
+    }
+    .time-chip button { 
+        border: 0; 
+        background: transparent; 
+        cursor: pointer; 
+        font-weight: 700; 
+        color: var(--danger); 
+        padding: 0; 
+        line-height: 1;
+    }
+
+    .role-list-item {
+        display: flex; 
+        justify-content: space-between; 
+        background: #f9f9f9; 
+        padding: 8px 12px; 
+        border-radius: 8px; 
+        border: 1px solid #ddd; 
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border: 2px solid #1f1f1f;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid #c8c8c8;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #5b5b5b;
+    }
+
+    .modal-body {
+      padding: 16px;
+    }
+
+    .blackout-list {
+      border: 1px solid #d1d1d1;
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #fafafa;
+      margin-top: 10px;
+    }
+
+    .blackout-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e1e1e1;
+      font-size: 0.85rem;
+    }
+
+    .blackout-item:last-child {
+      border-bottom: none;
+    }
+
+    .blackout-item button {
+      border: 1px solid #ef4444;
+      background: #fff1f1;
+      color: #b42323;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .helper-note {
+      border: 1px dashed #9ca3af;
+      border-radius: 10px;
+      background: #f7f7f7;
+      padding: 8px 10px;
+      color: #4b5563;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1220px) {
+      .cards { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+      .weekly-settings-container { grid-template-columns: 1fr; }
+    }
 
     @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
-      .cards { grid-template-columns: repeat(2, 1fr); }
-      .filters { flex-direction:column; }
+      .toolbar { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .main { padding: 10px; }
+      .dashboard-headline-bar,
+      .topbar,
+      .panel-head,
+      .panel-body { padding: 10px; }
     }
   </style>
 </head>
 <body>
   <div class="layout">
-    <aside id="sidebar" class="sidebar">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar dashboard jadwal streaming">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Modul jadwal streaming</p>
+        <p>Modul jadwal tugas streaming</p>
         <span id="sidebarRoleBadge" class="role-chip">Role: -</span>
       </div>
 
@@ -342,10 +651,18 @@
     </aside>
 
     <main class="main">
-      <header class="dashboard-headline-bar">
+      <header class="dashboard-headline-bar" aria-label="Header jadwal streaming admin waktu berjalan">
         <h1>Jadwal Tugas Streaming</h1>
         <div class="head-meta">
           <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Lihat Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
         </div>
       </header>
 
@@ -356,52 +673,66 @@
         </div>
       </header>
 
-      <section class="cards">
-        <article class="metric"><p>Jadwal Aktif Bulan Ini</p><h3 id="metricTotal">0</h3></article>
+      <section class="cards" aria-label="Ringkasan metrik jadwal streaming">
+        <article class="metric">
+          <p>Total Jadwal Bulan Ini</p>
+          <h3 id="metricTotal">0</h3>
+        </article>
+        <article class="metric">
+          <p>Misa Biasa Aktif</p>
+          <h3 id="metricRegular">0</h3>
+        </article>
+        <article class="metric">
+          <p>Misa Besar</p>
+          <h3 id="metricRaya">0</h3>
+        </article>
+        <article class="metric">
+          <p>Belum Terisi</p>
+          <h3 id="metricPending">0</h3>
+        </article>
       </section>
 
-      <section class="panel">
+      <section id="weeklySettingsPanel" class="panel" aria-label="Pengaturan jam misa rutin otomatis">
         <header class="panel-head">
-          <h2>Pengaturan Form Jadwal Otomatis</h2>
-          <button id="toggleWeeklySettingsBtn" class="btn ghost">Tampilkan</button>
+          <h2>Pengaturan Jam Misa Rutin & Role (Kolom)</h2>
+          <button id="toggleWeeklySettingsBtn" class="btn ghost" type="button" aria-expanded="false" aria-controls="weeklySettingsBody">Tampilkan</button>
         </header>
         <div id="weeklySettingsBody" class="panel-body" hidden>
-            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;">
-                
+            <div class="weekly-settings-container">
                 <div class="weekly-settings">
                     <h4>1. Jam Misa Rutin Mingguan</h4>
-                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Atur jam misa setiap hari. Jadwal ini akan otomatis diulang di kalender untuk bulan berjalan.</p>
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Atur jam misa setiap hari. Jadwal ini otomatis menyesuaikan jumlah hari dalam kalender bulan berjalan.</p>
                     <div id="daysContainer"></div>
-                    <button class="btn primary" id="saveWeeklyBtn" style="margin-top:10px;">Simpan Jam Rutin</button>
+                    <button class="btn primary" id="saveWeeklyBtn" style="margin-top:10px; width: 100%;">Simpan Jam Rutin</button>
                 </div>
 
                 <div class="weekly-settings">
                     <h4>2. Atur Role Petugas (Kolom Tabel)</h4>
-                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Tentukan role petugas yang akan dimunculkan sebagai kolom pengisian dalam setiap misa.</p>
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Tentukan role petugas yang akan dimunculkan sebagai kolom pengisian untuk Misa Biasa.</p>
                     <div style="display:flex; gap:6px;">
                         <input type="text" id="newRoleName" placeholder="Contoh: Kameramen 3" style="flex:1;">
                         <button class="btn ghost" id="addRoleBtn">+</button>
                     </div>
-                    <div id="roleList" style="margin-top:10px;"></div>
-                    <button class="btn primary" id="saveRolesBtn" style="margin-top:10px; width:100%;">Simpan Kolom Role</button>
+                    <div id="roleList" style="margin-top:14px;"></div>
+                    <button class="btn primary" id="saveRolesBtn" style="margin-top:14px; width:100%;">Simpan Kolom Role</button>
                 </div>
             </div>
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" aria-label="Filter dan mode jadwal">
         <header class="panel-head">
           <h2>Filter & Mode Jadwal</h2>
-          <div class="toggle">
-            <button class="active">Misa Biasa</button>
-            <button onclick="window.location.href='registrasi-tugas-misa-besar.html'">Misa Besar</button>
+          <div class="toggle" role="tablist" aria-label="Mode jadwal">
+            <button class="active" type="button">Misa Biasa</button>
+            <button type="button" onclick="window.location.href='registrasi-tugas-misa-besar.html'">Misa Besar</button>
           </div>
         </header>
         <div class="panel-body">
           <div class="toolbar">
             <div class="filters">
               <div class="field">
-                <label>Bulan</label>
+                <label for="monthFilter">Bulan</label>
                 <select id="monthFilter">
                   <option value="1">Januari</option>
                   <option value="2">Februari</option>
@@ -418,7 +749,7 @@
                 </select>
               </div>
               <div class="field">
-                <label>Tahun</label>
+                <label for="yearFilter">Tahun</label>
                 <select id="yearFilter">
                   <option value="2025">2025</option>
                   <option value="2026">2026</option>
@@ -426,15 +757,16 @@
                 </select>
               </div>
             </div>
-            <div class="action-set" style="display:flex; gap:8px;">
-              <button id="refreshBtn" class="btn primary">Muat Ulang Jadwal</button>
-              <button id="manageBlackoutBtn" class="btn ghost">Atur Tanggal Ditiadakan</button>
+            <div class="action-set">
+              <button id="refreshBtn" class="btn primary" type="button">Muat Ulang Jadwal</button>
+              <button id="manageBlackoutBtn" class="btn ghost" type="button">Atur Tanggal Ditiadakan</button>
             </div>
           </div>
+          <p class="helper-note" id="roleNote">-</p>
         </div>
       </section>
 
-      <section class="panel">
+      <section id="regularPanel" class="panel" aria-label="Daftar jadwal misa biasa">
         <header class="panel-head">
           <h2>Daftar Jadwal Misa Biasa</h2>
         </header>
@@ -445,19 +777,20 @@
               <tbody id="regularRows"></tbody>
             </table>
           </div>
-          <p id="emptyNote" style="text-align:center; padding:15px; color:#777;">Memuat jadwal dari server...</p>
+          <p id="emptyNote" style="text-align:center; padding:20px; color:#666;">Memuat jadwal dari server...</p>
         </div>
       </section>
+
     </main>
 
     <div id="blackoutModal" class="modal-overlay">
       <div class="modal">
         <div class="modal-head">
           <h3>Tiadakan Jadwal Misa</h3>
-          <button class="modal-close">&times;</button>
+          <button class="modal-close" type="button">&times;</button>
         </div>
         <div class="modal-body">
-          <div class="field" style="margin-bottom:10px;">
+          <div class="field" style="margin-bottom:12px;">
             <label>Pilih Tanggal</label>
             <input type="date" id="cancelDate">
           </div>
@@ -467,9 +800,9 @@
                 <option value="">-- Pilih Tanggal Dulu --</option>
             </select>
           </div>
-          <button class="btn primary" id="submitCancelBtn" style="margin-top:10px;">Tiadakan Sekarang</button>
+          <button class="btn primary" id="submitCancelBtn" style="margin-top:14px; width: 100%;">Tiadakan Sekarang</button>
           
-          <h4 style="margin-top:20px;">Daftar Misa Ditiadakan</h4>
+          <h4 style="margin-top:24px; font-size: 0.9rem; color: #333;">Daftar Misa Ditiadakan</h4>
           <div id="blackoutList" class="blackout-list"></div>
         </div>
       </div>
@@ -486,12 +819,29 @@
     const monthFilter = document.getElementById("monthFilter");
     const yearFilter = document.getElementById("yearFilter");
     
-    // Set Default Filter to Current Time
+    // Auto-Select Current Month & Year
     const now = new Date();
     monthFilter.value = now.getMonth() + 1;
     yearFilter.value = now.getFullYear();
 
-    // --- DATA FETCHING ---
+    // Roles and Auth UI
+    window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
+    const role = window.CREMBO_CURRENT_USER.role || "admin";
+    
+    const sidebarRoleBadge = document.getElementById("sidebarRoleBadge");
+    const roleNote = document.getElementById("roleNote");
+
+    if (sidebarRoleBadge) {
+      sidebarRoleBadge.textContent = "Role: " + (role === "super_admin" ? "Super Admin" : "Admin");
+    }
+    
+    if (role === "super_admin") {
+      roleNote.textContent = "Mode Super Admin: dapat menambah jadwal rutin dan mengatur seluruh petugas.";
+    } else {
+      roleNote.textContent = "Mode Admin: fokus monitoring jadwal, bisa mengajukan perubahan status pada penugasan.";
+    }
+
+    // --- DATA FETCHING API ---
     async function loadRoles() {
       const res = await fetch("/api/streaming/roles");
       ROLES = await res.json();
@@ -524,18 +874,23 @@
         
         if (data.success && data.schedule.length > 0) {
           document.getElementById("emptyNote").hidden = true;
+          // Set Metrics (total & misa biasa -> sama karena tab terpisah)
           document.getElementById("metricTotal").innerText = data.schedule.length;
+          document.getElementById("metricRegular").innerText = data.schedule.length;
+          document.getElementById("metricPending").innerText = data.schedule.length; // Diasumsikan semua jadwal belum diisi petugas (Pending)
           renderScheduleRows(data.schedule);
         } else {
           document.getElementById("emptyNote").innerText = "Tidak ada jadwal (Kosong atau Ditiadakan).";
           document.getElementById("metricTotal").innerText = "0";
+          document.getElementById("metricRegular").innerText = "0";
+          document.getElementById("metricPending").innerText = "0";
         }
       } catch(e) {
         document.getElementById("emptyNote").innerText = "Gagal memuat jadwal dari server.";
       }
     }
 
-    // --- RENDERERS ---
+    // --- HTML RENDERERS ---
     function renderTableHeader() {
       let html = `<tr><th>TANGGAL</th><th>JAM</th><th>PERAYAAN</th>`;
       ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
@@ -550,8 +905,9 @@
                     <td style="color:#7f0000; font-weight:bold;">${item.time}</td>
                     <td>${item.massName}</td>`;
         
+        // Loop kolom kosong untuk setiap Role yang ada
         ROLES.forEach(() => {
-          cols += `<td style="color:#999; font-size:0.8rem;"><i>Kosong</i></td>`;
+          cols += `<td style="color:#999; font-size:0.8rem;"><i>Belum diisi</i></td>`;
         });
         
         cols += `<td><span class="state-pill warn">Pending</span></td>`;
@@ -563,9 +919,9 @@
     function renderRoles() {
       const list = document.getElementById("roleList");
       list.innerHTML = ROLES.map((r, i) => `
-          <div style="display:flex; justify-content:space-between; background:#fff; padding:6px 10px; border-radius:6px; border:1px solid #ccc; margin-bottom:5px;">
+          <div class="role-list-item">
               <span>${r.name}</span>
-              <button class="btn-ghost" style="padding:2px 6px; border:none; color:red;" onclick="deleteRole(${i})">&times;</button>
+              <button class="btn-ghost" style="padding:2px 8px; border:none; color:var(--danger); cursor:pointer; font-weight:bold;" onclick="deleteRole(${i})">Hapus</button>
           </div>
       `).join("");
     }
@@ -580,10 +936,10 @@
                       <span class="time-chip">${t} <button onclick="removeTime('${day}', ${i})">&times;</button></span>
                   `).join("")}
               </div>
-              <div style="display:flex; gap:4px;">
-                  <input type="time" id="time-${day}" style="width:100px;">
-                  <input type="text" id="name-${day}" placeholder="Nama Misa" style="flex:1;">
-                  <button class="btn ghost" onclick="addTime('${day}')">Add</button>
+              <div style="display:flex; gap:4px; margin-top: 10px;">
+                  <input type="time" id="time-${day}" style="width:110px; padding: 6px;">
+                  <input type="text" id="name-${day}" placeholder="Nama Misa" style="flex:1; padding: 6px;">
+                  <button class="btn ghost" onclick="addTime('${day}')" style="padding: 6px 12px;">Add</button>
               </div>
           </div>
       `).join("");
@@ -603,7 +959,7 @@
         `).join("");
     }
 
-    // --- ACTIONS CONFIG ---
+    // --- ONCLICK BUTTON ACTIONS ---
     window.addTime = (day) => {
         const t = document.getElementById(`time-${day}`).value;
         const n = document.getElementById(`name-${day}`).value || "Misa Biasa";
@@ -620,12 +976,15 @@
     };
 
     document.getElementById("saveWeeklyBtn").onclick = async () => {
-        await fetch("/api/streaming/config/weekly", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(WEEKLY_CONFIG) });
-        alert("Jam Rutin Disimpan!");
+        await fetch("/api/streaming/config/weekly", { 
+            method: "POST", 
+            headers: {"Content-Type": "application/json"}, 
+            body: JSON.stringify(WEEKLY_CONFIG) 
+        });
+        alert("Jam Misa Rutin Disimpan!");
         loadSchedule();
     };
 
-    // --- ACTIONS ROLES ---
     document.getElementById("addRoleBtn").onclick = () => {
         const val = document.getElementById("newRoleName").value.trim();
         if(val) {
@@ -641,13 +1000,16 @@
     };
 
     document.getElementById("saveRolesBtn").onclick = async () => {
-        await fetch("/api/streaming/roles", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(ROLES) });
-        alert("Role Petugas Disimpan!");
+        await fetch("/api/streaming/roles", { 
+            method: "POST", 
+            headers: {"Content-Type": "application/json"}, 
+            body: JSON.stringify(ROLES) 
+        });
+        alert("Kolom Role Petugas Disimpan!");
         renderTableHeader();
         loadSchedule();
     };
 
-    // --- ACTIONS BLACKOUT ---
     document.getElementById("cancelDate").addEventListener("change", (e) => {
         const d = new Date(e.target.value);
         if(isNaN(d.getTime())) return;
@@ -670,20 +1032,28 @@
         const d = document.getElementById("cancelDate").value;
         const t = document.getElementById("cancelTimeCombo").value;
         if(d && t) {
-            await fetch("/api/streaming/cancelled", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({date: d, time: t}) });
+            await fetch("/api/streaming/cancelled", { 
+                method: "POST", 
+                headers: {"Content-Type": "application/json"}, 
+                body: JSON.stringify({date: d, time: t}) 
+            });
             await loadCancelled();
             await loadSchedule();
-            alert("Berhasil Ditiadakan!");
+            alert("Jadwal Berhasil Ditiadakan!");
         }
     };
 
     window.removeBlackout = async (d, t) => {
-        await fetch("/api/streaming/cancelled", { method: "DELETE", headers: {"Content-Type": "application/json"}, body: JSON.stringify({date: d, time: t}) });
+        await fetch("/api/streaming/cancelled", { 
+            method: "DELETE", 
+            headers: {"Content-Type": "application/json"}, 
+            body: JSON.stringify({date: d, time: t}) 
+        });
         await loadCancelled();
         await loadSchedule();
     };
 
-    // --- EVENT LISTENERS UI ---
+    // --- UI EVENT LISTENERS ---
     document.getElementById("toggleWeeklySettingsBtn").onclick = function() {
         const body = document.getElementById("weeklySettingsBody");
         if(body.hidden) {
@@ -703,16 +1073,30 @@
         document.getElementById("blackoutModal").classList.remove("show");
     };
 
+    // Group menu toggler
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const marker = button.querySelector("span");
+        marker.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
+
     document.getElementById("refreshBtn").onclick = loadSchedule;
     document.getElementById("monthFilter").onchange = loadSchedule;
     document.getElementById("yearFilter").onchange = loadSchedule;
 
+    // Timer WIB Jam Atas
     setInterval(() => {
         const n = new Date();
-        document.getElementById("liveDateTime").textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";
+        document.getElementById("liveDateTime").textContent = n.toLocaleString('id-ID', { 
+            weekday:'long', day:'2-digit', month:'long', year:'numeric', 
+            hour:'2-digit', minute:'2-digit', second:'2-digit' 
+        }) + " WIB";
     }, 1000);
 
-    // Booting
+    // Booting Initial Load
     (async () => {
         await loadConfig();
         await loadCancelled();
