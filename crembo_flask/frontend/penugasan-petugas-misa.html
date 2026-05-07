@@ -90,7 +90,7 @@
       box-shadow: var(--shadow); margin-bottom: 12px; flex-wrap: wrap;
     }
 
-    .headline { margin: 0; font-size: clamp(1.05rem, 2.5vw, 1.5rem); }
+    .headline { margin: 0; font-size: clamp(1.05rem, 2.5vw, 1.5rem); color: #111827; font-weight: 700;}
     .subhead { margin: 3px 0 0; color: var(--muted); font-size: 0.85rem; }
 
     .panel { border: 2px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
@@ -121,7 +121,7 @@
     }
     .tab-btn.active { color: #7f0000; border-bottom-color: #7f0000; }
 
-    .table-wrap { overflow-x: auto; border: 1px solid #cbcbcb; border-radius: 10px; background: #fff; }
+    .table-wrap { overflow-x: auto; border: 1px solid #cdcdcd; border-radius: 10px; background: #fff; }
     table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: 0.84rem; }
     th, td { border: 1px solid #d1d1d1; padding: 10px; text-align: left; vertical-align: middle; }
     th { background: #f1f1f1; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
@@ -135,7 +135,7 @@
     .btn-cancel {
       border: 1px solid #ef4444; background: #fff1f1; color: var(--danger);
       border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; cursor: pointer;
-      font-weight: 600; width: 100%; transition: 0.2s; text-align: center;
+      font-weight: 600; width: 100%; transition: 0.2s; text-align: center; margin-top: 4px;
     }
     .btn-cancel:hover { background: #ffe4e4; }
     
@@ -280,12 +280,10 @@
     const yearFilter = document.getElementById("yearFilter");
     const swapModal = document.getElementById("swapModal");
 
-    // Set Default Filter to Current Time
     const now = new Date();
     monthFilter.value = now.getMonth() + 1;
     yearFilter.value = now.getFullYear();
 
-    // --- DATA FETCHING ---
     async function fetchData() {
         try {
             const [rolesRes, membersRes, assignmentsRes] = await Promise.all([
@@ -323,7 +321,6 @@
         }
     }
 
-    // --- RENDER HTML ---
     function renderHeader() {
         let html = `<tr><th>TANGGAL & PERAYAAN</th><th>JAM</th>`;
         ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
@@ -350,7 +347,7 @@
                 });
 
                 rowHtml += `<td>
-                    <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
                         <select class="member-select" data-date="${item.date}" data-time="${item.time}" data-role="${role.name}">${options}</select>
                         <button class="btn-cancel" type="button" onclick="this.previousElementSibling.value='';">Cancel Petugas</button>
                     </div>
@@ -361,11 +358,10 @@
         }).join("");
     }
 
-    // --- VALIDASI ANTI-GANDA (SAME PERSON, SAME TIME) ---
     document.addEventListener("change", (e) => {
         if (e.target.classList.contains("member-select")) {
             const val = e.target.value;
-            if (!val) return; // Boleh dikosongkan (cancel)
+            if (!val) return;
             
             const row = e.target.closest("tr");
             const siblings = row.querySelectorAll(".member-select");
@@ -374,14 +370,13 @@
                 if (sel !== e.target && sel.value === val) {
                     const memberName = sel.options[sel.selectedIndex].text;
                     alert(`Peringatan: ${memberName} sudah ditugaskan pada role lain di jam yang sama!`);
-                    e.target.value = ""; // Reset ke kosong
+                    e.target.value = ""; 
                     return;
                 }
             }
         }
     });
 
-    // --- SAVE LOGIC ---
     document.getElementById("saveAllBtn").onclick = async () => {
         const selects = document.querySelectorAll(".member-select");
         const payload = [];
@@ -403,24 +398,21 @@
         const data = await res.json();
         if(data.success) {
             alert("Semua penugasan berhasil disimpan!");
-            fetchData(); // Refresh DB and UI
+            fetchData();
         } else {
             alert("Gagal menyimpan: " + data.error);
         }
     };
 
-    // --- SWAP LOGIC ---
     document.getElementById("openSwapModalBtn").onclick = () => {
         if(CURRENT_SCHEDULE.length === 0) return alert("Tabel jadwal masih kosong.");
         
-        // Populate Dates
         const uniqueDates = [...new Set(CURRENT_SCHEDULE.map(i => i.date))];
         const dateOptions = `<option value="">- Tanggal -</option>` + uniqueDates.map(d => `<option value="${d}">${d.split('-').reverse().join('/')}</option>`).join("");
         
         document.getElementById("swapDate1").innerHTML = dateOptions;
         document.getElementById("swapDate2").innerHTML = dateOptions;
         
-        // Populate Roles
         const roleOptions = `<option value="">- Role -</option>` + ROLES.map(r => `<option value="${r.name}">${r.name}</option>`).join("");
         document.getElementById("swapRole1").innerHTML = roleOptions;
         document.getElementById("swapRole2").innerHTML = roleOptions;
@@ -454,15 +446,19 @@
        const r2 = document.getElementById("swapRole2").value;
        
        if(!d1 || !t1 || !r1 || !d2 || !t2 || !r2) return alert("Mohon lengkapi pilihan kedua slot yang akan ditukar!");
-       if(d1 === d2 && t1 === t2 && r1 === r2) return alert("Anda memilih slot yang sama. Tidak ada yang ditukar.");
        
-       // Cari Select DOM Element nya
        const sel1 = document.querySelector(`.member-select[data-date="${d1}"][data-time="${t1}"][data-role="${r1}"]`);
        const sel2 = document.querySelector(`.member-select[data-date="${d2}"][data-time="${t2}"][data-role="${r2}"]`);
        
        if(!sel1 || !sel2) return alert("Slot tersebut tidak ditemukan di tabel bulan ini!");
        
-       // Tukar nilai valuenya
+       // PERBAIKAN: Validasi Penukaran Shift (Hanya jika keduanya ada petugas)
+       if(!sel1.value || !sel2.value) {
+           return alert("Kedua slot penugasan harus sudah memiliki petugas untuk dapat ditukar!");
+       }
+
+       if(d1 === d2 && t1 === t2 && r1 === r2) return alert("Anda memilih slot yang sama. Tidak ada yang ditukar.");
+
        const temp = sel1.value;
        sel1.value = sel2.value;
        sel2.value = temp;
@@ -471,7 +467,6 @@
        swapModal.classList.remove("show");
     };
 
-    // --- EVENT LISTENERS UI ---
     monthFilter.onchange = () => { fetchData(); };
     yearFilter.onchange = () => { fetchData(); };
 
@@ -480,7 +475,6 @@
         document.getElementById("liveDateTime").textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";
     }, 1000);
 
-    // Initial Load
     fetchData();
   </script>
 </body>
