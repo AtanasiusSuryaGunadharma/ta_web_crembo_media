@@ -506,6 +506,51 @@
       color: #1f2937;
     }
 
+    .panel-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .schedule-card.mine {
+      border-color: #ef4444;
+      background: linear-gradient(180deg, #fff7f7 0%, #ffffff 100%);
+      box-shadow: 0 10px 26px rgba(239, 68, 68, 0.14);
+    }
+
+    .schedule-card.mine .schedule-pill {
+      border-color: #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .mine-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      border: 1px solid #f59e0b;
+      background: #fff7ed;
+      color: #9a3412;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      width: fit-content;
+    }
+
+    .mine-row td {
+      background: #fff7ed;
+    }
+
     .table-wrap {
       padding: 12px;
       overflow-x: auto;
@@ -668,18 +713,18 @@
         <section class="panel">
           <header class="panel-head">
             <h2>Model Card</h2>
-            <div class="range-tools">
+            <div class="panel-tools">
               <div class="tabs" role="tablist" aria-label="Model tampilan jadwal">
                 <button id="biasaTab" class="tab-btn active" type="button">Card</button>
                 <button id="besarTab" class="tab-btn" type="button">Tabel</button>
               </div>
-              <div class="month-tools" aria-label="Pemilih bulan dan tahun">
-                <select id="monthSelect" class="range-select">
-              <thead></thead>
+              <input id="cardSearch" class="summary-search" type="search" placeholder="Cari tanggal, jam, misa, role, atau nama petugas..." aria-label="Cari jadwal card">
+              <div class="month-tools" aria-label="Pemilih bulan dan tahun card">
+                <select id="cardMonthSelect" class="range-select">
                   <option value="0">Januari</option>
                   <option value="1">Februari</option>
                   <option value="2">Maret</option>
-                  <option value="3" selected>April</option>
+                  <option value="3">April</option>
                   <option value="4">Mei</option>
                   <option value="5">Juni</option>
                   <option value="6">Juli</option>
@@ -689,8 +734,8 @@
                   <option value="10">November</option>
                   <option value="11">Desember</option>
                 </select>
-                <select id="yearSelect" class="range-select">
-                  <option selected>2026</option>
+                <select id="cardYearSelect" class="range-select">
+                  <option>2026</option>
                   <option>2027</option>
                 </select>
               </div>
@@ -709,10 +754,33 @@
         <section class="panel">
           <header class="panel-head">
             <h2>Model Tabel</h2>
-            <span class="chip">Format seperti admin panel</span>
+            <div class="panel-actions">
+              <button id="backToCardBtn" class="tab-btn" type="button">Kembali ke Card</button>
+              <span class="chip">Format seperti admin panel</span>
+            </div>
           </header>
-          <div class="summary-tools">
-            <input id="summarySearch" class="summary-search" type="search" placeholder="Cari tanggal, jam, misa, role, atau nama petugas..." aria-label="Cari ringkasan jadwal">
+          <div class="panel-tools" style="padding: 0 12px 12px; justify-content: space-between;">
+            <input id="tableSearch" class="summary-search" type="search" placeholder="Cari tanggal, jam, misa, role, atau nama petugas..." aria-label="Cari ringkasan jadwal">
+            <div class="month-tools" aria-label="Pemilih bulan dan tahun tabel">
+              <select id="tableMonthSelect" class="range-select">
+                <option value="0">Januari</option>
+                <option value="1">Februari</option>
+                <option value="2">Maret</option>
+                <option value="3">April</option>
+                <option value="4">Mei</option>
+                <option value="5">Juni</option>
+                <option value="6">Juli</option>
+                <option value="7">Agustus</option>
+                <option value="8">September</option>
+                <option value="9">Oktober</option>
+                <option value="10">November</option>
+                <option value="11">Desember</option>
+              </select>
+              <select id="tableYearSelect" class="range-select">
+                <option>2026</option>
+                <option>2027</option>
+              </select>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
@@ -742,12 +810,16 @@
     const memberRoleText = document.getElementById("memberRoleText");
     const cardTab = document.getElementById("biasaTab");
     const tableTab = document.getElementById("besarTab");
-    const monthSelect = document.getElementById("monthSelect");
-    const yearSelect = document.getElementById("yearSelect");
+    const backToCardBtn = document.getElementById("backToCardBtn");
+    const cardSearchInput = document.getElementById("cardSearch");
+    const tableSearchInput = document.getElementById("tableSearch");
+    const cardMonthSelect = document.getElementById("cardMonthSelect");
+    const cardYearSelect = document.getElementById("cardYearSelect");
+    const tableMonthSelect = document.getElementById("tableMonthSelect");
+    const tableYearSelect = document.getElementById("tableYearSelect");
     const scheduleGrid = document.getElementById("scheduleGrid");
     const summaryTable = document.querySelector("#summaryRows").closest("table");
     const summaryRows = document.getElementById("summaryRows");
-    const summarySearch = document.getElementById("summarySearch");
     const metricTotal = document.getElementById("metricTotal");
     const metricRegular = document.getElementById("metricRegular");
     const metricRaya = document.getElementById("metricRaya");
@@ -758,6 +830,18 @@
     const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
     let activeView = "card";
+    let selectedMonthIndex = new Date().getMonth();
+    let selectedYear = new Date().getFullYear();
+    let currentSearchKeyword = "";
+    let CURRENT_USER = {
+      loggedIn: false,
+      userId: "",
+      username: "",
+      nama: "",
+      fullName: "",
+      displayName: "",
+      role: ""
+    };
     let STREAMING_ROLES = [];
     let ACTIVE_MEMBERS = [];
     let STREAMING_ASSIGNMENTS = [];
@@ -798,13 +882,82 @@
 
     function getSelectedMonthYear() {
       return {
-        monthIndex: Number(monthSelect.value),
-        year: Number(yearSelect.value)
+        monthIndex: Number(selectedMonthIndex),
+        year: Number(selectedYear)
       };
     }
 
     function formatMonthLabel(monthIndex, year) {
       return MONTH_NAMES[monthIndex] + " " + year;
+    }
+
+    function syncFilterControls() {
+      [cardSearchInput, tableSearchInput].forEach(function (input) {
+        if (input) {
+          input.value = currentSearchKeyword;
+        }
+      });
+
+      [cardMonthSelect, tableMonthSelect].forEach(function (select) {
+        if (select) {
+          select.value = String(selectedMonthIndex);
+        }
+      });
+
+      [cardYearSelect, tableYearSelect].forEach(function (select) {
+        if (select) {
+          select.value = String(selectedYear);
+        }
+      });
+    }
+
+    function getSearchKeyword() {
+      return String(currentSearchKeyword || "").trim().toLowerCase();
+    }
+
+    function filterViewEntries(entries) {
+      const keyword = getSearchKeyword();
+      if (!keyword) {
+        return entries.slice();
+      }
+
+      return entries.filter(function (entry) {
+        const haystack = [
+          "misa biasa",
+          entry.dayName,
+          entry.date,
+          entry.time,
+          entry.massName,
+          entry.status,
+          entry.isMine ? "jadwal saya" : ""
+        ].concat(entry.roleAssignments.map(function (roleItem) {
+          return [roleItem.roleName, roleItem.memberName, roleItem.memberRole, roleItem.memberUsername].join(" ");
+        })).join(" ").toLowerCase();
+
+        return haystack.includes(keyword);
+      });
+    }
+
+    function isCurrentUserMatch(value) {
+      const currentUserKeys = [
+        CURRENT_USER.userId,
+        CURRENT_USER.username,
+        CURRENT_USER.nama,
+        CURRENT_USER.fullName,
+        CURRENT_USER.displayName
+      ].map(normalizeKey).filter(Boolean);
+
+      const candidate = normalizeKey(value);
+      return Boolean(candidate) && currentUserKeys.includes(candidate);
+    }
+
+    function isCurrentUserAssignment(roleItem) {
+      if (!roleItem || !roleItem.assigned) {
+        return false;
+      }
+      return isCurrentUserMatch(roleItem.memberId)
+        || isCurrentUserMatch(roleItem.memberUsername)
+        || isCurrentUserMatch(roleItem.memberName);
     }
 
     function memberInitials(nameValue) {
@@ -856,11 +1009,22 @@
       const roleValue = String(sessionUser.role || templateUser.role || storedSession.role || "").trim();
       const resolvedName = displayName || "Atanasius Surya Guna";
 
+      CURRENT_USER = {
+        loggedIn: Boolean(sessionUser.logged_in || sessionUser.loggedIn || templateUser.logged_in || templateUser.loggedIn || storedSession.logged_in || storedSession.loggedIn),
+        userId: String(sessionUser.user_id || sessionUser.id || templateUser.user_id || templateUser.id || storedSession.user_id || storedSession.id || "").trim(),
+        username: String(sessionUser.username || templateUser.username || storedSession.username || "").trim(),
+        nama: String(sessionUser.nama || templateUser.nama || storedSession.nama || resolvedName || "").trim(),
+        fullName: String(sessionUser.full_name || sessionUser.fullName || templateUser.full_name || templateUser.fullName || storedSession.full_name || storedSession.fullName || resolvedName || "").trim(),
+        displayName: resolvedName,
+        role: roleValue
+      };
+
       memberName.textContent = resolvedName;
       if (memberRoleText) {
         memberRoleText.textContent = formatRoleLabel(roleValue || "user");
       }
       memberAvatar.textContent = memberInitials(resolvedName);
+      window.CREMBO_CURRENT_USER = CURRENT_USER;
     }
 
     function getScheduleKey(dateValue, timeValue) {
@@ -884,6 +1048,7 @@
           roleName: assignment.role_name,
           memberId: assignment.member_id,
           memberName: member ? member.name : ("#" + assignment.member_id),
+          memberUsername: member ? member.username : "",
           memberRole: member ? member.role : ""
         });
       });
@@ -907,6 +1072,9 @@
         const totalRoles = STREAMING_ROLES.length;
         const status = assignedCount === 0 ? "Belum terisi" : (assignedCount === totalRoles ? "Penuh" : "Sebagian terisi");
         const statusClass = assignedCount === 0 ? "status-wait" : (assignedCount === totalRoles ? "status-ok" : "status-wait");
+        const isMine = roleAssignments.some(function (roleItem) {
+          return isCurrentUserAssignment(roleItem);
+        });
 
         return {
           date: item.date,
@@ -917,7 +1085,8 @@
           assignedCount: assignedCount,
           totalRoles: totalRoles,
           status: status,
-          statusClass: statusClass
+          statusClass: statusClass,
+          isMine: isMine
         };
       });
     }
@@ -958,25 +1127,32 @@
     }
 
     function renderCards(entries) {
+      const filteredEntries = filterViewEntries(entries);
       if (!entries.length) {
         scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Tidak ada jadwal pada bulan ini.</h3><p>Coba ubah bulan atau tahun yang dipilih.</p></div>';
         return;
       }
 
-      scheduleGrid.innerHTML = entries.map(function (entry) {
+      if (!filteredEntries.length) {
+        scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Tidak ada jadwal yang cocok.</h3><p>Coba ubah kata kunci pencarian, bulan, atau tahun.</p></div>';
+        return;
+      }
+
+      scheduleGrid.innerHTML = filteredEntries.map(function (entry) {
         const roleRows = entry.roleAssignments.length
           ? entry.roleAssignments.map(function (roleItem) {
-              return '<p><strong>' + escapeHtml(roleItem.roleName) + ':</strong> ' + escapeHtml(roleItem.memberName || "-") + '</p>';
+              const isMine = isCurrentUserAssignment(roleItem);
+              return '<p' + (isMine ? ' class="mine-row"' : '') + '><strong>' + escapeHtml(roleItem.roleName) + ':</strong> ' + escapeHtml(roleItem.memberName || "-") + (isMine ? ' <span class="mine-badge">Jadwal Saya</span>' : '') + '</p>';
             }).join("")
           : '<p>Belum ada role streaming yang terdaftar.</p>';
 
-        return '<article class="schedule-card">'
+        return '<article class="schedule-card' + (entry.isMine ? ' mine' : '') + '">'
           + '<span class="schedule-pill">Misa Biasa</span>'
           + '<h3>' + escapeHtml(entry.dayName) + ', ' + formatDateLabel(entry.date) + '</h3>'
           + '<p>' + escapeHtml(entry.massName) + ' - Jam ' + escapeHtml(entry.time) + '</p>'
           + '<div class="schedule-meta">'
           + '<span>Total Role: ' + entry.totalRoles + '</span>'
-          + '<span>Status: <span class="' + entry.statusClass + '">' + escapeHtml(entry.status) + '</span></span>'
+          + '<span>Status: <span class="' + entry.statusClass + '">' + escapeHtml(entry.status) + '</span>' + (entry.isMine ? ' <span class="mine-badge">Jadwal Saya</span>' : '') + '</span>'
           + '</div>'
           + roleRows
           + '</article>';
@@ -984,23 +1160,20 @@
     }
 
     function renderTable(entries) {
-      const keyword = summarySearch.value.trim().toLowerCase();
-      const rows = entries.filter(function (entry) {
-        const text = [
-          "misa biasa",
-          entry.dayName,
-          entry.date,
-          entry.time,
-          entry.massName,
-          entry.status
-        ].concat(entry.roleAssignments.map(function (roleItem) {
-          return [roleItem.roleName, roleItem.memberName, roleItem.memberRole].join(" ");
-        })).join(" ").toLowerCase();
-        return !keyword || text.includes(keyword);
-      });
+      const rows = filterViewEntries(entries);
+
+      if (!entries.length) {
+        summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Tidak ada jadwal pada bulan ini.</td></tr>';
+        return;
+      }
+
+      if (!rows.length) {
+        summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Tidak ada jadwal yang cocok dengan pencarian.</td></tr>';
+        return;
+      }
 
       summaryRows.innerHTML = rows.map(function (entry) {
-        let cols = '<td><strong>' + escapeHtml(entry.dayName) + '</strong><br>' + formatDateLabel(entry.date) + '</td>'
+        let cols = '<td><strong>' + escapeHtml(entry.dayName) + '</strong><br>' + formatDateLabel(entry.date) + (entry.isMine ? '<br><span class="mine-badge">Jadwal Saya</span>' : '') + '</td>'
           + '<td>' + escapeHtml(entry.time) + '</td>'
           + '<td>' + escapeHtml(entry.massName) + '</td>';
 
@@ -1009,12 +1182,8 @@
         });
 
         cols += '<td><span class="' + entry.statusClass + '">' + escapeHtml(entry.status) + '</span></td>';
-        return '<tr>' + cols + '</tr>';
+        return '<tr' + (entry.isMine ? ' class="mine-row"' : '') + '>' + cols + '</tr>';
       }).join("");
-
-      if (!summaryRows.innerHTML.trim()) {
-        summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Tidak ada jadwal yang cocok dengan pencarian.</td></tr>';
-      }
     }
 
     function renderAll() {
@@ -1049,11 +1218,7 @@
       summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Gagal memuat ringkasan jadwal.</td></tr>';
     }
 
-    const now = new Date();
-    monthSelect.value = String(now.getMonth());
-    yearSelect.value = String(now.getFullYear());
-
-    applyCurrentUser();
+    syncFilterControls();
 
     cardTab.addEventListener("click", function () {
       setActiveView("card");
@@ -1063,16 +1228,43 @@
       setActiveView("table");
     });
 
-    monthSelect.addEventListener("change", function () {
-      loadStreamingData().catch(handleLoadError);
+    if (backToCardBtn) {
+      backToCardBtn.addEventListener("click", function () {
+        setActiveView("card");
+      });
+    }
+
+    [cardSearchInput, tableSearchInput].forEach(function (input) {
+      if (!input) {
+        return;
+      }
+      input.addEventListener("input", function () {
+        currentSearchKeyword = input.value;
+        syncFilterControls();
+        renderAll();
+      });
     });
 
-    yearSelect.addEventListener("change", function () {
-      loadStreamingData().catch(handleLoadError);
+    [cardMonthSelect, tableMonthSelect].forEach(function (select) {
+      if (!select) {
+        return;
+      }
+      select.addEventListener("change", function () {
+        selectedMonthIndex = Number(select.value);
+        syncFilterControls();
+        loadStreamingData().catch(handleLoadError);
+      });
     });
 
-    summarySearch.addEventListener("input", function () {
-      renderTable(STREAMING_VIEW_ENTRIES);
+    [cardYearSelect, tableYearSelect].forEach(function (select) {
+      if (!select) {
+        return;
+      }
+      select.addEventListener("change", function () {
+        selectedYear = Number(select.value);
+        syncFilterControls();
+        loadStreamingData().catch(handleLoadError);
+      });
     });
 
     document.querySelectorAll(".menu-toggle").forEach(function (button) {
@@ -1125,9 +1317,13 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    window.addEventListener("load", function () {
+    window.addEventListener("load", async function () {
       loadAttempt = 0;
-      applyCurrentUser();
+      selectedMonthIndex = new Date().getMonth();
+      selectedYear = new Date().getFullYear();
+      syncFilterControls();
+      await applyCurrentUser();
+      syncFilterControls();
       loadStreamingData();
     });
   </script>
