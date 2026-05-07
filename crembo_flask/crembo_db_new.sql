@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 07 Bulan Mei 2026 pada 17.06
+-- Waktu pembuatan: 07 Bulan Mei 2026 pada 18.33
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -739,9 +739,9 @@ CREATE TABLE `streaming_assignments` (
 --
 
 INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `role_name`, `member_id`) VALUES
-(10, '2026-05-01', '18:00:00', 'Operator', 36),
-(11, '2026-05-01', '18:00:00', 'Kameramen', 73),
-(12, '2026-05-01', '18:00:00', 'SPV', 67);
+(24, '2026-05-01', '18:00:00', 'Operator', 36),
+(26, '2026-05-01', '18:00:00', 'Kameramen', 3),
+(27, '2026-05-01', '18:00:00', 'SPV', 72);
 
 -- --------------------------------------------------------
 
@@ -2699,7 +2699,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
