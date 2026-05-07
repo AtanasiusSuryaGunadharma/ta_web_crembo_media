@@ -5838,14 +5838,19 @@ def manage_cancelled_mass():
         
         if request.method == "DELETE":
             data = request.json
-            # Perbaikan: Menggunakan DATE_FORMAT agar pencocokan HH:MM di DB persis dengan dari FE
-            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND DATE_FORMAT(mass_time, '%H:%i') = %s", (data['date'], data['time'][:5]))
+            # Perbaikan: Escape %% agar tidak dikonsumsi oleh Python MySQL connector
+            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND DATE_FORMAT(mass_time, '%%H:%%i') = %s", (data['date'], data['time'][:5]))
             conn.commit()
             return jsonify({"success": True})
 
         # Perbaikan: Ambil string dengan DATE_FORMAT otomatis dari DB, hindari format GMT 
         cursor.execute("SELECT mass_date as date, DATE_FORMAT(mass_time, '%H:%i') as time FROM `streaming_cancelled` ORDER BY mass_date DESC")
-        return jsonify(cursor.fetchall())
+        rows = cursor.fetchall()
+        # Flask serializes datetime.date as HTTP-date ("Thu, 01 May ..."), harus dikonversi ke ISO
+        for r in rows:
+            if hasattr(r['date'], 'isoformat'):
+                r['date'] = r['date'].isoformat()
+        return jsonify(rows)
     finally:
         cursor.close()
         conn.close()
@@ -5862,7 +5867,7 @@ def get_streaming_schedule():
         cursor.execute("SELECT * FROM `streaming_weekly_config` ORDER BY start_time ASC")
         weekly_configs = cursor.fetchall()
         
-        cursor.execute("SELECT mass_date, DATE_FORMAT(mass_time, '%H:%i') as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
+        cursor.execute("SELECT mass_date, DATE_FORMAT(mass_time, '%%H:%%i') as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
         cancelled_list = cursor.fetchall()
         cancelled_set = set([f"{c['mass_date']}_{c['mass_time']}" for c in cancelled_list])
         
