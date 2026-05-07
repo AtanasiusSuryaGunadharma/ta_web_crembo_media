@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -46,6 +46,7 @@
       position: sticky;
       top: 0;
       height: 100vh;
+      z-index: 40;
     }
 
     .brand {
@@ -63,11 +64,7 @@
       text-transform: uppercase;
     }
 
-    .brand p {
-      margin: 6px 0 0;
-      color: #cdcdcd;
-      font-size: 0.82rem;
-    }
+    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
 
     .role-chip { 
       display: inline-block; 
@@ -134,11 +131,7 @@
       font-weight: 700;
     }
 
-    .side-actions {
-      margin-top: 16px;
-      display: grid;
-      gap: 8px;
-    }
+    .side-actions { margin-top: 16px; display: grid; gap: 8px; }
 
     .side-actions a {
       text-decoration: none;
@@ -150,9 +143,7 @@
       font-size: 0.82rem;
     }
 
-    .main {
-      padding: 16px;
-    }
+    .main { padding: 16px; min-width: 0; }
 
     .dashboard-headline-bar {
       border: 1px solid #cfcfcf;
@@ -166,6 +157,8 @@
       margin-bottom: 12px;
       flex-wrap: wrap;
     }
+
+    .headline-left { display: flex; align-items: center; gap: 12px; }
 
     .dashboard-headline-bar h1 {
       margin: 0;
@@ -197,10 +190,7 @@
       text-decoration: none;
     }
 
-    .world-link svg {
-      width: 18px;
-      height: 18px;
-    }
+    .world-link svg { width: 18px; height: 18px; }
 
     .schedule-topbar {
       border: 2px solid var(--line);
@@ -223,11 +213,7 @@
       font-weight: 700;
     }
 
-    .schedule-subhead {
-      margin: 3px 0 0;
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
+    .schedule-subhead { margin: 3px 0 0; color: var(--muted); font-size: 0.85rem; }
 
     .cards {
       margin-bottom: 12px;
@@ -252,11 +238,7 @@
       letter-spacing: 0.04em;
     }
 
-    .metric h3 {
-      margin: 8px 0 0;
-      font-size: 1.45rem;
-      line-height: 1;
-    }
+    .metric h3 { margin: 8px 0 0; font-size: 1.45rem; line-height: 1; }
 
     .panel {
       border: 2px solid var(--line);
@@ -278,18 +260,10 @@
       flex-wrap: wrap;
     }
 
-    .panel-head h2 {
-      margin: 0;
-      font-size: 1rem;
-    }
+    .panel-head h2 { margin: 0; font-size: 1rem; }
+    .panel-body { padding: 12px; }
 
-    .panel-body {
-      padding: 12px;
-    }
-
-    #weeklySettingsBody[hidden] {
-      display: none !important;
-    }
+    #weeklySettingsBody[hidden] { display: none !important; }
 
     .toolbar {
       display: grid;
@@ -299,25 +273,10 @@
       margin-bottom: 12px;
     }
 
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field label {
-      font-size: 0.82rem;
-      color: #4f4f4f;
-      font-weight: 700;
-    }
-
-    .field select,
-    .field input {
+    .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 0.82rem; color: #4f4f4f; font-weight: 700; }
+    .field select, .field input {
       border: 1px solid #bdbdbd;
       border-radius: 10px;
       padding: 8px 10px;
@@ -383,17 +342,19 @@
       font-weight: 600;
     }
 
-    .action-set {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .action-set { display: flex; gap: 8px; flex-wrap: wrap; }
 
+    /* CSS Table dan Navigation */
+    .table-scroll-container {
+      position: relative;
+    }
+    
     .table-wrap {
-      overflow: auto;
+      overflow-x: auto;
       border: 1px solid #cdcdcd;
       border-radius: 10px;
       background: #fff;
+      scroll-behavior: smooth;
     }
 
     table {
@@ -403,12 +364,11 @@
       font-size: 0.84rem;
     }
 
-    th,
-    td {
+    th, td {
       border: 1px solid #d1d1d1;
-      padding: 8px;
+      padding: 10px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
     }
 
     th {
@@ -417,6 +377,37 @@
       text-transform: uppercase;
       letter-spacing: 0.02em;
     }
+
+    .scroll-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .scroll-btn {
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+    }
+
+    .scroll-btn:hover { opacity: 1; }
+    .scroll-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+    .scroll-dots { display: flex; gap: 6px; }
+    .scroll-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: 0.3s; }
+    .scroll-dot.active { background: #111; width: 20px; border-radius: 8px; }
 
     .state-pill {
       display: inline-block;
@@ -510,9 +501,7 @@
       align-items: center;
     }
 
-    .modal-overlay.show {
-      display: flex;
-    }
+    .modal-overlay.show { display: flex; }
 
     .modal {
       background: #fff;
@@ -534,22 +523,9 @@
       align-items: center;
     }
 
-    .modal-head h3 {
-      margin: 0;
-      font-size: 1rem;
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 1.4rem;
-      cursor: pointer;
-      color: #5b5b5b;
-    }
-
-    .modal-body {
-      padding: 16px;
-    }
+    .modal-head h3 { margin: 0; font-size: 1rem; }
+    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #5b5b5b; }
+    .modal-body { padding: 16px; }
 
     .blackout-list {
       border: 1px solid #d1d1d1;
@@ -569,10 +545,7 @@
       font-size: 0.85rem;
     }
 
-    .blackout-item:last-child {
-      border-bottom: none;
-    }
-
+    .blackout-item:last-child { border-bottom: none; }
     .blackout-item button {
       border: 1px solid #ef4444;
       background: #fff1f1;
@@ -594,6 +567,26 @@
       margin-top: 10px;
     }
 
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      backdrop-filter: blur(1px);
+      z-index: 30;
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
     @media (max-width: 1220px) {
       .cards { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
       .weekly-settings-container { grid-template-columns: 1fr; }
@@ -601,7 +594,20 @@
 
     @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(290px, 86vw);
+        height: 100vh;
+        z-index: 40;
+        transform: translateX(-102%);
+        transition: transform 220ms ease;
+      }
+      .sidebar.show { transform: translateX(0); }
+      .sidebar-backdrop.show { display: block; }
+      .mobile-toggle { display: inline-block; }
+      
       .toolbar { grid-template-columns: 1fr; }
       .filters { grid-template-columns: 1fr; }
     }
@@ -614,6 +620,8 @@
       .panel-body { padding: 10px; }
     }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
@@ -649,10 +657,14 @@
         <a href="/logout">Keluar / Logout</a>
       </div>
     </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
     <main class="main">
       <header class="dashboard-headline-bar" aria-label="Header jadwal streaming admin waktu berjalan">
-        <h1>Jadwal Tugas Streaming</h1>
+        <div class="headline-left">
+          <button id="mobileSidebarBtn" class="mobile-toggle" type="button">☰ Menu</button>
+          <h1>Jadwal Tugas Streaming</h1>
+        </div>
         <div class="head-meta">
           <span id="liveDateTime">-</span>
           <a class="world-link" href="home.html?session=active" title="Lihat Home (tetap login)">
@@ -771,11 +783,18 @@
           <h2>Daftar Jadwal Misa Biasa</h2>
         </header>
         <div class="panel-body">
-          <div class="table-wrap">
-            <table>
-              <thead id="scheduleHeader"></thead>
-              <tbody id="regularRows"></tbody>
-            </table>
+          <div class="table-scroll-container">
+            <div class="table-wrap" id="scheduleTableWrap">
+              <table>
+                <thead id="scheduleHeader"></thead>
+                <tbody id="regularRows"></tbody>
+              </table>
+            </div>
+            <div class="scroll-indicator" id="scrollIndicator" hidden>
+                <button class="scroll-btn" id="scrollLeftBtn" disabled>&larr;</button>
+                <div class="scroll-dots" id="scrollDots"></div>
+                <button class="scroll-btn" id="scrollRightBtn">&rarr;</button>
+            </div>
           </div>
           <p id="emptyNote" style="text-align:center; padding:20px; color:#666;">Memuat jadwal dari server...</p>
         </div>
@@ -877,7 +896,7 @@
           // Set Metrics (total & misa biasa -> sama karena tab terpisah)
           document.getElementById("metricTotal").innerText = data.schedule.length;
           document.getElementById("metricRegular").innerText = data.schedule.length;
-          document.getElementById("metricPending").innerText = data.schedule.length; // Diasumsikan semua jadwal belum diisi petugas (Pending)
+          document.getElementById("metricPending").innerText = data.schedule.length; // Asumsi belum ada yang terisi
           renderScheduleRows(data.schedule);
         } else {
           document.getElementById("emptyNote").innerText = "Tidak ada jadwal (Kosong atau Ditiadakan).";
@@ -896,6 +915,7 @@
       ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
       html += `<th>STATUS</th></tr>`;
       document.getElementById("scheduleHeader").innerHTML = html;
+      setTimeout(updateScrollNav, 100);
     }
 
     function renderScheduleRows(schedule) {
@@ -914,6 +934,7 @@
         html += `<tr>${cols}</tr>`;
       });
       document.getElementById("regularRows").innerHTML = html;
+      setTimeout(updateScrollNav, 100);
     }
 
     function renderRoles() {
@@ -951,15 +972,33 @@
             list.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">Belum ada misa yang ditiadakan.</div>`;
             return;
         }
+        
         list.innerHTML = CANCELLED_DATES.map(c => `
             <div class="blackout-item">
-                <span>Tanggal <strong>${c.date}</strong> Jam <strong>${c.time.substring(0,5)}</strong></span>
-                <button onclick="removeBlackout('${c.date}', '${c.time}')">Hapus</button>
+                <span>Tanggal <strong>${c.date.split('-').reverse().join('/')}</strong> Jam <strong>${c.time.substring(0,5)}</strong></span>
+                <button class="delete-blackout-btn" data-date="${c.date}" data-time="${c.time}">Hapus</button>
             </div>
         `).join("");
+        
+        // Pemasangan Event Listener Delete yang Lebih Aman
+        list.querySelectorAll(".delete-blackout-btn").forEach(btn => {
+            btn.addEventListener("click", async function(e) {
+                const d = e.target.getAttribute("data-date");
+                const t = e.target.getAttribute("data-time");
+                if (confirm(`Yakin membatalkan peniadaan misa untuk tanggal ${d.split('-').reverse().join('/')}?`)) {
+                    await fetch("/api/streaming/cancelled", { 
+                        method: "DELETE", 
+                        headers: {"Content-Type": "application/json"}, 
+                        body: JSON.stringify({date: d, time: t}) 
+                    });
+                    await loadCancelled();
+                    await loadSchedule();
+                }
+            });
+        });
     }
 
-    // --- ONCLICK BUTTON ACTIONS ---
+    // --- ACTIONS CONFIG ---
     window.addTime = (day) => {
         const t = document.getElementById(`time-${day}`).value;
         const n = document.getElementById(`name-${day}`).value || "Misa Biasa";
@@ -1040,17 +1079,8 @@
             await loadCancelled();
             await loadSchedule();
             alert("Jadwal Berhasil Ditiadakan!");
+            document.getElementById("cancelDate").value = "";
         }
-    };
-
-    window.removeBlackout = async (d, t) => {
-        await fetch("/api/streaming/cancelled", { 
-            method: "DELETE", 
-            headers: {"Content-Type": "application/json"}, 
-            body: JSON.stringify({date: d, time: t}) 
-        });
-        await loadCancelled();
-        await loadSchedule();
     };
 
     // --- UI EVENT LISTENERS ---
@@ -1073,6 +1103,32 @@
         document.getElementById("blackoutModal").classList.remove("show");
     };
 
+    // Mobile Sidebar Toggle
+    const mobileSidebarBtn = document.getElementById("mobileSidebarBtn");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    
+    if (mobileSidebarBtn) {
+        mobileSidebarBtn.addEventListener("click", () => {
+            sidebar.classList.add("show");
+            sidebarBackdrop.classList.add("show");
+        });
+    }
+    
+    if (sidebarBackdrop) {
+        sidebarBackdrop.addEventListener("click", () => {
+            sidebar.classList.remove("show");
+            sidebarBackdrop.classList.remove("show");
+        });
+    }
+
+    document.querySelectorAll(".sidebar a").forEach(link => {
+        link.addEventListener("click", () => {
+            sidebar.classList.remove("show");
+            sidebarBackdrop.classList.remove("show");
+        });
+    });
+
     // Group menu toggler
     document.querySelectorAll(".group-toggle").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -1086,6 +1142,44 @@
     document.getElementById("refreshBtn").onclick = loadSchedule;
     document.getElementById("monthFilter").onchange = loadSchedule;
     document.getElementById("yearFilter").onchange = loadSchedule;
+
+    // --- TABLE SCROLL NAVIGATION ---
+    const tableWrap = document.getElementById("scheduleTableWrap");
+    const scrollIndicator = document.getElementById("scrollIndicator");
+    const scrollLeftBtn = document.getElementById("scrollLeftBtn");
+    const scrollRightBtn = document.getElementById("scrollRightBtn");
+    const scrollDots = document.getElementById("scrollDots");
+
+    function updateScrollNav() {
+        if (!tableWrap) return;
+        
+        // Hide if no overflow
+        if (tableWrap.scrollWidth <= tableWrap.clientWidth + 2) {
+            scrollIndicator.hidden = true;
+            return;
+        }
+        
+        scrollIndicator.hidden = false;
+        scrollLeftBtn.disabled = tableWrap.scrollLeft <= 0;
+        scrollRightBtn.disabled = tableWrap.scrollLeft >= tableWrap.scrollWidth - tableWrap.clientWidth - 2;
+
+        const totalWidth = tableWrap.scrollWidth - tableWrap.clientWidth;
+        const scrollRatio = tableWrap.scrollLeft / totalWidth;
+        
+        const numDots = 3; 
+        const activeIdx = Math.round(scrollRatio * (numDots - 1));
+        
+        scrollDots.innerHTML = Array.from({length: numDots}).map((_, i) => 
+            `<div class="scroll-dot ${i === activeIdx ? 'active' : ''}"></div>`
+        ).join("");
+    }
+
+    tableWrap.addEventListener("scroll", updateScrollNav);
+    window.addEventListener("resize", updateScrollNav);
+
+    scrollLeftBtn.onclick = () => { tableWrap.scrollBy({ left: -300, behavior: 'smooth' }); };
+    scrollRightBtn.onclick = () => { tableWrap.scrollBy({ left: 300, behavior: 'smooth' }); };
+
 
     // Timer WIB Jam Atas
     setInterval(() => {

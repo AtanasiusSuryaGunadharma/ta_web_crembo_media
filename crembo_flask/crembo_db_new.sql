@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 07 Bulan Mei 2026 pada 12.38
+-- Waktu pembuatan: 07 Bulan Mei 2026 pada 13.06
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -731,6 +731,13 @@ CREATE TABLE `streaming_cancelled` (
   `mass_date` date NOT NULL,
   `mass_time` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `streaming_cancelled`
+--
+
+INSERT INTO `streaming_cancelled` (`id`, `mass_date`, `mass_time`) VALUES
+(2, '2026-05-01', '18:00:00');
 
 -- --------------------------------------------------------
 
@@ -2668,7 +2675,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
 --
 ALTER TABLE `streaming_cancelled`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_roles`
