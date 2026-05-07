@@ -593,7 +593,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_admin-theme.css">
 </head>
-<body>
+<body data-current-user='{{ current_user | default({}, true) | tojson | e }}'>
   <div class="layout">
     <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
       <div class="brand">
@@ -602,10 +602,10 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div id="memberAvatar" class="avatar">AG</div>
         <div class="account-text">
-          <strong id="memberName">Atanasius Surya Guna</strong>
-          <small>Role: Anggota Multimedia</small>
+          <strong id="memberName">Memuat...</strong>
+          <small id="memberRoleText">Role: -</small>
         </div>
       </div>
 
@@ -675,6 +675,7 @@
               </div>
               <div class="month-tools" aria-label="Pemilih bulan dan tahun">
                 <select id="monthSelect" class="range-select">
+              <thead></thead>
                   <option value="0">Januari</option>
                   <option value="1">Februari</option>
                   <option value="2">Maret</option>
@@ -736,7 +737,9 @@
     const sidebar = document.getElementById("sidebar");
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const memberAvatar = document.getElementById("memberAvatar");
     const memberName = document.getElementById("memberName");
+    const memberRoleText = document.getElementById("memberRoleText");
     const cardTab = document.getElementById("biasaTab");
     const tableTab = document.getElementById("besarTab");
     const monthSelect = document.getElementById("monthSelect");
@@ -762,6 +765,7 @@
     let STREAMING_MEMBER_LOOKUP = new Map();
     let STREAMING_ASSIGNMENT_LOOKUP = new Map();
     let STREAMING_VIEW_ENTRIES = [];
+    let loadAttempt = 0;
 
     function safeParse(raw) {
       try {
@@ -801,6 +805,62 @@
 
     function formatMonthLabel(monthIndex, year) {
       return MONTH_NAMES[monthIndex] + " " + year;
+    }
+
+    function memberInitials(nameValue) {
+      const text = String(nameValue || "").trim();
+      if (!text) return "AG";
+      const parts = text.split(/\s+/).filter(Boolean);
+      const initials = parts.slice(0, 2).map(function (part) {
+        return part.charAt(0).toUpperCase();
+      }).join("");
+      return initials || text.charAt(0).toUpperCase() || "AG";
+    }
+
+    function formatRoleLabel(roleValue) {
+      const role = String(roleValue || "").trim();
+      if (!role) return "Role: -";
+      if (role === "super_admin") return "Role: Super Admin";
+      if (role === "admin") return "Role: Admin";
+      return "Role: Anggota Multimedia";
+    }
+
+    async function fetchJsonSafe(url) {
+      try {
+        const response = await fetch(url, { credentials: "same-origin" });
+        if (!response.ok) {
+          return null;
+        }
+        const rawText = await response.text();
+        if (!rawText) {
+          return null;
+        }
+        return JSON.parse(rawText);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function applyCurrentUser() {
+      let sessionUser = {};
+      const templateUser = safeParse(document.body.getAttribute("data-current-user") || "{}") || {};
+      const storedSession = safeParse(localStorage.getItem("crembo-login-session")) || {};
+      try {
+        const sessionRes = await fetch("/api/session");
+        if (sessionRes.ok) {
+          sessionUser = await sessionRes.json();
+        }
+      } catch (error) {
+      }
+      const displayName = String(sessionUser.full_name || sessionUser.fullName || sessionUser.nama || templateUser.full_name || templateUser.fullName || templateUser.nama || storedSession.fullName || storedSession.full_name || "Atanasius Surya Guna").trim();
+      const roleValue = String(sessionUser.role || templateUser.role || storedSession.role || "").trim();
+      const resolvedName = displayName || "Atanasius Surya Guna";
+
+      memberName.textContent = resolvedName;
+      if (memberRoleText) {
+        memberRoleText.textContent = formatRoleLabel(roleValue || "user");
+      }
+      memberAvatar.textContent = memberInitials(resolvedName);
     }
 
     function getScheduleKey(dateValue, timeValue) {
@@ -863,6 +923,9 @@
     }
 
     function renderMetrics(entries) {
+      if (!metricTotal || !metricRegular || !metricRaya || !metricPending) {
+        return;
+      }
       const total = entries.length;
       const full = entries.filter(function (entry) {
         return entry.totalRoles > 0 && entry.assignedCount === entry.totalRoles;
@@ -886,7 +949,12 @@
         html += "<th>" + escapeHtml(role.name) + "</th>";
       });
       html += "<th>Status</th></tr>";
-      summaryTable.querySelector("thead").innerHTML = html;
+      let thead = summaryTable.querySelector("thead");
+      if (!thead) {
+        thead = document.createElement("thead");
+        summaryTable.insertBefore(thead, summaryTable.firstChild);
+      }
+      thead.innerHTML = html;
     }
 
     function renderCards(entries) {
@@ -967,38 +1035,25 @@
 
     async function loadStreamingData() {
       const monthYear = getSelectedMonthYear();
-      const [rolesRes, membersRes, scheduleRes, assignmentsRes] = await Promise.all([
-        fetch("/api/streaming/roles"),
-        fetch("/api/streaming/active-members"),
-        fetch("/api/streaming/schedule?month=" + (monthYear.monthIndex + 1) + "&year=" + monthYear.year),
-        fetch("/api/streaming/assignments")
-      ]);
-
-      STREAMING_ROLES = await rolesRes.json();
-      ACTIVE_MEMBERS = await membersRes.json();
-      const scheduleData = await scheduleRes.json();
-      STREAMING_ASSIGNMENTS = await assignmentsRes.json();
-      STREAMING_SCHEDULE = scheduleData && scheduleData.success ? (scheduleData.schedule || []) : [];
+      STREAMING_ROLES = await fetchJsonSafe("/api/streaming/roles") || [];
+      ACTIVE_MEMBERS = await fetchJsonSafe("/api/streaming/active-members") || [];
+      const scheduleData = await fetchJsonSafe("/api/streaming/schedule?month=" + (monthYear.monthIndex + 1) + "&year=" + monthYear.year) || {};
+      STREAMING_ASSIGNMENTS = await fetchJsonSafe("/api/streaming/assignments") || [];
+      STREAMING_SCHEDULE = Array.isArray(scheduleData?.schedule) ? scheduleData.schedule : [];
       buildLookups();
       renderAll();
     }
 
     function handleLoadError() {
       scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Gagal memuat jadwal.</h3><p>Periksa koneksi backend atau database.</p></div>';
-      summaryRows.innerHTML = '<tr><td colspan="5">Gagal memuat ringkasan jadwal.</td></tr>';
+      summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Gagal memuat ringkasan jadwal.</td></tr>';
     }
 
     const now = new Date();
     monthSelect.value = String(now.getMonth());
     yearSelect.value = String(now.getFullYear());
 
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    if (sessionRaw) {
-      const session = safeParse(sessionRaw);
-      if (session && session.fullName) {
-        memberName.textContent = session.fullName;
-      }
-    }
+    applyCurrentUser();
 
     cardTab.addEventListener("click", function () {
       setActiveView("card");
@@ -1070,7 +1125,11 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
-    loadStreamingData().catch(handleLoadError);
+    window.addEventListener("load", function () {
+      loadAttempt = 0;
+      applyCurrentUser();
+      loadStreamingData();
+    });
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>
