@@ -2553,6 +2553,7 @@ def mark_all_notifications_read():
         cursor.close()
         conn.close()
 
+
 def ensure_streaming_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -2568,6 +2569,18 @@ def ensure_streaming_schema() -> None:
     finally:
         cursor.close()
         conn.close()
+
+def format_time_hhmm(t_obj):
+    """Mencegah bug timedelta slicing '7:30:' menjadi '07:30'"""
+    if t_obj is None:
+        return "00:00"
+    if isinstance(t_obj, str):
+        return t_obj[:5].zfill(5)
+    if hasattr(t_obj, 'total_seconds'):
+        hours, remainder = divmod(int(t_obj.total_seconds()), 3600)
+        minutes, _ = divmod(remainder, 60)
+        return f"{hours:02d}:{minutes:02d}"
+    return str(t_obj)[:5].zfill(5)
 
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
@@ -5792,8 +5805,8 @@ def manage_weekly_config():
             for day, times in payload.items():
                 for t in times:
                     parts = t.split(' - ')
-                    jam = parts[0]
-                    nama = parts[1] if len(parts) > 1 else "Misa"
+                    jam = parts[0].strip()
+                    nama = parts[1].strip() if len(parts) > 1 else "Misa"
                     cursor.execute("INSERT INTO `streaming_weekly_config` (day_name, start_time, mass_name) VALUES (%s, %s, %s)", (day, jam, nama))
             conn.commit()
             return jsonify({"success": True})
@@ -5804,7 +5817,8 @@ def manage_weekly_config():
         for r in rows:
             day = r['day_name']
             if day not in result: result[day] = []
-            result[day].append(f"{str(r['start_time'])[:5]} - {r['mass_name']}")
+            jam_str = format_time_hhmm(r['start_time'])
+            result[day].append(f"{jam_str} - {r['mass_name']}")
         return jsonify(result)
     finally:
         cursor.close()
@@ -5822,16 +5836,15 @@ def manage_cancelled_mass():
             conn.commit()
             return jsonify({"success": True})
         
-        # PERBAIKAN: Pastikan query DELETE menggunakan format jam yang tepat
         if request.method == "DELETE":
             data = request.json
-            # Menghapus berdasarkan tanggal dan jam (tanpa detik jika perlu)
-            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND mass_time LIKE %s", (data['date'], f"{data['time']}%"))
+            # Perbaikan: Menggunakan DATE_FORMAT agar pencocokan HH:MM di DB persis dengan dari FE
+            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND DATE_FORMAT(mass_time, '%H:%i') = %s", (data['date'], data['time'][:5]))
             conn.commit()
             return jsonify({"success": True})
 
-        # PERBAIKAN: Ambil jam dengan format HH:mm agar tidak ada "GMT" dari sisi server
-        cursor.execute("SELECT mass_date as date, DATE_FORMAT(mass_time, '%H:%i') as time FROM `streaming_cancelled` ORDER BY date DESC")
+        # Perbaikan: Ambil string dengan DATE_FORMAT otomatis dari DB, hindari format GMT 
+        cursor.execute("SELECT mass_date as date, DATE_FORMAT(mass_time, '%H:%i') as time FROM `streaming_cancelled` ORDER BY mass_date DESC")
         return jsonify(cursor.fetchall())
     finally:
         cursor.close()
@@ -5846,12 +5859,12 @@ def get_streaming_schedule():
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT * FROM `streaming_weekly_config`")
+        cursor.execute("SELECT * FROM `streaming_weekly_config` ORDER BY start_time ASC")
         weekly_configs = cursor.fetchall()
         
-        cursor.execute("SELECT mass_date, CAST(mass_time AS CHAR) as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
+        cursor.execute("SELECT mass_date, DATE_FORMAT(mass_time, '%H:%i') as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
         cancelled_list = cursor.fetchall()
-        cancelled_set = set([f"{c['mass_date']}_{str(c['mass_time'])[:5]}" for c in cancelled_list])
+        cancelled_set = set([f"{c['mass_date']}_{c['mass_time']}" for c in cancelled_list])
         
         day_map = {0: 'Senin', 1: 'Selasa', 2: 'Rabu', 3: 'Kamis', 4: 'Jumat', 5: 'Sabtu', 6: 'Minggu'}
         
@@ -5865,7 +5878,7 @@ def get_streaming_schedule():
             
             for cfg in weekly_configs:
                 if cfg['day_name'] == day_name:
-                    jam_str = str(cfg['start_time'])[:5]
+                    jam_str = format_time_hhmm(cfg['start_time'])
                     key = f"{date_str}_{jam_str}"
                     if key not in cancelled_set:
                         schedule.append({
