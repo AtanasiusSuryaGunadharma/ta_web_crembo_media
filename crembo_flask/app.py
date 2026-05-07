@@ -5822,13 +5822,16 @@ def manage_cancelled_mass():
             conn.commit()
             return jsonify({"success": True})
         
+        # PERBAIKAN: Pastikan query DELETE menggunakan format jam yang tepat
         if request.method == "DELETE":
             data = request.json
-            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND mass_time = %s", (data['date'], data['time']))
+            # Menghapus berdasarkan tanggal dan jam (tanpa detik jika perlu)
+            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND mass_time LIKE %s", (data['date'], f"{data['time']}%"))
             conn.commit()
             return jsonify({"success": True})
 
-        cursor.execute("SELECT mass_date as date, CAST(mass_time AS CHAR) as time FROM `streaming_cancelled`")
+        # PERBAIKAN: Ambil jam dengan format HH:mm agar tidak ada "GMT" dari sisi server
+        cursor.execute("SELECT mass_date as date, DATE_FORMAT(mass_time, '%H:%i') as time FROM `streaming_cancelled` ORDER BY date DESC")
         return jsonify(cursor.fetchall())
     finally:
         cursor.close()
