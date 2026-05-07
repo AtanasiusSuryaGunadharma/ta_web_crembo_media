@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 05 Bulan Mei 2026 pada 00.35
+-- Waktu pembuatan: 07 Bulan Mei 2026 pada 12.26
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -186,39 +186,6 @@ INSERT INTO `carousel_slides` (`id`, `title`, `slug`, `description`, `button_tex
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `damage_reports`
---
-
-CREATE TABLE `damage_reports` (
-  `id` varchar(100) NOT NULL,
-  `member_id` varchar(100) DEFAULT NULL,
-  `member_name` varchar(255) DEFAULT NULL,
-  `member_identifier` varchar(150) DEFAULT NULL,
-  `item_id` varchar(100) DEFAULT NULL,
-  `item_code` varchar(100) DEFAULT '-',
-  `item_name` varchar(255) NOT NULL,
-  `severity` varchar(50) NOT NULL DEFAULT 'Ringan',
-  `incident_date` date DEFAULT NULL,
-  `incident_time` time DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `chronology` text DEFAULT NULL,
-  `photo_url` text DEFAULT NULL,
-  `admin_status` varchar(50) NOT NULL DEFAULT 'Menunggu',
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `damage_reports`
---
-
-INSERT INTO `damage_reports` (`id`, `member_id`, `member_name`, `member_identifier`, `item_id`, `item_code`, `item_name`, `severity`, `incident_date`, `incident_time`, `location`, `chronology`, `photo_url`, `admin_status`, `created_at`, `updated_at`) VALUES
-('krk-2026-04-11-002', 'anggota-002', 'Sinta Lestari', 'sinta_lestari', NULL, 'AUD-004', 'Wireless Microphone Set', 'Ringan', '2026-04-11', '10:00:00', 'Gudang Audio', 'Salah satu receiver ditemukan longgar pada bagian slot baterai.', NULL, 'Diproses', '2026-04-11 14:05:00', '2026-05-05 04:04:58'),
-('krk-2026-04-12-001', 'anggota-001', 'Atanasius Surya Guna', 'atanasiussurya', NULL, 'CAM-001', 'Kamera Sony A6400', 'Berat', '2026-04-12', '15:30:00', 'Ruang Kontrol Streaming', 'Layar sempat berkedip lalu kamera tidak bisa dinyalakan saat persiapan misa.', NULL, 'Menunggu', '2026-04-12 09:20:00', '2026-05-05 04:04:58');
-
--- --------------------------------------------------------
-
---
 -- Struktur dari tabel `form_kerusakan_barang`
 --
 
@@ -242,7 +209,9 @@ CREATE TABLE `form_kerusakan_barang` (
 --
 
 INSERT INTO `form_kerusakan_barang` (`id`, `member_id`, `barang_id`, `barang_name`, `barang_code`, `tingkat_kerusakan`, `status`, `deskripsi_kerusakan`, `waktu_kejadian`, `foto_kerusakan`, `created_at`, `updated_at`) VALUES
-('krk-1777931365119-c4ce9e', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', 'Hilang', 'Selesai', 'Tes Vivo Barnag Hilang', '2026-05-04 04:48:00', '[{\"url\": \"/uploads/foto_baju_koki_c9085fa4e21840b8872229559696860f.jpg\", \"name\": \"foto_baju_koki.jpg\"}]', '2026-05-05 04:49:25', '2026-05-05 04:50:34');
+('krk-1777931365119-c4ce9e', '21', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', 'Hilang', 'Selesai', 'Tes Vivo Barnag Hilang', '2026-05-04 04:48:00', '[{\"url\": \"/uploads/foto_baju_koki_c9085fa4e21840b8872229559696860f.jpg\", \"name\": \"foto_baju_koki.jpg\"}]', '2026-05-05 04:49:25', '2026-05-05 04:50:34'),
+('krk-1777934760297-a3fcce', '53', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', 'Hilang', 'Diproses', 'Jatuh ytibatat', '2026-05-03 00:00:00', '[{\"url\": \"/uploads/s_19c060ff10f041dbab142ba720f44ff7.png\", \"name\": \"s.png\"}]', '2026-05-05 05:46:00', '2026-05-05 05:46:32'),
+('krk-1778145485806-ccc49b', '21', NULL, 'Test Barang Aja', 'Test barang', 'Sedang', 'Selesai', 'Test Barang', '2026-05-07 16:00:00', '[{\"url\": \"/uploads/foto_baju_koki_c013ed71cd1047bba03bffba5e768b97.jpg\", \"name\": \"foto_baju_koki.jpg\"}]', '2026-05-07 16:18:05', '2026-05-07 16:18:16');
 
 -- --------------------------------------------------------
 
@@ -598,7 +567,13 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1777931429608-9bcd6a', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Sedang Diproses</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:29', 'user'),
 ('notif-1777931430763-ac714d', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Dalam Review</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:30', 'user'),
 ('notif-1777931432008-9fd132', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Sedang Diproses</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:32', 'user'),
-('notif-1777931434191-2d74f8', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:34', 'user');
+('notif-1777931434191-2d74f8', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777931365119-c4ce9e\", \"target_user_id\": \"21\"}', '2026-05-05 04:50:34', 'user'),
+('notif-1777934760303-127521', 'kerusakan', 'Laporan Kerusakan Barang Baru', 'Laporan kerusakan barang dari Daflo: Kamera Sony A6400', '/hasil-form-kerusakan-barang.html', '{\"report_id\": \"krk-1777934760297-a3fcce\", \"member_id\": 53, \"barang_name\": \"Kamera Sony A6400\"}', '2026-05-05 05:46:00', 'admin'),
+('notif-1777934792769-5cdd1c', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Sedang Diproses</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1777934760297-a3fcce\", \"target_user_id\": \"53\"}', '2026-05-05 05:46:32', 'user'),
+('notif-1778145306780-c8a63d', 'kerusakan', 'Laporan Kerusakan Barang Baru', 'Laporan kerusakan barang dari Aura: Testing barang', '/hasil-form-kerusakan-barang.html', '{\"report_id\": \"krk-1778145306770-29a9b9\", \"member_id\": 21, \"barang_name\": \"Testing barang\"}', '2026-05-07 16:15:06', 'admin'),
+('notif-1778145356164-1cb132', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1778145306770-29a9b9\", \"target_user_id\": \"21\"}', '2026-05-07 16:15:56', 'user'),
+('notif-1778145485815-6b955f', 'kerusakan', 'Laporan Kerusakan Barang Baru', 'Laporan kerusakan barang dari Aura: Test Barang Aja', '/hasil-form-kerusakan-barang.html', '{\"report_id\": \"krk-1778145485806-ccc49b\", \"member_id\": 21, \"barang_name\": \"Test Barang Aja\"}', '2026-05-07 16:18:05', 'admin'),
+('notif-1778145496870-632b2c', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1778145485806-ccc49b\", \"target_user_id\": \"21\"}', '2026-05-07 16:18:16', 'user');
 
 -- --------------------------------------------------------
 
@@ -618,7 +593,10 @@ CREATE TABLE `notification_reads` (
 
 INSERT INTO `notification_reads` (`notification_id`, `user_key`, `read_at`) VALUES
 ('notif-1777925007861-8d455b', 'member:50', '2026-05-05 03:14:12'),
-('notif-1777927193695-9f1dbf', 'member:53', '2026-05-05 03:41:02');
+('notif-1777927193695-9f1dbf', 'member:53', '2026-05-05 03:41:02'),
+('notif-1778145356164-1cb132', 'member:21', '2026-05-07 16:18:32'),
+('notif-1778145485815-6b955f', 'member:50', '2026-05-07 16:18:43'),
+('notif-1778145496870-632b2c', 'member:21', '2026-05-07 16:18:33');
 
 -- --------------------------------------------------------
 
@@ -741,6 +719,68 @@ CREATE TABLE `sertifikat_config` (
 
 INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`, `updated_at`) VALUES
 (1, 'Pria Briliantama', 'Fransiskus Xaverius Harso Susanto', 'uploads/Tanda_Tangan_Mick_Schumacher_1777507332.png', 'uploads/fake-signature-word-vector_1777507334.jpg', '2026-04-30 07:02:15');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `streaming_cancelled`
+--
+
+CREATE TABLE `streaming_cancelled` (
+  `id` int(11) NOT NULL,
+  `mass_date` date NOT NULL,
+  `mass_time` time NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `streaming_roles`
+--
+
+CREATE TABLE `streaming_roles` (
+  `id` int(11) NOT NULL,
+  `role_name` varchar(100) NOT NULL,
+  `order_index` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `streaming_roles`
+--
+
+INSERT INTO `streaming_roles` (`id`, `role_name`, `order_index`) VALUES
+(13, 'Operator', 1),
+(14, 'Kameramen', 2),
+(15, 'SPV', 3);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `streaming_weekly_config`
+--
+
+CREATE TABLE `streaming_weekly_config` (
+  `id` int(11) NOT NULL,
+  `day_name` varchar(20) NOT NULL,
+  `start_time` time NOT NULL,
+  `mass_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `streaming_weekly_config`
+--
+
+INSERT INTO `streaming_weekly_config` (`id`, `day_name`, `start_time`, `mass_name`) VALUES
+(7, 'Minggu', '07:30:00', 'Misa Mingguan'),
+(8, 'Minggu', '10:00:00', 'Misa Mingguan'),
+(9, 'Minggu', '16:30:00', 'Misa Mingguan'),
+(10, 'Minggu', '18:30:00', 'Misa Mingguan'),
+(11, 'Sabtu', '18:00:00', 'Misa Mingguan'),
+(12, 'Senin', '18:00:00', 'Misa Harian'),
+(13, 'Selasa', '18:00:00', 'Misa Harian'),
+(14, 'Rabu', '18:00:00', 'Misa Harian'),
+(15, 'Kamis', '18:00:00', 'Misa Harian'),
+(16, 'Jumat', '18:00:00', 'Misa Harian');
 
 -- --------------------------------------------------------
 
@@ -2367,14 +2407,6 @@ ALTER TABLE `carousel_slides`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indeks untuk tabel `damage_reports`
---
-ALTER TABLE `damage_reports`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_damage_status` (`admin_status`),
-  ADD KEY `idx_damage_member` (`member_id`);
-
---
 -- Indeks untuk tabel `form_kerusakan_barang`
 --
 ALTER TABLE `form_kerusakan_barang`
@@ -2479,6 +2511,25 @@ ALTER TABLE `registration_form_submissions`
 -- Indeks untuk tabel `sertifikat_config`
 --
 ALTER TABLE `sertifikat_config`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `streaming_cancelled`
+--
+ALTER TABLE `streaming_cancelled`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `streaming_roles`
+--
+ALTER TABLE `streaming_roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_role_name` (`role_name`);
+
+--
+-- Indeks untuk tabel `streaming_weekly_config`
+--
+ALTER TABLE `streaming_weekly_config`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -2612,6 +2663,24 @@ ALTER TABLE `news_category_mapping`
 --
 ALTER TABLE `sertifikat_config`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT untuk tabel `streaming_cancelled`
+--
+ALTER TABLE `streaming_cancelled`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `streaming_roles`
+--
+ALTER TABLE `streaming_roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT untuk tabel `streaming_weekly_config`
+--
+ALTER TABLE `streaming_weekly_config`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT untuk tabel `tentang_crembo_config`

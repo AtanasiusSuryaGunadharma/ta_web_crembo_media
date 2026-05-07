@@ -7,6 +7,7 @@ import re
 import time
 import uuid
 import html
+import calendar
 
 import mysql.connector
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, send_from_directory, session, url_for
@@ -2551,7 +2552,23 @@ def mark_all_notifications_read():
     finally:
         cursor.close()
         conn.close()
+
+def ensure_streaming_schema() -> None:
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_weekly_config` (`id` int AUTO_INCREMENT PRIMARY KEY, `day_name` varchar(20), `start_time` time, `mass_name` varchar(255))")
+        cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_cancelled` (`id` int AUTO_INCREMENT PRIMARY KEY, `mass_date` date, `mass_time` time)")
+        cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_roles` (`id` int AUTO_INCREMENT PRIMARY KEY, `role_name` varchar(100) UNIQUE, `order_index` int DEFAULT 0)")
         
+        cursor.execute("SELECT COUNT(*) FROM `streaming_roles`")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("INSERT INTO `streaming_roles` (role_name, order_index) VALUES ('Produser', 1), ('Operator Streaming', 2), ('Kameramen 1', 3), ('Kameramen 2', 4), ('Kameramen 3', 5)")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -5739,6 +5756,124 @@ def export_kerusakan_pdf():
             download_name=filename,
             mimetype="application/pdf",
         )
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/roles", methods=["GET", "POST"])
+def manage_streaming_roles():
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "POST":
+            payload = request.json or []
+            cursor.execute("DELETE FROM `streaming_roles`")
+            for idx, r in enumerate(payload):
+                cursor.execute("INSERT INTO `streaming_roles` (role_name, order_index) VALUES (%s, %s)", (r['name'], idx+1))
+            conn.commit()
+            return jsonify({"success": True})
+        
+        cursor.execute("SELECT role_name as name FROM `streaming_roles` ORDER BY order_index ASC")
+        return jsonify(cursor.fetchall())
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/config/weekly", methods=["GET", "POST"])
+def manage_weekly_config():
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "POST":
+            payload = request.json or {}
+            cursor.execute("DELETE FROM `streaming_weekly_config`")
+            for day, times in payload.items():
+                for t in times:
+                    parts = t.split(' - ')
+                    jam = parts[0]
+                    nama = parts[1] if len(parts) > 1 else "Misa"
+                    cursor.execute("INSERT INTO `streaming_weekly_config` (day_name, start_time, mass_name) VALUES (%s, %s, %s)", (day, jam, nama))
+            conn.commit()
+            return jsonify({"success": True})
+        
+        cursor.execute("SELECT * FROM `streaming_weekly_config` ORDER BY FIELD(day_name, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), start_time ASC")
+        rows = cursor.fetchall()
+        result = {}
+        for r in rows:
+            day = r['day_name']
+            if day not in result: result[day] = []
+            result[day].append(f"{str(r['start_time'])[:5]} - {r['mass_name']}")
+        return jsonify(result)
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/cancelled", methods=["GET", "POST", "DELETE"])
+def manage_cancelled_mass():
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "POST":
+            data = request.json
+            cursor.execute("INSERT INTO `streaming_cancelled` (mass_date, mass_time) VALUES (%s, %s)", (data['date'], data['time']))
+            conn.commit()
+            return jsonify({"success": True})
+        
+        if request.method == "DELETE":
+            data = request.json
+            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND mass_time = %s", (data['date'], data['time']))
+            conn.commit()
+            return jsonify({"success": True})
+
+        cursor.execute("SELECT mass_date as date, CAST(mass_time AS CHAR) as time FROM `streaming_cancelled`")
+        return jsonify(cursor.fetchall())
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/streaming/schedule", methods=["GET"])
+def get_streaming_schedule():
+    ensure_streaming_schema()
+    month = int(request.args.get("month", datetime.now().month))
+    year = int(request.args.get("year", datetime.now().year))
+    
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM `streaming_weekly_config`")
+        weekly_configs = cursor.fetchall()
+        
+        cursor.execute("SELECT mass_date, CAST(mass_time AS CHAR) as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
+        cancelled_list = cursor.fetchall()
+        cancelled_set = set([f"{c['mass_date']}_{str(c['mass_time'])[:5]}" for c in cancelled_list])
+        
+        day_map = {0: 'Senin', 1: 'Selasa', 2: 'Rabu', 3: 'Kamis', 4: 'Jumat', 5: 'Sabtu', 6: 'Minggu'}
+        
+        schedule = []
+        num_days = calendar.monthrange(year, month)[1]
+        
+        for day in range(1, num_days + 1):
+            date_obj = datetime(year, month, day)
+            day_name = day_map[date_obj.weekday()]
+            date_str = date_obj.strftime("%Y-%m-%d")
+            
+            for cfg in weekly_configs:
+                if cfg['day_name'] == day_name:
+                    jam_str = str(cfg['start_time'])[:5]
+                    key = f"{date_str}_{jam_str}"
+                    if key not in cancelled_set:
+                        schedule.append({
+                            "date": date_str,
+                            "time": jam_str,
+                            "massName": cfg['mass_name'],
+                            "dayName": day_name
+                        })
+        
+        schedule.sort(key=lambda x: (x['date'], x['time']))
+        return jsonify({"success": True, "schedule": schedule})
     finally:
         cursor.close()
         conn.close()
