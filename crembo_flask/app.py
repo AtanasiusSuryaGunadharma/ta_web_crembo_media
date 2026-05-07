@@ -5838,8 +5838,8 @@ def manage_cancelled_mass():
         
         if request.method == "DELETE":
             data = request.json
-            # Perbaikan: Escape %% agar tidak dikonsumsi oleh Python MySQL connector
-            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND DATE_FORMAT(mass_time, '%%H:%%i') = %s", (data['date'], data['time'][:5]))
+            # Perbaikan: Langsung bandingkan mass_time tanpa DATE_FORMAT (MySQL otomatis konversi '18:00' ke TIME)
+            cursor.execute("DELETE FROM `streaming_cancelled` WHERE mass_date = %s AND mass_time = %s", (data['date'], data['time'][:5]))
             conn.commit()
             return jsonify({"success": True})
 
@@ -5867,7 +5867,7 @@ def get_streaming_schedule():
         cursor.execute("SELECT * FROM `streaming_weekly_config` ORDER BY start_time ASC")
         weekly_configs = cursor.fetchall()
         
-        cursor.execute("SELECT mass_date, DATE_FORMAT(mass_time, '%%H:%%i') as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
+        cursor.execute("SELECT mass_date, LEFT(CAST(mass_time AS CHAR), 5) as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
         cancelled_list = cursor.fetchall()
         cancelled_set = set([f"{c['mass_date']}_{c['mass_time']}" for c in cancelled_list])
         
