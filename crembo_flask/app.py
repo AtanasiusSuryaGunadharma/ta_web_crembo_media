@@ -2556,14 +2556,12 @@ def mark_all_notifications_read():
 
 def ensure_streaming_schema() -> None:
     conn = mysql_connection()
-    cursor = conn.cursor()
+    # PERBAIKAN: Gunakan buffered=True agar tidak ada error unread result
+    cursor = conn.cursor(buffered=True)
     try:
         cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_weekly_config` (`id` int AUTO_INCREMENT PRIMARY KEY, `day_name` varchar(20), `start_time` time, `mass_name` varchar(255))")
-        
         cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_cancelled` (`id` int AUTO_INCREMENT PRIMARY KEY, `mass_date` date, `mass_time` time)")
-        
         cursor.execute("CREATE TABLE IF NOT EXISTS `streaming_roles` (`id` int AUTO_INCREMENT PRIMARY KEY, `role_name` varchar(100) UNIQUE, `order_index` int DEFAULT 0)")
-        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `streaming_assignments` (
               `id` int AUTO_INCREMENT PRIMARY KEY,
@@ -2574,26 +2572,17 @@ def ensure_streaming_schema() -> None:
               UNIQUE KEY `uniq_assignment` (`schedule_date`, `schedule_time`, `role_name`)
             )
         """)
-
-        # Untuk menghindari "Unread result found", kita bisa menambahkan parameter buffered=True 
-        # Atau langsung commit setelah table creation dan buka cursor baru untuk SELECT
         conn.commit()
-
-    finally:
-        cursor.close()
-
-    # Buka cursor baru yang clean untuk proses SELECT
-    cursor2 = conn.cursor(dictionary=True)
-    try:
-        cursor2.execute("SELECT COUNT(*) as cnt FROM `streaming_roles`")
-        res = cursor2.fetchone()
-        if res and res['cnt'] == 0:
-            cursor2.execute("INSERT IGNORE INTO `streaming_roles` (role_name, order_index) VALUES ('Produser', 1), ('Operator Streaming', 2), ('Kameramen 1', 3), ('Kameramen 2', 4), ('Kameramen 3', 5)")
+        
+        cursor.execute("SELECT COUNT(*) FROM `streaming_roles`")
+        res = cursor.fetchone()
+        if res and res[0] == 0:
+            cursor.execute("INSERT IGNORE INTO `streaming_roles` (role_name, order_index) VALUES ('Produser', 1), ('Operator Streaming', 2), ('Kameramen 1', 3), ('Kameramen 2', 4), ('Kameramen 3', 5)")
             conn.commit()
     except Exception as e:
-        print(f"[WARN] Error seeding streaming roles: {e}")
+        print(f"[WARN] Error in schema: {e}")
     finally:
-        cursor2.close()
+        cursor.close()
         conn.close()
 
 def format_time_hhmm(t_obj):
@@ -5927,12 +5916,10 @@ def get_streaming_schedule():
 
 @app.route("/api/streaming/active-members", methods=["GET"])
 def get_active_members():
-    """Mengambil daftar semua anggota yang berstatus aktif untuk dropdown penugasan"""
     ensure_auth_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # Mengambil ID dan Nama dari anggota yang aktif (termasuk admin/super_admin)
         cursor.execute("SELECT id, nama as name, role FROM anggota WHERE status_akun = 'aktif' ORDER BY nama ASC")
         return jsonify(cursor.fetchall())
     finally:
@@ -5941,12 +5928,10 @@ def get_active_members():
 
 @app.route("/api/streaming/assignments", methods=["GET"])
 def get_current_assignments():
-    """Mengambil data penugasan yang sudah tersimpan di database"""
     ensure_streaming_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # PERBAIKAN: Menggunakan DATE_FORMAT agar hasil dari DB persis berbentuk string YYYY-MM-DD dan HH:MM
         cursor.execute("SELECT DATE_FORMAT(schedule_date, '%Y-%m-%d') as schedule_date, DATE_FORMAT(schedule_time, '%H:%i') as schedule_time, role_name, member_id FROM streaming_assignments")
         return jsonify(cursor.fetchall())
     finally:
@@ -5955,14 +5940,12 @@ def get_current_assignments():
 
 @app.route("/api/streaming/assignments/save", methods=["POST"])
 def save_assignments():
-    """Menyimpan atau memperbarui penugasan petugas dan kirim notifikasi"""
     ensure_streaming_schema()
     payload = request.json or [] 
     
     conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
     try:
-        # 1. Ambil data penugasan lama untuk perbandingan (mencegah notif ganda jika hanya save ulang)
         cursor.execute("SELECT schedule_date, schedule_time, role_name, member_id FROM streaming_assignments")
         existing_assignments = {}
         for r in cursor.fetchall():
@@ -5971,6 +5954,7 @@ def save_assignments():
             existing_assignments[(d_str, t_str, r['role_name'])] = str(r['member_id'])
             
         ensure_notifications_schema()
+        DAYS_INDO = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
         
         for item in payload:
             d_str = item.get('date')
@@ -5982,31 +5966,22 @@ def save_assignments():
             key = (d_str, t_str, r_str)
             
             if m_id:
-                # Simpan atau update petugas
                 cursor.execute("""
                     INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id)
                     VALUES (%s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE member_id = VALUES(member_id)
                 """, (d_str, t_str, r_str, m_id))
                 
-                # 2. Kirim Notifikasi JIKA petugas di slot ini berubah atau baru
                 if existing_assignments.get(key) != m_id:
                     date_obj = datetime.strptime(d_str, "%Y-%m-%d")
+                    day_name = DAYS_INDO[date_obj.weekday()]
                     date_formatted = date_obj.strftime("%d/%m/%Y")
-                    title = f"Tugas Baru: {r_str}"
-                    body = f"Anda ditugaskan sebagai <b>{r_str}</b> untuk <b>{m_name}</b> pada tanggal {date_formatted} jam {t_str} WIB."
                     
-                    create_notification(
-                        cursor,
-                        "tugas",
-                        title,
-                        body,
-                        "/jadwal-tugas-misa-anggota.html",
-                        {"target_user_id": m_id},
-                        target_role=None # Broadcast, nanti difilter oleh target_user_id di Frontend
-                    )
+                    title = f"Tugas Baru: {r_str}"
+                    body = f"Anda ditugaskan sebagai <b>{r_str}</b> untuk <b>{m_name}</b> pada hari {day_name}, {date_formatted} jam {t_str} WIB."
+                    
+                    create_notification(cursor, "tugas", title, body, "/jadwal-tugas-misa-anggota.html", {"target_user_id": m_id}, target_role=None)
             else:
-                # Hapus dari tabel jika dropdown dikosongkan (cancel)
                 cursor.execute("""
                     DELETE FROM streaming_assignments 
                     WHERE schedule_date = %s AND schedule_time = %s AND role_name = %s
