@@ -3084,15 +3084,17 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
-        # Use the current max id in DB to allocate new ids, so we don't collide
-        cursor.execute("SELECT MAX(id) FROM anggota")
-        row = cursor.fetchone()
-        current_max = int(row[0]) if row and row[0] is not None else 0
-
         cursor.execute("START TRANSACTION")
-        cursor.execute("DELETE FROM anggota")
 
-        next_id = current_max + 1
+        cursor.execute("SELECT id FROM anggota")
+        existing_rows = cursor.fetchall() or []
+        existing_ids = {
+            int(row[0])
+            for row in existing_rows
+            if isinstance(row, (list, tuple)) and row and str(row[0]).isdigit()
+        }
+        next_id = max(existing_ids) + 1 if existing_ids else 1
+        kept_ids: set[int] = set()
 
         for index, item in enumerate(payload, start=1):
             birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
@@ -3105,12 +3107,23 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
             except (TypeError, ValueError):
                 member_id = next_id
                 next_id += 1
+            kept_ids.add(member_id)
 
             cursor.execute(
                 """
                 INSERT INTO anggota
                 (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                  nama = VALUES(nama),
+                  username = VALUES(username),
+                  telp = VALUES(telp),
+                  password = VALUES(password),
+                  role = VALUES(role),
+                  tgl_lahir = VALUES(tgl_lahir),
+                  email = VALUES(email),
+                  alamat = VALUES(alamat),
+                  status_akun = VALUES(status_akun)
                 """,
                 (
                     member_id,
@@ -3125,6 +3138,11 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                     status_value,
                 ),
             )
+
+        ids_to_delete = sorted(existing_ids - kept_ids)
+        if ids_to_delete:
+            placeholders = ",".join(["%s"] * len(ids_to_delete))
+            cursor.execute(f"DELETE FROM anggota WHERE id IN ({placeholders})", tuple(ids_to_delete))
 
         conn.commit()
     except Exception as e:
