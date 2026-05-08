@@ -98,14 +98,15 @@
           <div class="tabs" style="margin-bottom: 0; border: none; display: flex; gap: 8px;">
             <button id="modeBiasa" class="btn" type="button" style="pointer-events: none;">Misa Biasa</button>
             <button id="modeBesar" class="btn ghost" type="button" onclick="alert('Fitur Misa Besar dalam pengembangan.')">Misa Besar</button>
-            <span style="border-left: 1px solid #ccc; height: 24px; margin: 0 4px;"></span>
-            <button class="btn secondary" id="openSwapModalBtn">Tukar Shift (Role)</button>
-            <button id="saveAllBtn" class="btn primary" type="button" style="background: linear-gradient(135deg, #800000, #a52a2a);">Simpan Semua Penugasan</button>
           </div>
         </div>
         <div class="panel-body">
           <p class="helper" style="margin-bottom: 12px; font-size: 0.85rem; color: #666;">Admin dapat isi slot kosong, mengganti petugas, dan menghapus petugas sesuai jadwal. Status penugasan mengikuti data Draft/Published dari registrasi misa besar.</p>
-
+          
+          <div class="btn-row" style="margin-bottom: 16px; justify-content: flex-start;">
+            <button class="btn secondary" id="openSwapModalBtn">Tukar Shift (Role)</button>
+            <button id="saveAllBtn" class="btn primary" type="button" style="background: linear-gradient(135deg, #800000, #a52a2a); color: white;">Simpan Semua Penugasan</button>
+          </div>
           <div class="table-wrap">
             <table id="assignmentTable">
               <thead id="tableHeader"></thead>
@@ -526,9 +527,8 @@
 
     setInterval(() => {
         const n = new Date();
-        document.getElementById("liveDateTime").textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";
-    }, 1000);
-
+        document.getElementById("liveDateTime", 10000).textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";
+    }, 10000);
     fetchData();
   </script>
 <script src="_sidebar-fix.js"></script>
