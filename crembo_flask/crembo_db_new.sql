@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 09 Bulan Mei 2026 pada 00.11
+-- Waktu pembuatan: 09 Bulan Mei 2026 pada 00.52
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -156,6 +156,48 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (76, 'tesDeleteAddasdasd', 'tesDeleteAddasdadasdasd', '081232113123', 'scrypt:32768:8:1$7pkL0F3OqzTrUp43$0142ba0d618e61b57b423c2d2baad2e13181e21c0c28f014dcf72572cdadfce462384c88475d1c5d76930e5c946e377aaaecfd05a554a2f55b9da41903c2ece9', 'user', '2026-05-07', 'tesDeleteAdd@gmail.com', 'asdadasd', 'aktif', '2026-05-08 14:25:11', '2026-05-08 14:26:47');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `big_mass_assignments`
+--
+
+CREATE TABLE `big_mass_assignments` (
+  `id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `big_mass_events`
+--
+
+CREATE TABLE `big_mass_events` (
+  `id` int(11) NOT NULL,
+  `misa_name` varchar(255) NOT NULL,
+  `misa_date` date NOT NULL,
+  `misa_time` time NOT NULL,
+  `misa_note` text DEFAULT NULL,
+  `allow_member_request` tinyint(1) DEFAULT 0,
+  `status` enum('draft','published') DEFAULT 'draft',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `big_mass_roles`
+--
+
+CREATE TABLE `big_mass_roles` (
+  `id` int(11) NOT NULL,
+  `event_id` int(11) NOT NULL,
+  `role_name` varchar(100) NOT NULL,
+  `required_count` int(11) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -433,43 +475,6 @@ INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `bar
 ('pjn-1777900923876', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 1, '2026-05-04', '2026-05-05', '2026-05-30', 'qasdasd', 'returned', '2026-05-05 03:22:03', '2026-05-05 03:43:11', 'Silahkan ambil', 'Atanasius Surya', '2026-05-04 20:39:53', '{\"date\": \"2026-05-05\", \"time\": \"10:00\", \"location\": \"Test Ambil Barang\", \"photo\": \"/uploads/sertifikat-anggota-zxczxczxc_8a3be7090a134b79b409acdb10835702.jpg\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Tes Daflo ambil barang notif\"}]}', '2026-05-04 20:41:37', '{\"date\": \"2026-05-31\", \"time\": \"03:42\", \"location\": \"Tes Pengembalian Barang Daflo Notif\", \"photo\": \"/uploads/screencapture-10-10-10-85-admin-dashboard-2026-04-07-11_11_45_baf4f95570ba4abdb99a34c90bcd0820.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Tes Pengembalian Barang Daflo Notif\"}]}', '2026-05-04 20:43:11', '03:24:00', '03:28:00'),
 ('pjn-1777901560809', '21', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', '/uploads/IMG_1970_935e1d50e9d14a179dca3e0095f463fb.jpg', 1, '2026-05-04', '2026-05-05', '2026-05-14', 'Tes Notif Minjam Aura', 'returned', '2026-05-05 03:32:40', '2026-05-05 03:42:48', 'Silahkan ambil', 'Atanasius Surya', '2026-05-04 20:39:49', '{\"date\": \"2026-05-06\", \"time\": \"05:00\", \"location\": \"Tes Ambil Barang Aura Notif\", \"photo\": \"/uploads/screencapture-10-10-10-85-admin-dashboard-2026-04-07-11_11_45_626db82a93884a88aa0035ca1fab1070.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Tes Ambil Barang Aura Notif\"}]}', '2026-05-04 20:42:22', '{\"date\": \"2026-05-30\", \"time\": \"03:44\", \"location\": \"Tes Pengembalian Barang Aura Notif\", \"photo\": \"/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_cc91918a47674cd28423188c4931b60d.png\", \"units\": [{\"status\": \"Rusak\", \"reason\": \"Tes Pengembalian Barang Aura Notif\"}]}', '2026-05-04 20:42:48', '03:35:00', '03:36:00'),
 ('pjn-1777902302335', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 1, '2026-05-04', '2026-05-12', '2026-05-31', 'Tes Daflo Notif Barang aktivitas', 'pending', '2026-05-05 03:45:02', '2026-05-05 03:45:02', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '03:46:00', '03:49:00');
-
--- --------------------------------------------------------
-
---
--- Struktur dari tabel `misa_besar`
---
-
-CREATE TABLE `misa_besar` (
-  `id` varchar(100) NOT NULL,
-  `nama_misa` varchar(255) NOT NULL,
-  `tanggal` date NOT NULL,
-  `jam` time NOT NULL,
-  `keterangan` text DEFAULT NULL,
-  `boleh_request` tinyint(1) DEFAULT 0,
-  `status` varchar(50) DEFAULT 'draft',
-  `roles_json` longtext DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Struktur dari tabel `misa_besar_names`
---
-
-CREATE TABLE `misa_besar_names` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `misa_besar_names`
---
-
-INSERT INTO `misa_besar_names` (`id`, `name`) VALUES
-(1, 'Kamis Putih');
 
 -- --------------------------------------------------------
 
@@ -2512,6 +2517,27 @@ ALTER TABLE `anggota`
   ADD UNIQUE KEY `uniq_anggota_username` (`username`);
 
 --
+-- Indeks untuk tabel `big_mass_assignments`
+--
+ALTER TABLE `big_mass_assignments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_member_per_event` (`role_id`,`member_id`),
+  ADD KEY `member_id` (`member_id`);
+
+--
+-- Indeks untuk tabel `big_mass_events`
+--
+ALTER TABLE `big_mass_events`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `big_mass_roles`
+--
+ALTER TABLE `big_mass_roles`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `event_id` (`event_id`);
+
+--
 -- Indeks untuk tabel `carousel_slides`
 --
 ALTER TABLE `carousel_slides`
@@ -2558,20 +2584,6 @@ ALTER TABLE `loan_requests`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_loan_status` (`status`),
   ADD KEY `idx_loan_member` (`member_id`);
-
---
--- Indeks untuk tabel `misa_besar`
---
-ALTER TABLE `misa_besar`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_misa_besar_status` (`status`);
-
---
--- Indeks untuk tabel `misa_besar_names`
---
-ALTER TABLE `misa_besar_names`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `idx_name` (`name`);
 
 --
 -- Indeks untuk tabel `news`
@@ -2786,10 +2798,22 @@ ALTER TABLE `youtube_embeds`
 --
 
 --
--- AUTO_INCREMENT untuk tabel `misa_besar_names`
+-- AUTO_INCREMENT untuk tabel `big_mass_assignments`
 --
-ALTER TABLE `misa_besar_names`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+ALTER TABLE `big_mass_assignments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `big_mass_events`
+--
+ALTER TABLE `big_mass_events`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `big_mass_roles`
+--
+ALTER TABLE `big_mass_roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `news_category_mapping`
@@ -2836,6 +2860,19 @@ ALTER TABLE `tentang_crembo_config`
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
+
+--
+-- Ketidakleluasaan untuk tabel `big_mass_assignments`
+--
+ALTER TABLE `big_mass_assignments`
+  ADD CONSTRAINT `big_mass_assignments_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `big_mass_roles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `big_mass_assignments_ibfk_2` FOREIGN KEY (`member_id`) REFERENCES `anggota` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `big_mass_roles`
+--
+ALTER TABLE `big_mass_roles`
+  ADD CONSTRAINT `big_mass_roles_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `big_mass_events` (`id`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `news_category_mapping`
