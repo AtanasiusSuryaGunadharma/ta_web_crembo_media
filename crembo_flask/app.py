@@ -3084,11 +3084,15 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
     try:
+        # Use the current max id in DB to allocate new ids, so we don't collide
+        cursor.execute("SELECT MAX(id) FROM anggota")
+        row = cursor.fetchone()
+        current_max = int(row[0]) if row and row[0] is not None else 0
+
         cursor.execute("START TRANSACTION")
         cursor.execute("DELETE FROM anggota")
 
-        existing_ids = [int(i.get("id")) for i in payload if str(i.get("id")).isdigit()]
-        next_id = max(existing_ids) + 1 if existing_ids else 1
+        next_id = current_max + 1
 
         for index, item in enumerate(payload, start=1):
             birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
