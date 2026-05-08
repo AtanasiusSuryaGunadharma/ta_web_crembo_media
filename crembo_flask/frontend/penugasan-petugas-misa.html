@@ -1,143 +1,23 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Penugasan Petugas Misa - Crembo Media</title>
   <style>
-    :root {
-      --bg: #ececec;
-      --panel: #ffffff;
-      --panel-2: #f5f5f5;
-      --line: #1f1f1f;
-      --muted: #5b5b5b;
-      --text: #111111;
-      --side-text: #f4f4f4;
-      --radius: 16px;
-      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-      --danger: #b42323;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at 20% 10%, #f8f8f8 0%, #ececec 38%, #e3e3e3 100%);
-      min-height: 100vh;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
-      color: var(--side-text);
-      border-right: 2px solid var(--line);
-      padding: 18px 14px;
-      overflow-y: auto;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-    }
-
-    .brand {
-      border: 1px solid #838383;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-    }
-
-    .brand h1 { margin: 0; font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
-
-    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255, 255, 255, 0.03); margin-bottom: 10px; overflow: hidden; }
-    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: 0.88rem; padding: 11px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255, 255, 255, 0.02); }
-    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; }
-    .menu-link:hover { border-color: #8a8a8a; background: rgba(255, 255, 255, 0.08); }
-    .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
-
-    .main { padding: 16px; min-width: 0; }
-
-    .dashboard-headline-bar {
-      border: 1px solid #cfcfcf;
-      background: #f3f3f3;
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .dashboard-headline-bar h1 { margin: 0; font-size: clamp(1.2rem, 2.2vw, 2rem); font-weight: 700; color: #1c1f27; }
-    .head-meta { display: inline-flex; align-items: center; gap: 12px; color: #374151; font-size: clamp(0.85rem, 1.8vw, 1.02rem); font-weight: 600; }
-    
-    .topbar {
-      border: 2px solid var(--line);
-      background: linear-gradient(145deg, #ffffff 0%, #f0f4ff 52%, #f5f5f5 100%);
-      border-radius: var(--radius);
-      padding: 14px;
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      box-shadow: var(--shadow); margin-bottom: 12px; flex-wrap: wrap;
-    }
-
-    .headline { margin: 0; font-size: clamp(1.05rem, 2.5vw, 1.5rem); color: #111827; font-weight: 700;}
-    .subhead { margin: 3px 0 0; color: var(--muted); font-size: 0.85rem; }
-
-    .panel { border: 2px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
-    .panel-body { padding: 12px; }
-
-    .toolbar { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-bottom: 12px; }
-    .filters { display: flex; gap: 10px; flex-wrap: wrap; }
-    .field { display: grid; gap: 6px; }
-    .field label { font-size: 0.82rem; color: #4f4f4f; font-weight: 700; }
-    .field select { border: 1px solid #bdbdbd; border-radius: 10px; padding: 8px 10px; font-size: 0.86rem; background: #fff; font-family: inherit; width: 100%; min-width:140px;}
-
-    .btn {
-      border: 1px solid #1f2937; border-radius: 9px;
-      background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
-      color: #fff; font-weight: 700; padding: 8px 12px; font-size: 0.82rem;
-      cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn.primary { background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%); border-color: #295fc2; }
-    .btn.ghost { background: #fff; color: #1f2937; border-color: #9ca3af; font-weight: 600; }
-
-    .action-set { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    .tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 2px solid var(--line); }
-    .tab-btn {
-      padding: 8px 16px; border: 0; background: transparent; cursor: pointer;
-      font-weight: 700; font-size: 0.88rem; color: var(--muted);
-      border-bottom: 3px solid transparent; margin-bottom: -2px;
-    }
-    .tab-btn.active { color: #7f0000; border-bottom-color: #7f0000; }
-
-    .table-wrap { overflow-x: auto; border: 1px solid #cdcdcd; border-radius: 10px; background: #fff; }
-    table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: 0.84rem; }
-    th, td { border: 1px solid #d1d1d1; padding: 10px; text-align: left; vertical-align: middle; }
-    th { background: #f1f1f1; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
-    
-    select.member-select { 
-      border: 1px solid #b8b8b8; background: #fdfdfd; font-size: 0.8rem; cursor: pointer; 
-      padding: 5px; width: 100%; border-radius: 6px; 
-    }
-    select.member-select:focus { border-color: #111; outline: none; }
-    
-    .btn-cancel {
-      border: 1px solid #ef4444; background: #fff1f1; color: var(--danger);
-      border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; cursor: pointer;
-      font-weight: 600; width: 100%; transition: 0.2s; text-align: center; margin-top: 4px;
-    }
-    .btn-cancel:hover { background: #ffe4e4; }
+    .slot { display: grid; gap: 6px; min-width: 150px; }
+    .slot-combo { position: relative; }
+    .slot-trigger { width: 100%; text-align: left; border: 1px solid #cbcbcb; border-radius: 6px; padding: 6px 8px; background: #fff; cursor: pointer; font-size: 0.84rem; }
+    .slot-trigger::after { content: "▾"; float: right; color: #5c5c5c; font-size: 0.76rem; margin-top: 2px; }
+    .slot-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; border: 1px solid #a7a7a7; border-radius: 6px; background: #fff; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14); z-index: 40; display: none; }
+    .slot-panel.show { display: block; }
+    .slot-search-box { padding: 7px; border-bottom: 1px solid #dddddd; background: #f7f7f7; }
+    .slot-search-input { width: 100%; border: 1px solid #b9b9b9; border-radius: 4px; padding: 6px 7px; font-size: 0.82rem; }
+    .slot-options { max-height: 180px; overflow-y: auto; }
+    .slot-option { width: 100%; border: 0; border-bottom: 1px solid #f0f0f0; border-radius: 0; background: #fff; text-align: left; padding: 7px 8px; font-size: 0.82rem; cursor: pointer; }
+    .slot-option:hover, .slot-option.active { background: #ebebeb; }
+    .slot-empty { margin: 0; padding: 8px; font-size: 0.78rem; color: #666; font-style: italic; }
+    .clear-slot { margin-top: 4px; width: 100%; }
     
     /* Modal Swap */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 100; justify-content: center; align-items: center; }
@@ -146,84 +26,83 @@
     .modal-head { padding: 14px 16px; border-bottom: 1px solid #c8c8c8; background: #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
     .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #5b5b5b; }
     .modal-body { padding: 16px; }
-
     .swap-box { border: 1px dashed #b7b7b7; padding: 12px; border-radius: 10px; margin-bottom: 12px; background: #fdfdfd; }
     .swap-box h4 { margin: 0 0 8px; font-size: 0.85rem; color: #111; }
     .swap-icon { text-align: center; margin: 10px 0; font-size: 1.2rem; color: #777; }
-
-    @media (max-width: 920px) {
-      .layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-      .toolbar { grid-template-columns: 1fr; }
-      .filters { flex-direction: column; }
-    }
+    .month-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .range-select { border: 1px solid #c8d2df; border-radius: 999px; background: #fff; padding: 7px 10px; font-size: 0.8rem; font-weight: 700; color: #374151; }
+    .field { display: grid; gap: 5px; }
+    .field label { font-size: 0.8rem; color: #3d3d3d; text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+    .swap-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr auto; gap: 10px; align-items: end; margin-top: 10px; }
+    @media (max-width: 1080px) { .swap-grid { grid-template-columns: 1fr; } }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar penugasan misa">
       <div class="brand">
-        <h1>Crembo Media Admin</h1>
-        <p>Panel Penugasan Petugas</p>
+        <h1>Crembo Media Panel</h1>
+        <p>Modul penugasan petugas misa</p>
       </div>
+
       <div class="menu-group open">
-        <button class="group-toggle" type="button">Streaming <span>-</span></button>
+        <button class="group-toggle" type="button">Tugas Streaming <span>-</span></button>
         <div class="group-items">
           <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
-          <a class="menu-link active" href="#">Penugasan Petugas Misa</a>
+          <a class="menu-link" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
+          <a class="menu-link active" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
+          <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
+          <a class="menu-link" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
+          <a class="menu-link" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
         </div>
       </div>
-      <div style="margin-top: 20px;"><a href="dashboard.html" class="menu-link" style="border:1px solid #555; text-align:center;">Kembali</a></div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+        <a href="/logout">Keluar / Logout</a>
+      </div>
     </aside>
 
     <main class="main">
-      <header class="dashboard-headline-bar">
+      <header class="dashboard-headline-bar" aria-label="Header modul penugasan">
         <h1>Penugasan Petugas Misa</h1>
-        <div id="liveDateTime" class="head-meta">-</div>
-      </header>
-
-      <header class="topbar">
-        <div>
-          <h2 class="headline">Atur Petugas Misa</h2>
-          <p class="subhead">Pilih jadwal, atur petugas untuk tiap peran, atau gunakan fitur tukar shift.</p>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
         </div>
       </header>
 
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="biasa">Misa Biasa (Rutin)</button>
-        <button class="tab-btn" data-tab="besar" onclick="alert('Fitur Misa Besar dalam pengembangan.')">Misa Besar (Event)</button>
-      </div>
-
       <section class="panel">
-        <div class="panel-body">
-          <div class="toolbar">
-            <div class="filters">
-              <div class="field">
-                <label>Bulan</label>
-                <select id="monthFilter">
-                  <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
-                  <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
-                  <option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option>
-                  <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Tahun</label>
-                <select id="yearFilter">
-                  <option value="2025">2025</option>
-                  <option value="2026">2026</option>
-                  <option value="2027">2027</option>
-                </select>
-              </div>
-            </div>
-            <div class="action-set">
-              <button class="btn ghost" id="openSwapModalBtn">Tukar Shift (Role)</button>
-              <button class="btn primary" id="saveAllBtn">Simpan Semua Penugasan</button>
-            </div>
+        <div class="panel-head">
+          <h2>Tabel Penugasan</h2>
+          <div class="period-controls" aria-label="Pilih periode penugasan">
+            <select id="monthFilter" class="metric-range-select" aria-label="Pilih bulan">
+              <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
+              <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
+              <option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option>
+              <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+            </select>
+            <select id="yearFilter" class="metric-range-select" aria-label="Pilih tahun">
+              <option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
+            </select>
           </div>
-          
+          <div class="tabs" style="margin-bottom: 0; border: none; display: flex; gap: 8px;">
+            <button id="modeBiasa" class="btn" type="button" style="pointer-events: none;">Misa Biasa</button>
+            <button id="modeBesar" class="btn ghost" type="button" onclick="alert('Fitur Misa Besar dalam pengembangan.')">Misa Besar</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <p class="helper" style="margin-bottom: 12px; font-size: 0.85rem; color: #666;">Admin dapat isi slot kosong, mengganti petugas, dan menghapus petugas sesuai jadwal. Status penugasan mengikuti data Draft/Published dari registrasi misa besar.</p>
+
           <div class="table-wrap">
             <table id="assignmentTable">
               <thead id="tableHeader"></thead>
@@ -231,50 +110,55 @@
             </table>
           </div>
           <p id="emptyNote" style="text-align:center; padding:20px; color:#666;">Memuat data...</p>
+
+          <div class="btn-row" style="margin-top: 16px;">
+            <button class="btn secondary" id="openSwapModalBtn">Tukar Shift (Role)</button>
+            <button id="saveAllBtn" class="btn primary" type="button">Simpan Semua Penugasan</button>
+          </div>
         </div>
       </section>
-    </main>
 
-    <div id="swapModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>Tukar Shift (Role)</h3>
-          <button class="modal-close" id="closeSwapModal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size:0.8rem; color:#666; margin-top:0;">Pilih dua slot penugasan pada layar yang sama untuk ditukar orangnya.</p>
-          
-          <div class="swap-box">
-            <h4>Slot Pertama</h4>
-            <div style="display:flex; gap:8px;">
-                <select id="swapDate1" class="field select" style="flex:1;"><option value="">- Tanggal -</option></select>
-                <select id="swapTime1" class="field select" style="flex:1;"><option value="">- Jam -</option></select>
-            </div>
-            <select id="swapRole1" class="field select" style="width:100%; margin-top:8px;"><option value="">- Role -</option></select>
+      <div id="swapModal" class="modal-overlay">
+        <div class="modal">
+          <div class="modal-head">
+            <h3>Tukar Shift (Role)</h3>
+            <button class="modal-close" id="closeSwapModal">&times;</button>
           </div>
-          
-          <div class="swap-icon">↕</div>
-          
-          <div class="swap-box">
-            <h4>Slot Kedua</h4>
-            <div style="display:flex; gap:8px;">
-                <select id="swapDate2" class="field select" style="flex:1;"><option value="">- Tanggal -</option></select>
-                <select id="swapTime2" class="field select" style="flex:1;"><option value="">- Jam -</option></select>
+          <div class="modal-body">
+            <p style="font-size:0.8rem; color:#666; margin-top:0;">Pilih dua slot penugasan pada layar yang sama untuk ditukar orangnya.</p>
+            
+            <div class="swap-box">
+              <h4>Slot Pertama</h4>
+              <div style="display:flex; gap:8px;">
+                  <select id="swapDate1" class="field select" style="flex:1;"><option value="">- Tanggal -</option></select>
+                  <select id="swapTime1" class="field select" style="flex:1;"><option value="">- Jam -</option></select>
+              </div>
+              <select id="swapRole1" class="field select" style="width:100%; margin-top:8px;"><option value="">- Role -</option></select>
             </div>
-            <select id="swapRole2" class="field select" style="width:100%; margin-top:8px;"><option value="">- Role -</option></select>
+            
+            <div class="swap-icon">↕</div>
+            
+            <div class="swap-box">
+              <h4>Slot Kedua</h4>
+              <div style="display:flex; gap:8px;">
+                  <select id="swapDate2" class="field select" style="flex:1;"><option value="">- Tanggal -</option></select>
+                  <select id="swapTime2" class="field select" style="flex:1;"><option value="">- Jam -</option></select>
+              </div>
+              <select id="swapRole2" class="field select" style="width:100%; margin-top:8px;"><option value="">- Role -</option></select>
+            </div>
+            
+            <button class="btn" id="executeSwapBtn" style="width:100%; margin-top:10px;">Tukar Sekarang</button>
           </div>
-          
-          <button class="btn primary" id="executeSwapBtn" style="width:100%; margin-top:10px;">Tukar Sekarang</button>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <script>
     let ROLES = [];
     let ACTIVE_MEMBERS = [];
-    let SAVED_ASSIGNMENTS = [];
     let CURRENT_SCHEDULE = [];
+    let ASSIGNMENT_MAP = {}; // key: "date_time_role" => memberId
     
     const monthFilter = document.getElementById("monthFilter");
     const yearFilter = document.getElementById("yearFilter");
@@ -293,7 +177,14 @@
             ]);
             ROLES = await rolesRes.json();
             ACTIVE_MEMBERS = await membersRes.json();
-            SAVED_ASSIGNMENTS = await assignmentsRes.json();
+            const assignments = await assignmentsRes.json();
+            
+            ASSIGNMENT_MAP = {};
+            assignments.forEach(a => {
+                const timeStr = a.schedule_time.substring(0,5);
+                const key = `${a.schedule_date}_${timeStr}_${a.role_name}`;
+                ASSIGNMENT_MAP[key] = String(a.member_id);
+            });
             
             renderHeader();
             await loadSchedule();
@@ -322,85 +213,247 @@
     }
 
     function renderHeader() {
-        let html = `<tr><th>TANGGAL & PERAYAAN</th><th>JAM</th>`;
+        let html = `<tr><th>NAMA MISA</th><th>TANGGAL</th><th>JAM</th>`;
         ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
-        html += `</tr>`;
+        html += `<th>STATUS</th></tr>`;
         document.getElementById("tableHeader").innerHTML = html;
+    }
+
+    function updateRowStatus(date, time) {
+        let rolesFilled = 0;
+        ROLES.forEach(role => {
+            const key = `${date}_${time}_${role.name}`;
+            if (ASSIGNMENT_MAP[key]) rolesFilled++;
+        });
+        
+        let statusHtml = "";
+        if (rolesFilled === ROLES.length) {
+             statusHtml = '<span class="status-pill">Lengkap</span>';
+        } else if (rolesFilled > 0) {
+             statusHtml = `<span class="status-pill pending">Kurang ${ROLES.length - rolesFilled}</span>`;
+        } else {
+             statusHtml = '<span class="status-pill pending" style="border-color:#d1d5db; color:#4b5563; background:#f3f4f6;">Kosong</span>';
+        }
+        
+        const statusDiv = document.getElementById(`status_${date}_${time}`);
+        if (statusDiv) statusDiv.innerHTML = statusHtml;
     }
 
     function renderRows(schedule) {
         document.getElementById("tableRows").innerHTML = schedule.map(item => {
-            let rowHtml = `<td><strong>${item.dayName}</strong>, ${item.date.split('-').reverse().join('/')}<br><small>${item.massName}</small></td>
-                           <td style="font-weight:bold; color:#7f0000;">${item.time}</td>`;
+            const timeStr = item.time.substring(0,5);
+            let rowHtml = `<td><strong>${item.massName}</strong></td>
+                           <td>${item.date.split('-').reverse().join('/')}</td>
+                           <td>${timeStr}</td>`;
             
+            let roleCells = "";
+
             ROLES.forEach(role => {
-                const assigned = SAVED_ASSIGNMENTS.find(a => 
-                    a.schedule_date === item.date && 
-                    a.schedule_time.substring(0,5) === item.time && 
-                    a.role_name === role.name
-                );
+                const key = `${item.date}_${timeStr}_${role.name}`;
+                let assignedMemberId = ASSIGNMENT_MAP[key] || "";
+                let assignedMemberName = "-- kosong --";
+                let assignedMemberTag = "Slot kosong";
+                let emptyClass = "empty";
+                
+                if (assignedMemberId) {
+                    const member = ACTIVE_MEMBERS.find(m => String(m.id) === String(assignedMemberId));
+                    if (member) {
+                        assignedMemberName = member.name;
+                        assignedMemberTag = `Terisi: ${member.name}`;
+                        emptyClass = "";
+                    }
+                }
 
-                let options = `<option value="">-- Pilih Petugas --</option>`;
-                ACTIVE_MEMBERS.forEach(m => {
-                    const selected = assigned && String(assigned.member_id) === String(m.id) ? "selected" : "";
-                    options += `<option value="${m.id}" ${selected}>${m.name} (${m.role})</option>`;
-                });
-
-                rowHtml += `<td>
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        <select class="member-select" data-date="${item.date}" data-time="${item.time}" data-role="${role.name}">${options}</select>
-                        <button class="btn-cancel" type="button" onclick="this.previousElementSibling.value='';">Cancel Petugas</button>
+                roleCells += `<td>
+                    <div class="slot">
+                        <span class="tag ${emptyClass}" id="tag_${key}">${assignedMemberTag}</span>
+                        <div class="slot-combo" data-key="${key}" data-date="${item.date}" data-time="${timeStr}" data-role="${role.name}">
+                            <button class="slot-trigger" type="button" aria-expanded="false" id="trigger_${key}">${assignedMemberName}</button>
+                            <div class="slot-panel">
+                                <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari anggota..."></div>
+                                <div class="slot-options" id="options_${key}"></div>
+                            </div>
+                        </div>
+                        <button class="btn danger clear-slot mini-btn" type="button" data-key="${key}" id="clear_${key}" ${assignedMemberId ? '' : 'style="display:none;"'}>Hapus</button>
                     </div>
                 </td>`;
             });
 
-            return `<tr>${rowHtml}</tr>`;
+            return `<tr>${rowHtml}${roleCells}<td><div id="status_${item.date}_${timeStr}"></div></td></tr>`;
         }).join("");
+        
+        schedule.forEach(item => {
+            updateRowStatus(item.date, item.time.substring(0,5));
+        });
     }
 
-    document.addEventListener("change", (e) => {
-        if (e.target.classList.contains("member-select")) {
-            const val = e.target.value;
-            if (!val) return;
+    function renderSlotOptions(comboEl, query) {
+        const key = comboEl.getAttribute("data-key");
+        const optionsWrap = comboEl.querySelector(".slot-options");
+        const cleanQuery = (query || "").trim().toLowerCase();
+
+        const filtered = ACTIVE_MEMBERS.filter(m => {
+            const matchName = m.name.toLowerCase().includes(cleanQuery);
+            const matchRole = m.role.toLowerCase().includes(cleanQuery);
+            return !cleanQuery || matchName || matchRole;
+        });
+
+        const selectedId = ASSIGNMENT_MAP[key] || "";
+        
+        let html = `<button class="slot-option ${selectedId === '' ? 'active' : ''}" type="button" data-value="">-- kosong --</button>`;
+
+        filtered.forEach(m => {
+            const isActive = String(m.id) === selectedId ? " active" : "";
+            html += `<button class="slot-option${isActive}" type="button" data-value="${m.id}">${m.name} (${m.role})</button>`;
+        });
+
+        if (!filtered.length) {
+            html += '<p class="slot-empty">Nama anggota tidak ditemukan.</p>';
+        }
+
+        optionsWrap.innerHTML = html;
+    }
+
+    function closeAllSlotPanels() {
+        document.querySelectorAll(".slot-panel").forEach(panel => panel.classList.remove("show"));
+        document.querySelectorAll(".slot-trigger").forEach(t => t.setAttribute("aria-expanded", "false"));
+    }
+
+    document.addEventListener("click", (event) => {
+        const trigger = event.target.closest(".slot-trigger");
+        if (trigger) {
+            const comboEl = trigger.closest(".slot-combo");
+            const panel = comboEl.querySelector(".slot-panel");
+            const searchInput = comboEl.querySelector(".slot-search-input");
+            const willOpen = !panel.classList.contains("show");
             
-            const row = e.target.closest("tr");
-            const siblings = row.querySelectorAll(".member-select");
+            closeAllSlotPanels();
+            if (willOpen) {
+                panel.classList.add("show");
+                trigger.setAttribute("aria-expanded", "true");
+                renderSlotOptions(comboEl, "");
+                searchInput.value = "";
+                searchInput.focus();
+            }
+            return;
+        }
+
+        const option = event.target.closest(".slot-option");
+        if (option) {
+            const comboEl = option.closest(".slot-combo");
+            const key = comboEl.getAttribute("data-key");
+            const date = comboEl.getAttribute("data-date");
+            const time = comboEl.getAttribute("data-time");
+            const role = comboEl.getAttribute("data-role");
+            const memberId = option.getAttribute("data-value");
             
-            for (let sel of siblings) {
-                if (sel !== e.target && sel.value === val) {
-                    const memberName = sel.options[sel.selectedIndex].text;
-                    alert(`Peringatan: ${memberName} sudah ditugaskan pada role lain di jam yang sama!`);
-                    e.target.value = ""; 
-                    return;
+            // Check conflicts
+            if (memberId) {
+                for (let otherKey in ASSIGNMENT_MAP) {
+                    if (otherKey.startsWith(`${date}_${time}`) && otherKey !== key) {
+                        if (ASSIGNMENT_MAP[otherKey] === memberId) {
+                            const member = ACTIVE_MEMBERS.find(m => String(m.id) === String(memberId));
+                            alert(`Peringatan: ${member.name} sudah ditugaskan pada role lain di jam yang sama!`);
+                            closeAllSlotPanels();
+                            return;
+                        }
+                    }
                 }
             }
+
+            ASSIGNMENT_MAP[key] = memberId;
+            
+            const triggerEl = document.getElementById(`trigger_${key}`);
+            const tagEl = document.getElementById(`tag_${key}`);
+            const clearBtn = document.getElementById(`clear_${key}`);
+            
+            if (memberId) {
+                const member = ACTIVE_MEMBERS.find(m => String(m.id) === String(memberId));
+                triggerEl.textContent = member.name;
+                tagEl.textContent = `Terisi: ${member.name}`;
+                tagEl.className = "tag";
+                clearBtn.style.display = "inline-flex";
+            } else {
+                triggerEl.textContent = "-- kosong --";
+                tagEl.textContent = "Slot kosong";
+                tagEl.className = "tag empty";
+                clearBtn.style.display = "none";
+            }
+            
+            updateRowStatus(date, time);
+            closeAllSlotPanels();
+            return;
+        }
+
+        const clearBtn = event.target.closest(".clear-slot");
+        if (clearBtn) {
+            const key = clearBtn.getAttribute("data-key");
+            const comboEl = document.querySelector(`.slot-combo[data-key="${key}"]`);
+            const date = comboEl.getAttribute("data-date");
+            const time = comboEl.getAttribute("data-time");
+            
+            ASSIGNMENT_MAP[key] = "";
+            
+            const triggerEl = document.getElementById(`trigger_${key}`);
+            const tagEl = document.getElementById(`tag_${key}`);
+            
+            triggerEl.textContent = "-- kosong --";
+            tagEl.textContent = "Slot kosong";
+            tagEl.className = "tag empty";
+            clearBtn.style.display = "none";
+            
+            updateRowStatus(date, time);
+            return;
+        }
+
+        if (!event.target.closest(".slot-combo")) {
+            closeAllSlotPanels();
+        }
+    });
+
+    document.addEventListener("input", (event) => {
+        const searchInput = event.target.closest(".slot-search-input");
+        if (searchInput) {
+            const comboEl = searchInput.closest(".slot-combo");
+            renderSlotOptions(comboEl, searchInput.value);
         }
     });
 
     document.getElementById("saveAllBtn").onclick = async () => {
-        const selects = document.querySelectorAll(".member-select");
         const payload = [];
         
-        selects.forEach(sel => {
-            payload.push({
-                date: sel.getAttribute("data-date"),
-                time: sel.getAttribute("data-time"),
-                role: sel.getAttribute("data-role"),
-                memberId: sel.value || null
-            });
+        const allCombos = document.querySelectorAll(".slot-combo");
+        allCombos.forEach(combo => {
+            const date = combo.getAttribute("data-date");
+            const time = combo.getAttribute("data-time");
+            const role = combo.getAttribute("data-role");
+            const key = combo.getAttribute("data-key");
+            
+            if (!payload.find(p => p.date === date && p.time === time && p.role === role)) {
+                payload.push({
+                    date: date,
+                    time: time,
+                    role: role,
+                    memberId: ASSIGNMENT_MAP[key] || null
+                });
+            }
         });
 
-        const res = await fetch("/api/streaming/assignments/save", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if(data.success) {
-            alert("Semua penugasan berhasil disimpan!");
-            fetchData();
-        } else {
-            alert("Gagal menyimpan: " + data.error);
+        try {
+            const res = await fetch("/api/streaming/assignments/save", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert("Semua penugasan berhasil disimpan!");
+                fetchData();
+            } else {
+                alert("Gagal menyimpan: " + data.error);
+            }
+        } catch (e) {
+            alert("Error menyimpan penugasan.");
         }
     };
 
@@ -427,7 +480,7 @@
             timeSelect.innerHTML = `<option value="">- Jam -</option>`;
             return;
         }
-        const times = CURRENT_SCHEDULE.filter(i => i.date === dateVal).map(i => i.time);
+        const times = CURRENT_SCHEDULE.filter(i => i.date === dateVal).map(i => i.time.substring(0,5));
         const uniqueTimes = [...new Set(times)];
         timeSelect.innerHTML = `<option value="">- Jam -</option>` + uniqueTimes.map(t => `<option value="${t}">${t}</option>`).join("");
     }
@@ -447,21 +500,22 @@
        
        if(!d1 || !t1 || !r1 || !d2 || !t2 || !r2) return alert("Mohon lengkapi pilihan kedua slot yang akan ditukar!");
        
-       const sel1 = document.querySelector(`.member-select[data-date="${d1}"][data-time="${t1}"][data-role="${r1}"]`);
-       const sel2 = document.querySelector(`.member-select[data-date="${d2}"][data-time="${t2}"][data-role="${r2}"]`);
+       const key1 = `${d1}_${t1}_${r1}`;
+       const key2 = `${d2}_${t2}_${r2}`;
        
-       if(!sel1 || !sel2) return alert("Slot tersebut tidak ditemukan di tabel bulan ini!");
+       const id1 = ASSIGNMENT_MAP[key1];
+       const id2 = ASSIGNMENT_MAP[key2];
        
-       // PERBAIKAN: Validasi Penukaran Shift (Hanya jika keduanya ada petugas)
-       if(!sel1.value || !sel2.value) {
+       if(!id1 || !id2) {
            return alert("Kedua slot penugasan harus sudah memiliki petugas untuk dapat ditukar!");
        }
 
-       if(d1 === d2 && t1 === t2 && r1 === r2) return alert("Anda memilih slot yang sama. Tidak ada yang ditukar.");
+       if(key1 === key2) return alert("Anda memilih slot yang sama. Tidak ada yang ditukar.");
 
-       const temp = sel1.value;
-       sel1.value = sel2.value;
-       sel2.value = temp;
+       ASSIGNMENT_MAP[key1] = id2;
+       ASSIGNMENT_MAP[key2] = id1;
+       
+       renderRows(CURRENT_SCHEDULE);
        
        alert("Berhasil ditukar di tampilan! Jangan lupa klik 'Simpan Semua Penugasan' agar tersimpan ke database.");
        swapModal.classList.remove("show");
@@ -477,5 +531,6 @@
 
     fetchData();
   </script>
+<script src="_sidebar-fix.js"></script>
 </body>
 </html>
