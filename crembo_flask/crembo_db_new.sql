@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 08 Bulan Mei 2026 pada 09.17
+-- Waktu pembuatan: 08 Bulan Mei 2026 pada 15.14
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -103,7 +103,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (18, 'Yuta', 'Yuta', '085602917625', 'scrypt:32768:8:1$aRKL0gXhh4swWOYH$17feeca47d7286fb51d169dda8f755eb6e42145bb184deaeae0ed314cb14fd83edaeb675c71ec7ba506f7b68954ed85aa5eebbad32fefabdb6bcde3a32b278b6', 'user', '2026-05-08', 'yuta@example.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (19, 'Shehan', 'Shehan', '087878836187', 'scrypt:32768:8:1$oyUllzXRah1PHjZ8$266f06fb807d46674aba4a1d54733bdd385971eac547a54bb518f206dc98bcd32b59670a59019467fdf912cab1ccf4f85c05177d84ee3ed83dbf197e4d2838a9', 'user', '2026-05-08', 'shehan@example.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (20, 'Asha', 'Asha', '081226402137', 'scrypt:32768:8:1$fEMSfKPrYGs77Bf5$6c4bf03bafdf6a39cdf6ec3a58f0715ea71714fcfb97bc464d5beb45a078e40d5a5a7eed6294a760af4b1a63de52d67319501ba3ecca44a4e5ca24827f0c9d51', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
-(21, 'Aura', 'Aura', '088215905899', 'scrypt:32768:8:1$0wfeFdbs8755MhCw$8a3c3367875d3c29582882483df06b0afab7d0694cb5efc23762ae636897167fe5e2eb4143d8836255e60f1609bd1df2baca79da1997b76e32581381fe21fc51', 'user', '2026-05-20', 'aura@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
+(21, 'Aura', 'Aura', '088215905899', 'scrypt:32768:8:1$0wfeFdbs8755MhCw$8a3c3367875d3c29582882483df06b0afab7d0694cb5efc23762ae636897167fe5e2eb4143d8836255e60f1609bd1df2baca79da1997b76e32581381fe21fc51', 'user', '2026-05-20', 'aura@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:29:10'),
 (22, 'Belinda', 'Belinda', '083146801642', 'scrypt:32768:8:1$9qd2Zy3VegtCGFHn$d14fafb239f6f3e8bf0dd862471ad6b2e3070af2abbd67c2439498bbff64ad003e894fc1e7cf5f475273c379aa8f8fd2d5dfb0ff13b2ae7c1f8d695ef4babe9f', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (23, 'Bian', 'Bian', '089694800055', 'scrypt:32768:8:1$spGXHMjT3MUWjBH7$4ff3d50e25265020283510214ef615c8eb56d557c37f372eb2d52e01adf26b900f3d8b9c4c050139945f812e3bff6dc6dd6a5953ae6924031fccf390e1c460c0', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (24, 'Bima', 'Bima', '0818112847', 'scrypt:32768:8:1$ixgFvPKkDANWB4SG$718405ff79ae853f5c6ed7b42084621ce7b292b40c095b44a78e6ece1a4e83abed472fb9c046b9328f3dd3fe7c0b3b1f7c452b8f9514ddf03b598f0186019aef', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
@@ -135,7 +135,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (50, 'Atanasius Surya', 'Ata Suryaaaaa', '081350751753', 'scrypt:32768:8:1$kFm1YQAwwqqqQfaj$f8572ecea4f1f036820af1875cde3e5984bf830f363914c892844527c04502a3f17b4889d9ef2e121228a35bba1a674cc20e5a6d81c497e27092bd310ab9ae65', 'super_admin', '2004-05-13', 'atanasiussurya@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (51, 'Rafael', 'Rafael', '081390333758', 'scrypt:32768:8:1$XTjB22QBETTUwjPH$2a4f5f9da5660c3b8f94f928ea8e76ddebf18f576c1f36a5c526c01dd032081466edf3f2cb14ad766d1dc3820f5f763d18ae13d63bdae711d422759b31339168', 'user', '2026-04-29', 'rafael@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (52, 'Frugal', 'Frugal', '081398307591', 'scrypt:32768:8:1$D03o2WrlrPCX74Bo$72cdb406fc98e86d38df12ce1c8a48663dc428ef7bb713c088fd8bf266b87db957219d003b0f939d6c82dfe5f7d6d3bf652a0a591caf0352b323a636e5505c7b', 'user', '2026-04-22', 'frugal123@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
-(53, 'Daflo', 'Daflo', '082157663661', 'scrypt:32768:8:1$qYu1t0PYcrvx7Ub6$4537820f12b8e4e212f818059949df3b7827aa82ce621327c48f49e0eda76aac09876c6a6ef8ad18d66df1dc31cf24fdaf3f38235e80501b173330c5c5709e70', 'user', '2026-04-29', 'daflo@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
+(53, 'Daflo', 'Daflo', '082157663661', 'scrypt:32768:8:1$Zc9dxqOoPHloMykh$13e8ea993a03223c84fad9e790ae501da432fc9d2004a4ad3c72d1dacf53ac733920e844e26ec2fb63796f4b01e8d2e6f7dea93aaf83c30bda1e32b533dc0a59', 'user', '2026-04-22', 'daflo@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:31:45'),
 (54, 'Orel', 'Orel', '083865646354', 'scrypt:32768:8:1$qs2s3KqRqZw1eETw$c9fcfd8727fe0cbfe0424bad9a58c4d5fc9e881d9152e37a39ba68d554468d566760eeb272b6c561419881f8e10fdf97b3370138fd5bb0fb06924a0389e13aaa', 'user', '2026-04-29', 'orel@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (55, 'Jeje', 'Jeje', '085171503299', 'scrypt:32768:8:1$vdKYr7PknsBZp06Q$c4f882227a43d10bb74b4e0b8add4d85cdc28b5f0272c701ac55ff48accb0f56c9fbb1a826c9e4cd3788585e2e896485617861a1dcf920749389ef54f8edb2cc', 'user', '2026-04-29', 'jeje@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (56, 'Regio', 'Regio', '087877555879', 'scrypt:32768:8:1$nRWs4w7Hr0NeJanf$45cde6f342a36b065dbf5034882dd19e2d126fcec974ee093619ce7b02b67305fa341c390dc71deadc933744e239a75931956cd60be37d7c63923f73cbec511f', 'user', '2002-11-29', 'regionanda2@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
@@ -154,7 +154,8 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (72, 'Arya', 'Arya', '081324859094', 'scrypt:32768:8:1$i611QYvOcmtTNXBt$8f443083de045a9d389a51e27a4ca5713296679e91c2203e870245b56d60ab016d1063f8587a14004cfc1cd9ce7e7cc323827bcb7c1300c9ea86a1e05d74a309', 'user', '', 'aryadwika2010@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (73, 'Aoki', 'Aoki', '085743665416', 'scrypt:32768:8:1$uVLwUhPRoRMREi5O$401e7e9b5f793f89952b3845f87ebec60e64faff8655f816ef82541465a7a0e2b82b02aa00602ec61f6a75c939d2e528d671547a507b46c4f4b0629c752103b5', 'user', '', 'gizelleraina2401@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
-(75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48');
+(75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48'),
+(76, 'tesDeleteAddasdasd', 'tesDeleteAddasdadasdasd', '081232113123', 'scrypt:32768:8:1$7pkL0F3OqzTrUp43$0142ba0d618e61b57b423c2d2baad2e13181e21c0c28f014dcf72572cdadfce462384c88475d1c5d76930e5c946e377aaaecfd05a554a2f55b9da41903c2ece9', 'user', '2026-05-07', 'tesDeleteAdd@gmail.com', 'asdadasd', 'aktif', '2026-05-08 14:25:11', '2026-05-08 14:26:47');
 
 -- --------------------------------------------------------
 
@@ -617,7 +618,10 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778224573120-3c8920', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa Harian</b> pada hari Jumat, 01/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"73\"}', '2026-05-08 14:16:13', NULL),
 ('notif-1778224628550-5cf495', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Harian</b> pada hari Jumat, 01/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"73\"}', '2026-05-08 14:17:08', NULL),
 ('notif-1778224628551-887fb0', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa Harian</b> pada hari Jumat, 01/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"72\"}', '2026-05-08 14:17:08', NULL),
-('notif-1778224628556-d577af', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa Harian</b> pada hari Jumat, 01/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"20\"}', '2026-05-08 14:17:08', NULL);
+('notif-1778224628556-d577af', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa Harian</b> pada hari Jumat, 01/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"20\"}', '2026-05-08 14:17:08', NULL),
+('notif-1778225166107-2586dc', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa Mingguan</b> pada hari Sabtu, 02/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\"}', '2026-05-08 14:26:06', NULL),
+('notif-1778225166107-767acb', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Mingguan</b> pada hari Sabtu, 02/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"21\"}', '2026-05-08 14:26:06', NULL),
+('notif-1778225166107-dbe9c7', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa Mingguan</b> pada hari Sabtu, 02/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"6\"}', '2026-05-08 14:26:06', NULL);
 
 -- --------------------------------------------------------
 
@@ -785,7 +789,10 @@ CREATE TABLE `streaming_assignments` (
 INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `role_name`, `member_id`) VALUES
 (120, '2026-05-01', '18:00:00', 'Operator', 73),
 (121, '2026-05-01', '18:00:00', 'Kameramen', 72),
-(122, '2026-05-01', '18:00:00', 'SPV', 20);
+(122, '2026-05-01', '18:00:00', 'SPV', 20),
+(126, '2026-05-02', '18:00:00', 'Operator', 21),
+(127, '2026-05-02', '18:00:00', 'Kameramen', 53),
+(128, '2026-05-02', '18:00:00', 'SPV', 6);
 
 -- --------------------------------------------------------
 
@@ -2743,7 +2750,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
