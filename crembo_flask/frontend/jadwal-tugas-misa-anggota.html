@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -754,34 +754,34 @@
         <section class="panel">
           <header class="panel-head">
             <h2>Model Tabel</h2>
-            <div class="panel-actions">
-              <button id="backToCardBtn" class="tab-btn" type="button">Kembali ke Card</button>
-              <span class="chip">Format seperti admin panel</span>
+            <div class="panel-tools">
+              <div class="tabs" role="tablist" aria-label="Model tampilan jadwal">
+                <button id="tableCardTab" class="tab-btn" type="button">Card</button>
+                <button id="tableTabelTab" class="tab-btn active" type="button">Tabel</button>
+              </div>
+              <input id="tableSearch" class="summary-search" type="search" placeholder="Cari tanggal, jam, misa, role, atau nama petugas..." aria-label="Cari ringkasan jadwal">
+              <div class="month-tools" aria-label="Pemilih bulan dan tahun tabel">
+                <select id="tableMonthSelect" class="range-select">
+                  <option value="0">Januari</option>
+                  <option value="1">Februari</option>
+                  <option value="2">Maret</option>
+                  <option value="3">April</option>
+                  <option value="4">Mei</option>
+                  <option value="5">Juni</option>
+                  <option value="6">Juli</option>
+                  <option value="7">Agustus</option>
+                  <option value="8">September</option>
+                  <option value="9">Oktober</option>
+                  <option value="10">November</option>
+                  <option value="11">Desember</option>
+                </select>
+                <select id="tableYearSelect" class="range-select">
+                  <option>2026</option>
+                  <option>2027</option>
+                </select>
+              </div>
             </div>
           </header>
-          <div class="panel-tools" style="padding: 0 12px 12px; justify-content: space-between;">
-            <input id="tableSearch" class="summary-search" type="search" placeholder="Cari tanggal, jam, misa, role, atau nama petugas..." aria-label="Cari ringkasan jadwal">
-            <div class="month-tools" aria-label="Pemilih bulan dan tahun tabel">
-              <select id="tableMonthSelect" class="range-select">
-                <option value="0">Januari</option>
-                <option value="1">Februari</option>
-                <option value="2">Maret</option>
-                <option value="3">April</option>
-                <option value="4">Mei</option>
-                <option value="5">Juni</option>
-                <option value="6">Juli</option>
-                <option value="7">Agustus</option>
-                <option value="8">September</option>
-                <option value="9">Oktober</option>
-                <option value="10">November</option>
-                <option value="11">Desember</option>
-              </select>
-              <select id="tableYearSelect" class="range-select">
-                <option>2026</option>
-                <option>2027</option>
-              </select>
-            </div>
-          </div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -810,6 +810,8 @@
     const memberRoleText = document.getElementById("memberRoleText");
     const cardTab = document.getElementById("biasaTab");
     const tableTab = document.getElementById("besarTab");
+    const tableCardTab = document.getElementById("tableCardTab");
+    const tableTabelTab = document.getElementById("tableTabelTab");
     const backToCardBtn = document.getElementById("backToCardBtn");
     const cardSearchInput = document.getElementById("cardSearch");
     const tableSearchInput = document.getElementById("tableSearch");
@@ -1198,6 +1200,8 @@
       activeView = viewMode;
       cardTab.classList.toggle("active", viewMode === "card");
       tableTab.classList.toggle("active", viewMode === "table");
+      if (tableCardTab) tableCardTab.classList.toggle("active", viewMode === "card");
+      if (tableTabelTab) tableTabelTab.classList.toggle("active", viewMode === "table");
       cardPanel.hidden = viewMode !== "card";
       tablePanel.hidden = viewMode !== "table";
     }
@@ -1227,6 +1231,18 @@
     tableTab.addEventListener("click", function () {
       setActiveView("table");
     });
+
+    if (tableCardTab) {
+      tableCardTab.addEventListener("click", function () {
+        setActiveView("card");
+      });
+    }
+
+    if (tableTabelTab) {
+      tableTabelTab.addEventListener("click", function () {
+        setActiveView("table");
+      });
+    }
 
     if (backToCardBtn) {
       backToCardBtn.addEventListener("click", function () {
