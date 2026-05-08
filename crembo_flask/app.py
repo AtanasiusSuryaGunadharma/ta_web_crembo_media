@@ -1479,6 +1479,46 @@ def ensure_loan_schema(cursor) -> None:
     ensure_column(cursor, "loan_requests", "waktu_mulai", "`waktu_mulai` time DEFAULT NULL")
     ensure_column(cursor, "loan_requests", "waktu_selesai", "`waktu_selesai` time DEFAULT NULL")
 
+def ensure_big_mass_schema():
+    conn = mysql_connection()
+    cursor = conn.cursor(buffered=True)
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `big_mass_events` (
+              `id` int AUTO_INCREMENT PRIMARY KEY,
+              `misa_name` varchar(255) NOT NULL,
+              `misa_date` date NOT NULL,
+              `misa_time` time NOT NULL,
+              `misa_note` text,
+              `allow_member_request` tinyint(1) DEFAULT 0,
+              `status` enum('draft','published') DEFAULT 'draft',
+              `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `big_mass_roles` (
+              `id` int AUTO_INCREMENT PRIMARY KEY,
+              `event_id` int NOT NULL,
+              `role_name` varchar(100) NOT NULL,
+              `required_count` int NOT NULL DEFAULT 1,
+              FOREIGN KEY (event_id) REFERENCES big_mass_events(id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `big_mass_assignments` (
+              `id` int AUTO_INCREMENT PRIMARY KEY,
+              `role_id` int NOT NULL,
+              `member_id` int NOT NULL,
+              FOREIGN KEY (role_id) REFERENCES big_mass_roles(id) ON DELETE CASCADE,
+              FOREIGN KEY (member_id) REFERENCES anggota(id) ON DELETE CASCADE,
+              UNIQUE KEY `uniq_member_per_event` (`role_id`, `member_id`)
+            )
+        """)
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
 def ensure_damage_schema(cursor) -> None:
     cursor.execute(
         """
@@ -6018,12 +6058,140 @@ def save_assignments():
         cursor.close()
         conn.close()
 
+@app.route("/api/big-mass", methods=["GET", "POST"])
+def manage_big_mass():
+    ensure_big_mass_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "POST":
+            data = request.json
+            allow_req = 1 if data.get('allowRequest') else 0
+            cursor.execute("""
+                INSERT INTO big_mass_events (misa_name, misa_date, misa_time, misa_note, allow_member_request, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (data['name'], data['date'], data['time'], data['note'], allow_req, data['status']))
+            event_id = cursor.lastrowid
+            
+            for r in data.get('roles', []):
+                cursor.execute("INSERT INTO big_mass_roles (event_id, role_name, required_count) VALUES (%s, %s, %s)",
+                               (event_id, r['name'], r['count']))
+            conn.commit()
+            return jsonify({"success": True, "id": event_id})
+
+        # GET: Fetch all events
+        cursor.execute("SELECT id, misa_name as name, DATE_FORMAT(misa_date, '%Y-%m-%d') as date, DATE_FORMAT(misa_time, '%H:%i') as time, misa_note as note, allow_member_request as allowRequest, status FROM big_mass_events ORDER BY misa_date DESC")
+        events = cursor.fetchall()
+        
+        for ev in events:
+            cursor.execute("SELECT id, role_name as name, required_count as count FROM big_mass_roles WHERE event_id = %s", (ev['id'],))
+            roles = cursor.fetchall()
+            for r in roles:
+                cursor.execute("""
+                    SELECT a.id, a.nama as name 
+                    FROM big_mass_assignments bma 
+                    JOIN anggota a ON bma.member_id = a.id 
+                    WHERE bma.role_id = %s
+                """, (r['id'],))
+                r['members'] = cursor.fetchall()
+            ev['roles'] = roles
+            
+        return jsonify(events)
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/big-mass/<int:event_id>", methods=["PUT", "DELETE"])
+def detail_big_mass(event_id):
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "DELETE":
+            cursor.execute("DELETE FROM big_mass_events WHERE id = %s", (event_id,))
+            conn.commit()
+            return jsonify({"success": True})
+        
+        if request.method == "PUT":
+            data = request.json
+            allow_req = 1 if data.get('allowRequest') else 0
+            cursor.execute("""
+                UPDATE big_mass_events SET misa_name=%s, misa_date=%s, misa_time=%s, misa_note=%s, allow_member_request=%s, status=%s
+                WHERE id=%s
+            """, (data['name'], data['date'], data['time'], data['note'], allow_req, data['status'], event_id))
+            
+            # Update Roles Pintar (Jangan asal delete agar penugasan anggota tidak hilang)
+            cursor.execute("SELECT id, role_name FROM big_mass_roles WHERE event_id = %s", (event_id,))
+            existing_roles = {r['role_name']: r['id'] for r in cursor.fetchall()}
+            incoming_roles = {r['name']: r['count'] for r in data.get('roles', [])}
+            
+            for name, count in incoming_roles.items():
+                if name in existing_roles:
+                    cursor.execute("UPDATE big_mass_roles SET required_count = %s WHERE id = %s", (count, existing_roles[name]))
+                else:
+                    cursor.execute("INSERT INTO big_mass_roles (event_id, role_name, required_count) VALUES (%s, %s, %s)", (event_id, name, count))
+            
+            for name, r_id in existing_roles.items():
+                if name not in incoming_roles:
+                    cursor.execute("DELETE FROM big_mass_roles WHERE id = %s", (r_id,))
+            
+            conn.commit()
+            return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/big-mass/assign", methods=["POST"])
+def assign_big_mass():
+    data = request.json 
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Validasi: 1 orang hanya bisa 1 role di 1 event
+        cursor.execute("""
+            SELECT r.role_name FROM big_mass_assignments a 
+            JOIN big_mass_roles r ON a.role_id = r.id 
+            WHERE r.event_id = %s AND a.member_id = %s
+        """, (data['eventId'], data['memberId']))
+        existing = cursor.fetchone()
+        if existing:
+            return jsonify({"success": False, "message": f"Anggota ini sudah bertugas sebagai {existing['role_name']} di misa yang sama."}), 400
+
+        # Cek kuota
+        cursor.execute("SELECT required_count FROM big_mass_roles WHERE id = %s", (data['roleId'],))
+        role_info = cursor.fetchone()
+        cursor.execute("SELECT COUNT(*) as current FROM big_mass_assignments WHERE role_id = %s", (data['roleId'],))
+        count_info = cursor.fetchone()
+        
+        if count_info['current'] >= role_info['required_count']:
+            return jsonify({"success": False, "message": "Kuota petugas untuk role ini sudah penuh."}), 400
+
+        cursor.execute("INSERT INTO big_mass_assignments (role_id, member_id) VALUES (%s, %s)", (data['roleId'], data['memberId']))
+        conn.commit()
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/big-mass/unassign", methods=["POST"])
+def unassign_big_mass():
+    data = request.json
+    conn = mysql_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM big_mass_assignments WHERE role_id = %s AND member_id = %s", (data['roleId'], data['memberId']))
+        conn.commit()
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()
         ensure_news_schema()
         ensure_agenda_schema()
         ensure_notifications_schema()
+        ensure_big_mass_schema()
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")
     app.run(debug=True)

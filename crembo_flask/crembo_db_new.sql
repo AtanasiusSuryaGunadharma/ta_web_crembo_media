@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 08 Bulan Mei 2026 pada 15.14
+-- Waktu pembuatan: 09 Bulan Mei 2026 pada 00.11
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -433,6 +433,43 @@ INSERT INTO `loan_requests` (`id`, `member_id`, `barang_id`, `barang_name`, `bar
 ('pjn-1777900923876', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 1, '2026-05-04', '2026-05-05', '2026-05-30', 'qasdasd', 'returned', '2026-05-05 03:22:03', '2026-05-05 03:43:11', 'Silahkan ambil', 'Atanasius Surya', '2026-05-04 20:39:53', '{\"date\": \"2026-05-05\", \"time\": \"10:00\", \"location\": \"Test Ambil Barang\", \"photo\": \"/uploads/sertifikat-anggota-zxczxczxc_8a3be7090a134b79b409acdb10835702.jpg\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Tes Daflo ambil barang notif\"}]}', '2026-05-04 20:41:37', '{\"date\": \"2026-05-31\", \"time\": \"03:42\", \"location\": \"Tes Pengembalian Barang Daflo Notif\", \"photo\": \"/uploads/screencapture-10-10-10-85-admin-dashboard-2026-04-07-11_11_45_baf4f95570ba4abdb99a34c90bcd0820.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Tes Pengembalian Barang Daflo Notif\"}]}', '2026-05-04 20:43:11', '03:24:00', '03:28:00'),
 ('pjn-1777901560809', '21', 'inv-1777829318188', 'Kamera Sony A6400', 'CAM-0123', '/uploads/IMG_1970_935e1d50e9d14a179dca3e0095f463fb.jpg', 1, '2026-05-04', '2026-05-05', '2026-05-14', 'Tes Notif Minjam Aura', 'returned', '2026-05-05 03:32:40', '2026-05-05 03:42:48', 'Silahkan ambil', 'Atanasius Surya', '2026-05-04 20:39:49', '{\"date\": \"2026-05-06\", \"time\": \"05:00\", \"location\": \"Tes Ambil Barang Aura Notif\", \"photo\": \"/uploads/screencapture-10-10-10-85-admin-dashboard-2026-04-07-11_11_45_626db82a93884a88aa0035ca1fab1070.png\", \"units\": [{\"status\": \"Baik\", \"reason\": \"Tes Ambil Barang Aura Notif\"}]}', '2026-05-04 20:42:22', '{\"date\": \"2026-05-30\", \"time\": \"03:44\", \"location\": \"Tes Pengembalian Barang Aura Notif\", \"photo\": \"/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_cc91918a47674cd28423188c4931b60d.png\", \"units\": [{\"status\": \"Rusak\", \"reason\": \"Tes Pengembalian Barang Aura Notif\"}]}', '2026-05-04 20:42:48', '03:35:00', '03:36:00'),
 ('pjn-1777902302335', '53', 'inv-1777829576043', 'Vivo', 'KAMERA HANDPHONE', '/uploads/IMG_9500_c9e6b41470d542558ab9aa8561f7e302.jpg', 1, '2026-05-04', '2026-05-12', '2026-05-31', 'Tes Daflo Notif Barang aktivitas', 'pending', '2026-05-05 03:45:02', '2026-05-05 03:45:02', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '03:46:00', '03:49:00');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `misa_besar`
+--
+
+CREATE TABLE `misa_besar` (
+  `id` varchar(100) NOT NULL,
+  `nama_misa` varchar(255) NOT NULL,
+  `tanggal` date NOT NULL,
+  `jam` time NOT NULL,
+  `keterangan` text DEFAULT NULL,
+  `boleh_request` tinyint(1) DEFAULT 0,
+  `status` varchar(50) DEFAULT 'draft',
+  `roles_json` longtext DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `misa_besar_names`
+--
+
+CREATE TABLE `misa_besar_names` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `misa_besar_names`
+--
+
+INSERT INTO `misa_besar_names` (`id`, `name`) VALUES
+(1, 'Kamis Putih');
 
 -- --------------------------------------------------------
 
@@ -2523,6 +2560,20 @@ ALTER TABLE `loan_requests`
   ADD KEY `idx_loan_member` (`member_id`);
 
 --
+-- Indeks untuk tabel `misa_besar`
+--
+ALTER TABLE `misa_besar`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_misa_besar_status` (`status`);
+
+--
+-- Indeks untuk tabel `misa_besar_names`
+--
+ALTER TABLE `misa_besar_names`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `idx_name` (`name`);
+
+--
 -- Indeks untuk tabel `news`
 --
 ALTER TABLE `news`
@@ -2733,6 +2784,12 @@ ALTER TABLE `youtube_embeds`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `misa_besar_names`
+--
+ALTER TABLE `misa_besar_names`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `news_category_mapping`

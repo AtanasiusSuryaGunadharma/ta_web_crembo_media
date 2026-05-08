@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -923,27 +923,9 @@
   </div>
 
   <script>
-    const memberOptions = [
-      "Rikha", "Jeni", "Tyas", "Lisa", "Evan", "Jose", "Rossa", "Aurel", "Asha", "Bima", "Niko", "Sinta"
-    ];
-
-    const DEFAULT_MISA_NAMES = [
-      "Misa Kamis Putih",
-      "Misa Jumat Agung",
-      "Misa Vigili Paskah",
-      "Misa Pentahbisan",
-      "Misa Syukur Ulang Tahun Paroki",
-      "Misa Minggu Palma",
-      "Misa Mingguan"
-    ];
-
-    const BIG_MASS_SCHEDULES = [
-      { name: "Misa Kamis Putih", date: "2026-04-02", time: "18:00", type: "Misa Besar", location: "Gereja Utama", note: "Registrasi petugas lengkap" },
-      { name: "Misa Jumat Agung", date: "2026-04-03", time: "17:30", type: "Misa Besar", location: "Gereja Utama", note: "Koordinasi liturgi dan dokumentasi" },
-      { name: "Misa Vigili Paskah", date: "2026-04-04", time: "19:00", type: "Misa Besar", location: "Gereja Utama", note: "Pastikan semua role terisi" },
-      { name: "Misa Pentahbisan", date: "2026-05-10", time: "09:00", type: "Misa Besar", location: "Aula Paroki", note: "Jadwal cadangan besar" },
-      { name: "Misa Syukur Ulang Tahun Paroki", date: "2026-07-20", time: "10:00", type: "Misa Besar", location: "Gereja Utama", note: "Agenda paroki tahunan" }
-    ];
+    let memberOptions = [];
+    let ALL_MISA_NAMES = [];
+    let ALL_SCHEDULES = [];
 
     const rolesBody = document.getElementById("rolesBody");
     const roleSelect = document.getElementById("roleSelect");
@@ -980,56 +962,6 @@
     const allowMemberRequestToggle = document.getElementById("allowMemberRequest");
     const cancelEditBtn = document.getElementById("cancelEditBtn");
 
-    const DRAFT_STORAGE_KEY = "crembo-registrasi-misa-besar-drafts";
-    const BIG_MASS_STORAGE_KEY = "crembo-registrasi-misa-besar-schedules";
-    const MISA_NAME_STORAGE_KEY = "crembo-registrasi-misa-names";
-    const HIDDEN_DEFAULT_SCHEDULE_KEY = "crembo-registrasi-misa-besar-hidden-default";
-    const DUMMY_DRAFTS = [
-      {
-        id: "draft-registrasi-001",
-        misaName: "Misa Kamis Putih",
-        misaDate: "2026-04-02",
-        misaTime: "18:00",
-        misaNote: "Registrasi petugas lengkap",
-        allowMemberRequest: true,
-        roles: [
-          { role: "PD", member: "Rikha", count: 1 },
-          { role: "OP", member: "Evan", count: 1 },
-          { role: "Kamera", members: ["Jeni", "Tyas"], multi: true, count: 2 },
-          { role: "Supervisor", member: "Asha", count: 1 }
-        ]
-      }
-    ];
-    const DUMMY_PUBLISHED_MASS = [
-      {
-        id: "publish-registrasi-001",
-        name: "Misa Jumat Agung",
-        date: "2026-04-03",
-        time: "17:30",
-        roles: [
-          { role: "PD", member: "Lisa", count: 1 },
-          { role: "OP", member: "Evan", count: 1 },
-          { role: "vMix", member: "Jose", count: 1 },
-          { role: "Kamera", members: ["Rossa", "Aurel"], multi: true, count: 2 },
-          { role: "Supervisor", member: "Asha", count: 1 }
-        ],
-        allowMemberRequest: false
-      },
-      {
-        id: "publish-registrasi-002",
-        name: "Misa Vigili Paskah",
-        date: "2026-04-04",
-        time: "19:00",
-        roles: [
-          { role: "PD", member: "Rikha", count: 1 },
-          { role: "OP", member: "Jeni", count: 1 },
-          { role: "vMix", member: "Asha", count: 1 },
-          { role: "Kamera", members: ["Dewi", "Bagas"], multi: true, count: 2 },
-          { role: "Fotografer", member: "Citra", count: 1 }
-        ],
-        allowMemberRequest: true
-      }
-    ];
     let currentEditingDraftId = "";
     let currentDetailDraftId = "";
 
@@ -1060,59 +992,22 @@
     }
 
     function getCombinedScheduleRows() {
-      const rowsById = {};
-      const priority = {
-        default: 1,
-        published: 2,
-        draft: 3
-      };
-      const savedRows = readPublishedMassSchedules().map(function (item) {
-        return Object.assign({
-          source: "registrasi",
-          status: "published"
-        }, item);
-      });
-      const savedIds = savedRows.map(function (item) {
-        return item.id;
-      });
-      const hiddenDefaultIds = readHiddenDefaultScheduleIds();
-      const defaultRows = BIG_MASS_SCHEDULES.map(function (item) {
-        const defaultId = getDefaultScheduleId(item);
-        return Object.assign({}, item, {
-          id: defaultId,
-          source: "default",
-          status: "published",
-          allowMemberRequest: false
-        });
-      }).filter(function (item) {
-        return hiddenDefaultIds.indexOf(item.id) === -1 && savedIds.indexOf(item.id) === -1;
-      });
-      const draftRows = readDrafts().map(function (item) {
+      return ALL_SCHEDULES.map(function(item) {
         return {
           id: item.id,
           name: item.misaName || "",
           date: item.misaDate || "",
           time: item.misaTime || "",
           type: "Misa Besar",
-          location: "Draft Registrasi",
+          location: item.status === "draft" ? "Draft Registrasi" : "Registrasi Misa Besar",
           note: item.misaNote || "-",
           misaNote: item.misaNote || "",
           roles: Array.isArray(item.roles) ? item.roles : [],
-          source: "draft",
-          status: "draft",
+          source: item.status === "draft" ? "draft" : "registrasi",
+          status: item.status,
           allowMemberRequest: !!item.allowMemberRequest
         };
       });
-
-      defaultRows.concat(savedRows).concat(draftRows).forEach(function (item) {
-        const rank = priority[item.status] || 0;
-        const current = rowsById[item.id];
-        if (!current || rank >= (priority[current.status] || 0)) {
-          rowsById[item.id] = item;
-        }
-      });
-
-      return Object.values(rowsById);
     }
 
     function syncMisaScheduleFilterOptions(rows) {
@@ -1217,33 +1112,11 @@
     }
 
     function readMisaNameOptions() {
-      try {
-        const raw = localStorage.getItem(MISA_NAME_STORAGE_KEY);
-        if (raw === null) {
-          return DEFAULT_MISA_NAMES.slice();
-        }
-
-        const parsed = JSON.parse(raw);
-        const source = Array.isArray(parsed) ? parsed : DEFAULT_MISA_NAMES;
-        return Array.from(new Set(source.map(function (item) {
-          return String(item || "").trim();
-        }).filter(function (item) {
-          return !!item;
-        })));
-      } catch (error) {
-        return DEFAULT_MISA_NAMES.slice();
-      }
+      return ALL_MISA_NAMES.slice();
     }
 
     function saveMisaNameOptions(items) {
-      const clean = Array.from(new Set((Array.isArray(items) ? items : []).map(function (item) {
-        return String(item || "").trim();
-      }).filter(function (item) {
-        return !!item;
-      })));
-      clean.sort(function (a, b) { return a.localeCompare(b, "id"); });
-      localStorage.setItem(MISA_NAME_STORAGE_KEY, JSON.stringify(clean));
-      return clean;
+      return items;
     }
 
     function getMisaNameValue() {
@@ -1286,22 +1159,21 @@
       }).join("");
     }
 
-    function ensureMisaNameOption(name) {
+    async function ensureMisaNameOption(name) {
       const cleanName = String(name || "").trim();
       if (!cleanName) {
         return;
       }
-
-      const names = readMisaNameOptions();
-      if (names.map(function (item) { return item.toLowerCase(); }).indexOf(cleanName.toLowerCase()) === -1) {
-        names.push(cleanName);
-        saveMisaNameOptions(names);
-      }
-
-      setMisaNameValue(cleanName);
+      try {
+        await fetch("/api/misa-besar/names", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name: cleanName})
+        });
+        await fetchData();
+      } catch(e) {}
     }
 
-    function updateSelectedMisaName() {
+    async function updateSelectedMisaName() {
       const selectedName = getMisaNameValue();
       const newName = customMisaNameInput.value.trim();
 
@@ -1314,52 +1186,22 @@
         return;
       }
 
-      const names = readMisaNameOptions();
-      const selectedIndex = names.findIndex(function (item) {
-        return item.toLowerCase() === selectedName.toLowerCase();
+      const res = await fetch("/api/misa-besar/names/" + encodeURIComponent(selectedName), {
+          method: "PUT", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({newName: newName})
       });
-
-      if (selectedIndex === -1) {
-        window.alert("Nama misa tidak ditemukan di daftar.");
-        return;
+      const data = await res.json();
+      if (data.success) {
+          customMisaNameInput.value = "";
+          await fetchData();
+          setMisaNameValue(newName);
+          window.alert("Nama misa berhasil diperbarui.");
+      } else {
+          window.alert("Gagal: " + (data.error || "Kesalahan sistem"));
       }
-
-      const duplicate = names.some(function (item, index) {
-        return index !== selectedIndex && item.toLowerCase() === newName.toLowerCase();
-      });
-      if (duplicate) {
-        window.alert("Nama misa tersebut sudah ada di daftar.");
-        return;
-      }
-
-      names[selectedIndex] = newName;
-      const saved = saveMisaNameOptions(names);
-
-      const drafts = readDrafts().map(function (draft) {
-        if ((draft.misaName || "").toLowerCase() === selectedName.toLowerCase()) {
-          draft.misaName = newName;
-        }
-        return draft;
-      });
-      saveDrafts(drafts);
-
-      const schedules = readPublishedMassSchedules().map(function (item) {
-        if ((item.name || "").toLowerCase() === selectedName.toLowerCase()) {
-          item.name = newName;
-        }
-        return item;
-      });
-      savePublishedMassSchedules(schedules);
-
-      customMisaNameInput.value = "";
-      setMisaNameValue(newName);
-      renderMisaNameOptions(newName, misaNameSearch.value);
-      renderDraftList();
-      renderBigMassSchedules();
-      window.alert("Nama misa berhasil diperbarui.");
     }
 
-    function deleteSelectedMisaName() {
+    async function deleteSelectedMisaName() {
       const selectedName = getMisaNameValue();
       if (!selectedName) {
         window.alert("Pilih nama misa yang mau dihapus terlebih dahulu.");
@@ -1370,65 +1212,35 @@
         return;
       }
 
-      const names = readMisaNameOptions().filter(function (item) {
-        return item.toLowerCase() !== selectedName.toLowerCase();
-      });
-      const saved = saveMisaNameOptions(names);
-
-      const fallback = saved.length ? saved[0] : "";
-      setMisaNameValue(fallback);
-      renderMisaNameOptions(fallback, misaNameSearch.value);
+      const res = await fetch("/api/misa-besar/names/" + encodeURIComponent(selectedName), { method: "DELETE" });
+      if ((await res.json()).success) {
+          await fetchData();
+          setMisaNameValue("");
+      }
     }
 
     function readDrafts() {
-      return DUMMY_DRAFTS.slice();
+      return ALL_SCHEDULES.filter(function(item) { return item.status === "draft"; });
     }
 
     function saveDrafts(items) {
-      void items;
+      // Replaced by async fetch
     }
 
     function readPublishedMassSchedules() {
-      return DUMMY_PUBLISHED_MASS.slice();
+      return ALL_SCHEDULES.filter(function(item) { return item.status !== "draft"; });
     }
 
     function savePublishedMassSchedules(items) {
-      void items;
+      // Replaced by async fetch
     }
 
     function upsertPublishedMassSchedule(entry) {
-      const schedules = readPublishedMassSchedules();
-      const payload = {
-        id: entry.id,
-        name: entry.misaName,
-        date: entry.misaDate,
-        time: entry.misaTime,
-        type: "Misa Besar",
-        location: "Registrasi Misa Besar",
-        note: entry.misaNote || "-",
-        misaNote: entry.misaNote || "",
-        roles: Array.isArray(entry.roles) ? entry.roles : [],
-        source: "registrasi",
-        allowMemberRequest: !!entry.allowMemberRequest
-      };
-
-      const existingIndex = schedules.findIndex(function (item) {
-        return item.id === payload.id;
-      });
-
-      if (existingIndex === -1) {
-        schedules.push(payload);
-      } else {
-        schedules[existingIndex] = payload;
-      }
-
-      savePublishedMassSchedules(schedules);
+      // Handled by API
     }
 
     function removePublishedMassSchedule(draftId) {
-      savePublishedMassSchedules(readPublishedMassSchedules().filter(function (item) {
-        return item.id !== draftId;
-      }));
+      // Handled by API
     }
 
     function getCurrentRoleRows() {
@@ -1774,7 +1586,7 @@
       renderAllMemberCombos();
     }
 
-    function restoreScheduleToDraft(scheduleId) {
+    async function restoreScheduleToDraft(scheduleId) {
       const schedule = getCombinedScheduleRows().find(function (item) {
         return item.id === scheduleId;
       });
@@ -1783,44 +1595,21 @@
         return;
       }
 
-      const existingDraft = readDrafts().find(function (item) {
-        return item.id === scheduleId;
+      const res = await fetch("/api/misa-besar/" + scheduleId + "/status", {
+          method: "PUT", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({status: "draft"})
       });
-
-      const payload = {
-        id: schedule.id,
-        misaName: schedule.name || schedule.misaName || "",
-        misaDate: schedule.date || "",
-        misaTime: schedule.time || "",
-        misaNote: schedule.misaNote || schedule.note || "",
-        allowMemberRequest: !!schedule.allowMemberRequest,
-        roles: Array.isArray(schedule.roles) ? schedule.roles : [],
-        updatedAt: new Date().toISOString()
-      };
-
-      if (!existingDraft) {
-        const drafts = readDrafts();
-        drafts.push(payload);
-        saveDrafts(drafts);
+      const data = await res.json();
+      if (data.success) {
+          await fetchData();
+          loadDraftIntoForm(scheduleId);
+          window.alert("Jadwal berhasil dimasukkan kembali ke draft.");
       } else {
-        existingDraft.misaName = payload.misaName;
-        existingDraft.misaDate = payload.misaDate;
-        existingDraft.misaTime = payload.misaTime;
-        existingDraft.misaNote = payload.misaNote;
-        existingDraft.allowMemberRequest = payload.allowMemberRequest;
-        existingDraft.roles = payload.roles;
-        existingDraft.updatedAt = new Date().toISOString();
-        saveDrafts(readDrafts().map(function (item) {
-          return item.id === existingDraft.id ? existingDraft : item;
-        }));
+          window.alert("Gagal: " + (data.error || "Kesalahan sistem"));
       }
-
-      ensureMisaNameOption(payload.misaName || "");
-      loadDraftIntoForm(payload.id);
-      window.alert("Jadwal berhasil dimasukkan kembali ke draft.");
     }
 
-    function deleteDraft(draftId) {
+    async function deleteDraft(draftId) {
       const drafts = readDrafts();
       const draft = drafts.find(function (item) {
         return item.id === draftId;
@@ -1835,20 +1624,21 @@
         return;
       }
 
-      saveDrafts(drafts.filter(function (item) {
-        return item.id !== draftId;
-      }));
+      const res = await fetch("/api/misa-besar/" + draftId, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+          if (currentEditingDraftId === draftId) {
+            clearRegistrationForm();
+          }
 
-      if (currentEditingDraftId === draftId) {
-        clearRegistrationForm();
+          if (currentDetailDraftId === draftId) {
+            clearRegistrationForm();
+          }
+
+          await fetchData();
+      } else {
+          window.alert("Gagal menghapus draft: " + (data.error || "Kesalahan sistem"));
       }
-
-      if (currentDetailDraftId === draftId) {
-        clearRegistrationForm();
-      }
-
-      renderDraftList();
-      renderBigMassSchedules();
     }
 
     function validateAndBuildFormPayload(fallbackId) {
@@ -1899,7 +1689,7 @@
       };
     }
 
-    function publishDraftById(draftId) {
+    async function publishDraftById(draftId) {
       const draft = readDrafts().find(function (item) {
         return item.id === draftId;
       });
@@ -1908,104 +1698,87 @@
         return;
       }
 
-      upsertPublishedMassSchedule(draft);
-      saveDrafts(readDrafts().filter(function (item) {
-        return item.id !== draftId;
-      }));
-
-      if (currentEditingDraftId === draftId) {
-        currentEditingDraftId = "";
-        setEditMode(false);
+      const res = await fetch("/api/misa-besar/" + draftId + "/status", {
+          method: "PUT", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({status: "published"})
+      });
+      const data = await res.json();
+      if (data.success) {
+          if (currentEditingDraftId === draftId) {
+            currentEditingDraftId = "";
+            setEditMode(false);
+          }
+          await fetchData();
+          window.alert("Draft berhasil dipublish ke jadwal.");
+      } else {
+          window.alert("Gagal: " + (data.error || "Kesalahan sistem"));
       }
-
-      renderDraftList();
-      renderBigMassSchedules();
-      window.alert("Draft berhasil dipublish ke jadwal.");
     }
 
-    function saveCurrentDraft() {
+    async function saveCurrentDraft() {
       const payload = validateAndBuildFormPayload("draft-" + Date.now());
       if (!payload) {
         return;
       }
+      payload.status = "draft";
 
-      const drafts = readDrafts();
-
-      const existingIndex = drafts.findIndex(function (item) {
-        return item.id === payload.id;
+      const res = await fetch("/api/misa-besar", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
       });
-
-      if (existingIndex === -1) {
-        drafts.push(payload);
+      const data = await res.json();
+      if (data.success) {
+          currentEditingDraftId = data.id;
+          setEditMode(true);
+          await fetchData();
+          window.alert("Draft berhasil disimpan.");
       } else {
-        drafts[existingIndex] = payload;
+          window.alert("Gagal menyimpan draft: " + (data.error || "Kesalahan sistem"));
       }
-
-      saveDrafts(drafts);
-      currentEditingDraftId = payload.id;
-      setEditMode(true);
-      renderDraftList();
-      renderBigMassSchedules();
-      window.alert("Draft berhasil disimpan.");
     }
 
-    function publishCurrentRegistration() {
+    async function publishCurrentRegistration() {
       const payload = validateAndBuildFormPayload("pub-" + Date.now());
       if (!payload) {
         return;
       }
+      payload.status = "published";
 
-      upsertPublishedMassSchedule(payload);
-      saveDrafts(readDrafts().filter(function (item) {
-        return item.id !== payload.id;
-      }));
-
-      currentEditingDraftId = payload.id;
-      setEditMode(false);
-      renderDraftList();
-      renderBigMassSchedules();
-      window.alert("Registrasi berhasil dipublish.");
+      const res = await fetch("/api/misa-besar", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+          currentEditingDraftId = data.id;
+          setEditMode(false);
+          await fetchData();
+          window.alert("Registrasi berhasil dipublish.");
+      } else {
+          window.alert("Gagal mempublish: " + (data.error || "Kesalahan sistem"));
+      }
     }
 
-    function deleteScheduleItem(scheduleId) {
+    async function deleteScheduleItem(scheduleId) {
       const schedule = getCombinedScheduleRows().find(function (item) {
         return item.id === scheduleId;
       });
 
-      const draft = readDrafts().find(function (item) {
-        return item.id === scheduleId;
-      });
-
-      const label = (schedule && schedule.name) || (draft && draft.misaName) || "jadwal ini";
+      const label = (schedule && schedule.name) || "jadwal ini";
       if (!window.confirm("Hapus " + label + " dari daftar jadwal dan draft?")) {
         return;
       }
 
-      if (schedule && schedule.status === "draft") {
-        saveDrafts(readDrafts().filter(function (item) {
-          return item.id !== scheduleId;
-        }));
+      const res = await fetch("/api/misa-besar/" + scheduleId, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+          if (currentEditingDraftId === scheduleId) {
+            clearRegistrationForm();
+          }
+          await fetchData();
       } else {
-        saveDrafts(readDrafts().filter(function (item) {
-          return item.id !== scheduleId;
-        }));
-        removePublishedMassSchedule(scheduleId);
+          window.alert("Gagal menghapus: " + (data.error || "Kesalahan sistem"));
       }
-
-      if (schedule && schedule.source === "default") {
-        const hiddenDefaultIds = readHiddenDefaultScheduleIds();
-        if (hiddenDefaultIds.indexOf(scheduleId) === -1) {
-          hiddenDefaultIds.push(scheduleId);
-          saveHiddenDefaultScheduleIds(hiddenDefaultIds);
-        }
-      }
-
-      if (currentEditingDraftId === scheduleId) {
-        clearRegistrationForm();
-      }
-
-      renderDraftList();
-      renderBigMassSchedules();
     }
 
     addRoleBtn.addEventListener("click", function () {
@@ -2030,18 +1803,19 @@
       ["PD", "OP", "Kamera", "Supervisor", "Fotografer"].forEach(addRole);
     });
 
-    addMisaNameBtn.addEventListener("click", function () {
+    addMisaNameBtn.addEventListener("click", async function () {
       const customName = customMisaNameInput.value.trim();
       if (!customName) {
         window.alert("Masukkan nama misa baru terlebih dahulu.");
         return;
       }
 
-      ensureMisaNameOption(customName);
+      await ensureMisaNameOption(customName);
       setMisaNameValue(customName);
       customMisaNameInput.value = "";
       closeMisaNamePanel();
     });
+
 
     editMisaNameBtn.addEventListener("click", updateSelectedMisaName);
     deleteMisaNameBtn.addEventListener("click", deleteSelectedMisaName);
