@@ -98,6 +98,9 @@
           <div class="tabs" style="margin-bottom: 0; border: none; display: flex; gap: 8px;">
             <button id="modeBiasa" class="btn" type="button" style="pointer-events: none;">Misa Biasa</button>
             <button id="modeBesar" class="btn ghost" type="button" onclick="alert('Fitur Misa Besar dalam pengembangan.')">Misa Besar</button>
+            <span style="border-left: 1px solid #ccc; height: 24px; margin: 0 4px;"></span>
+            <button class="btn secondary" id="openSwapModalBtn">Tukar Shift (Role)</button>
+            <button id="saveAllBtn" class="btn primary" type="button" style="background: linear-gradient(135deg, #800000, #a52a2a);">Simpan Semua Penugasan</button>
           </div>
         </div>
         <div class="panel-body">
@@ -111,10 +114,7 @@
           </div>
           <p id="emptyNote" style="text-align:center; padding:20px; color:#666;">Memuat data...</p>
 
-          <div class="btn-row" style="margin-top: 16px;">
-            <button class="btn secondary" id="openSwapModalBtn">Tukar Shift (Role)</button>
-            <button id="saveAllBtn" class="btn primary" type="button">Simpan Semua Penugasan</button>
-          </div>
+          <!-- Buttons moved to top header -->
         </div>
       </section>
 
