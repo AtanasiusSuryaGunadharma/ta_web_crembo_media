@@ -266,9 +266,9 @@
                 }
 
                 roleCells += `<td>
-                    <div class="slot">
-                        <span class="tag ${emptyClass}" id="tag_${key}">${assignedMemberTag}</span>
-                        <div class="slot-combo" data-key="${key}" data-date="${item.date}" data-time="${timeStr}" data-role="${role.name}">
+                  <div class="slot">
+                    <span class="tag ${emptyClass}" id="tag_${key}">${assignedMemberTag}</span>
+                    <div class="slot-combo" data-key="${key}" data-date="${item.date}" data-time="${timeStr}" data-role="${role.name}" data-massname="${item.massName.replace(/\"/g, '&quot;')}">
                             <button class="slot-trigger" type="button" aria-expanded="false" id="trigger_${key}">${assignedMemberName}</button>
                             <div class="slot-panel">
                                 <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari anggota..."></div>
@@ -432,10 +432,11 @@
             
             if (!payload.find(p => p.date === date && p.time === time && p.role === role)) {
                 payload.push({
-                    date: date,
-                    time: time,
-                    role: role,
-                    memberId: ASSIGNMENT_MAP[key] || null
+                  date: date,
+                  time: time,
+                  role: role,
+                  memberId: ASSIGNMENT_MAP[key] || null,
+                  massName: combo.getAttribute("data-massname") || ""
                 });
             }
         });

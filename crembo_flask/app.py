@@ -5961,7 +5961,7 @@ def save_assignments():
             t_str = item.get('time')
             r_str = item.get('role')
             m_id = str(item.get('memberId')) if item.get('memberId') else None
-            m_name = item.get('massName', 'Misa')
+            m_name = item.get('massName') or 'Misa'
             
             key = (d_str, t_str, r_str)
             
