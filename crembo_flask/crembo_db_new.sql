@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 07 Bulan Mei 2026 pada 19.51
+-- Waktu pembuatan: 08 Bulan Mei 2026 pada 07.25
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -573,7 +573,10 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778145306780-c8a63d', 'kerusakan', 'Laporan Kerusakan Barang Baru', 'Laporan kerusakan barang dari Aura: Testing barang', '/hasil-form-kerusakan-barang.html', '{\"report_id\": \"krk-1778145306770-29a9b9\", \"member_id\": 21, \"barang_name\": \"Testing barang\"}', '2026-05-07 16:15:06', 'admin'),
 ('notif-1778145356164-1cb132', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1778145306770-29a9b9\", \"target_user_id\": \"21\"}', '2026-05-07 16:15:56', 'user'),
 ('notif-1778145485815-6b955f', 'kerusakan', 'Laporan Kerusakan Barang Baru', 'Laporan kerusakan barang dari Aura: Test Barang Aja', '/hasil-form-kerusakan-barang.html', '{\"report_id\": \"krk-1778145485806-ccc49b\", \"member_id\": 21, \"barang_name\": \"Test Barang Aja\"}', '2026-05-07 16:18:05', 'admin'),
-('notif-1778145496870-632b2c', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1778145485806-ccc49b\", \"target_user_id\": \"21\"}', '2026-05-07 16:18:16', 'user');
+('notif-1778145496870-632b2c', 'kerusakan', 'Status Laporan Kerusakan Diperbarui', 'Status laporan kerusakan Anda telah diubah menjadi: <b>Selesai</b>', '/riwayat-form-kerusakan-barang-anggota.html', '{\"report_id\": \"krk-1778145485806-ccc49b\", \"target_user_id\": \"21\"}', '2026-05-07 16:18:16', 'user'),
+('notif-1778217662883-d59b4c', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa</b> pada tanggal 02/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"21\"}', '2026-05-08 12:21:02', NULL),
+('notif-1778217662884-c43e1e', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa</b> pada tanggal 02/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\"}', '2026-05-08 12:21:02', NULL),
+('notif-1778217757080-685ac6', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa</b> pada tanggal 03/05/2026 jam 07:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"6\"}', '2026-05-08 12:22:37', NULL);
 
 -- --------------------------------------------------------
 
@@ -743,7 +746,9 @@ INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `ro
 (26, '2026-05-01', '18:00:00', 'Kameramen', 26),
 (27, '2026-05-01', '18:00:00', 'SPV', 72),
 (34, '2026-05-02', '18:00:00', 'Operator', 3),
-(43, '2026-05-02', '18:00:00', 'Kameramen', 21);
+(52, '2026-05-02', '18:00:00', 'Kameramen', 21),
+(53, '2026-05-02', '18:00:00', 'SPV', 53),
+(60, '2026-05-03', '07:30:00', 'Operator', 6);
 
 -- --------------------------------------------------------
 
@@ -2701,7 +2706,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`

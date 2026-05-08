@@ -743,8 +743,18 @@
       const typeFilter = notificationTypeFilter.value;
       const statusFilter = notificationStatusFilter.value;
       const items = await fetchNotifications();
+      
+      // PERBAIKAN: Ambil ID admin yang sedang login
+      const currentUserId = window.CREMBO_CURRENT_USER ? String(window.CREMBO_CURRENT_USER.user_id) : "";
 
       const filtered = items.filter(function (item) {
+        // PERBAIKAN: Jangan tampilkan notif penugasan personal jika bukan untuk dirinya sendiri
+        if (item.data && item.data.target_user_id) {
+            if (String(item.data.target_user_id) !== currentUserId) {
+                return false; 
+            }
+        }
+
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
         const itemStatus = item.read ? "read" : "unread";

@@ -5955,27 +5955,62 @@ def get_current_assignments():
 
 @app.route("/api/streaming/assignments/save", methods=["POST"])
 def save_assignments():
-    """Menyimpan atau memperbarui penugasan petugas"""
+    """Menyimpan atau memperbarui penugasan petugas dan kirim notifikasi"""
     ensure_streaming_schema()
     payload = request.json or [] 
     
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        # 1. Ambil data penugasan lama untuk perbandingan (mencegah notif ganda jika hanya save ulang)
+        cursor.execute("SELECT schedule_date, schedule_time, role_name, member_id FROM streaming_assignments")
+        existing_assignments = {}
+        for r in cursor.fetchall():
+            t_str = format_time_hhmm(r['schedule_time'])
+            d_str = str(r['schedule_date'])
+            existing_assignments[(d_str, t_str, r['role_name'])] = str(r['member_id'])
+            
+        ensure_notifications_schema()
+        
         for item in payload:
-            if item.get('memberId'):
-                # Simpan atau update jika ada member yang dipilih
+            d_str = item.get('date')
+            t_str = item.get('time')
+            r_str = item.get('role')
+            m_id = str(item.get('memberId')) if item.get('memberId') else None
+            m_name = item.get('massName', 'Misa')
+            
+            key = (d_str, t_str, r_str)
+            
+            if m_id:
+                # Simpan atau update petugas
                 cursor.execute("""
                     INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id)
                     VALUES (%s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE member_id = VALUES(member_id)
-                """, (item['date'], item['time'], item['role'], item['memberId']))
+                """, (d_str, t_str, r_str, m_id))
+                
+                # 2. Kirim Notifikasi JIKA petugas di slot ini berubah atau baru
+                if existing_assignments.get(key) != m_id:
+                    date_obj = datetime.strptime(d_str, "%Y-%m-%d")
+                    date_formatted = date_obj.strftime("%d/%m/%Y")
+                    title = f"Tugas Baru: {r_str}"
+                    body = f"Anda ditugaskan sebagai <b>{r_str}</b> untuk <b>{m_name}</b> pada tanggal {date_formatted} jam {t_str} WIB."
+                    
+                    create_notification(
+                        cursor,
+                        "tugas",
+                        title,
+                        body,
+                        "/jadwal-tugas-misa-anggota.html",
+                        {"target_user_id": m_id},
+                        target_role=None # Broadcast, nanti difilter oleh target_user_id di Frontend
+                    )
             else:
-                # PERBAIKAN: Hapus dari tabel jika dropdown diubah menjadi kosong
+                # Hapus dari tabel jika dropdown dikosongkan (cancel)
                 cursor.execute("""
                     DELETE FROM streaming_assignments 
                     WHERE schedule_date = %s AND schedule_time = %s AND role_name = %s
-                """, (item['date'], item['time'], item['role']))
+                """, (d_str, t_str, r_str))
         
         conn.commit()
         return jsonify({"success": True, "message": "Penugasan berhasil disimpan"})
