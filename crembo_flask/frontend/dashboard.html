@@ -766,8 +766,9 @@
         return matchesTab && matchesType && matchesStatus && matchesKeyword;
       });
 
-      const unreadCount = String(items.filter(function (item) { return !item.read; }).length);
-      notificationCount.textContent = unreadCount;
+      // Show the number of unread notifications within the filtered panel
+      const unreadInPanel = filtered.filter(function (it) { return !it.read; }).length;
+      notificationCount.textContent = String(unreadInPanel);
 
       if (!filtered.length) {
         notificationList.innerHTML = '<div class="notification-empty">Tidak ada notifikasi sesuai filter.</div>';
