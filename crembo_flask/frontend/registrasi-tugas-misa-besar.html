@@ -15,6 +15,7 @@
       --side-text: #f4f4f4;
       --radius: 16px;
       --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+      --danger: #b42323;
     }
 
     * { box-sizing: border-box; }
@@ -27,92 +28,189 @@
       min-height: 100vh;
     }
 
-    .layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
-    .sidebar { background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%); color: var(--side-text); border-right: 2px solid var(--line); padding: 18px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto;}
-    .brand { border: 1px solid #838383; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 12px; margin-bottom: 16px; }
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+      color: var(--side-text);
+      border-right: 2px solid var(--line);
+      padding: 18px 14px;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      border: 1px solid #838383;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
     .brand h1 { margin: 0; font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; }
     .brand p { margin: 6px 0 0; color: #cdcdcd; font-size: 0.82rem; }
 
-    .menu-group { border: 1px solid #656565; border-radius: 12px; background: rgba(255, 255, 255, 0.03); margin-bottom: 10px; overflow: hidden; }
-    .group-toggle { width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text); font-weight: 700; font-size: 0.88rem; padding: 11px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .group-items { display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255, 255, 255, 0.02); }
-    .menu-link { display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; }
+    .menu-group {
+      border: 1px solid #656565;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .group-toggle {
+      width: 100%; text-align: left; border: 0; background: transparent; color: var(--side-text);
+      font-weight: 700; font-size: 0.88rem; padding: 11px 12px; cursor: pointer; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+
+    .group-items {
+      display: block; border-top: 1px solid #525252; padding: 6px; background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-link {
+      display: block; text-decoration: none; color: #e5e5e5; border: 1px solid transparent;
+      border-radius: 10px; padding: 8px 10px; font-size: 0.83rem; margin-bottom: 4px; background: transparent;
+    }
+
     .menu-link:hover { border-color: #8a8a8a; background: rgba(255, 255, 255, 0.08); }
     .menu-link.active { border-color: #cfcfcf; background: #e9e9e9; color: #151515; font-weight: 700; }
 
     .side-actions { margin-top: 16px; display: grid; gap: 8px; }
-    .side-actions a { text-decoration: none; border: 1px solid #8d8d8d; color: #ebebeb; text-align: center; padding: 9px 10px; border-radius: 10px; font-size: 0.82rem; }
 
-    .main { padding: 16px; min-width: 0; }
-    .dashboard-headline-bar { border: 1px solid #cfcfcf; background: #f3f3f3; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-    .dashboard-headline-bar h1 { margin: 0; font-size: clamp(1.2rem, 2.2vw, 2rem); font-weight: 700; color: #1c1f27; letter-spacing: 0.01em; }
-    .head-meta { display: inline-flex; align-items: center; gap: 12px; color: #374151; font-size: clamp(0.85rem, 1.8vw, 1.02rem); font-weight: 600; }
+    .side-actions a {
+      text-decoration: none; border: 1px solid #8d8d8d; color: #ebebeb; text-align: center;
+      padding: 9px 10px; border-radius: 10px; font-size: 0.82rem;
+    }
+
+    .main { padding: 16px; }
+
+    .dashboard-headline-bar {
+      border: 1px solid #cfcfcf; background: #f3f3f3; border-radius: 12px; padding: 12px 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px;
+    }
+    .dashboard-headline-bar h1 { margin: 0; font-size: clamp(1.15rem, 2vw, 1.7rem); font-weight: 700; color: #1c1f27; }
+    .head-meta { display: inline-flex; align-items: center; gap: 12px; color: #374151; font-size: clamp(0.84rem, 1.6vw, 0.95rem); font-weight: 600; }
     .world-link { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 999px; border: 1px solid #6b7280; background: #ffffff; color: #374151; text-decoration: none; }
     .world-link svg { width: 18px; height: 18px; }
 
-    .topbar {
-      border: 2px solid var(--line); background: linear-gradient(145deg, #ffffff 0%, #f0f4ff 52%, #f5f5f5 100%);
-      border-radius: var(--radius); padding: 14px; display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; box-shadow: var(--shadow); margin-bottom: 12px; flex-wrap: wrap;
-    }
-    .headline { margin: 0; font-size: clamp(1.05rem, 2.5vw, 1.5rem); }
-    .subhead { margin: 3px 0 0; color: var(--muted); font-size: 0.85rem; }
-
-    .btn { border: 1px solid #1f2937; border-radius: 9px; background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%); color: #fff; font-weight: 700; padding: 8px 12px; font-size: 0.82rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
-    .btn.primary { background: linear-gradient(180deg, #3278f0 0%, #295fc2 100%); border-color: #295fc2; }
-    .btn.ghost { background: #fff; color: #1f2937; border-color: #9ca3af; font-weight: 600; }
-    .btn.warn { background: #fff; color: #b42323; border-color: #ef4444; font-weight: 700; }
-
     .panel { border: 2px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
-    .panel-head { padding: 12px 14px; border-bottom: 1px solid #c8c8c8; background: var(--panel-2); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-    .panel-head h2 { margin: 0; font-size: 1rem; }
+    .panel.combo-host { overflow: visible; position: relative; z-index: 4; }
+    .panel.combo-host .panel-body { overflow: visible; }
+    .panel-head { padding: 12px 14px; border-bottom: 1px solid #c8c8c8; background: var(--panel-2); display: flex; align-items: center; justify-content: space-between; }
+    .panel-head h2 { margin: 0; font-size: 1.02rem; }
     .panel-body { padding: 12px; }
 
-    /* LAYOUT CARD PERSIS REFERENSI */
-    .raya-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .raya-card { border: 1px solid #cfcfcf; border-radius: 12px; padding: 10px; background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%); }
-    .raya-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-    .raya-head h3 { margin: 0; font-size: 0.98rem; }
-    .raya-date { font-size: 0.78rem; color: #5b5b5b; border: 1px solid #d2d2d2; border-radius: 999px; padding: 2px 7px; background: #fff; }
-    .raya-note { margin: 8px 0 0; border: 1px dashed #c8c8c8; border-radius: 10px; background: #fafafa; padding: 8px 9px; color: #4b5563; font-size: 0.82rem; line-height: 1.45; }
+    .helper { margin: 0; color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.3fr; gap: 10px; margin-top: 10px; }
     
-    .session { border: 1px dashed #bfbfbf; border-radius: 10px; padding: 9px; margin-bottom: 8px; background: #fff; margin-top:8px;}
-    .session h4 { margin: 0 0 6px; font-size: 0.86rem; display:flex; justify-content:space-between;}
-    .roles { margin: 0; padding-left: 16px; font-size: 0.82rem; color: #2e2e2e; display: grid; gap: 3px; }
+    .name-manager { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: end; margin-top: 8px; }
+    .name-manager .btn { white-space: nowrap; }
 
-    .state-pill { display: inline-block; border: 1px solid #b5b5b5; border-radius: 999px; padding: 2px 8px; font-size: 0.74rem; background: #f7f7f7; white-space: nowrap; }
-    .state-pill.ok { border-color: #99c8ab; background: #eef8ef; color: #116d3f; font-weight: 700; }
-    .state-pill.warn { border-color: #e3c188; background: #fff8ea; color: #9b5b00; font-weight: 700; }
+    .misa-combo { min-width: 220px; }
+    .misa-combo.open-up .member-panel { top: auto; bottom: calc(100% + 4px); }
+    .misa-combo .member-options { max-height: 110px; }
 
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 100; justify-content: center; align-items: center; }
-    .modal-overlay.show { display: flex; }
-    .modal { background: #fff; border: 2px solid #1f1f1f; border-radius: 14px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-    .modal-head { padding: 14px 16px; border-bottom: 1px solid #c8c8c8; background: #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
-    .modal-head h3 { margin: 0; font-size: 1rem; }
-    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #5b5b5b; }
-    .modal-body { padding: 16px; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid #d1d1d1; background: #fafafa; }
-    
-    .control-group { margin-bottom: 12px; }
-    .control-group label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; color: #5b5b5b; font-weight: 700; margin-bottom: 6px; }
-    .control-group input, .control-group textarea { width: 100%; border: 1px solid #b7b7b7; border-radius: 8px; padding: 8px; font-size: 0.85rem; font-family: inherit; }
+    .field { display: grid; gap: 5px; }
 
-    .role-item-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .check-field {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 10px;
+      border: 1px dashed #b9b9b9; border-radius: 8px; background: #fafafa;
+      font-size: 0.84rem; color: #2f2f2f; font-weight: 600;
+    }
+    .check-field input { width: 16px; height: 16px; margin: 0; }
 
-    @media (max-width: 1220px) { .raya-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+    label { font-size: 0.8rem; color: #3d3d3d; text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em; }
+    input, select, button { font: inherit; border: 1px solid #cbcbcb; border-radius: 6px; padding: 8px 9px; background: #fff; }
+
+    .role-adder { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end; margin-top: 10px; }
+    .role-toggle-wrap { display: grid; gap: 6px; margin-top: 6px; font-size: 0.8rem; color: #4b5563; }
+    .role-toggle-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #4b5563; font-weight: 600; }
+    .role-count-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .role-count-wrap input { width: 88px; }
+
+    .role-member-slots { display: grid; gap: 10px; }
+    .role-member-slot { border: 1px dashed #d1d1d1; border-radius: 8px; background: #fafafa; padding: 8px; display: grid; gap: 6px; }
+    .role-member-slot label { font-size: 0.74rem; }
+    .role-name-tag { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    /* Custom Dropdown Anggota */
+    .member-combo { position: relative; min-width: 190px; }
+    .member-trigger { width: 100%; text-align: left; border: 1px solid #cbcbcb; border-radius: 6px; padding: 8px 9px; background: #fff; font-size: 0.84rem; cursor: pointer; }
+    .member-trigger::after { content: "▾"; float: right; color: #5b5b5b; font-size: 0.76rem; margin-top: 2px; }
+    .member-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; border: 1px solid #ababab; border-radius: 6px; background: #fff; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12); z-index: 120; display: none; }
+    .member-panel.show { display: block; }
+    .member-search-wrap { border-bottom: 1px solid #dddddd; padding: 7px; background: #f7f7f7; }
+    .member-search { width: 100%; border: 1px solid #b8b8b8; border-radius: 4px; padding: 6px 7px; font-size: 0.82rem; }
+    .member-options { max-height: 180px; overflow-y: auto; }
+    .member-option { width: 100%; border: 0; border-bottom: 1px solid #f0f0f0; border-radius: 0; background: #fff; text-align: left; padding: 7px 8px; font-size: 0.82rem; cursor: pointer; }
+    .member-option:hover, .member-option.active { background: #ebebeb; }
+    .member-empty { margin: 0; padding: 8px; font-size: 0.78rem; color: #686868; font-style: italic; }
+
+    .btn { border: 1px solid var(--line); background: #111; color: #fff; font-weight: 700; cursor: pointer; }
+    .btn.secondary { background: #f7f7f7; color: #222; }
+    .btn.danger { background: #222; color: #fff; }
+
+    .table-wrap { margin-top: 12px; overflow-x: auto; border: 1px solid #cbcbcb; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; font-size: 0.84rem; background: #fff; }
+    th, td { border: 1px solid #cbcbcb; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #efefef; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
+
+    .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Draft Cards */
+    .draft-list { display: grid; gap: 10px; }
+    .draft-card { border: 1px solid #cbcbcb; border-radius: 10px; background: #fcfcfc; padding: 10px; display: grid; gap: 8px; }
+    .draft-card-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+    .draft-card h3 { margin: 0; font-size: 0.95rem; }
+    .draft-meta { margin: 0; font-size: 0.82rem; color: #4b5563; line-height: 1.5; }
+    .draft-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .draft-badge { display: inline-block; border-radius: 999px; padding: 3px 8px; border: 1px solid #c6b07b; background: #fff8ea; color: #7a5a1f; font-size: 0.76rem; }
+    .draft-empty { margin: 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: 0.86rem; color: #616161; }
+
+    /* Scheduled List */
+    .schedule-filters { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .schedule-table-wrap { margin-top: 10px; overflow-x: auto; border: 1px solid #cbcbcb; border-radius: 8px; }
+    .schedule-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 0.84rem; background: #fff; }
+    .schedule-table th, .schedule-table td { border: 1px solid #cbcbcb; padding: 8px; text-align: left; vertical-align: top; }
+    .schedule-table th { background: #efefef; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    .schedule-action-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .schedule-action-row .btn { padding: 6px 9px; font-size: 0.75rem; }
+
+    .schedule-chip { display: inline-block; border-radius: 999px; padding: 3px 8px; border: 1px solid #bdbdbd; background: #f8f8f8; font-size: 0.76rem; }
+    .schedule-chip.raya { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
+    .schedule-chip.biasa { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
+    .schedule-note { margin: 6px 0 0; color: #4b5563; font-size: 0.82rem; line-height: 1.45; }
+    .schedule-empty { margin: 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: 0.86rem; color: #616161; }
+
+    /* Modal Info Draft */
+    .draft-detail-summary { margin: 0; color: #374151; font-size: 0.84rem; line-height: 1.5; }
+    .draft-detail-list { margin: 0; padding-left: 18px; display: grid; gap: 5px; color: #2f2f2f; font-size: 0.84rem; }
+    .draft-detail-note { margin: 0; border: 1px dashed #b9b9b9; border-radius: 8px; background: #f8f8f8; padding: 9px 10px; color: #4b5563; font-size: 0.84rem; line-height: 1.5; }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .role-adder { grid-template-columns: 1fr; }
+      .schedule-filters { grid-template-columns: 1fr; }
+    }
   </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="layout">
     <aside id="sidebar" class="sidebar">
       <div class="brand">
         <h1>Crembo Media Panel</h1>
-        <p>Modul jadwal tugas streaming</p>
+        <p>Modul registrasi tugas misa besar</p>
       </div>
+
       <div class="menu-group open">
         <button class="group-toggle" type="button">Tugas Streaming <span>-</span></button>
         <div class="group-items">
@@ -121,297 +219,679 @@
           <a class="menu-link" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
         </div>
       </div>
-      <div class="side-actions"><a href="dashboard.html">Kembali ke Dashboard</a></div>
+
+      <div class="side-actions">
+        <a href="dashboard.html">Kembali ke Dashboard</a>
+      </div>
     </aside>
 
     <main class="main">
       <header class="dashboard-headline-bar">
-        <h1>Registrasi Misa Besar</h1>
-        <div class="head-meta"><span id="liveDateTime">-</span></div>
-      </header>
-
-      <header class="topbar">
-        <div>
-          <h2 class="headline">Manajemen Misa Besar & Event Custom</h2>
-          <p class="subhead">Buat perayaan khusus, tentukan role secara mandiri, dan atur penugasannya.</p>
+        <h1>Registrasi Tugas Misa Besar</h1>
+        <div class="head-meta">
+          <span id="liveDateTime">-</span>
         </div>
-        <button class="btn primary" onclick="openAddModal()">+ Buat Misa Besar</button>
       </header>
 
-      <section class="panel">
-        <header class="panel-head"><h2>Daftar Jadwal Misa Besar</h2></header>
+      <section class="panel combo-host">
+        <div class="panel-head">
+          <h2>Data Misa</h2>
+        </div>
         <div class="panel-body">
-          <div id="rayaGrid" class="raya-grid">
-              <p style="text-align:center; width:100%; color:#666;">Memuat data dari database...</p>
+          <p class="helper">Urutan kerja: isi data misa, tambahkan role yang dibutuhkan, lalu pilih anggota untuk setiap role.</p>
+          <div class="grid-3">
+            <div class="field">
+              <label for="misaName">Nama Misa</label>
+              <div id="misaNameCombo" class="member-combo misa-combo open-up">
+                <button id="misaNameTrigger" class="member-trigger" type="button" data-value="" aria-expanded="false">-- pilih nama misa --</button>
+                <div id="misaNamePanel" class="member-panel">
+                  <div class="member-search-wrap"><input id="misaNameSearch" class="member-search" type="search" placeholder="Cari nama misa..."></div>
+                  <div id="misaNameOptions" class="member-options"></div>
+                </div>
+                <input id="misaName" type="hidden" value="">
+              </div>
+              <div class="name-manager">
+                <input id="customMisaNameInput" type="text" placeholder="Tambah nama misa baru">
+                <button id="addMisaNameBtn" class="btn secondary" type="button">Tambah</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="misaDate">Tanggal</label>
+              <input id="misaDate" type="date">
+            </div>
+            <div class="field">
+              <label for="misaTime">Jam</label>
+              <input id="misaTime" type="time">
+            </div>
+            <div class="field">
+              <label for="misaNote">Keterangan Misa</label>
+              <input id="misaNote" type="text" placeholder="Catatan untuk 1 misa">
+            </div>
+          </div>
+          <label class="check-field" for="allowMemberRequest">
+            <input id="allowMemberRequest" type="checkbox" checked>
+            Boleh diisi lewat request tugas anggota
+          </label>
+          <p class="schedule-note">Jika dicentang, role yang belum punya petugas boleh kosong dulu dan akan menunggu request anggota.</p>
+        </div>
+      </section>
+
+      <section class="panel combo-host">
+        <div class="panel-head">
+          <h2>Registrasi Role dan Anggota</h2>
+        </div>
+        <div class="panel-body">
+          <div class="role-adder">
+            <div class="field">
+              <label for="roleSelect">Tambah Role</label>
+              <select id="roleSelect">
+                <option value="">-- pilih role --</option>
+                <option value="PD">PD</option>
+                <option value="OP">OP</option>
+                <option value="vMix">vMix</option>
+                <option value="Kamera">Kamera</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Fotografer">Fotografer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="customRoleInput">Role Manual (Custom)</label>
+              <input id="customRoleInput" type="text" placeholder="Contoh: Drone Pilot">
+            </div>
+            <button id="addRoleBtn" class="btn" type="button">+ Tambah Role</button>
+            <button id="addCustomRoleBtn" class="btn secondary" type="button">+ Tambah Role Custom</button>
+            <button id="addDefaultRolesBtn" class="btn secondary" type="button">+ Paket Standar</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Petugas Role</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="rolesBody"></tbody>
+            </table>
+          </div>
+
+          <div class="actions">
+            <button id="saveDraftBtn" class="btn secondary" type="button">Simpan Draft</button>
+            <button id="cancelEditBtn" class="btn danger" type="button" hidden>Batal Edit</button>
+            <button id="publishRegistrationBtn" class="btn" type="button">Publish Registrasi</button>
           </div>
         </div>
       </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Draft Registrasi Tersimpan</h2>
+        </div>
+        <div class="panel-body">
+          <div id="draftList" class="draft-list"></div>
+          <p id="draftEmpty" class="draft-empty" hidden>Belum ada draft tersimpan.</p>
+        </div>
+      </section>
+
+      <section id="draftDetailPanel" class="panel" hidden>
+        <div class="panel-head" style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <h2>Detail Registrasi Misa</h2>
+          <button id="closeDetailBtn" class="btn secondary" type="button">Tutup</button>
+        </div>
+        <div class="panel-body" id="draftDetailBody"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Jadwal Misa Besar (Published)</h2>
+        </div>
+        <div class="panel-body">
+          <div class="schedule-filters">
+            <div class="field">
+              <label for="scheduleSearchInput">Cari Jadwal</label>
+              <input id="scheduleSearchInput" type="search" placeholder="Cari nama misa, tanggal...">
+            </div>
+            <div class="field">
+              <label for="scheduleMisaFilter">Nama Misa</label>
+              <select id="scheduleMisaFilter"><option value="all">Semua Nama Misa</option></select>
+            </div>
+            <div class="field">
+              <label for="scheduleMonthFilter">Bulan</label>
+              <select id="scheduleMonthFilter">
+                <option value="all">Semua Bulan</option>
+                <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
+                <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
+                <option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option>
+                <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="scheduleYearFilter">Tahun</label>
+              <select id="scheduleYearFilter">
+                <option value="all">Semua Tahun</option>
+                <option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="schedule-table-wrap">
+            <table class="schedule-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Jam</th>
+                  <th>Nama Misa</th>
+                  <th>Keterangan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="scheduleRows"></tbody>
+            </table>
+          </div>
+          <p id="scheduleEmpty" class="schedule-empty" hidden>Tidak ada jadwal misa besar yang dipublish.</p>
+        </div>
+      </section>
     </main>
-
-    <div id="rayaModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-head">
-          <h3 id="rayaModalTitle">Tambah Misa Besar</h3>
-          <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="control-group">
-            <label>Nama Misa / Perayaan</label>
-            <input type="text" id="misaNameInput" placeholder="Contoh: Misa Malam Natal">
-          </div>
-          <div style="display:flex; gap:10px;">
-              <div class="control-group" style="flex:1;">
-                <label>Tanggal</label>
-                <input type="date" id="misaDateInput">
-              </div>
-              <div class="control-group" style="flex:1;">
-                <label>Jam</label>
-                <input type="time" id="misaTimeInput">
-              </div>
-          </div>
-          <div class="control-group">
-            <label>Keterangan Tambahan</label>
-            <textarea id="misaNoteInput" rows="2" placeholder="Detail khusus acara..."></textarea>
-          </div>
-          
-          <div class="control-group" style="background:#fcfcfc; padding:10px; border:1px dashed #c8c8c8; border-radius:10px;">
-             <label style="color:#111;">Daftar Role & Kuota</label>
-             <p style="font-size:0.75rem; color:#666; margin:0 0 8px 0; text-transform:none;">Tentukan peran dan jumlah petugas.</p>
-             <div id="modalRoleList"></div>
-             <button type="button" class="btn ghost" style="margin-top:8px; width:100%;" onclick="addModalRoleRow()">+ Tambah Role Baru</button>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:8px; font-size:0.85rem; margin-top:10px;">
-              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" id="allowRequestCheck" style="width:auto;"> Anggota bisa request via Dashboard
-              </label>
-              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" id="publishCheck" style="width:auto;"> Publikasikan (Status Siap Tampil)
-              </label>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn ghost" onclick="closeModal()">Batal</button>
-          <button class="btn primary" onclick="saveEvent()">Simpan Jadwal</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script>
-    let ALL_EVENTS = [];
+    // --- VARIABLES & STATE ---
     let ACTIVE_MEMBERS = [];
-    let editingEventId = null;
+    let ALL_EVENTS = [];
+    let currentEditingEventId = null;
 
-    // --- INIT ---
+    const DEFAULT_MISA_NAMES = ["Misa Kamis Putih", "Misa Jumat Agung", "Misa Vigili Paskah", "Misa Pentahbisan"];
+    
+    const rolesBody = document.getElementById("rolesBody");
+    const draftList = document.getElementById("draftList");
+    const scheduleRows = document.getElementById("scheduleRows");
+    const scheduleEmpty = document.getElementById("scheduleEmpty");
+
+    // Form inputs
+    const misaNameCombo = document.getElementById("misaNameCombo");
+    const misaNameTrigger = document.getElementById("misaNameTrigger");
+    const misaNamePanel = document.getElementById("misaNamePanel");
+    const misaNameOptions = document.getElementById("misaNameOptions");
+    const misaNameInput = document.getElementById("misaName");
+    const customMisaNameInput = document.getElementById("customMisaNameInput");
+    
+    const misaDateInput = document.getElementById("misaDate");
+    const misaTimeInput = document.getElementById("misaTime");
+    const misaNoteInput = document.getElementById("misaNote");
+    const allowMemberRequestToggle = document.getElementById("allowMemberRequest");
+
     async function init() {
         await fetchMembers();
         await fetchEvents();
+        renderMisaNameOptions();
     }
 
     async function fetchMembers() {
         try {
             const res = await fetch("/api/streaming/active-members");
             ACTIVE_MEMBERS = await res.json();
-        } catch (e) { console.error("Gagal memuat anggota", e); }
+        } catch (e) { console.error("Error fetching members:", e); }
     }
 
     async function fetchEvents() {
         try {
             const res = await fetch("/api/misa-besar");
-            if(!res.ok) throw new Error();
             ALL_EVENTS = await res.json();
-            renderCards();
-        } catch (e) {
-            document.getElementById("rayaGrid").innerHTML = `<p style="color:red; text-align:center; width:100%;">Gagal memuat jadwal dari database. Pastikan backend aktif.</p>`;
-        }
+            renderDraftList();
+            renderBigMassSchedules();
+        } catch (e) { console.error("Error fetching events:", e); }
     }
 
-    // --- RENDER CARD (100% SESUAI REFERENSI CSS & HTML) ---
-    function renderCards() {
-        const grid = document.getElementById("rayaGrid");
-        if(ALL_EVENTS.length === 0) {
-            grid.innerHTML = "<p style='color:#777; width:100%;'>Tidak ada jadwal misa besar ditemukan.</p>";
-            return;
-        }
-
-        grid.innerHTML = ALL_EVENTS.map(ev => {
-            // Render Role Session
-            const roleSummary = ev.roles.length === 0 ? '<div class="session"><h4>Belum ada role</h4></div>' :
-            ev.roles.map(r => {
-                const membersList = r.members.map(m => `
-                    <li style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <span>- ${m.name}</span>
-                        <button type="button" style="background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer;" onclick="unassignMember(${r.id}, ${m.id})">&times;</button>
-                    </li>
-                `).join('');
-
-                const selOptions = ACTIVE_MEMBERS.map(am => `<option value="${am.id}">${am.name}</option>`).join('');
-                const selectHtml = r.members.length < r.count ? `
-                    <li style="list-style:none; margin-top:4px;">
-                        <select style="width:100%; border:1px solid #ccc; padding:4px; border-radius:6px; font-size:0.8rem; background:#fff;" onchange="assignMember(${ev.id}, ${r.id}, this)">
-                            <option value="">+ Pilih Petugas</option>
-                            ${selOptions}
-                        </select>
-                    </li>
-                ` : '';
-
-                return `
-                <div class="session">
-                  <h4 style="display:flex; justify-content:space-between;">
-                    <span>${r.name}</span>
-                    <span style="color:#666;">${r.members.length}/${r.count} Orang</span>
-                  </h4>
-                  <ul class="roles">
-                    ${membersList}
-                    ${r.members.length < r.count ? `<li style="color:#b42323; font-style:italic;">Kurang ${r.count - r.members.length} petugas</li>` : ''}
-                    ${selectHtml}
-                  </ul>
-                </div>
-                `;
-            }).join('');
-
-            return `
-            <article class="raya-card">
-              <div class="raya-head">
-                <h3>${ev.name}</h3>
-                <span class="raya-date">${ev.date.split('-').reverse().join('/')} | ${ev.time}</span>
-              </div>
-              <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center; font-size:0.75rem; font-weight:bold;">
-                  <span class="state-pill ${ev.status === 'published' ? 'ok' : 'warn'}">${ev.status.toUpperCase()}</span>
-                  <span style="color:#1e40af;">${ev.allowRequest ? '🔓 Bisa Request' : '🔒 Hanya Admin'}</span>
-              </div>
-              ${ev.note ? `<p class="raya-note"><strong>Keterangan Misa:</strong> ${ev.note}</p>` : `<p class="raya-note"><strong>Keterangan Misa:</strong> -</p>`}
-              
-              <div style="margin-top:12px;">
-                  ${roleSummary}
-              </div>
-
-              <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
-                  <button class="btn ghost" type="button" onclick="openEditModal(${ev.id})">Edit</button>
-                  <button class="btn warn" type="button" onclick="deleteEvent(${ev.id})">Hapus</button>
-              </div>
-            </article>
-            `;
-        }).join("");
+    // --- UTILS ---
+    function escapeHtml(value) {
+      return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // --- MODAL & ROLE ROWS LOGIC ---
-    function openAddModal() {
-        editingEventId = null;
-        document.getElementById("rayaModalTitle").innerText = "Tambah Misa Besar";
-        ["misaNameInput", "misaDateInput", "misaTimeInput", "misaNoteInput"].forEach(id => document.getElementById(id).value = "");
-        document.getElementById("allowRequestCheck").checked = true;
-        document.getElementById("publishCheck").checked = false;
+    function formatDisplayDate(dateStr) {
+      if(!dateStr) return "-";
+      const date = new Date(dateStr + "T00:00:00");
+      if (Number.isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+    }
+
+    // --- MISA NAME COMBO LOGIC ---
+    function readMisaNameOptions() {
+      try {
+        const raw = localStorage.getItem("crembo-misa-names");
+        if (!raw) return DEFAULT_MISA_NAMES.slice();
+        return JSON.parse(raw);
+      } catch (e) { return DEFAULT_MISA_NAMES.slice(); }
+    }
+
+    function saveMisaNameOptions(items) {
+      const clean = Array.from(new Set(items.map(i => String(i).trim()).filter(Boolean)));
+      clean.sort((a,b) => a.localeCompare(b, "id"));
+      localStorage.setItem("crembo-misa-names", JSON.stringify(clean));
+      return clean;
+    }
+
+    function setMisaNameValue(value) {
+      const clean = String(value || "").trim();
+      misaNameInput.value = clean;
+      misaNameTrigger.textContent = clean || "-- pilih nama misa --";
+      misaNameTrigger.setAttribute("data-value", clean);
+    }
+
+    function renderMisaNameOptions() {
+      const names = readMisaNameOptions();
+      const selected = misaNameInput.value.toLowerCase();
+      
+      if (!names.length) {
+        misaNameOptions.innerHTML = '<p class="member-empty">Nama misa tidak ditemukan.</p>';
+        return;
+      }
+
+      misaNameOptions.innerHTML = names.map(name => {
+        const activeClass = name.toLowerCase() === selected ? " active" : "";
+        return `<button class="member-option${activeClass}" type="button" data-value="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
+      }).join("");
+    }
+
+    misaNameTrigger.addEventListener("click", function () {
+      const willOpen = !misaNamePanel.classList.contains("show");
+      misaNamePanel.classList.remove("show");
+      if (willOpen) {
+        misaNamePanel.classList.add("show");
+        renderMisaNameOptions();
+      }
+    });
+
+    misaNameOptions.addEventListener("click", function (event) {
+      const option = event.target.closest(".member-option");
+      if (option) {
+        setMisaNameValue(option.getAttribute("data-value"));
+        misaNamePanel.classList.remove("show");
+      }
+    });
+
+    document.getElementById("addMisaNameBtn").addEventListener("click", function () {
+      const customName = customMisaNameInput.value.trim();
+      if (!customName) return alert("Masukkan nama misa baru terlebih dahulu.");
+
+      const names = readMisaNameOptions();
+      if (!names.includes(customName)) {
+        names.push(customName);
+        saveMisaNameOptions(names);
+      }
+      setMisaNameValue(customName);
+      customMisaNameInput.value = "";
+      misaNamePanel.classList.remove("show");
+    });
+
+    // --- MEMBER COMBO LOGIC ---
+    function createMemberSelect(slotLabel) {
+      return `
+      <div class="role-member-slot">
+        <label>${escapeHtml(slotLabel)}</label>
+        <div class="member-combo">
+          <button class="member-trigger" type="button" data-value="">-- pilih anggota --</button>
+          <div class="member-panel">
+            <div class="member-search-wrap"><input class="member-search" type="search" placeholder="Cari anggota..."></div>
+            <div class="member-options"></div>
+          </div>
+          <input class="member-hidden" type="hidden" value="">
+        </div>
+      </div>`;
+    }
+
+    function setMemberComboValue(comboEl, valueId, labelText) {
+      const trigger = comboEl.querySelector(".member-trigger");
+      const hidden = comboEl.querySelector(".member-hidden");
+      hidden.value = valueId || "";
+      trigger.textContent = labelText || "-- pilih anggota --";
+    }
+
+    function renderMemberComboOptions(comboEl, query) {
+      const optionsWrap = comboEl.querySelector(".member-options");
+      const selectedId = comboEl.querySelector(".member-hidden").value;
+      const cleanQuery = String(query || "").trim().toLowerCase();
+      
+      const blockedIds = Array.from(comboEl.closest("tr").querySelectorAll(".member-hidden")).map(i => i.value).filter(Boolean);
+
+      const filtered = ACTIVE_MEMBERS.filter(m => {
+        const idStr = String(m.id);
+        const isAllowed = idStr === selectedId || !blockedIds.includes(idStr);
+        return isAllowed && (!cleanQuery || m.name.toLowerCase().includes(cleanQuery));
+      });
+
+      let html = `<button class="member-option" type="button" data-value="" data-label="-- pilih anggota --">-- kosongkan --</button>`;
+
+      filtered.forEach(m => {
+        const activeClass = String(m.id) === selectedId ? " active" : "";
+        html += `<button class="member-option${activeClass}" type="button" data-value="${m.id}" data-label="${escapeHtml(m.name)}">${escapeHtml(m.name)} (${escapeHtml(m.role)})</button>`;
+      });
+
+      optionsWrap.innerHTML = html;
+    }
+
+    function closeAllMemberPanels() {
+      document.querySelectorAll(".member-panel").forEach(p => p.classList.remove("show"));
+    }
+
+    rolesBody.addEventListener("click", function (event) {
+      const trigger = event.target.closest(".member-trigger");
+      if (trigger) {
+        const comboEl = trigger.closest(".member-combo");
+        const panel = comboEl.querySelector(".member-panel");
+        const willOpen = !panel.classList.contains("show");
         
-        document.getElementById("modalRoleList").innerHTML = "";
-        addModalRoleRow(); // Default 1 row
+        closeAllMemberPanels();
         
-        document.getElementById("rayaModal").classList.add("show");
+        if (willOpen) {
+          panel.classList.add("show");
+          renderMemberComboOptions(comboEl, "");
+        }
+        return;
+      }
+
+      const option = event.target.closest(".member-option");
+      if (option) {
+        const comboEl = option.closest(".member-combo");
+        setMemberComboValue(comboEl, option.getAttribute("data-value"), option.getAttribute("data-label"));
+        closeAllMemberPanels();
+        return;
+      }
+
+      const removeBtn = event.target.closest(".remove-role");
+      if (removeBtn) removeBtn.closest("tr").remove();
+    });
+
+    rolesBody.addEventListener("input", function (event) {
+      const searchInput = event.target.closest(".member-search");
+      if (searchInput) renderMemberComboOptions(searchInput.closest(".member-combo"), searchInput.value);
+    });
+
+    // --- ROLE ROW LOGIC ---
+    window.renderRoleMemberSlots = function(row) {
+      const roleName = row.getAttribute("data-role-name");
+      const slotWrap = row.querySelector(".role-member-slots");
+      const isMulti = row.querySelector(".role-multi-checkbox").checked;
+      const countInput = row.querySelector(".role-count-input");
+      const desiredCount = isMulti ? Math.max(2, parseInt(countInput.value) || 2) : 1;
+      
+      const previousMembers = Array.from(row.querySelectorAll(".member-hidden")).map(i => i.value);
+
+      countInput.value = desiredCount;
+      row.querySelector(".role-count-wrap").hidden = !isMulti;
+
+      let slotsHtml = "";
+      for(let i = 0; i < desiredCount; i++) {
+         const slotLabel = desiredCount === 1 ? roleName : `${roleName} ${i+1}`;
+         slotsHtml += createMemberSelect(slotLabel);
+      }
+      slotWrap.innerHTML = slotsHtml;
+
+      const combos = slotWrap.querySelectorAll(".member-combo");
+      combos.forEach((combo, index) => {
+         const oldVal = previousMembers[index];
+         if(oldVal) {
+             const m = ACTIVE_MEMBERS.find(am => String(am.id) === String(oldVal));
+             setMemberComboValue(combo, oldVal, m ? m.name : oldVal);
+         }
+      });
+    };
+
+    rolesBody.addEventListener("change", function (event) {
+      if (event.target.closest(".role-multi-checkbox") || event.target.closest(".role-count-input")) {
+        renderRoleMemberSlots(event.target.closest("tr"));
+      }
+    });
+
+    function appendRoleRow(roleName, options) {
+      const isMulti = options && options.multi;
+      const count = options && options.count ? Math.max(2, parseInt(options.count) || 2) : 1;
+      
+      const row = document.createElement("tr");
+      row.setAttribute("data-role-name", roleName);
+      row.innerHTML = `
+        <td>
+          <div class="role-name-tag"><strong>${escapeHtml(roleName)}</strong></div>
+          <div class="role-toggle-wrap">
+            <label class="role-toggle-inline"><input type="checkbox" class="role-multi-checkbox" ${isMulti ? 'checked' : ''}> multi petugas</label>
+            <div class="role-count-wrap" ${isMulti ? '' : 'hidden'}>
+              <label>Jumlah</label>
+              <input class="role-count-input" type="number" min="2" max="15" value="${count}">
+            </div>
+          </div>
+        </td>
+        <td><div class="role-member-slots"></div></td>
+        <td><button type="button" class="btn danger remove-role">Hapus</button></td>
+      `;
+      rolesBody.appendChild(row);
+
+      const savedMembers = options && options.members ? options.members : [];
+      renderRoleMemberSlots(row);
+      
+      const combos = row.querySelectorAll(".member-combo");
+      combos.forEach((c, idx) => {
+         if(savedMembers[idx]) {
+             const m = ACTIVE_MEMBERS.find(am => String(am.id) === String(savedMembers[idx]));
+             setMemberComboValue(c, savedMembers[idx], m ? m.name : savedMembers[idx]);
+         }
+      });
     }
 
-    function openEditModal(id) {
-        const ev = ALL_EVENTS.find(e => e.id === id);
-        if(!ev) return;
-        editingEventId = id;
-        document.getElementById("rayaModalTitle").innerText = "Edit Misa: " + ev.name;
-        document.getElementById("misaNameInput").value = ev.name;
-        document.getElementById("misaDateInput").value = ev.date;
-        document.getElementById("misaTimeInput").value = ev.time;
-        document.getElementById("misaNoteInput").value = ev.note || "";
-        document.getElementById("allowRequestCheck").checked = ev.allowRequest == 1;
-        document.getElementById("publishCheck").checked = ev.status === 'published';
+    function addRole(roleName) {
+      const cleanRoleName = String(roleName || "").trim();
+      if (!cleanRoleName) return;
+      const existing = Array.from(rolesBody.querySelectorAll("tr")).map(r => r.getAttribute("data-role-name").toLowerCase());
+      if (existing.includes(cleanRoleName.toLowerCase())) return;
+      appendRoleRow(cleanRoleName);
+    }
 
-        document.getElementById("modalRoleList").innerHTML = "";
-        ev.roles.forEach(r => addModalRoleRow(r.name, r.count));
+    document.getElementById("addRoleBtn").onclick = () => { addRole(document.getElementById("roleSelect").value); document.getElementById("roleSelect").value = ""; };
+    document.getElementById("addCustomRoleBtn").onclick = () => { addRole(document.getElementById("customRoleInput").value); document.getElementById("customRoleInput").value = ""; };
+    document.getElementById("addDefaultRolesBtn").onclick = () => { ["PD", "OP", "Kamera", "Supervisor", "Fotografer"].forEach(r => addRole(r)); };
+
+    // --- FORM SUBMIT LOGIC ---
+    async function submitForm(status) {
+      const name = misaNameInput.value.trim();
+      const date = misaDateInput.value;
+      const time = misaTimeInput.value;
+      const note = misaNoteInput.value.trim();
+      
+      if(!name || !date || !time) return alert("Nama misa, tanggal, dan jam harus diisi!");
+
+      const roleRows = Array.from(rolesBody.querySelectorAll("tr"));
+      if(roleRows.length === 0) return alert("Minimal tambahkan satu role sebelum menyimpan!");
+
+      const rolesPayload = roleRows.map(tr => {
+          const rName = tr.getAttribute("data-role-name");
+          const isMulti = tr.querySelector(".role-multi-checkbox").checked;
+          const count = isMulti ? parseInt(tr.querySelector(".role-count-input").value) : 1;
+          const members = Array.from(tr.querySelectorAll(".member-hidden")).map(hid => hid.value).filter(Boolean);
+          return { role: rName, count: count, members: members };
+      });
+
+      let allSelectedMembers = [];
+      for(let r of rolesPayload) {
+          for(let m of r.members) {
+              if(allSelectedMembers.includes(m)) return alert("Gagal: Satu anggota tidak bisa merangkap 2 posisi di misa yang sama.");
+              allSelectedMembers.push(m);
+          }
+      }
+
+      const payload = {
+          misaName: name, misaDate: date, misaTime: time, misaNote: note,
+          allowMemberRequest: allowMemberRequestToggle.checked, status: status, roles: rolesPayload
+      };
+
+      const method = currentEditingEventId ? "PUT" : "POST";
+      const url = currentEditingEventId ? `/api/misa-besar/${currentEditingEventId}` : "/api/misa-besar";
+
+      const res = await fetch(url, {
+          method: method, headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)
+      });
+
+      if(res.ok) {
+          alert("Berhasil disimpan!");
+          clearRegistrationForm();
+          fetchEvents();
+      } else {
+          alert("Error saat menyimpan ke database.");
+      }
+    }
+
+    document.getElementById("saveDraftBtn").onclick = () => submitForm("draft");
+    document.getElementById("publishRegistrationBtn").onclick = () => submitForm("published");
+
+    // --- RENDER DRAFTS & PUBLISHED ---
+    function renderDraftList() {
+      const drafts = ALL_EVENTS.filter(e => e.status === "draft");
+      if(drafts.length === 0) {
+          draftList.innerHTML = "";
+          document.getElementById("draftEmpty").hidden = false;
+          return;
+      }
+      document.getElementById("draftEmpty").hidden = true;
+      draftList.innerHTML = drafts.map(d => `
+          <article class="draft-card">
+              <div class="draft-card-head">
+                  <div>
+                      <h3>${escapeHtml(d.misaName)}</h3>
+                      <p class="draft-meta">
+                          Jadwal: ${formatDisplayDate(d.misaDate)} ${d.misaTime} WIB<br>
+                          Keterangan: ${escapeHtml(d.misaNote || "-")}<br>
+                          Role Tersimpan: ${d.roles.length}
+                      </p>
+                  </div>
+                  <span class="draft-badge">DRAFT</span>
+              </div>
+              <div class="draft-actions">
+                  <button class="btn secondary" onclick="renderDraftDetail(${d.id})">Detail</button>
+                  <button class="btn secondary" onclick="editScheduleItem(${d.id})">Edit</button>
+                  <button class="btn danger" onclick="deleteScheduleItem(${d.id})">Hapus</button>
+              </div>
+          </article>
+      `).join("");
+    }
+
+    function renderBigMassSchedules() {
+      const published = ALL_EVENTS.filter(e => e.status === "published");
+      
+      const uniqueNames = [...new Set(published.map(p => p.misaName))];
+      document.getElementById("scheduleMisaFilter").innerHTML = '<option value="all">Semua Nama Misa</option>' + uniqueNames.map(n => `<option value="${n}">${escapeHtml(n)}</option>`).join("");
+
+      const qSearch = document.getElementById("scheduleSearchInput").value.toLowerCase();
+      const qMisa = document.getElementById("scheduleMisaFilter").value;
+      const qMonth = document.getElementById("scheduleMonthFilter").value;
+      const qYear = document.getElementById("scheduleYearFilter").value;
+
+      const filtered = published.filter(item => {
+          const dateObj = new Date(item.misaDate);
+          const sMatch = !qSearch || item.misaName.toLowerCase().includes(qSearch) || item.misaDate.includes(qSearch);
+          const misaMatch = qMisa === "all" || item.misaName === qMisa;
+          const monthMatch = qMonth === "all" || (dateObj.getMonth() + 1).toString() === qMonth;
+          const yearMatch = qYear === "all" || dateObj.getFullYear().toString() === qYear;
+          return sMatch && misaMatch && monthMatch && yearMatch;
+      });
+
+      if(filtered.length === 0) {
+          scheduleRows.innerHTML = "";
+          scheduleEmpty.hidden = false;
+          return;
+      }
+      scheduleEmpty.hidden = true;
+      scheduleRows.innerHTML = filtered.map(item => `
+          <tr>
+              <td>${formatDisplayDate(item.misaDate)}</td>
+              <td>${item.misaTime}</td>
+              <td><strong>${escapeHtml(item.misaName)}</strong></td>
+              <td><span class="schedule-note">${escapeHtml(item.misaNote || '-')}</span></td>
+              <td>${item.allowMemberRequest ? '<span class="schedule-chip biasa">Dibuka</span>' : '<span class="schedule-chip">Ditutup</span>'}</td>
+              <td><span class="schedule-chip raya">Published</span></td>
+              <td>
+                  <div class="schedule-action-row">
+                      <button class="btn secondary" onclick="changeStatus(${item.id}, 'draft')">Ke Draft</button>
+                      <button class="btn secondary" onclick="editScheduleItem(${item.id})">Edit</button>
+                      <button class="btn danger" onclick="deleteScheduleItem(${item.id})">Hapus</button>
+                  </div>
+              </td>
+          </tr>
+      `).join("");
+    }
+
+    // --- ROW ACTIONS ---
+    window.editScheduleItem = function(id) {
+        const d = ALL_EVENTS.find(e => e.id === id);
+        if(!d) return;
+        currentEditingEventId = d.id;
         
-        document.getElementById("rayaModal").classList.add("show");
-    }
-
-    function addModalRoleRow(name = '', count = 1) {
-       const div = document.createElement("div");
-       div.className = "role-item-row";
-       div.innerHTML = `
-           <input type="text" class="role-name-input" placeholder="Role (Cth: SPV)" value="${name}" style="flex:1;">
-           <input type="number" class="role-count-input" placeholder="Jml" value="${count}" min="1" style="width:70px;">
-           <button type="button" class="btn warn" style="padding:6px 12px; border:none;" onclick="this.parentElement.remove()">&times;</button>
-       `;
-       document.getElementById("modalRoleList").appendChild(div);
-    }
-
-    function closeModal() { document.getElementById("rayaModal").classList.remove("show"); }
-
-    // --- API CALLS ---
-    async function saveEvent() {
-        const name = document.getElementById("misaNameInput").value;
-        const date = document.getElementById("misaDateInput").value;
-        const time = document.getElementById("misaTimeInput").value;
-
-        if(!name || !date || !time) return alert("Mohon lengkapi Nama, Tanggal, dan Jam!");
-
-        const roles = Array.from(document.querySelectorAll(".role-item-row")).map(row => ({
-           name: row.querySelector(".role-name-input").value.trim(),
-           count: parseInt(row.querySelector(".role-count-input").value) || 1
-        })).filter(r => r.name !== "");
-
-        const data = {
-            name: name,
-            date: date,
-            time: time,
-            note: document.getElementById("misaNoteInput").value,
-            allowRequest: document.getElementById("allowRequestCheck").checked,
-            status: document.getElementById("publishCheck").checked ? 'published' : 'draft',
-            roles: roles
-        };
-
-        const res = await fetch(editingEventId ? `/api/misa-besar/${editingEventId}` : "/api/misa-besar", {
-            method: editingEventId ? "PUT" : "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(data)
+        setMisaNameValue(d.misaName);
+        misaDateInput.value = d.misaDate;
+        misaTimeInput.value = d.misaTime;
+        misaNoteInput.value = d.misaNote || "";
+        allowMemberRequestToggle.checked = d.allowMemberRequest == 1;
+        
+        rolesBody.innerHTML = "";
+        d.roles.forEach(r => {
+            appendRoleRow(r.role, { multi: r.multi, count: r.count, members: r.members });
         });
+        
+        document.getElementById("cancelEditBtn").hidden = false;
+        document.getElementById("saveDraftBtn").textContent = "Perbarui Draft";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
-        if(res.ok) { 
-            closeModal(); 
-            fetchEvents(); 
-        } else { 
-            alert("Gagal menyimpan jadwal misa."); 
-        }
-    }
-
-    async function assignMember(misaId, roleId, selectElem) {
-        const memberId = selectElem.value;
-        if(!memberId) return;
-
-        const res = await fetch("/api/misa-besar/assign", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({misaId, roleId, memberId})
-        });
-
-        if(!res.ok) { 
-            const result = await res.json();
-            alert(result.message); 
-        }
-        fetchEvents(); 
-    }
-
-    async function unassignMember(roleId, memberId) {
-        if(!confirm("Hapus petugas ini dari jadwal misa besar?")) return;
-        await fetch("/api/misa-besar/unassign", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({roleId, memberId})
-        });
+    window.changeStatus = async function(id, newStatus) {
+        const payload = { status: newStatus };
+        await fetch(`/api/misa-besar/${id}/status`, { method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload) });
         fetchEvents();
-    }
+    };
 
-    async function deleteEvent(id) {
-        if(!confirm("Apakah Anda yakin ingin MENGHAPUS seluruh jadwal misa besar ini beserta penugasannya?")) return;
+    window.deleteScheduleItem = async function(id) {
+        if(!confirm("Yakin menghapus jadwal ini beserta penugasannya?")) return;
         await fetch(`/api/misa-besar/${id}`, { method: "DELETE" });
+        if(currentEditingEventId === id) clearRegistrationForm();
         fetchEvents();
-    }
+    };
 
-    // Timer WIB Jam Atas
+    window.renderDraftDetail = function(id) {
+        const d = ALL_EVENTS.find(e => e.id === id);
+        if(!d) return;
+        
+        const rolesHtml = d.roles.length === 0 ? '<p class="draft-detail-empty">Belum ada role.</p>' : 
+        '<ul class="draft-detail-list">' + d.roles.map(r => `<li><strong>${r.role}:</strong> ${r.memberNames.length > 0 ? r.memberNames.join(', ') : '-'}</li>`).join("") + '</ul>';
+
+        document.getElementById("draftDetailBody").innerHTML = `
+            <p class="draft-detail-summary"><strong>${escapeHtml(d.misaName)}</strong><br>
+            Jadwal: ${formatDisplayDate(d.misaDate)} ${d.misaTime}</p>
+            <p class="draft-detail-note"><strong>Ket:</strong> ${escapeHtml(d.misaNote || "-")}</p>
+            ${rolesHtml}
+        `;
+        document.getElementById("draftDetailPanel").hidden = false;
+    };
+
+    document.getElementById("closeDetailBtn").onclick = () => { document.getElementById("draftDetailPanel").hidden = true; };
+
+    function clearRegistrationForm() {
+        currentEditingEventId = null;
+        setMisaNameValue(""); document.getElementById("customMisaNameInput").value = "";
+        misaDateInput.value = ""; misaTimeInput.value = ""; misaNoteInput.value = "";
+        rolesBody.innerHTML = ""; 
+        document.getElementById("cancelEditBtn").hidden = true;
+        document.getElementById("saveDraftBtn").textContent = "Simpan Draft";
+    }
+    document.getElementById("cancelEditBtn").onclick = clearRegistrationForm;
+
+    // Listeners and Clocks
+    document.addEventListener("click", function (event) {
+      if (!event.target.closest(".member-combo")) closeAllMemberPanels();
+      if (!event.target.closest(".misa-combo")) document.getElementById("misaNamePanel").classList.remove("show");
+    });
+
+    document.getElementById("scheduleSearchInput").oninput = renderBigMassSchedules;
+    document.getElementById("scheduleMisaFilter").onchange = renderBigMassSchedules;
+    document.getElementById("scheduleMonthFilter").onchange = renderBigMassSchedules;
+    document.getElementById("scheduleYearFilter").onchange = renderBigMassSchedules;
+
     setInterval(() => {
         const n = new Date();
         document.getElementById("liveDateTime").textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";

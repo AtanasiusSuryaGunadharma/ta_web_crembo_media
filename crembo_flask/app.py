@@ -1483,7 +1483,7 @@ def ensure_misa_besar_schema():
     conn = mysql_connection()
     cursor = conn.cursor(buffered=True)
     try:
-        # 1. Pastikan tabel utama ada
+        # Pastikan tabel utama ada
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `misa_besar` (
               `id` int AUTO_INCREMENT PRIMARY KEY,
@@ -1494,7 +1494,7 @@ def ensure_misa_besar_schema():
         """)
         conn.commit()
 
-        # 2. Tambahkan kolom baru jika belum ada (Safe Alter)
+        # Tambahkan kolom baru (Safe Alter)
         for col, col_def in [
             ("misa_note", "text"),
             ("allow_member_request", "tinyint(1) DEFAULT 0"),
@@ -1504,10 +1504,9 @@ def ensure_misa_besar_schema():
             try:
                 cursor.execute(f"ALTER TABLE misa_besar ADD COLUMN {col} {col_def}")
             except:
-                pass # Abaikan jika kolom sudah ada
+                pass 
         conn.commit()
                 
-        # 3. Pastikan tabel roles ada
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `misa_besar_names` (
               `id` int AUTO_INCREMENT PRIMARY KEY,
@@ -1518,14 +1517,12 @@ def ensure_misa_besar_schema():
         """)
         conn.commit()
 
-        # Tambahkan kolom required_count jika belum ada
         try:
             cursor.execute("ALTER TABLE misa_besar_names ADD COLUMN required_count int NOT NULL DEFAULT 1")
         except:
             pass
         conn.commit()
             
-        # 4. Pastikan tabel penugasan ada
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS `misa_besar_assignments` (
               `id` int AUTO_INCREMENT PRIMARY KEY,
@@ -6088,24 +6085,32 @@ def api_misa_besar():
     try:
         if request.method == "POST":
             data = request.json
-            allow_req = 1 if data.get('allowRequest') else 0
+            allow_req = 1 if data.get('allowMemberRequest') else 0
             cursor.execute("""
                 INSERT INTO misa_besar (misa_name, misa_date, misa_time, misa_note, allow_member_request, status)
                 VALUES (%s, %s, %s, %s, %s, %s)
-            """, (data['name'], data['date'], data['time'], data['note'], allow_req, data['status']))
+            """, (data['misaName'], data['misaDate'], data['misaTime'], data.get('misaNote',''), allow_req, data['status']))
             misa_id = cursor.lastrowid
             
             for r in data.get('roles', []):
                 cursor.execute("INSERT INTO misa_besar_names (misa_id, role_name, required_count) VALUES (%s, %s, %s)",
-                               (misa_id, r['name'], r['count']))
+                               (misa_id, r['role'], r['count']))
+                role_id = cursor.lastrowid
+                
+                # Simpan list member ID langsung (yang tidak kosong)
+                for m_id in r.get('members', []):
+                    if str(m_id).strip():
+                        cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (role_id, m_id))
+            
             conn.commit()
             return jsonify({"success": True, "id": misa_id})
 
-        cursor.execute("SELECT id, misa_name as name, DATE_FORMAT(misa_date, '%Y-%m-%d') as date, DATE_FORMAT(misa_time, '%H:%i') as time, misa_note as note, allow_member_request as allowRequest, status FROM misa_besar ORDER BY misa_date DESC")
+        # GET DATA
+        cursor.execute("SELECT id, misa_name as misaName, DATE_FORMAT(misa_date, '%Y-%m-%d') as misaDate, DATE_FORMAT(misa_time, '%H:%i') as misaTime, misa_note as misaNote, allow_member_request as allowMemberRequest, status, created_at as updatedAt FROM misa_besar ORDER BY misa_date DESC")
         events = cursor.fetchall()
         
         for ev in events:
-            cursor.execute("SELECT id, role_name as name, required_count as count FROM misa_besar_names WHERE misa_id = %s", (ev['id'],))
+            cursor.execute("SELECT id, role_name as role, required_count as count FROM misa_besar_names WHERE misa_id = %s", (ev['id'],))
             roles = cursor.fetchall()
             for r in roles:
                 cursor.execute("""
@@ -6114,7 +6119,11 @@ def api_misa_besar():
                     JOIN anggota a ON bma.member_id = a.id 
                     WHERE bma.role_id = %s
                 """, (r['id'],))
-                r['members'] = cursor.fetchall()
+                members_data = cursor.fetchall()
+                # Sesuaikan response dengan format Frontend
+                r['members'] = [str(m['id']) for m in members_data]
+                r['memberNames'] = [m['name'] for m in members_data]
+                r['multi'] = r['count'] > 1
             ev['roles'] = roles
             
         return jsonify(events)
@@ -6134,25 +6143,27 @@ def api_misa_besar_detail(misa_id):
         
         if request.method == "PUT":
             data = request.json
-            allow_req = 1 if data.get('allowRequest') else 0
+            allow_req = 1 if data.get('allowMemberRequest') else 0
+            
+            # Update header Misa
             cursor.execute("""
                 UPDATE misa_besar SET misa_name=%s, misa_date=%s, misa_time=%s, misa_note=%s, allow_member_request=%s, status=%s
                 WHERE id=%s
-            """, (data['name'], data['date'], data['time'], data['note'], allow_req, data['status'], misa_id))
+            """, (data['misaName'], data['misaDate'], data['misaTime'], data.get('misaNote',''), allow_req, data['status'], misa_id))
             
-            cursor.execute("SELECT id, role_name FROM misa_besar_names WHERE misa_id = %s", (misa_id,))
-            existing_roles = {r['role_name']: r['id'] for r in cursor.fetchall()}
-            incoming_roles = {r['name']: r['count'] for r in data.get('roles', [])}
+            # Reset roles untuk mempermudah handling list members tanpa error FK constraint
+            # Karena tabel misa_besar_names punya constraint ON DELETE CASCADE, assignments otomatis terhapus
+            cursor.execute("DELETE FROM misa_besar_names WHERE misa_id = %s", (misa_id,))
             
-            for name, count in incoming_roles.items():
-                if name in existing_roles:
-                    cursor.execute("UPDATE misa_besar_names SET required_count = %s WHERE id = %s", (count, existing_roles[name]))
-                else:
-                    cursor.execute("INSERT INTO misa_besar_names (misa_id, role_name, required_count) VALUES (%s, %s, %s)", (misa_id, name, count))
-            
-            for name, r_id in existing_roles.items():
-                if name not in incoming_roles:
-                    cursor.execute("DELETE FROM misa_besar_names WHERE id = %s", (r_id,))
+            # Insert Ulang Roles dan Assignments
+            for r in data.get('roles', []):
+                cursor.execute("INSERT INTO misa_besar_names (misa_id, role_name, required_count) VALUES (%s, %s, %s)",
+                               (misa_id, r['role'], r['count']))
+                role_id = cursor.lastrowid
+                
+                for m_id in r.get('members', []):
+                    if str(m_id).strip():
+                        cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (role_id, m_id))
             
             conn.commit()
             return jsonify({"success": True})
