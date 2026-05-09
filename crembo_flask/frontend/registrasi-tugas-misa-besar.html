@@ -45,6 +45,25 @@
       height: 100vh;
     }
 
+    .sidebar-backdrop { 
+      display: none; 
+      position: fixed; 
+      inset: 0; background: rgba(17, 24, 39, 0.35); 
+      backdrop-filter: blur(1px); 
+      z-index: 30; 
+    }
+
+    .mobile-toggle { 
+      display: none; 
+      border: 1.5px solid var(--line); 
+      background: #fff; 
+      padding: 6px 12px;
+      border-radius: var(--radius-sm); 
+      font-size: 0.84rem; 
+      cursor: pointer; 
+      font-weight: bold; 
+    }
+
     .brand {
       border: 1px solid #838383;
       background: rgba(255, 255, 255, 0.04);
@@ -202,8 +221,12 @@
 
     @media (max-width: 1080px) {
       .layout { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; top: 0; left: 0; width: min(290px, 86vw); height: 100vh; z-index: 40; transform: translateX(-102%); transition: transform 220ms ease; }
       .grid-3 { grid-template-columns: 1fr; }
       .role-adder { grid-template-columns: 1fr; }
+      .sidebar.show { transform: translateX(0); }
+      .sidebar-backdrop.show { display: block; }
+      .mobile-toggle { display: inline-block; }
       .schedule-filters { grid-template-columns: 1fr; }
     }
   </style>
@@ -224,6 +247,9 @@
           <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
           <a class="menu-link active" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
           <a class="menu-link" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
+          <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
+          <a class="menu-link" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
+          <a class="menu-link" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
         </div>
       </div>
 
@@ -232,10 +258,14 @@
         <a href="/logout" style="color: #fff; font-weight: 700;">Keluar / Logout</a>
       </div>
     </aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
     <main class="main">
       <header class="dashboard-headline-bar">
-        <h1>Registrasi Tugas Misa Besar</h1>
+        <div class="headline-left">
+          <button id="mobileSidebarBtn" class="mobile-toggle" type="button">☰ Menu</button>
+          <h1>Registrasi Tugas Misa Besar</h1>
+        </div>
         <div class="head-meta">
           <span id="liveDateTime">-</span>
           <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
@@ -954,6 +984,40 @@
     document.getElementById("scheduleMisaFilter").onchange = renderBigMassSchedules;
     document.getElementById("scheduleMonthFilter").onchange = renderBigMassSchedules;
     document.getElementById("scheduleYearFilter").onchange = renderBigMassSchedules;
+
+    const mobileSidebarBtn = document.getElementById("mobileSidebarBtn");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+    if (mobileSidebarBtn) {
+      mobileSidebarBtn.addEventListener("click", () => {
+        sidebar.classList.add("show");
+        sidebarBackdrop.classList.add("show");
+      });
+    }
+
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener("click", () => {
+        sidebar.classList.remove("show");
+        sidebarBackdrop.classList.remove("show");
+      });
+    }
+
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      link.addEventListener("click", () => {
+        sidebar.classList.remove("show");
+        sidebarBackdrop.classList.remove("show");
+      });
+    });
+
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+      const group = button.closest(".menu-group");
+      group.classList.toggle("open");
+      const marker = button.querySelector("span");
+      marker.textContent = group.classList.contains("open") ? "-" : "+";
+      });
+    });
 
     setInterval(() => {
         const n = new Date();
