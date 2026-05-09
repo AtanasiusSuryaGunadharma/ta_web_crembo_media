@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 09 Bulan Mei 2026 pada 09.43
+-- Waktu pembuatan: 09 Bulan Mei 2026 pada 10.03
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -456,8 +456,8 @@ CREATE TABLE `misa_besar` (
 --
 
 INSERT INTO `misa_besar` (`id`, `misa_name`, `misa_date`, `misa_time`, `misa_note`, `allow_member_request`, `status`, `created_at`) VALUES
-(3, 'Misa Kamis Putih', '2026-06-16', '09:28:00', 'Misa kamis putih hari rabu', 1, 'published', '2026-05-09 02:25:49'),
-(4, 'Misa Vigili Paskah', '2026-05-30', '14:00:00', 'Tes Misa vigili paskah aja', 1, 'published', '2026-05-09 07:42:48');
+(5, 'Tes Misa 1', '2026-05-31', '14:55:00', 'Tes Misa 1 nama Misa no template', 0, 'published', '2026-05-09 07:53:24'),
+(6, 'Misa Pentahbisan', '2026-05-31', '14:56:00', 'Tes Misa pentahbisan Role Custom', 1, 'published', '2026-05-09 07:54:09');
 
 -- --------------------------------------------------------
 
@@ -476,11 +476,10 @@ CREATE TABLE `misa_besar_assignments` (
 --
 
 INSERT INTO `misa_besar_assignments` (`id`, `role_id`, `member_id`) VALUES
-(48, 49, 21),
-(49, 50, 73),
-(50, 54, 73),
-(51, 55, 21),
-(52, 55, 67);
+(62, 77, 73),
+(63, 80, 73),
+(64, 81, 67),
+(65, 81, 72);
 
 -- --------------------------------------------------------
 
@@ -500,15 +499,14 @@ CREATE TABLE `misa_besar_names` (
 --
 
 INSERT INTO `misa_besar_names` (`id`, `misa_id`, `role_name`, `required_count`) VALUES
-(49, 4, 'PD', 1),
-(50, 4, 'OP', 1),
-(51, 4, 'Kamera', 1),
-(52, 4, 'Supervisor', 1),
-(53, 4, 'Fotografer', 1),
-(54, 3, 'PD', 1),
-(55, 3, 'Kebersihan', 2),
-(56, 3, 'Supervisor', 1),
-(57, 3, 'Fotografer', 1);
+(77, 6, 'kebersihan', 1),
+(78, 6, 'Supervisor', 1),
+(79, 6, 'Fotografer', 1),
+(80, 5, 'PD', 1),
+(81, 5, 'OP', 2),
+(82, 5, 'Kamera', 1),
+(83, 5, 'Supervisor', 1),
+(84, 5, 'Fotografer', 1);
 
 -- --------------------------------------------------------
 
@@ -2835,19 +2833,19 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `misa_besar`
 --
 ALTER TABLE `misa_besar`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_assignments`
 --
 ALTER TABLE `misa_besar_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_names`
 --
 ALTER TABLE `misa_besar_names`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT untuk tabel `news_category_mapping`
