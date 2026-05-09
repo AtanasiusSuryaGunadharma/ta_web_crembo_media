@@ -1314,6 +1314,183 @@
 			letter-spacing: 0.02em;
 		}
 
+
+		.home-schedule-summary {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin: 10px 0 12px;
+			color: var(--ink-secondary);
+			font-size: 0.88rem;
+		}
+
+		.home-schedule-summary strong {
+			color: var(--primary);
+			font-size: 0.95rem;
+		}
+
+		.home-schedule-pager {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+
+		.home-schedule-pager .btn-ghost {
+			padding: 6px 10px;
+			font-size: 0.78rem;
+			border-radius: 999px;
+		}
+
+		.home-schedule-pager .btn-ghost:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
+			background: #e5e7eb;
+			color: #6b7280;
+			border-color: #d1d5db;
+		}
+
+
+		/* Navigasi scroll tabel jadwal homepage */
+		.table-scroll-shell {
+			position: relative;
+			margin: 0 -10px;
+			padding: 0 10px 18px;
+		}
+
+		.table-scroll-shell .schedule-scroll {
+			overflow-x: auto;
+			overflow-y: hidden;
+			scroll-behavior: smooth;
+			-webkit-overflow-scrolling: touch;
+			overscroll-behavior-x: contain;
+			border-radius: var(--radius-sm);
+			scrollbar-width: thin;
+			scrollbar-color: rgba(128, 0, 0, 0.32) rgba(128, 0, 0, 0.08);
+		}
+
+		.table-scroll-shell .schedule-scroll::-webkit-scrollbar { height: 9px; }
+		.table-scroll-shell .schedule-scroll::-webkit-scrollbar-thumb { background: rgba(128, 0, 0, 0.32); border-radius: 999px; }
+		.table-scroll-shell .schedule-scroll::-webkit-scrollbar-track { background: rgba(128, 0, 0, 0.08); border-radius: 999px; }
+		.table-scroll-shell .schedule-table { min-width: 880px; width: max-content; }
+		.table-scroll-shell .schedule-table th,
+		.table-scroll-shell .schedule-table td { min-width: 145px; }
+		.table-scroll-shell .schedule-table .no-col,
+		.table-scroll-shell .schedule-table td:first-child { min-width: 58px; width: 58px; }
+		.table-scroll-shell .schedule-table .date-col,
+		.table-scroll-shell .schedule-table td:nth-child(2) { min-width: 190px; }
+		.table-scroll-shell .schedule-table .time-col,
+		.table-scroll-shell .schedule-table td:nth-child(3) { min-width: 105px; }
+
+		.table-scroll-btn {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			z-index: 12;
+			width: 40px;
+			height: 40px;
+			border: 1px solid var(--line);
+			border-radius: 50%;
+			background: var(--surface);
+			color: var(--primary);
+			box-shadow: var(--shadow-md);
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+			font-size: 1.45rem;
+			font-weight: 400;
+			opacity: 0.92;
+			transition: var(--transition);
+		}
+		.table-scroll-btn:hover { background: var(--primary); color: #fff; transform: translateY(-50%) scale(1.06); }
+		.table-scroll-btn.prev { left: -8px; }
+		.table-scroll-btn.next { right: -8px; }
+		.table-scroll-btn.disabled { opacity: 0.18; pointer-events: none; transform: translateY(-50%) scale(0.94); }
+		.table-scroll-indicator {
+			width: min(160px, 42vw);
+			height: 5px;
+			margin: 10px auto 0;
+			border-radius: 999px;
+			background: rgba(128, 0, 0, 0.10);
+			overflow: hidden;
+		}
+		.table-scroll-indicator[hidden] { display: none !important; }
+		.table-scroll-thumb {
+			height: 100%;
+			width: 36px;
+			border-radius: inherit;
+			background: linear-gradient(90deg, var(--primary), var(--accent-gold));
+			transform: translateX(0);
+			transition: width 0.18s ease, transform 0.18s ease;
+		}
+
+		/* Penanda user login yang sedang bertugas pada Misa Biasa di homepage */
+		.schedule-table tbody tr.home-ordinary-row-assigned td { background: linear-gradient(90deg, rgba(212,160,23,0.12), rgba(255,255,255,0.98)); }
+		.schedule-table tbody tr.home-ordinary-row-assigned td:first-child { border-left-color: var(--accent-gold) !important; }
+		.home-ordinary-assigned-wrap { display: grid; gap: 5px; align-items: start; }
+		.home-ordinary-assigned-tag {
+			display: inline-flex;
+			align-items: center;
+			width: fit-content;
+			border-radius: 999px;
+			padding: 3px 10px;
+			border: 1px solid rgba(212,160,23,0.72);
+			background: #fff8e1;
+			color: #7a4d00;
+			font-size: 0.72rem;
+			font-weight: 800;
+		}
+		.home-ordinary-user-cell { background: rgba(255,248,225,0.72) !important; color: var(--primary-dark) !important; font-weight: 700; }
+		.home-ordinary-user-name { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+		.home-ordinary-user-name::after {
+			content: "Anda";
+			border: 1px solid rgba(212,160,23,0.72);
+			background: #fff8e1;
+			color: #7a4d00;
+			border-radius: 999px;
+			padding: 1px 7px;
+			font-size: 0.68rem;
+			font-weight: 800;
+		}
+
+		.home-request-tag,
+		.home-status-tag {
+			display: inline-flex;
+			align-items: center;
+			width: fit-content;
+			border-radius: 999px;
+			padding: 3px 9px;
+			font-size: 0.72rem;
+			font-weight: 800;
+			border: 1px solid var(--line);
+			background: #fff;
+			white-space: nowrap;
+		}
+
+		.home-request-tag.open { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+		.home-request-tag.closed { border-color: #d1d5db; background: #f3f4f6; color: #4b5563; }
+		.home-status-tag.published { border-color: rgba(128,0,0,0.25); background: rgba(128,0,0,0.08); color: var(--primary); }
+
+		.home-role-list {
+			margin: 0;
+			padding-left: 18px;
+			display: grid;
+			gap: 4px;
+			font-size: 0.84rem;
+		}
+
+		.home-role-list strong { color: var(--ink); }
+		.home-role-list em { color: var(--muted); }
+
+		.home-empty-state {
+			padding: 20px;
+			text-align: center;
+			color: var(--muted);
+			font-style: italic;
+		}
+
 		.scroll-top-btn {
 			position: fixed;
 			right: 22px;
@@ -1752,64 +1929,38 @@
 					<button id="pillBulanan" class="mode-pill active" type="button" onclick="switchModePill('bulanan')">Bulanan Biasa</button>
 					<button id="pillHariRaya" class="mode-pill" type="button" onclick="switchModePill('hariraya')">Hari Raya</button>
 				</div>
-				<p class="schedule-note">Tanggal hari raya diblok dan diarahkan ke mode Hari Raya.</p>
+				<p id="homeScheduleModeNote" class="schedule-note">Misa Biasa menampilkan 3 hari sebelum, hari ini, dan 3 hari sesudah.</p>
 			</div>
-			<div id="homeMisaBesarNote" class="schedule-note-banner">Keterangan misa besar terbaru akan tampil di sini setelah registrasi disimpan.</div>
+			<div id="homeMisaBesarNote" class="schedule-note-banner">Memuat jadwal streaming dari database...</div>
 			<div class="schedule-legend">
 				<span class="legend-chip"><span class="legend-dot dot-normal"></span> Jadwal normal</span>
-				<span class="legend-chip"><span class="legend-dot dot-blocked"></span> Diblok karena hari raya</span>
+				<span class="legend-chip"><span class="legend-dot dot-blocked"></span> Slot Misa Besar / jam bentrok</span>
 			</div>
 			<!-- MODE: BULANAN BIASA -->
 			<div id="tableBulanan">
-				<div class="schedule-scroll">
-					<table class="schedule-table">
-						<thead>
+				<div class="home-schedule-summary">
+					<strong id="homeRegularRangeLabel">Memuat Misa Biasa...</strong>
+					<span id="homeRegularCountLabel">-</span>
+				</div>
+				<div class="table-scroll-shell" data-table-scroll-shell>
+					<button type="button" class="table-scroll-btn prev" aria-label="Geser tabel jadwal misa biasa ke kiri">&lsaquo;</button>
+					<div class="schedule-scroll" id="homeRegularScroll">
+						<table class="schedule-table" id="homeRegularTable">
+						<thead id="homeRegularHead">
 							<tr>
 								<th class="no-col">No</th>
 								<th class="date-col">Tanggal</th>
 								<th class="time-col">Jam</th>
-								<th>Operator</th>
-								<th>Kameramen</th>
-								<th>Supervisor</th>
+								<th>Petugas</th>
 							</tr>
 						</thead>
-						<tbody>
-							<tr>
-								<td>1</td>
-								<td>27 Maret 2026</td>
-								<td>18:00</td>
-								<td>Rikha</td>
-								<td>Jeni</td>
-								<td>Tyas</td>
-							</tr>
-							<tr>
-								<td>2</td>
-								<td>28 Maret 2026</td>
-								<td>18:00</td>
-								<td>Lisa</td>
-								<td>Evan</td>
-								<td>Jose</td>
-							</tr>
-							<tr class="blocked-row">
-								<td>3</td>
-								<td>29 Maret 2026</td>
-								<td colspan="4">
-									<div class="blocked-inline">
-										DIBLOK: Misa Minggu Palma (Hari Raya)
-										<span>— buka mode Hari Raya untuk detail petugas khusus.</span>
-									</div>
-								</td>
-							</tr>
-							<tr>
-								<td>4</td>
-								<td>30 Maret 2026</td>
-								<td>18:00</td>
-								<td>Rossa</td>
-								<td>Aurel</td>
-								<td>Asha</td>
-							</tr>
+						<tbody id="homeRegularBody">
+							<tr><td colspan="4">Memuat jadwal misa biasa...</td></tr>
 						</tbody>
-					</table>
+						</table>
+					</div>
+					<button type="button" class="table-scroll-btn next" aria-label="Geser tabel jadwal misa biasa ke kanan">&rsaquo;</button>
+					<div class="table-scroll-indicator" aria-hidden="true"><div class="table-scroll-thumb"></div></div>
 				</div>
 			</div>
 
@@ -1817,45 +1968,37 @@
 			<div id="tableHariRaya" style="display:none;">
 				<div class="hari-raya-banner">
 					<span class="hari-raya-badge">Mode Hari Raya</span>
-					<p>Jadwal khusus misa hari raya dengan formasi petugas lengkap.</p>
+					<p>Misa Besar yang ditampilkan hanya jadwal publikasi yang belum lewat dari hari ini. Maksimal 4 data per halaman.</p>
 				</div>
-				<div class="schedule-scroll">
-					<table class="schedule-table">
+				<div class="home-schedule-summary">
+					<strong id="homeBigMassCountLabel">Memuat Misa Besar...</strong>
+					<div class="home-schedule-pager" id="homeBigMassPager" hidden>
+						<button id="homeBigMassPrev" class="btn-ghost" type="button">← Sebelumnya</button>
+						<span id="homeBigMassPageInfo">Halaman 1</span>
+						<button id="homeBigMassNext" class="btn-ghost" type="button">Berikutnya →</button>
+					</div>
+				</div>
+				<div class="table-scroll-shell" data-table-scroll-shell>
+					<button type="button" class="table-scroll-btn prev" aria-label="Geser tabel misa besar ke kiri">&lsaquo;</button>
+					<div class="schedule-scroll" id="homeBigMassScroll">
+						<table class="schedule-table" id="homeBigMassTable">
 						<thead>
 							<tr>
 								<th class="no-col">No</th>
-								<th class="date-col">Tanggal & Acara</th>
+								<th class="date-col">Tanggal &amp; Acara</th>
 								<th class="time-col">Jam</th>
-								<th>Operator</th>
-								<th>Kameramen</th>
-								<th>Supervisor</th>
+								<th>Keterangan</th>
+								<th>Request</th>
+								<th>Petugas</th>
 							</tr>
 						</thead>
-						<tbody>
-							<tr class="hariraya-row">
-								<td>1</td>
-								<td>
-									<strong>29 Maret 2026</strong><br>
-									<span class="hariraya-label">Misa Minggu Palma</span>
-								</td>
-								<td>08:00</td>
-								<td>Andi</td>
-								<td>Budi</td>
-								<td>Citra</td>
-							</tr>
-							<tr class="hariraya-row">
-								<td>2</td>
-								<td>
-									<strong>20 April 2026</strong><br>
-									<span class="hariraya-label">Misa Paskah</span>
-								</td>
-								<td>20:00</td>
-								<td>Dewi</td>
-								<td>Eka</td>
-								<td>Fajar</td>
-							</tr>
+						<tbody id="homeBigMassBody">
+							<tr><td colspan="6">Memuat jadwal misa besar...</td></tr>
 						</tbody>
-					</table>
+						</table>
+					</div>
+					<button type="button" class="table-scroll-btn next" aria-label="Geser tabel misa besar ke kanan">&rsaquo;</button>
+					<div class="table-scroll-indicator" aria-hidden="true"><div class="table-scroll-thumb"></div></div>
 				</div>
 			</div>
 		</section>
@@ -2120,7 +2263,9 @@
 
         function formatDate(value) {
             if (!value) return "-";
-            const parsed = new Date(String(value).slice(0, 10) + "T00:00:00");
+            const parsed = value instanceof Date
+                ? value
+                : new Date(String(value).slice(0, 10) + "T00:00:00");
             if (Number.isNaN(parsed.getTime())) return String(value);
             return parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
         }
@@ -2130,23 +2275,29 @@
 			return Array.isArray(items) ? items : [];
 		}
 
-		function renderHomeMisaNote() {
+		let homeLoadedBigMassItems = [];
+
+		function renderHomeMisaNote(items) {
 			if (!homeMisaBesarNote) {
 				return;
 			}
-			const latestItem = readBigMassSchedules().filter(function (item) {
-				return item && (item.misaNote || item.note);
+			const sourceItems = Array.isArray(items) && items.length ? items : homeLoadedBigMassItems;
+			const latestItem = sourceItems.filter(function (item) {
+				return item && (item.misaNote || item.note || item.keterangan);
 			}).sort(function (a, b) {
 				const aTime = new Date((a.date || a.misaDate || "") + "T" + (a.time || a.misaTime || "00:00") + ":00").getTime();
 				const bTime = new Date((b.date || b.misaDate || "") + "T" + (b.time || b.misaTime || "00:00") + ":00").getTime();
-				return bTime - aTime;
+				return aTime - bTime;
 			})[0];
 
 			if (!latestItem) {
-				homeMisaBesarNote.textContent = "Keterangan misa besar terbaru akan tampil di sini setelah registrasi disimpan.";
+				homeMisaBesarNote.textContent = "Jadwal streaming dimuat dari database. Misa Besar yang belum lewat akan tampil pada tab Hari Raya.";
 				return;
 			}
-			homeMisaBesarNote.textContent = "Keterangan misa besar terbaru: " + String(latestItem.misaNote || latestItem.note || "-");
+			const name = latestItem.misaName || latestItem.namaMisa || "Misa Besar";
+			const dateText = formatDate(latestItem.date || latestItem.misaDate || "");
+			const noteText = latestItem.misaNote || latestItem.note || latestItem.keterangan || "-";
+			homeMisaBesarNote.textContent = "Misa Besar terdekat: " + name + " — " + dateText + " — " + noteText;
 		}
 
 		function readCarouselSlides() {
@@ -2721,6 +2872,411 @@
         }
 
 
+		// ==========================================
+		// JADWAL STREAMING HOME — DATA BACKEND
+		// ==========================================
+		const HOME_SCHEDULE_PAGE_SIZE = 4;
+		let homeScheduleRoles = [];
+		let homeRegularItems = [];
+		let homeBigMassItems = [];
+		let homeBigMassPage = 0;
+
+		const homeRegularHead = document.getElementById("homeRegularHead");
+		const homeRegularBody = document.getElementById("homeRegularBody");
+		const homeBigMassBody = document.getElementById("homeBigMassBody");
+		const homeRegularRangeLabel = document.getElementById("homeRegularRangeLabel");
+		const homeRegularCountLabel = document.getElementById("homeRegularCountLabel");
+		const homeBigMassCountLabel = document.getElementById("homeBigMassCountLabel");
+		const homeBigMassPager = document.getElementById("homeBigMassPager");
+		const homeBigMassPrev = document.getElementById("homeBigMassPrev");
+		const homeBigMassNext = document.getElementById("homeBigMassNext");
+		const homeBigMassPageInfo = document.getElementById("homeBigMassPageInfo");
+		const homeScheduleModeNote = document.getElementById("homeScheduleModeNote");
+		const homeCurrentUser = sessionData || { logged_in: false };
+
+		function normalizeTime(value) {
+			if (!value) return "";
+			return String(value).slice(0, 5);
+		}
+
+		function startOfLocalDay(date) {
+			return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+		}
+
+		function addDays(date, days) {
+			const copy = new Date(date);
+			copy.setDate(copy.getDate() + days);
+			return copy;
+		}
+
+		function isoDate(date) {
+			const y = date.getFullYear();
+			const m = String(date.getMonth() + 1).padStart(2, "0");
+			const d = String(date.getDate()).padStart(2, "0");
+			return y + "-" + m + "-" + d;
+		}
+
+		function parseIsoDate(value) {
+			const parsed = new Date(String(value || "").slice(0, 10) + "T00:00:00");
+			return Number.isNaN(parsed.getTime()) ? null : parsed;
+		}
+
+		function formatDateWithDay(value) {
+			const parsed = parseIsoDate(value);
+			if (!parsed) return String(value || "-");
+			return parsed.toLocaleDateString("id-ID", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+		}
+
+		function formatHomeRangeLabel(startDate, endDate) {
+			if (!(startDate instanceof Date) || !(endDate instanceof Date)) return "Rentang 7 hari";
+			const startDay = String(startDate.getDate()).padStart(2, "0");
+			const endDay = String(endDate.getDate()).padStart(2, "0");
+			const monthFmt = new Intl.DateTimeFormat("id-ID", { month: "long" });
+			const startMonth = monthFmt.format(startDate);
+			const endMonth = monthFmt.format(endDate);
+			const sameMonth = startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear();
+			if (sameMonth) return startDay + "–" + endDay + " " + endMonth + " " + endDate.getFullYear();
+			if (startDate.getFullYear() === endDate.getFullYear()) return startDay + " " + startMonth + "–" + endDay + " " + endMonth + " " + endDate.getFullYear();
+			return startDay + " " + startMonth + " " + startDate.getFullYear() + "–" + endDay + " " + endMonth + " " + endDate.getFullYear();
+		}
+
+		function normalizeCompareText(value) {
+			return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+		}
+
+		function homeCurrentUserId() {
+			return String((homeCurrentUser && (homeCurrentUser.user_id || homeCurrentUser.id || homeCurrentUser.member_id)) || "");
+		}
+
+		function homeCurrentUserNameCandidates() {
+			const raw = [homeCurrentUser && homeCurrentUser.nama, homeCurrentUser && homeCurrentUser.username, homeCurrentUser && homeCurrentUser.name].filter(Boolean).map(String);
+			const names = [];
+			raw.forEach(function (name) {
+				const clean = normalizeCompareText(name);
+				if (clean) names.push(clean);
+				const first = clean.split(" ")[0];
+				if (first && first.length >= 3) names.push(first);
+			});
+			return uniqueValues(names);
+		}
+
+		function splitAssignmentNames(value) {
+			return String(value || "").split(/[,;\/]+/).map(normalizeCompareText).filter(Boolean);
+		}
+
+		function dateInRange(value, startDate, endDate) {
+			const parsed = parseIsoDate(value);
+			return parsed && parsed >= startDate && parsed <= endDate;
+		}
+
+		function monthKeysBetween(startDate, endDate) {
+			const result = [];
+			const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+			const limit = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+			while (cursor <= limit) {
+				result.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
+				cursor.setMonth(cursor.getMonth() + 1);
+			}
+			return result;
+		}
+
+		function uniqueValues(values) {
+			return Array.from(new Set(values.filter(function (item) { return item !== null && item !== undefined && String(item).trim(); }).map(function (item) { return String(item).trim(); })));
+		}
+
+		async function fetchJsonSafe(url) {
+			const response = await fetch(url, { headers: { "Accept": "application/json" } });
+			if (!response.ok) throw new Error(url + " " + response.status);
+			return response.json();
+		}
+
+		function payloadScheduleRows(payload) {
+			if (Array.isArray(payload)) return payload;
+			if (payload && Array.isArray(payload.schedule)) return payload.schedule;
+			if (payload && Array.isArray(payload.items)) return payload.items;
+			return [];
+		}
+
+		function payloadScheduleRoles(payload, rows) {
+			const fromPayload = payload && Array.isArray(payload.roles)
+				? payload.roles.map(function (role) { return typeof role === "object" ? (role.name || role.roleName || role.role_name || "") : role; })
+				: [];
+			const fromRows = [];
+			(rows || []).forEach(function (row) {
+				Object.keys(row.assignments || {}).forEach(function (roleName) { fromRows.push(roleName); });
+				if (Array.isArray(row.roles)) row.roles.forEach(function (roleName) { fromRows.push(typeof roleName === "object" ? (roleName.name || roleName.role || "") : roleName); });
+			});
+			return uniqueValues(fromPayload.concat(fromRows));
+		}
+
+		function normalizeRegularSchedule(row) {
+			const assignments = row.assignments || {};
+			const assignmentIds = row.assignmentIds || row.assignment_ids || row.memberIds || row.member_ids || {};
+			const roles = {};
+			const roleMemberIds = {};
+			homeScheduleRoles.forEach(function (roleName) {
+				roles[roleName] = assignments[roleName] || "";
+				roleMemberIds[roleName] = assignmentIds[roleName] || "";
+			});
+			Object.keys(assignments).forEach(function (roleName) {
+				if (!Object.prototype.hasOwnProperty.call(roles, roleName)) roles[roleName] = assignments[roleName];
+			});
+			Object.keys(assignmentIds).forEach(function (roleName) {
+				if (!Object.prototype.hasOwnProperty.call(roleMemberIds, roleName)) roleMemberIds[roleName] = assignmentIds[roleName];
+			});
+			return {
+				type: "regular",
+				date: row.date || row.scheduleDate || row.schedule_date || "",
+				time: normalizeTime(row.time || row.scheduleTime || row.schedule_time || ""),
+				massName: row.massName || row.mass_name || "Misa",
+				assignments: roles,
+				assignmentIds: roleMemberIds
+			};
+		}
+
+		function normalizeBigMassHome(item) {
+			const roles = Array.isArray(item.roles) ? item.roles.map(function (role) {
+				return {
+					role: role.role || role.roleName || role.role_name || "Role",
+					memberNames: Array.isArray(role.memberNames) ? role.memberNames : [],
+					count: Number(role.count || role.requiredCount || role.required_count || 1) || 1
+				};
+			}) : [];
+			return {
+				type: "big",
+				id: item.id || "",
+				misaName: item.misaName || item.namaMisa || item.misa_name || "Misa Besar",
+				date: item.misaDate || item.date || item.misa_date || "",
+				time: normalizeTime(item.misaTime || item.time || item.misa_time || ""),
+				misaNote: item.misaNote || item.keterangan || item.note || item.misa_note || "",
+				allowMemberRequest: Boolean(item.allowMemberRequest || item.allow_member_request),
+				roles: roles
+			};
+		}
+
+		function homeRoleCellText(value, isCurrentUserRole) {
+			if (!value || !String(value).trim()) return "—";
+			const safeValue = escapeHtml(value);
+			return isCurrentUserRole ? '<span class="home-ordinary-user-name">' + safeValue + '</span>' : safeValue;
+		}
+
+		function homeRoleValueFromRow(row, roleName) {
+			const assignments = row.assignments || {};
+			return assignments[roleName] || assignments[String(roleName || "").trim()] || "";
+		}
+
+		function homeRoleMemberIdFromRow(row, roleName) {
+			const ids = row.assignmentIds || {};
+			return String(ids[roleName] || ids[String(roleName || "").trim()] || "");
+		}
+
+		function homeCurrentUserRolesForRegular(row) {
+			if (!homeCurrentUser || !homeCurrentUser.logged_in) return [];
+			const currentUserId = homeCurrentUserId();
+			const nameCandidates = homeCurrentUserNameCandidates();
+			const matches = [];
+			homeScheduleRoles.forEach(function (roleName) {
+				const memberId = homeRoleMemberIdFromRow(row, roleName);
+				if (currentUserId && memberId && memberId === currentUserId) {
+					matches.push(roleName);
+					return;
+				}
+				const names = splitAssignmentNames(homeRoleValueFromRow(row, roleName));
+				if (names.length && nameCandidates.some(function (candidate) { return names.includes(candidate); })) matches.push(roleName);
+			});
+			return uniqueValues(matches);
+		}
+
+		function homeOrdinaryAssignmentTagHtml(roles) {
+			if (!roles || !roles.length) return "";
+			return '<span class="home-ordinary-assigned-tag">Anda Bertugas: ' + escapeHtml(roles.join(", ")) + '</span>';
+		}
+
+		function renderHomeRegularHead() {
+			if (!homeRegularHead) return;
+			const roleHeaders = homeScheduleRoles.map(function (roleName) { return "<th>" + escapeHtml(roleName) + "</th>"; }).join("");
+			homeRegularHead.innerHTML = "<tr><th class=\"no-col\">No</th><th class=\"date-col\">Tanggal</th><th class=\"time-col\">Jam</th>" + roleHeaders + "</tr>";
+		}
+
+		function renderHomeRegularSchedule() {
+			if (!homeRegularBody) return;
+			renderHomeRegularHead();
+			const colSpan = Math.max(4, 3 + homeScheduleRoles.length);
+			const today = startOfLocalDay(new Date());
+			const startDate = addDays(today, -3);
+			const endDate = addDays(today, 3);
+			const blockedItems = homeBigMassItems
+				.filter(function (item) { return dateInRange(item.date, startDate, endDate); })
+				.map(function (item) { return Object.assign({}, item, { type: "blocked" }); });
+			const rows = homeRegularItems.concat(blockedItems).sort(function (a, b) {
+				return ((a.date || "") + " " + (a.time || "") + " " + (a.type || "")).localeCompare((b.date || "") + " " + (b.time || "") + " " + (b.type || ""));
+			});
+			if (homeRegularRangeLabel) homeRegularRangeLabel.textContent = "Rentang Misa Biasa: " + formatHomeRangeLabel(startDate, endDate);
+			if (homeRegularCountLabel) {
+				const assignedCount = rows.filter(function (item) { return item.type !== "blocked" && homeCurrentUserRolesForRegular(item).length; }).length;
+				homeRegularCountLabel.textContent = rows.length + " jadwal tampil" + (assignedCount ? " · Anda bertugas di " + assignedCount + " jadwal" : "");
+			}
+			if (!rows.length) {
+				homeRegularBody.innerHTML = '<tr><td colspan="' + colSpan + '"><div class="home-empty-state">Belum ada jadwal Misa Biasa untuk rentang 7 hari ini.</div></td></tr>';
+				return;
+			}
+			homeRegularBody.innerHTML = rows.map(function (row, index) {
+				if (row.type === "blocked") {
+					return '<tr class="blocked-row"><td>' + (index + 1) + '</td><td>' + escapeHtml(formatDateWithDay(row.date)) + '</td><td colspan="' + (1 + homeScheduleRoles.length) + '"><div class="blocked-inline">DIBLOK: ' + escapeHtml(row.misaName) + ' — ' + escapeHtml(row.time || '-') + ' WIB<span>— buka mode Hari Raya untuk detail petugas khusus.</span></div></td></tr>';
+				}
+				const assignedRoles = homeCurrentUserRolesForRegular(row);
+				const assignedSet = new Set(assignedRoles);
+				const roleCells = homeScheduleRoles.map(function (roleName) {
+					const isAssignedRole = assignedSet.has(roleName);
+					return '<td' + (isAssignedRole ? ' class="home-ordinary-user-cell"' : '') + '>' + homeRoleCellText(homeRoleValueFromRow(row, roleName), isAssignedRole) + '</td>';
+				}).join("");
+				const dateCell = '<div class="home-ordinary-assigned-wrap"><span>' + escapeHtml(formatDateWithDay(row.date)) + '</span>' + homeOrdinaryAssignmentTagHtml(assignedRoles) + '<small style="color:var(--muted);">' + escapeHtml(row.massName || 'Misa') + '</small></div>';
+				return '<tr class="normal-row ' + (assignedRoles.length ? 'home-ordinary-row-assigned' : '') + '"><td>' + (index + 1) + '</td><td>' + dateCell + '</td><td>' + escapeHtml(row.time || '-') + '</td>' + roleCells + '</tr>';
+			}).join("");
+			requestAnimationFrame(updateTableScrollShells);
+		}
+
+		function roleListHtmlHome(roles) {
+			if (!roles || !roles.length) return '<em>Belum ada role.</em>';
+			return '<ul class="home-role-list">' + roles.map(function (role) {
+				const names = Array.isArray(role.memberNames) && role.memberNames.length ? escapeHtml(role.memberNames.join(", ")) : '<em>Belum terisi</em>';
+				return '<li><strong>' + escapeHtml(role.role || 'Role') + ':</strong> ' + names + '</li>';
+			}).join("") + '</ul>';
+		}
+
+		function renderHomeBigMassSchedule() {
+			if (!homeBigMassBody) return;
+			const total = homeBigMassItems.length;
+			const totalPages = Math.max(1, Math.ceil(total / HOME_SCHEDULE_PAGE_SIZE));
+			homeBigMassPage = Math.min(Math.max(0, homeBigMassPage), totalPages - 1);
+			const startIndex = homeBigMassPage * HOME_SCHEDULE_PAGE_SIZE;
+			const pageItems = homeBigMassItems.slice(startIndex, startIndex + HOME_SCHEDULE_PAGE_SIZE);
+			if (homeBigMassCountLabel) homeBigMassCountLabel.textContent = total ? (total + " Misa Besar coming soon") : "Belum ada Misa Besar coming soon";
+			if (homeBigMassPager) homeBigMassPager.hidden = total <= HOME_SCHEDULE_PAGE_SIZE;
+			if (homeBigMassPageInfo) homeBigMassPageInfo.textContent = "Halaman " + (homeBigMassPage + 1) + " dari " + totalPages;
+			if (homeBigMassPrev) homeBigMassPrev.disabled = homeBigMassPage <= 0;
+			if (homeBigMassNext) homeBigMassNext.disabled = homeBigMassPage >= totalPages - 1;
+			if (!pageItems.length) {
+				homeBigMassBody.innerHTML = '<tr><td colspan="6"><div class="home-empty-state">Belum ada jadwal Misa Besar publikasi yang akan datang.</div></td></tr>';
+				return;
+			}
+			homeBigMassBody.innerHTML = pageItems.map(function (item, index) {
+				const requestTag = item.allowMemberRequest ? '<span class="home-request-tag open">Request Dibuka</span>' : '<span class="home-request-tag closed">Request Ditutup</span>';
+				return '<tr class="hariraya-row"><td>' + (startIndex + index + 1) + '</td>' +
+					'<td><strong>' + escapeHtml(formatDateWithDay(item.date)) + '</strong><br><span class="hariraya-label">' + escapeHtml(item.misaName) + '</span><br><span class="home-status-tag published">Published</span></td>' +
+					'<td>' + escapeHtml(item.time || '-') + ' WIB</td>' +
+					'<td>' + escapeHtml(item.misaNote || '-') + '</td>' +
+					'<td>' + requestTag + '</td>' +
+					'<td>' + roleListHtmlHome(item.roles) + '</td></tr>';
+			}).join("");
+			requestAnimationFrame(updateTableScrollShells);
+		}
+
+		async function loadHomeStreamingSection() {
+			const today = startOfLocalDay(new Date());
+			const startDate = addDays(today, -3);
+			const endDate = addDays(today, 3);
+			const months = monthKeysBetween(startDate, endDate);
+			try {
+				const schedulePayloads = await Promise.all(months.map(function (item) {
+					return fetchJsonSafe('/api/streaming/schedule?month=' + encodeURIComponent(item.month) + '&year=' + encodeURIComponent(item.year));
+				}));
+				let rawRows = [];
+				let roleNames = [];
+				schedulePayloads.forEach(function (payload) {
+					const rows = payloadScheduleRows(payload);
+					rawRows = rawRows.concat(rows);
+					roleNames = roleNames.concat(payloadScheduleRoles(payload, rows));
+				});
+				homeScheduleRoles = uniqueValues(roleNames);
+				if (!homeScheduleRoles.length) homeScheduleRoles = ["Operator", "Kameramen", "Supervisor"];
+				homeRegularItems = rawRows.map(normalizeRegularSchedule).filter(function (row) { return dateInRange(row.date, startDate, endDate); });
+			} catch (error) {
+				console.warn('Gagal memuat jadwal misa biasa home:', error);
+				homeScheduleRoles = ["Operator", "Kameramen", "Supervisor"];
+				homeRegularItems = [];
+			}
+
+			try {
+				const payload = await fetchJsonSafe('/api/misa-besar/public');
+				const rows = payloadScheduleRows(payload).map(normalizeBigMassHome);
+				homeBigMassItems = rows.filter(function (item) {
+					const itemDate = parseIsoDate(item.date);
+					return itemDate && itemDate >= today;
+				}).sort(function (a, b) { return ((a.date || "") + " " + (a.time || "")).localeCompare((b.date || "") + " " + (b.time || "")); });
+				homeLoadedBigMassItems = homeBigMassItems.slice();
+			} catch (error) {
+				console.warn('Gagal memuat jadwal misa besar home:', error);
+				homeBigMassItems = [];
+				homeLoadedBigMassItems = [];
+			}
+
+			renderHomeMisaNote(homeBigMassItems);
+			renderHomeRegularSchedule();
+			renderHomeBigMassSchedule();
+		}
+
+		if (homeBigMassPrev) {
+			homeBigMassPrev.addEventListener("click", function () {
+				homeBigMassPage -= 1;
+				renderHomeBigMassSchedule();
+			});
+		}
+		if (homeBigMassNext) {
+			homeBigMassNext.addEventListener("click", function () {
+				homeBigMassPage += 1;
+				renderHomeBigMassSchedule();
+			});
+		}
+
+
+		function updateTableScrollShell(shell) {
+			const track = shell && shell.querySelector('.schedule-scroll');
+			const prevBtn = shell && shell.querySelector('.table-scroll-btn.prev');
+			const nextBtn = shell && shell.querySelector('.table-scroll-btn.next');
+			const indicator = shell && shell.querySelector('.table-scroll-indicator');
+			const thumb = shell && shell.querySelector('.table-scroll-thumb');
+			if (!track) return;
+			const maxScroll = Math.max(track.scrollWidth - track.clientWidth, 0);
+			const hasOverflow = maxScroll > 4;
+			if (prevBtn) prevBtn.classList.toggle('disabled', !hasOverflow || track.scrollLeft <= 4);
+			if (nextBtn) nextBtn.classList.toggle('disabled', !hasOverflow || track.scrollLeft >= maxScroll - 4);
+			if (indicator) indicator.hidden = !hasOverflow;
+			if (thumb && hasOverflow) {
+				const trackWidth = indicator ? indicator.clientWidth : 160;
+				const thumbWidth = Math.max(28, Math.min(trackWidth, (track.clientWidth / track.scrollWidth) * trackWidth));
+				const travel = Math.max(trackWidth - thumbWidth, 0);
+				const ratio = maxScroll ? track.scrollLeft / maxScroll : 0;
+				thumb.style.width = thumbWidth + 'px';
+				thumb.style.transform = 'translateX(' + (travel * ratio) + 'px)';
+			}
+		}
+
+		function updateTableScrollShells() {
+			document.querySelectorAll('[data-table-scroll-shell]').forEach(updateTableScrollShell);
+		}
+
+		function initTableScrollShells() {
+			document.querySelectorAll('[data-table-scroll-shell]').forEach(function (shell) {
+				const track = shell.querySelector('.schedule-scroll');
+				const prevBtn = shell.querySelector('.table-scroll-btn.prev');
+				const nextBtn = shell.querySelector('.table-scroll-btn.next');
+				if (!track) return;
+				if (prevBtn) prevBtn.addEventListener('click', function () {
+					track.scrollBy({ left: -Math.max(track.clientWidth * 0.7, 260), behavior: 'smooth' });
+				});
+				if (nextBtn) nextBtn.addEventListener('click', function () {
+					track.scrollBy({ left: Math.max(track.clientWidth * 0.7, 260), behavior: 'smooth' });
+				});
+				track.addEventListener('scroll', function () { updateTableScrollShell(shell); });
+				const observer = new MutationObserver(function () { updateTableScrollShell(shell); });
+				observer.observe(track, { childList: true, subtree: true });
+				setTimeout(function () { updateTableScrollShell(shell); }, 250);
+			});
+			window.addEventListener('resize', updateTableScrollShells);
+		}
+
+
         // ==========================================
         // SCRIPT GENERIC CAROUSEL GESER
         // ==========================================
@@ -2766,6 +3322,8 @@
         loadHomeAgendas();
         loadHomeNews();
         loadHomeForms();
+		loadHomeStreamingSection();
+		initTableScrollShells();
 		initHorizontalScrolls();
         
 		carouselTrack.addEventListener("scroll", syncActiveDot);
@@ -2963,11 +3521,13 @@
 				pillHariRaya.classList.remove('active');
 				tableBulanan.style.display  = '';
 				tableHariRaya.style.display = 'none';
+				if (homeScheduleModeNote) homeScheduleModeNote.textContent = 'Misa Biasa menampilkan 3 hari sebelum, hari ini, dan 3 hari sesudah.';
 			} else {
 				pillHariRaya.classList.add('active');
 				pillBulanan.classList.remove('active');
 				tableHariRaya.style.display = '';
 				tableBulanan.style.display  = 'none';
+				if (homeScheduleModeNote) homeScheduleModeNote.textContent = 'Hari Raya menampilkan Misa Besar publikasi yang belum lewat, maksimal 4 per halaman.';
 			}
 		}
 	</script>
