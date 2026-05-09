@@ -499,13 +499,13 @@
 				<button id="pillBulanan" class="mode-pill active" type="button" role="tab" aria-selected="true" onclick="switchMode('bulanan')">Jadwal Misa Biasa</button>
 				<button id="pillHariRaya" class="mode-pill" type="button" role="tab" aria-selected="false" onclick="switchMode('hariraya')">Jadwal Misa Besar</button>
 			</div>
-			<span class="mode-note">Tanggal hari raya diblok pada mode Misa Biasa — beralih ke Misa Besar untuk detail petugas</span>
+			<span class="mode-note">Slot Misa Besar tampil sebagai blok pada jamnya — jadwal Misa Biasa lain di tanggal yang sama tetap tampil</span>
 		</div>
 
 		<!-- Legend — 2 item (bulat kuning dihapus) -->
 		<div class="schedule-legend" aria-label="Keterangan warna jadwal">
 			<span class="legend-chip"><span class="legend-dot dot-normal"></span> Jadwal Normal</span>
-			<span class="legend-chip"><span class="legend-dot dot-blocked"></span> Diblok / Misa Besar</span>
+			<span class="legend-chip"><span class="legend-dot dot-blocked"></span> Slot Misa Besar / Jam Bentrok</span>
 		</div>
 
 		<!-- INFO BAR -->
@@ -618,6 +618,7 @@
 	const MEMBER_KEY   = "crembo-members";
 	const REQUEST_PAGE = "request-tugas-anggota.html";
 	let scheduleData = [];
+	let ordinaryRoles = ["PD", "OP / vMix", "Kamera", "Supervisor", "Fotografer"];
 	let bigMassData = [];
 	let currentSession = { logged_in: false, user_id: "", nama: "", role: "" };
 	let currentMode = "bulanan";
@@ -709,7 +710,7 @@
 		const rows = [];
 		(roles || []).forEach(function(role) {
 			const names = role.memberNames && role.memberNames.length ? role.memberNames.join(", ") : "-";
-			rows.push({ role: role.role || "Role", names: names });
+			rows.push({ role: role.role || "Role", names: names, count: Number(role.count || 1) });
 		});
 		return rows;
 	}
@@ -720,7 +721,27 @@
 			return '<li><strong>' + esc(row.role) + ':</strong> ' + (row.names === '-' ? '<em>Belum terisi</em>' : esc(row.names)) + '</li>';
 		}).join('') + '</ul>';
 	}
+	function roleFilledCount(role) {
+		if (!role) return 0;
+		if (Array.isArray(role.memberIds) && role.memberIds.length) return role.memberIds.filter(Boolean).length;
+		if (Array.isArray(role.memberNames)) return role.memberNames.filter(Boolean).length;
+		return 0;
+	}
+	function roleRequiredCount(role) {
+		return Math.max(1, Number(role && (role.count || role.requiredCount || role.required_count) || 1));
+	}
+	function openSlotCount(item) {
+		const roles = Array.isArray(item.roles) ? item.roles : [];
+		return roles.reduce(function(total, role) {
+			return total + Math.max(roleRequiredCount(role) - roleFilledCount(role), 0);
+		}, 0);
+	}
+	function isBigMassFull(item) {
+		const roles = Array.isArray(item.roles) ? item.roles : [];
+		return roles.length > 0 && openSlotCount(item) === 0;
+	}
 	function requestTagHtml(item) {
+		if (isBigMassFull(item)) return '<span class="big-mass-tag closed">Slot Penuh</span>';
 		return item.allowMemberRequest
 			? '<span class="big-mass-tag open">Request Dibuka</span>'
 			: '<span class="big-mass-tag closed">Request Ditutup</span>';
@@ -730,14 +751,49 @@
 		return '<span class="big-mass-tag assigned">Anda Bertugas: ' + esc(item.currentUserRoles.join(", ")) + '</span>';
 	}
 	function requestButtonHtml(item) {
-		if (item.allowMemberRequest) {
-			const href = REQUEST_PAGE + '?misa_besar_id=' + encodeURIComponent(item.id || '') + '&date=' + encodeURIComponent(item.date || '');
-			return '<a class="big-mass-request-btn" href="' + href + '">Request Tugas Misa Besar</a>';
+		const isFull = isBigMassFull(item);
+		if (isFull) return '<span class="big-mass-request-btn disabled">Slot Penuh / Ditutup</span>';
+		if (!item.allowMemberRequest) return '<span class="big-mass-request-btn disabled">Request Tidak Dibuka</span>';
+
+		const requestHref = REQUEST_PAGE + '?misa_besar_id=' + encodeURIComponent(item.id || '') + '&date=' + encodeURIComponent(item.date || '');
+		if (!currentSession || !currentSession.logged_in) {
+			return '<a class="big-mass-request-btn" href="login.html?next=' + encodeURIComponent(requestHref) + '">Login untuk Request</a>';
 		}
-		return '<span class="big-mass-request-btn disabled">Request Tidak Dibuka</span>';
+		return '<a class="big-mass-request-btn" href="' + requestHref + '">Request Tugas Misa Besar</a>';
 	}
 	function loadSchedule() {
 		return scheduleData.filter(function(s) { return normalizeStatus(s.status) === "Published"; });
+	}
+	function scheduleKey(date, time) {
+		return String(date || '') + '_' + normalizeTime(time || '');
+	}
+	function uniqueRoleNames(values) {
+		const seen = new Set();
+		return (values || []).map(function(role) { return String(role || '').trim(); }).filter(function(role) {
+			if (!role || seen.has(role)) return false;
+			seen.add(role);
+			return true;
+		});
+	}
+	function deriveOrdinaryRoles(rows) {
+		let derived = [];
+		(rows || []).forEach(function(row) {
+			if (Array.isArray(row.roles)) derived = derived.concat(row.roles);
+			Object.keys(row.assignments || {}).forEach(function(role) { derived.push(role); });
+			Object.keys(row.roles || {}).forEach(function(role) { derived.push(role); });
+		});
+		return uniqueRoleNames(derived);
+	}
+	function renderOrdinaryTableHeader() {
+		const table = document.getElementById("tblBulanan");
+		if (!table) return;
+		if (!ordinaryRoles.length) ordinaryRoles = ["PD", "OP / vMix", "Kamera", "Supervisor", "Fotografer"];
+		const headerCells = ordinaryRoles.map(function(role) { return '<th>' + esc(role) + '</th>'; }).join('');
+		table.querySelector('thead').innerHTML = '<tr><th style="width:44px;">No</th><th>Tanggal</th><th>Jam</th>' + headerCells + '</tr>';
+	}
+	function roleValueFromRow(row, roleName) {
+		const roles = row.roles || {};
+		return roles[roleName] || roles[String(roleName || '').trim()] || "";
 	}
 
 	async function fetchJsonSafe(url) {
@@ -751,22 +807,39 @@
 	}
 	async function loadOrdinarySchedule(month, year) {
 		try {
-			const rows = await fetchJsonSafe('/api/streaming/schedule?month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year));
-			if (Array.isArray(rows)) {
-				scheduleData = rows.map(function(row) {
-					const roles = {};
-					Object.keys(row.assignments || {}).forEach(function(roleName) { roles[roleName] = row.assignments[roleName]; });
-					return {
-						id: row.id || (row.date + '-' + row.time), type: "biasa", date: row.date, time: normalizeTime(row.time),
-						namaMisa: row.massName || row.mass_name || "Misa", roles: roles, status: "Published"
-					};
-				});
-				return;
-			}
+			const payload = await fetchJsonSafe('/api/streaming/schedule?month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year));
+			const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.schedule) ? payload.schedule : (Array.isArray(payload.items) ? payload.items : []));
+			const payloadRoles = !Array.isArray(payload) && Array.isArray(payload.roles) ? payload.roles.map(function(role) {
+				return typeof role === 'object' ? (role.name || role.roleName || role.role_name || '') : role;
+			}) : [];
+			const derivedRoles = payloadRoles.length ? uniqueRoleNames(payloadRoles) : deriveOrdinaryRoles(rows);
+			ordinaryRoles = derivedRoles.length ? derivedRoles : ordinaryRoles;
+			renderOrdinaryTableHeader();
+
+			scheduleData = rows.map(function(row) {
+				const assignments = row.assignments || {};
+				const roles = {};
+				ordinaryRoles.forEach(function(roleName) { roles[roleName] = assignments[roleName] || ""; });
+				Object.keys(assignments).forEach(function(roleName) { if (!roles[roleName]) roles[roleName] = assignments[roleName]; });
+				return {
+					id: row.id || (row.date + '-' + row.time),
+					type: "biasa",
+					date: row.date,
+					time: normalizeTime(row.time),
+					namaMisa: row.massName || row.mass_name || "Misa",
+					dayName: row.dayName || row.day_name || "",
+					roles: roles,
+					status: "Published"
+				};
+			});
+			return;
 		} catch (err) {
 			console.warn('Gagal memuat jadwal misa biasa dari DB, pakai fallback:', err);
 		}
 		scheduleData = Array.isArray(window.__cremboJadwalStreamingFallback) ? window.__cremboJadwalStreamingFallback.slice() : [];
+		const derivedRoles = deriveOrdinaryRoles(scheduleData);
+		if (derivedRoles.length) ordinaryRoles = derivedRoles;
+		renderOrdinaryTableHeader();
 	}
 	async function loadBigMassSchedule(month, year) {
 		let rows = [];
@@ -809,38 +882,60 @@
 	(function() {
 		const now = new Date();
 		filterBulan.value = String(now.getMonth() + 1);
+		const currentYear = String(now.getFullYear());
+		if (!Array.from(filterTahun.options).some(function(option) { return option.value === currentYear; })) {
+			const opt = document.createElement("option");
+			opt.value = currentYear;
+			opt.textContent = currentYear;
+			filterTahun.appendChild(opt);
+		}
+		filterTahun.value = currentYear;
+		renderOrdinaryTableHeader();
 	})();
 
 	function renderBulanan(month, year) {
+		renderOrdinaryTableHeader();
 		const normal = loadSchedule().filter(function(s) { return getMonth(s.date) === month && getYear(s.date) === year; });
 		const bigInMonth = bigMassData.filter(function(s) { return getMonth(s.date) === month && getYear(s.date) === year; });
-		const blockedDates = new Set(bigInMonth.map(function(s) { return s.date; }));
-		const allDates = [...new Set(normal.map(function(s) { return s.date; }).concat(bigInMonth.map(function(s) { return s.date; })))].sort();
+		const bigConflictKeys = new Set(bigInMonth.map(function(s) { return scheduleKey(s.date, s.time); }));
+		const entries = [];
+
+		normal.forEach(function(row) {
+			if (!bigConflictKeys.has(scheduleKey(row.date, row.time))) {
+				entries.push({ kind: "normal", date: row.date, time: row.time, row: row });
+			}
+		});
+		bigInMonth.forEach(function(item) {
+			entries.push({ kind: "big", date: item.date, time: item.time, item: item });
+		});
+		entries.sort(function(a, b) {
+			return (a.date + ' ' + a.time + ' ' + (a.kind === 'big' ? '1' : '0')).localeCompare(b.date + ' ' + b.time + ' ' + (b.kind === 'big' ? '1' : '0'));
+		});
+
 		let html = "";
 		let no = 0;
-		if (!allDates.length) {
-			schedBulananBody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Tidak ada jadwal untuk bulan ini.</p></div></td></tr>';
+		const colspan = Math.max(ordinaryRoles.length, 1);
+		if (!entries.length) {
+			schedBulananBody.innerHTML = '<tr><td colspan="' + (3 + colspan) + '"><div class="empty-state"><p>Tidak ada jadwal untuk bulan ini.</p></div></td></tr>';
 			tableInfoCount.textContent = "0 jadwal";
 			filterInfoText.textContent = MONTHS[month - 1] + " " + year;
 			return;
 		}
-		allDates.forEach(function(date) {
-			const normalRows = normal.filter(function(s) { return s.date === date; });
-			if (blockedDates.has(date)) {
-				const rayaNames = bigInMonth.filter(function(s) { return s.date === date; }).map(function(s) { return s.namaMisa || "Misa Besar"; }).join(", ");
-				no += 1;
-				html += '<tr class="blocked-row"><td>' + no + '</td><td>' + esc(formatDate(date)) + '</td><td colspan="6"><div class="blocked-inline">🚫 DIBLOK — ' + esc(rayaNames) + '<span>— beralih ke tab Misa Besar untuk detail petugas.</span></div></td></tr>';
+		entries.forEach(function(entry) {
+			no += 1;
+			if (entry.kind === "big") {
+				const item = entry.item;
+				html += '<tr class="blocked-row"><td>' + no + '</td><td>' + esc(formatDate(item.date)) + '</td><td>' + esc(item.time || '-') + '</td><td colspan="' + colspan + '"><div class="blocked-inline">🚫 DIBLOK — ' + esc(item.namaMisa || "Misa Besar") + '<span>— Misa Besar pada jam ini. Beralih ke tab Misa Besar untuk detail petugas.</span></div></td></tr>';
 				return;
 			}
-			normalRows.forEach(function(normalRow) {
-				no += 1;
-				const r = normalRow.roles || {};
-				html += '<tr class="normal-row"><td>' + no + '</td><td>' + esc(formatDate(normalRow.date)) + '</td><td>' + esc(normalRow.time || '') + '</td>' + roleCell(r.PD || r.Produser) + roleCell((r.OP || r['Operator Streaming'] || '') + (r.vMix ? ' / ' + r.vMix : '')) + roleCell(r.Kamera || r['Kameramen 1'] || '') + roleCell(r.Supervisor || r.SPV || '') + roleCell(r.Fotografer || '') + '</tr>';
-			});
+			const normalRow = entry.row;
+			html += '<tr class="normal-row"><td>' + no + '</td><td>' + esc(formatDate(normalRow.date)) + '</td><td>' + esc(normalRow.time || '') + '</td>' + ordinaryRoles.map(function(role) {
+				return roleCell(roleValueFromRow(normalRow, role));
+			}).join('') + '</tr>';
 		});
 		schedBulananBody.innerHTML = html;
 		const monthName = MONTHS[month - 1] + " " + year;
-		tableInfoCount.textContent = no + " jadwal — " + monthName;
+		tableInfoCount.textContent = entries.length + " jadwal tampil — " + monthName;
 		filterInfoText.textContent = monthName;
 	}
 
@@ -882,7 +977,7 @@
 		renderBigMassCards(data);
 		renderBigMassTable(data);
 		const assignedCount = data.filter(function(item) { return item.isCurrentUserAssigned; }).length;
-		const openCount = data.filter(function(item) { return item.allowMemberRequest; }).length;
+		const openCount = data.filter(function(item) { return item.allowMemberRequest && !isBigMassFull(item); }).length;
 		const monthName = MONTHS[month - 1] + " " + year;
 		tableInfoCount.textContent = data.length + " misa besar publikasi — " + monthName;
 		filterInfoText.textContent = monthName;

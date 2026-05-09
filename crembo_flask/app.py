@@ -2658,6 +2658,33 @@ def format_time_hhmm(t_obj):
 
 DAYS_INDO = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 
+
+def clear_streaming_assignments_for_published_misa_besar(cursor, misa_date, misa_time, status) -> int:
+    """Hapus penugasan Misa Biasa bila Misa Besar published memakai tanggal+jam yang sama.
+
+    Ini menjaga aturan operasional: dalam tanggal dan jam mulai yang sama hanya ada satu misa.
+    Misa Besar yang masih draft tidak mengubah penugasan Misa Biasa.
+    """
+    if normalize_misa_besar_status(status) != "published":
+        return 0
+
+    if hasattr(misa_date, "isoformat"):
+        date_value = misa_date.isoformat()
+    else:
+        date_value = normalize_text(misa_date)
+    time_value = format_time_hhmm(misa_time)
+    if not date_value or not time_value:
+        return 0
+
+    cursor.execute(
+        """
+        DELETE FROM `streaming_assignments`
+        WHERE `schedule_date` = %s AND `schedule_time` = %s
+        """,
+        (date_value, time_value),
+    )
+    return cursor.rowcount or 0
+
 def normalize_misa_besar_status(value: str | None) -> str:
     raw = normalize_text(value).lower()
     return "published" if raw in {"published", "publish", "publikasi"} else "draft"
@@ -6107,18 +6134,64 @@ def manage_cancelled_mass():
 @app.route("/api/streaming/schedule", methods=["GET"])
 def get_streaming_schedule():
     ensure_streaming_schema()
+    ensure_misa_besar_schema()
     month = int(request.args.get("month", datetime.now().month))
     year = int(request.args.get("year", datetime.now().year))
     
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        cursor.execute("SELECT role_name AS name FROM `streaming_roles` ORDER BY order_index ASC, id ASC")
+        roles = [row["name"] for row in (cursor.fetchall() or []) if row.get("name")]
+
         cursor.execute("SELECT * FROM `streaming_weekly_config` ORDER BY start_time ASC")
-        weekly_configs = cursor.fetchall()
+        weekly_configs = cursor.fetchall() or []
         
-        cursor.execute("SELECT mass_date, LEFT(CAST(mass_time AS CHAR), 5) as mass_time FROM `streaming_cancelled` WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s", (month, year))
-        cancelled_list = cursor.fetchall()
-        cancelled_set = set([f"{c['mass_date']}_{c['mass_time']}" for c in cancelled_list])
+        cursor.execute(
+            """
+            SELECT DATE_FORMAT(mass_date, '%Y-%m-%d') AS mass_date,
+                   DATE_FORMAT(mass_time, '%H:%i') AS mass_time
+            FROM `streaming_cancelled`
+            WHERE MONTH(mass_date) = %s AND YEAR(mass_date) = %s
+            """,
+            (month, year),
+        )
+        cancelled_list = cursor.fetchall() or []
+        cancelled_set = {f"{c['mass_date']}_{c['mass_time']}" for c in cancelled_list}
+
+        cursor.execute(
+            """
+            SELECT DATE_FORMAT(misa_date, '%Y-%m-%d') AS misa_date,
+                   DATE_FORMAT(misa_time, '%H:%i') AS misa_time,
+                   misa_name
+            FROM `misa_besar`
+            WHERE status = 'published' AND MONTH(misa_date) = %s AND YEAR(misa_date) = %s
+            """,
+            (month, year),
+        )
+        big_mass_rows = cursor.fetchall() or []
+        big_mass_conflict_set = {f"{row['misa_date']}_{row['misa_time']}" for row in big_mass_rows}
+
+        cursor.execute(
+            """
+            SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS schedule_date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS schedule_time,
+                   sa.role_name,
+                   sa.member_id,
+                   COALESCE(a.nama, CONCAT('ID ', sa.member_id)) AS member_name
+            FROM `streaming_assignments` sa
+            LEFT JOIN `anggota` a ON a.id = sa.member_id
+            WHERE MONTH(sa.schedule_date) = %s AND YEAR(sa.schedule_date) = %s
+            """,
+            (month, year),
+        )
+        assignment_rows = cursor.fetchall() or []
+        assignment_map: dict[tuple[str, str], dict[str, str]] = {}
+        assignment_id_map: dict[tuple[str, str], dict[str, str]] = {}
+        for row in assignment_rows:
+            key = (row["schedule_date"], row["schedule_time"])
+            assignment_map.setdefault(key, {})[row["role_name"]] = row.get("member_name") or ""
+            assignment_id_map.setdefault(key, {})[row["role_name"]] = str(row.get("member_id") or "")
         
         day_map = {0: 'Senin', 1: 'Selasa', 2: 'Rabu', 3: 'Kamis', 4: 'Jumat', 5: 'Sabtu', 6: 'Minggu'}
         
@@ -6134,16 +6207,23 @@ def get_streaming_schedule():
                 if cfg['day_name'] == day_name:
                     jam_str = format_time_hhmm(cfg['start_time'])
                     key = f"{date_str}_{jam_str}"
-                    if key not in cancelled_set:
-                        schedule.append({
-                            "date": date_str,
-                            "time": jam_str,
-                            "massName": cfg['mass_name'],
-                            "dayName": day_name
-                        })
+                    if key in cancelled_set or key in big_mass_conflict_set:
+                        continue
+                    assignment_key = (date_str, jam_str)
+                    assignments = {role_name: assignment_map.get(assignment_key, {}).get(role_name, "") for role_name in roles}
+                    assignment_ids = {role_name: assignment_id_map.get(assignment_key, {}).get(role_name, "") for role_name in roles}
+                    schedule.append({
+                        "date": date_str,
+                        "time": jam_str,
+                        "massName": cfg['mass_name'],
+                        "dayName": day_name,
+                        "roles": roles,
+                        "assignments": assignments,
+                        "assignmentIds": assignment_ids,
+                    })
         
         schedule.sort(key=lambda x: (x['date'], x['time']))
-        return jsonify({"success": True, "schedule": schedule})
+        return jsonify({"success": True, "schedule": schedule, "roles": roles})
     finally:
         cursor.close()
         conn.close()
@@ -6317,6 +6397,7 @@ def api_misa_besar_public():
 @app.route("/api/misa-besar", methods=["GET", "POST"])
 def api_misa_besar():
     ensure_misa_besar_schema()
+    ensure_streaming_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
     try:
@@ -6339,11 +6420,19 @@ def api_misa_besar():
                     if str(m_id).strip():
                         cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (role_id, m_id))
 
+            removed_regular_assignments = clear_streaming_assignments_for_published_misa_besar(
+                cursor, data.get('misaDate'), data.get('misaTime'), data.get('status')
+            )
             new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
             notified_count = notify_misa_besar_assignment_changes(cursor, None, new_snapshot)
             
             conn.commit()
-            return jsonify({"success": True, "id": misa_id, "notifiedCount": notified_count})
+            return jsonify({
+                "success": True,
+                "id": misa_id,
+                "notifiedCount": notified_count,
+                "removedRegularAssignments": removed_regular_assignments,
+            })
 
         # GET DATA
         cursor.execute("SELECT id, misa_name as misaName, DATE_FORMAT(misa_date, '%Y-%m-%d') as misaDate, DATE_FORMAT(misa_time, '%H:%i') as misaTime, misa_note as misaNote, allow_member_request as allowMemberRequest, status, created_at as updatedAt FROM misa_besar ORDER BY misa_date DESC")
@@ -6373,6 +6462,8 @@ def api_misa_besar():
 
 @app.route("/api/misa-besar/<int:misa_id>", methods=["PUT", "DELETE"])
 def api_misa_besar_detail(misa_id):
+    ensure_misa_besar_schema()
+    ensure_streaming_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
     try:
@@ -6406,11 +6497,18 @@ def api_misa_besar_detail(misa_id):
                     if str(m_id).strip():
                         cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (role_id, m_id))
 
+            removed_regular_assignments = clear_streaming_assignments_for_published_misa_besar(
+                cursor, data.get('misaDate'), data.get('misaTime'), data.get('status')
+            )
             new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
             notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
             
             conn.commit()
-            return jsonify({"success": True, "notifiedCount": notified_count})
+            return jsonify({
+                "success": True,
+                "notifiedCount": notified_count,
+                "removedRegularAssignments": removed_regular_assignments,
+            })
     finally:
         cursor.close()
         conn.close()
@@ -6418,6 +6516,8 @@ def api_misa_besar_detail(misa_id):
 @app.route("/api/misa-besar/<int:misa_id>/status", methods=["PUT"])
 def api_misa_besar_status(misa_id):
     """Endpoint khusus untuk mengubah status ke Draft atau Published dengan cepat"""
+    ensure_misa_besar_schema()
+    ensure_streaming_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
     try:
@@ -6426,10 +6526,31 @@ def api_misa_besar_status(misa_id):
         new_status = normalize_misa_besar_status(data.get('status', 'draft'))
         
         cursor.execute("UPDATE misa_besar SET status = %s WHERE id = %s", (new_status, misa_id))
+        removed_regular_assignments = 0
+        if new_status == "published":
+            cursor.execute(
+                """
+                SELECT DATE_FORMAT(misa_date, '%Y-%m-%d') AS misaDate,
+                       DATE_FORMAT(misa_time, '%H:%i') AS misaTime
+                FROM misa_besar
+                WHERE id = %s
+                LIMIT 1
+                """,
+                (misa_id,),
+            )
+            event_row = cursor.fetchone()
+            if event_row:
+                removed_regular_assignments = clear_streaming_assignments_for_published_misa_besar(
+                    cursor, event_row.get("misaDate"), event_row.get("misaTime"), new_status
+                )
         new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
         notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
         conn.commit()
-        return jsonify({"success": True, "notifiedCount": notified_count})
+        return jsonify({
+            "success": True,
+            "notifiedCount": notified_count,
+            "removedRegularAssignments": removed_regular_assignments,
+        })
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
@@ -6439,6 +6560,8 @@ def api_misa_besar_status(misa_id):
 
 @app.route("/api/misa-besar/assign", methods=["POST"])
 def api_misa_besar_assign():
+    ensure_misa_besar_schema()
+    ensure_streaming_schema()
     data = request.json or {}
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
@@ -6454,10 +6577,19 @@ def api_misa_besar_assign():
             return jsonify({"success": False, "message": f"Gagal: Orang tersebut sudah bertugas sebagai {existing['role_name']} di jadwal ini."}), 400
 
         cursor.execute("INSERT INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (data['roleId'], data['memberId']))
+        removed_regular_assignments = 0
         new_snapshot = fetch_misa_besar_notification_snapshot(cursor, int(data['misaId']))
+        if new_snapshot:
+            removed_regular_assignments = clear_streaming_assignments_for_published_misa_besar(
+                cursor, new_snapshot.get("misaDate"), new_snapshot.get("misaTime"), new_snapshot.get("status")
+            )
         notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
         conn.commit()
-        return jsonify({"success": True, "notifiedCount": notified_count})
+        return jsonify({
+            "success": True,
+            "notifiedCount": notified_count,
+            "removedRegularAssignments": removed_regular_assignments,
+        })
     finally:
         cursor.close()
         conn.close()
