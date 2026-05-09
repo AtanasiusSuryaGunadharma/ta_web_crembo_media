@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -179,6 +179,36 @@
     .state-pill.ok { border-color: #99c8ab; background: #eef8ef; color: var(--ok); font-weight: 700; }
     .state-pill.warn { border-color: #e3c188; background: #fff8ea; color: var(--warn); font-weight: 700; }
 
+    .view-panel[hidden], .big-mass-filter[hidden], .tab-only-big[hidden] { display: none !important; }
+    .big-mass-summary { display: grid; grid-template-columns: repeat(4, minmax(130px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .big-mass-summary-item { border: 1px solid #e2e8f0; border-radius: 14px; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 10px; }
+    .big-mass-summary-item span { display: block; color: #64748b; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; }
+    .big-mass-summary-item strong { display: block; margin-top: 4px; font-size: 1.35rem; color: #111827; line-height: 1; }
+    .big-mass-grid { display: grid; grid-template-columns: repeat(2, minmax(280px, 1fr)); gap: 12px; }
+    .big-mass-card { border: 1px solid #d8d8d8; border-radius: 16px; background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%); box-shadow: 0 6px 16px rgba(17, 24, 39, 0.08); padding: 12px; display: grid; gap: 10px; }
+    .big-mass-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px dashed #d4d4d4; padding-bottom: 10px; }
+    .big-mass-title h3 { margin: 0; font-size: 1rem; color: #111827; }
+    .big-mass-title p { margin: 5px 0 0; color: #6b7280; font-size: 0.82rem; font-weight: 600; }
+    .big-mass-badges { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+    .status-badge { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; padding: 4px 9px; font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
+    .status-badge.published { border-color: #9acaaa; background: #eef8ef; color: #116d3f; }
+    .status-badge.draft { border-color: #e6c78c; background: #fff8ea; color: #9b5b00; }
+    .status-badge.request-open { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+    .status-badge.request-closed { border-color: #cbd5e1; background: #f8fafc; color: #475569; }
+    .big-mass-info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .big-mass-info { border: 1px solid #ececec; border-radius: 12px; background: #fff; padding: 9px; min-height: 58px; }
+    .big-mass-info span { display: block; color: #6b7280; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 800; }
+    .big-mass-info strong, .big-mass-info p { display: block; margin: 4px 0 0; font-size: 0.84rem; color: #111827; line-height: 1.45; }
+    .big-mass-info p { color: #374151; }
+    .big-mass-role-block { border: 1px dashed #d1d5db; border-radius: 12px; background: #f9fafb; padding: 10px; }
+    .big-mass-role-block h4 { margin: 0 0 8px; font-size: 0.82rem; color: #111827; }
+    .big-mass-role-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: #1f2937; font-size: 0.84rem; line-height: 1.45; }
+    .big-mass-role-list li { padding-left: 2px; }
+    .big-mass-role-list em { color: #6b7280; }
+    .big-mass-role-count { color: #64748b; font-size: 0.75rem; font-weight: 700; }
+    .big-mass-empty { margin: 0; border: 1px dashed #c4c4c4; border-radius: 12px; background: #fbfbfb; padding: 18px; text-align: center; color: #6b7280; font-size: 0.9rem; }
+
+
     .weekly-settings-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: flex-start; }
     .weekly-settings { border: 1px dashed #c8c8c8; border-radius: 10px; padding: 16px; background: #fcfcfc; }
     .weekly-settings h4 { margin: 0 0 8px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.02em; color: #4b5563; }
@@ -326,9 +356,9 @@
       <section class="panel">
         <header class="panel-head">
           <h2>Filter & Mode Jadwal</h2>
-          <div class="toggle" role="tablist">
-            <button class="active" type="button">Misa Biasa</button>
-            <button type="button" onclick="window.location.href='registrasi-tugas-misa-besar.html'">Misa Besar</button>
+          <div class="toggle" role="tablist" aria-label="Mode jadwal">
+            <button id="regularModeBtn" class="active" type="button" aria-selected="true">Misa Biasa</button>
+            <button id="bigMassModeBtn" type="button" aria-selected="false">Misa Besar</button>
           </div>
         </header>
         <div class="panel-body">
@@ -359,8 +389,13 @@
                   <option value="2027">2027</option>
                 </select>
               </div>
+              <div class="field big-mass-filter" id="bigMassSearchField" hidden>
+                <label>Cari Misa Besar / Petugas</label>
+                <input id="bigMassSearchInput" type="search" placeholder="Cari nama misa, petugas, role, keterangan...">
+              </div>
             </div>
             <div class="action-set">
+              <a id="goBigMassRegistrationBtn" class="btn ghost tab-only-big" href="registrasi-tugas-misa-besar.html" hidden>+ Registrasi Misa Besar</a>
               <button id="refreshBtn" class="btn primary" type="button">Muat Ulang Jadwal</button>
               <button id="manageBlackoutBtn" class="btn ghost" type="button">Atur Tanggal Ditiadakan</button>
             </div>
@@ -369,7 +404,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section id="regularScheduleSection" class="panel view-panel">
         <header class="panel-head">
           <h2>Daftar Jadwal Misa Biasa</h2>
         </header>
@@ -388,6 +423,18 @@
             </div>
           </div>
           <p id="emptyNote" style="text-align:center; padding:20px; color:#666;" hidden>Memuat jadwal...</p>
+        </div>
+      </section>
+
+      <section id="bigMassScheduleSection" class="panel view-panel" hidden>
+        <header class="panel-head">
+          <h2>Daftar Jadwal Misa Besar</h2>
+          <span class="state-pill warn">Sumber: Registrasi Tugas Misa Besar</span>
+        </header>
+        <div class="panel-body">
+          <div id="bigMassSummary" class="big-mass-summary"></div>
+          <div id="bigMassList" class="big-mass-grid"></div>
+          <p id="bigMassEmpty" class="big-mass-empty" hidden>Tidak ada jadwal misa besar pada filter ini.</p>
         </div>
       </section>
     </main>
@@ -420,6 +467,8 @@
     let CANCELLED_DATES = [];
     let ACTIVE_MEMBERS = [];
     let SAVED_ASSIGNMENTS = [];
+    let BIG_MASS_EVENTS = [];
+    let CURRENT_MODE = "regular";
     const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
     const monthFilter = document.getElementById("monthFilter");
@@ -427,6 +476,17 @@
     const tableWrap = document.getElementById("scheduleTableWrap");
     const sliderContainer = document.getElementById("sliderContainer");
     const sliderThumb = document.getElementById("sliderThumb");
+    const regularModeBtn = document.getElementById("regularModeBtn");
+    const bigMassModeBtn = document.getElementById("bigMassModeBtn");
+    const regularScheduleSection = document.getElementById("regularScheduleSection");
+    const bigMassScheduleSection = document.getElementById("bigMassScheduleSection");
+    const bigMassSearchField = document.getElementById("bigMassSearchField");
+    const bigMassSearchInput = document.getElementById("bigMassSearchInput");
+    const bigMassSummary = document.getElementById("bigMassSummary");
+    const bigMassList = document.getElementById("bigMassList");
+    const bigMassEmpty = document.getElementById("bigMassEmpty");
+    const goBigMassRegistrationBtn = document.getElementById("goBigMassRegistrationBtn");
+    const manageBlackoutBtn = document.getElementById("manageBlackoutBtn");
 
     const now = new Date();
     monthFilter.value = now.getMonth() + 1;
@@ -513,6 +573,188 @@
     }
 
     // --- HTML RENDERERS ---
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+      }[char]));
+    }
+
+    function formatDisplayDate(dateString) {
+      if (!dateString) return "-";
+      const parts = String(dateString).split("-");
+      if (parts.length !== 3) return escapeHtml(dateString);
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function normalizeDisplayTime(value) {
+      const raw = String(value || "").trim();
+      return raw.length >= 5 ? raw.substring(0, 5) : raw || "-";
+    }
+
+    function roleMemberNames(role) {
+      if (Array.isArray(role?.memberNames)) return role.memberNames.filter(Boolean);
+      if (Array.isArray(role?.members)) {
+        return role.members.map(member => {
+          if (member && typeof member === "object") return member.name || member.nama || member.memberName || "";
+          return "";
+        }).filter(Boolean);
+      }
+      return [];
+    }
+
+    function renderBigMassRoleList(roles) {
+      if (!Array.isArray(roles) || roles.length === 0) {
+        return `<p class="big-mass-empty" style="padding:10px; text-align:left;">Belum ada role tersimpan.</p>`;
+      }
+
+      return `<ul class="big-mass-role-list">${roles.map(role => {
+        const names = roleMemberNames(role);
+        const requiredCount = Number(role.count || role.requiredCount || 1);
+        const safeRole = escapeHtml(role.role || role.roleName || "Role");
+        const safeNames = names.length > 0 ? names.map(escapeHtml).join(", ") : "<em>Belum ada petugas</em>";
+        return `<li><strong>${safeRole}:</strong> ${safeNames} <span class="big-mass-role-count">(${names.length}/${requiredCount})</span></li>`;
+      }).join("")}</ul>`;
+    }
+
+    function getBigMassSearchText(item) {
+      const rolesText = (item.roles || []).map(role => [
+        role.role,
+        role.roleName,
+        ...(roleMemberNames(role) || [])
+      ].join(" ")).join(" ");
+
+      return [
+        item.misaName,
+        item.misaDate,
+        item.misaTime,
+        item.misaNote,
+        item.status,
+        item.allowMemberRequest ? "request dibuka" : "request ditutup",
+        rolesText
+      ].join(" ").toLowerCase();
+    }
+
+    function filteredBigMassEvents() {
+      const selectedMonth = Number(monthFilter.value);
+      const selectedYear = Number(yearFilter.value);
+      const keyword = (bigMassSearchInput?.value || "").trim().toLowerCase();
+
+      return (BIG_MASS_EVENTS || []).filter(item => {
+        const [year, month] = String(item.misaDate || "").split("-").map(Number);
+        const matchDate = Number(month) === selectedMonth && Number(year) === selectedYear;
+        const matchKeyword = !keyword || getBigMassSearchText(item).includes(keyword);
+        return matchDate && matchKeyword;
+      }).sort((a, b) => `${a.misaDate || ""} ${a.misaTime || ""}`.localeCompare(`${b.misaDate || ""} ${b.misaTime || ""}`));
+    }
+
+    async function loadBigMassSchedule(forceReload = false) {
+      bigMassEmpty.hidden = true;
+      if (forceReload || BIG_MASS_EVENTS.length === 0) {
+        bigMassList.innerHTML = `<p class="big-mass-empty" style="grid-column:1/-1;">Memuat jadwal misa besar...</p>`;
+        try {
+          const res = await fetch("/api/misa-besar");
+          BIG_MASS_EVENTS = await res.json();
+          if (!Array.isArray(BIG_MASS_EVENTS)) BIG_MASS_EVENTS = [];
+        } catch (error) {
+          BIG_MASS_EVENTS = [];
+          bigMassList.innerHTML = "";
+          bigMassEmpty.hidden = false;
+          bigMassEmpty.textContent = "Gagal memuat jadwal misa besar dari server.";
+          return;
+        }
+      }
+      renderBigMassSchedules();
+    }
+
+    function renderBigMassSchedules() {
+      const items = filteredBigMassEvents();
+      const publishedCount = items.filter(item => item.status === "published").length;
+      const draftCount = items.filter(item => item.status === "draft").length;
+      const requestOpenCount = items.filter(item => item.allowMemberRequest == 1 || item.allowMemberRequest === true).length;
+
+      bigMassSummary.innerHTML = `
+        <div class="big-mass-summary-item"><span>Total Misa Besar</span><strong>${items.length}</strong></div>
+        <div class="big-mass-summary-item"><span>Published</span><strong>${publishedCount}</strong></div>
+        <div class="big-mass-summary-item"><span>Draft</span><strong>${draftCount}</strong></div>
+        <div class="big-mass-summary-item"><span>Request Dibuka</span><strong>${requestOpenCount}</strong></div>
+      `;
+
+      document.getElementById("metricTotal").innerText = items.length;
+      document.getElementById("metricRaya").innerText = items.length;
+      document.getElementById("metricPending").innerText = draftCount;
+
+      if (items.length === 0) {
+        bigMassList.innerHTML = "";
+        bigMassEmpty.textContent = "Tidak ada jadwal misa besar pada filter ini.";
+        bigMassEmpty.hidden = false;
+        return;
+      }
+
+      bigMassEmpty.hidden = true;
+      bigMassList.innerHTML = items.map(item => {
+        const isPublished = item.status === "published";
+        const requestOpen = item.allowMemberRequest == 1 || item.allowMemberRequest === true;
+        const statusLabel = isPublished ? "Publikasi" : "Draft";
+        const requestLabel = requestOpen ? "Request Dibuka" : "Request Ditutup";
+        return `
+          <article class="big-mass-card">
+            <div class="big-mass-card-head">
+              <div class="big-mass-title">
+                <h3>${escapeHtml(item.misaName || "Nama misa belum diisi")}</h3>
+                <p>${formatDisplayDate(item.misaDate)} • ${normalizeDisplayTime(item.misaTime)} WIB</p>
+              </div>
+              <div class="big-mass-badges">
+                <span class="status-badge ${isPublished ? 'published' : 'draft'}">${statusLabel}</span>
+                <span class="status-badge ${requestOpen ? 'request-open' : 'request-closed'}">${requestLabel}</span>
+              </div>
+            </div>
+            <div class="big-mass-info-grid">
+              <div class="big-mass-info"><span>Nama Misa</span><strong>${escapeHtml(item.misaName || "-")}</strong></div>
+              <div class="big-mass-info"><span>Jadwal</span><strong>${formatDisplayDate(item.misaDate)} ${normalizeDisplayTime(item.misaTime)} WIB</strong></div>
+              <div class="big-mass-info"><span>Status</span><strong>${statusLabel}</strong></div>
+              <div class="big-mass-info"><span>Request Anggota</span><strong>${requestOpen ? "Dibuka" : "Ditutup"}</strong></div>
+            </div>
+            <div class="big-mass-info"><span>Keterangan</span><p>${escapeHtml(item.misaNote || "-")}</p></div>
+            <div class="big-mass-role-block">
+              <h4>Nama Petugas & Role</h4>
+              ${renderBigMassRoleList(item.roles)}
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function setScheduleMode(mode) {
+      CURRENT_MODE = mode;
+      const isBigMass = mode === "big";
+      regularModeBtn.classList.toggle("active", !isBigMass);
+      bigMassModeBtn.classList.toggle("active", isBigMass);
+      regularModeBtn.setAttribute("aria-selected", String(!isBigMass));
+      bigMassModeBtn.setAttribute("aria-selected", String(isBigMass));
+      regularScheduleSection.hidden = isBigMass;
+      bigMassScheduleSection.hidden = !isBigMass;
+      bigMassSearchField.hidden = !isBigMass;
+      goBigMassRegistrationBtn.hidden = !isBigMass;
+      manageBlackoutBtn.hidden = isBigMass;
+      document.getElementById("roleNote").textContent = isBigMass
+        ? "Mode Misa Besar: menampilkan jadwal dari halaman Registrasi Tugas Misa Besar, termasuk draft, publikasi, petugas, keterangan, dan status request anggota."
+        : "Mode Admin: dapat menambah jadwal dan mengatur petugas semua sesi.";
+
+      if (isBigMass) {
+        loadBigMassSchedule();
+      } else {
+        loadSchedule();
+        setTimeout(updateSlider, 100);
+      }
+    }
+
+    function reloadCurrentSchedule() {
+      if (CURRENT_MODE === "big") {
+        return loadBigMassSchedule(true);
+      }
+      return loadSchedule();
+    }
+
     function renderTableHeader() {
       let html = `<tr><th>TANGGAL</th><th>JAM</th><th>PERAYAAN</th>`;
       ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
@@ -775,9 +1017,13 @@
       });
     });
 
-    document.getElementById("refreshBtn").onclick = loadSchedule;
-    document.getElementById("monthFilter").onchange = loadSchedule;
-    document.getElementById("yearFilter").onchange = loadSchedule;
+    regularModeBtn.addEventListener("click", () => setScheduleMode("regular"));
+    bigMassModeBtn.addEventListener("click", () => setScheduleMode("big"));
+    if (bigMassSearchInput) bigMassSearchInput.addEventListener("input", renderBigMassSchedules);
+
+    document.getElementById("refreshBtn").onclick = reloadCurrentSchedule;
+    document.getElementById("monthFilter").onchange = reloadCurrentSchedule;
+    document.getElementById("yearFilter").onchange = reloadCurrentSchedule;
 
     setInterval(() => {
         const n = new Date();
@@ -796,6 +1042,7 @@
         await loadConfig();
         await loadCancelled();
         await loadRolesAndMembers();
+        document.getElementById("roleNote").textContent = "Mode Admin: dapat menambah jadwal dan mengatur petugas semua sesi.";
         await loadSchedule();
     })();
   </script>
