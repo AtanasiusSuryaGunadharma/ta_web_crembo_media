@@ -6230,6 +6230,90 @@ def save_assignments():
         cursor.close()
         conn.close()
 
+
+@app.route("/api/misa-besar/public", methods=["GET"])
+def api_misa_besar_public():
+    """Daftar Misa Besar untuk halaman Jadwal Streaming anggota.
+
+    Endpoint ini sengaja hanya mengembalikan Misa Besar berstatus published,
+    sehingga anggota biasa tidak menerima data draft. Response juga menyertakan
+    penanda jika user sesi saat ini sedang bertugas pada misa tersebut.
+    """
+    ensure_misa_besar_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        month = parse_optional_int(request.args.get("month"))
+        year = parse_optional_int(request.args.get("year"))
+        current_user_id = normalize_text(session.get("user_id"))
+
+        query = """
+            SELECT id,
+                   misa_name AS misaName,
+                   DATE_FORMAT(misa_date, '%Y-%m-%d') AS misaDate,
+                   DATE_FORMAT(misa_time, '%H:%i') AS misaTime,
+                   misa_note AS misaNote,
+                   allow_member_request AS allowMemberRequest,
+                   status,
+                   created_at AS updatedAt
+            FROM misa_besar
+            WHERE status = 'published'
+        """
+        params: list[object] = []
+        if month:
+            query += " AND MONTH(misa_date) = %s"
+            params.append(month)
+        if year:
+            query += " AND YEAR(misa_date) = %s"
+            params.append(year)
+        query += " ORDER BY misa_date ASC, misa_time ASC, id ASC"
+
+        cursor.execute(query, tuple(params))
+        events = cursor.fetchall() or []
+
+        for ev in events:
+            cursor.execute(
+                """
+                SELECT id, role_name AS role, required_count AS count
+                FROM misa_besar_names
+                WHERE misa_id = %s
+                ORDER BY id ASC
+                """,
+                (ev["id"],),
+            )
+            roles = cursor.fetchall() or []
+            current_user_roles: list[str] = []
+            for role in roles:
+                cursor.execute(
+                    """
+                    SELECT a.id, a.nama AS name
+                    FROM misa_besar_assignments bma
+                    JOIN anggota a ON bma.member_id = a.id
+                    WHERE bma.role_id = %s
+                    ORDER BY a.nama ASC
+                    """,
+                    (role["id"],),
+                )
+                members_data = cursor.fetchall() or []
+                role["members"] = [str(member.get("id")) for member in members_data if member.get("id") is not None]
+                role["memberIds"] = role["members"]
+                role["memberNames"] = [normalize_text(member.get("name")) for member in members_data if normalize_text(member.get("name"))]
+                role["count"] = parse_required_int(role.get("count"), 1)
+                if current_user_id and current_user_id in set(role["memberIds"]):
+                    current_user_roles.append(normalize_text(role.get("role")) or "Role")
+
+            ev["allowMemberRequest"] = bool(ev.get("allowMemberRequest"))
+            ev["status"] = "published"
+            ev["roles"] = roles
+            ev["currentUserRoles"] = current_user_roles
+            ev["isCurrentUserAssigned"] = bool(current_user_roles)
+
+        return jsonify({"success": True, "items": events})
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route("/api/misa-besar", methods=["GET", "POST"])
 def api_misa_besar():
     ensure_misa_besar_schema()

@@ -166,6 +166,54 @@
 		.info-bar-title { font-size: 1.05rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px; }
 		.info-bar-count { font-size: 0.82rem; color: var(--muted); font-style: italic; }
 
+
+		/* Misa Besar anggota: card/table + penanda tugas */
+		.big-mass-toolbar {
+			display: flex; align-items: center; justify-content: space-between; gap: 12px;
+			margin: 0 0 14px; flex-wrap: wrap;
+		}
+		.big-mass-view-toggle { display: inline-flex; gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); }
+		.big-mass-view-toggle button {
+			border: 0; background: transparent; color: var(--muted); border-radius: 999px;
+			padding: 8px 16px; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+			transition: var(--transition);
+		}
+		.big-mass-view-toggle button.active { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; box-shadow: 0 2px 8px rgba(128,0,0,0.18); }
+		.big-mass-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(285px, 1fr)); gap: 14px; }
+		.big-mass-card {
+			position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg);
+			background: linear-gradient(180deg, #ffffff 0%, #fffafa 100%); box-shadow: var(--shadow-sm);
+			padding: 16px; display: grid; gap: 12px; min-height: 100%;
+		}
+		.big-mass-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: linear-gradient(180deg, var(--primary), var(--accent-gold)); }
+		.big-mass-card.assigned { border-color: rgba(212,160,23,0.55); background: linear-gradient(180deg, #fffdf7 0%, #fff7ed 100%); }
+		.big-mass-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+		.big-mass-card-title { margin: 0; font-size: 1rem; color: var(--ink); line-height: 1.35; }
+		.big-mass-date { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+		.big-mass-time { color: var(--primary); font-weight: 800; }
+		.big-mass-note { margin: 0; color: var(--ink-secondary); font-size: 0.85rem; border: 1px dashed var(--line); background: rgba(128,0,0,0.03); border-radius: var(--radius-sm); padding: 9px 10px; }
+		.big-mass-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+		.big-mass-tag { display: inline-flex; align-items: center; width: fit-content; border-radius: 999px; padding: 3px 10px; font-size: 0.72rem; font-weight: 800; border: 1px solid var(--line); background: #fff; color: var(--primary-dark); }
+		.big-mass-tag.open { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+		.big-mass-tag.closed { border-color: #d1d5db; background: #f3f4f6; color: #4b5563; }
+		.big-mass-tag.assigned { border-color: rgba(212,160,23,0.7); background: #fff8e1; color: #7a4d00; }
+		.big-mass-role-list { margin: 0; padding-left: 18px; display: grid; gap: 5px; color: var(--ink-secondary); font-size: 0.86rem; }
+		.big-mass-role-list strong { color: var(--ink); }
+		.big-mass-role-list em { color: var(--muted); }
+		.big-mass-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+		.big-mass-request-btn {
+			display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+			padding: 8px 12px; border-radius: 999px; border: 1px solid var(--primary);
+			background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff;
+			font-size: 0.78rem; font-weight: 800;
+		}
+		.big-mass-request-btn.disabled { pointer-events: none; border-color: #cbd5e1; background: #e5e7eb; color: #64748b; }
+		.big-mass-table-petugas { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+		.big-mass-table-petugas strong { color: var(--ink); }
+		.big-mass-table-row.assigned td:first-child { border-left: 3px solid var(--accent-gold); }
+		.big-mass-empty { text-align: center; padding: 42px 18px; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius-lg); background: rgba(255,255,255,0.78); }
+		.big-mass-empty p { margin: 8px 0 0; }
+
 		/* FOOTER */
 		.footer { background: linear-gradient(135deg, var(--primary-deeper) 0%, var(--primary) 60%, var(--primary-dark) 100%); margin-top: 48px; color: rgba(255,255,255,0.85); position: relative; overflow: hidden; }
 		.footer::before { content: ""; position: absolute; top: -80px; right: -80px; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,0.03); pointer-events: none; }
@@ -489,26 +537,33 @@
 			</div>
 		</div>
 
-		<!-- HARI RAYA TABLE -->
+		<!-- MISA BESAR: CARD + TABLE -->
 		<div id="tableHariRaya" style="display:none;">
 			<div class="hari-raya-banner">
 				<span class="hari-raya-badge">Mode Misa Besar</span>
-				<p>Daftar misa-misa besar dengan formasi petugas lengkap sesuai registrasi tugas. Difilter berdasarkan bulan yang dipilih.</p>
+				<p>Daftar misa besar berstatus publikasi. Tampil dengan tanggal, jam, keterangan, tag request, petugas bertugas, dan penanda jika Anda ikut bertugas.</p>
 			</div>
-			<div class="schedule-card">
+			<div class="big-mass-toolbar" aria-label="Mode tampilan misa besar">
+				<span class="info-bar-count" id="bigMassStatusText">Memuat misa besar...</span>
+				<div class="big-mass-view-toggle" role="tablist" aria-label="Pilih tampilan Misa Besar">
+					<button id="bigMassCardBtn" class="active" type="button" role="tab" aria-selected="true">Mode Card</button>
+					<button id="bigMassTableBtn" type="button" role="tab" aria-selected="false">Mode Tabel</button>
+				</div>
+			</div>
+			<div id="bigMassCardView" class="big-mass-card-grid" aria-live="polite"></div>
+			<div id="bigMassTableView" class="schedule-card" style="display:none;">
 				<div class="schedule-scroll">
 					<table class="schedule-table" id="tblHariRaya">
 						<thead>
 							<tr>
 								<th style="width:44px;">No</th>
-								<th>Tanggal &amp; Nama Misa</th>
+								<th>Nama Misa</th>
+								<th>Hari &amp; Tanggal</th>
 								<th>Jam</th>
-								<th>PD</th>
-								<th>OP</th>
-								<th>vMix</th>
-								<th>Kamera</th>
-								<th>Supervisor</th>
-								<th>Fotografer</th>
+								<th>Keterangan</th>
+								<th>Petugas Bertugas</th>
+								<th>Request</th>
+								<th>Penanda Tugas</th>
 							</tr>
 						</thead>
 						<tbody id="schedHariRayaBody">
@@ -557,42 +612,23 @@
 	</footer>
 
 	<script>
-	// ─── STORAGE KEYS (same as registrasi-tugas-misa-besar.html) ───────────────
+
+	// ─── DATA SOURCE: JADWAL BIASA + MISA BESAR ─────────────────────────────────
 	const SCHEDULE_KEY = "crembo-misa-besar-schedule";
 	const MEMBER_KEY   = "crembo-members";
+	const REQUEST_PAGE = "request-tugas-anggota.html";
+	let scheduleData = [];
+	let bigMassData = [];
+	let currentSession = { logged_in: false, user_id: "", nama: "", role: "" };
+	let currentMode = "bulanan";
+	let bigMassViewMode = "card";
 
-	// ─── SEED DUMMY DATA ─────────────────────────────────────────────────────────
 	(function seedDummyData() {
-		const existing = localStorage.getItem(SCHEDULE_KEY);
-		if (existing) { try { if (JSON.parse(existing).length > 0) return; } catch(e){} }
-
-		const dummySchedule = [
-			// MISA BIASA — April 2026
-			{ id:"s1", type:"biasa", date:"2026-04-05", time:"18:00", namaLocation:"Gereja Utama", keterangan:"Misa Minggu Biasa", roles:{ PD:"Rikha", OP:"Jeni", vMix:"", Kamera:"Tyas", Supervisor:"Jose", Fotografer:"Aurel" }, status:"Published" },
-			{ id:"s2", type:"biasa", date:"2026-04-12", time:"18:00", namaLocation:"Gereja Utama", keterangan:"Misa Minggu Biasa", roles:{ PD:"Lisa", OP:"Evan", vMix:"", Kamera:"Jose", Supervisor:"Tyas", Fotografer:"Rikha" }, status:"Published" },
-			{ id:"s3", type:"biasa", date:"2026-04-26", time:"18:00", namaLocation:"Gereja Utama", keterangan:"Misa Minggu Biasa", roles:{ PD:"Rossa", OP:"Aurel", vMix:"", Kamera:"Asha", Supervisor:"Dewi", Fotografer:"Fajar" }, status:"Published" },
-			// MISA BESAR — April 2026 (Pekan Suci)
-			{ id:"s4", type:"raya", namaMisa:"Misa Minggu Palma", date:"2026-03-29", time:"08:00", namaLocation:"Gereja Utama", keterangan:"Koordinasi liturgi dan dokumentasi", roles:{ PD:"Andi", OP:"Budi", vMix:"Citra", Kamera:"Dewi", Supervisor:"Fajar", Fotografer:"Hanafi" }, status:"Published" },
-			{ id:"s5", type:"raya", namaMisa:"Misa Kamis Putih",  date:"2026-04-02", time:"18:00", namaLocation:"Gereja Utama", keterangan:"Pastikan semua role terisi", roles:{ PD:"Dewi", OP:"Fajar", vMix:"Hanafi", Kamera:"Lisa", Supervisor:"Evan", Fotografer:"Jose" }, status:"Published" },
-			{ id:"s6", type:"raya", namaMisa:"Ibadat Jumat Agung", date:"2026-04-03", time:"15:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Lisa", OP:"Evan", vMix:"", Kamera:"Jose", Supervisor:"Rikha", Fotografer:"Jeni" }, status:"Published" },
-			{ id:"s7", type:"raya", namaMisa:"Misa Malam Paskah",  date:"2026-04-04", time:"20:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Rikha", OP:"Jeni", vMix:"Tyas", Kamera:"Rossa", Supervisor:"Aurel", Fotografer:"Asha" }, status:"Published" },
-			{ id:"s8", type:"raya", namaMisa:"Misa Paskah Kebangkitan", date:"2026-04-05", time:"08:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Rossa", OP:"Aurel", vMix:"Asha", Kamera:"Dewi", Supervisor:"Bagas", Fotografer:"Citra" }, status:"Published" },
-			// MISA BIASA — Mei 2026
-			{ id:"s9",  type:"biasa", date:"2026-05-03", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Dewi", OP:"Bagas", vMix:"", Kamera:"Citra", Supervisor:"Asha", Fotografer:"Evan" }, status:"Published" },
-			{ id:"s10", type:"biasa", date:"2026-05-10", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Rikha", OP:"Jeni", vMix:"", Kamera:"Tyas", Supervisor:"Jose", Fotografer:"Aurel" }, status:"Published" },
-			{ id:"s11", type:"biasa", date:"2026-05-17", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Lisa", OP:"Evan", vMix:"", Kamera:"Jose", Supervisor:"Tyas", Fotografer:"Rikha" }, status:"Published" },
-			{ id:"s12", type:"biasa", date:"2026-05-24", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Rossa", OP:"Aurel", vMix:"", Kamera:"Asha", Supervisor:"Dewi", Fotografer:"Fajar" }, status:"Published" },
-			// MISA BESAR — Mei 2026
-			{ id:"s13", type:"raya", namaMisa:"Misa Hari Raya Kenaikan Yesus", date:"2026-05-14", time:"08:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Andi", OP:"Budi", vMix:"Citra", Kamera:"Dewi", Supervisor:"Fajar", Fotografer:"Hanafi" }, status:"Published" },
-			{ id:"s14", type:"raya", namaMisa:"Misa Pentakosta", date:"2026-05-24", time:"08:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Bagas", OP:"Citra", vMix:"Dewi", Kamera:"Rikha", Supervisor:"Jeni", Fotografer:"Tyas" }, status:"Published" },
-			// MISA BESAR — Juni 2026
-			{ id:"s15", type:"raya", namaMisa:"Misa Hari Raya Tubuh dan Darah Kristus", date:"2026-06-04", time:"08:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Lisa", OP:"Evan", vMix:"Jose", Kamera:"Rossa", Supervisor:"Aurel", Fotografer:"Asha" }, status:"Published" },
-			// MISA BIASA — Juni 2026
-			{ id:"s16", type:"biasa", date:"2026-06-07", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Rikha", OP:"Jeni", vMix:"", Kamera:"Tyas", Supervisor:"Jose", Fotografer:"Aurel" }, status:"Published" },
-			{ id:"s17", type:"biasa", date:"2026-06-14", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Lisa", OP:"Evan", vMix:"", Kamera:"Jose", Supervisor:"Tyas", Fotografer:"Rikha" }, status:"Published" },
-			{ id:"s18", type:"biasa", date:"2026-06-21", time:"18:00", namaLocation:"Gereja Utama", keterangan:"", roles:{ PD:"Rossa", OP:"Aurel", vMix:"", Kamera:"Asha", Supervisor:"Dewi", Fotografer:"Fajar" }, status:"Published" },
+		window.__cremboJadwalStreamingFallback = [
+			{ id:"s1", type:"biasa", date:"2026-04-05", time:"18:00", namaMisa:"Misa Mingguan", roles:{ PD:"Rikha", OP:"Jeni", vMix:"", Kamera:"Tyas", Supervisor:"Jose", Fotografer:"Aurel" }, status:"Published" },
+			{ id:"s2", type:"biasa", date:"2026-04-12", time:"18:00", namaMisa:"Misa Mingguan", roles:{ PD:"Lisa", OP:"Evan", vMix:"", Kamera:"Jose", Supervisor:"Tyas", Fotografer:"Rikha" }, status:"Published" },
+			{ id:"s3", type:"biasa", date:"2026-05-03", time:"18:00", namaMisa:"Misa Mingguan", roles:{ PD:"Dewi", OP:"Bagas", vMix:"", Kamera:"Citra", Supervisor:"Asha", Fotografer:"Evan" }, status:"Published" }
 		];
-		window.__cremboJadwalStreamingData = dummySchedule;
 	})();
 
 	// ─── UTILS ───────────────────────────────────────────────────────────────────
@@ -600,27 +636,151 @@
 	const DAYS   = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
 	function safeParse(raw) { try { return JSON.parse(raw); } catch(e) { return null; } }
-	function loadSchedule() {
-		const data = window.__cremboJadwalStreamingData;
-		return Array.isArray(data) ? data.filter(s => s.status === "Published") : [];
-	}
+	function esc(str) { return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+	function getDateObj(dateStr) { const d = new Date(String(dateStr || "") + "T00:00:00"); return isNaN(d) ? null : d; }
 	function formatDate(val) {
-		const d = new Date(val + "T00:00:00");
-		if (isNaN(d)) return val;
+		const d = getDateObj(val);
+		if (!d) return val || "-";
 		return DAYS[d.getDay()] + ", " + String(d.getDate()).padStart(2,"0") + " " + MONTHS[d.getMonth()] + " " + d.getFullYear();
 	}
-	function getMonth(dateStr) {
-		const d = new Date(dateStr + "T00:00:00");
-		return isNaN(d) ? 0 : d.getMonth() + 1;
-	}
-	function getYear(dateStr) {
-		const d = new Date(dateStr + "T00:00:00");
-		return isNaN(d) ? 0 : d.getFullYear();
-	}
-	function esc(str) { return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+	function getMonth(dateStr) { const d = getDateObj(dateStr); return d ? d.getMonth() + 1 : 0; }
+	function getYear(dateStr) { const d = getDateObj(dateStr); return d ? d.getFullYear() : 0; }
+	function normalizeStatus(value) { return String(value || "").toLowerCase() === "published" ? "Published" : "Draft"; }
+	function normalizeTime(value) { return String(value || "").slice(0, 5); }
+	function normalizedSessionUserId() { return String(currentSession && currentSession.user_id ? currentSession.user_id : ""); }
 	function roleCell(val) {
 		if (!val) return '<td><span style="color:var(--muted);font-style:italic;font-size:0.8rem;">—</span></td>';
 		return '<td>' + esc(val) + '</td>';
+	}
+	function memberNamesForRole(role) {
+		if (!role) return [];
+		if (Array.isArray(role.memberNames)) return role.memberNames.filter(Boolean).map(String);
+		if (Array.isArray(role.members)) {
+			return role.members.map(function(member) {
+				if (member && typeof member === "object") return member.name || member.nama || member.memberName || "";
+				return "";
+			}).filter(Boolean).map(String);
+		}
+		return [];
+	}
+	function memberIdsForRole(role) {
+		if (!role) return [];
+		if (Array.isArray(role.memberIds)) return role.memberIds.filter(Boolean).map(String);
+		if (Array.isArray(role.members)) {
+			return role.members.map(function(member) {
+				if (member && typeof member === "object") return member.id || member.memberId || "";
+				return member;
+			}).filter(Boolean).map(String);
+		}
+		return [];
+	}
+	function normalizeBigMass(item) {
+		const roles = Array.isArray(item.roles) ? item.roles.map(function(role) {
+			return {
+				id: role.id,
+				role: role.role || role.role_name || role.name || "Role",
+				count: Number(role.count || role.required_count || 1),
+				memberNames: memberNamesForRole(role),
+				memberIds: memberIdsForRole(role)
+			};
+		}) : [];
+		const currentUserId = normalizedSessionUserId();
+		let currentUserRoles = Array.isArray(item.currentUserRoles) ? item.currentUserRoles.map(String) : [];
+		if (!currentUserRoles.length && currentUserId) {
+			roles.forEach(function(role) {
+				if (role.memberIds.includes(currentUserId)) currentUserRoles.push(role.role);
+			});
+		}
+		return {
+			id: item.id,
+			type: "raya",
+			namaMisa: item.misaName || item.namaMisa || "Misa Besar",
+			date: item.misaDate || item.date || "",
+			time: normalizeTime(item.misaTime || item.time || ""),
+			keterangan: item.misaNote || item.keterangan || "",
+			allowMemberRequest: Boolean(item.allowMemberRequest || item.allow_member_request || item.requestOpen),
+			status: normalizeStatus(item.status),
+			roles: roles,
+			currentUserRoles: [...new Set(currentUserRoles)],
+			isCurrentUserAssigned: Boolean(item.isCurrentUserAssigned || currentUserRoles.length)
+		};
+	}
+	function roleSummaryList(roles) {
+		const rows = [];
+		(roles || []).forEach(function(role) {
+			const names = role.memberNames && role.memberNames.length ? role.memberNames.join(", ") : "-";
+			rows.push({ role: role.role || "Role", names: names });
+		});
+		return rows;
+	}
+	function roleListHtml(roles, className) {
+		const rows = roleSummaryList(roles);
+		if (!rows.length) return '<p class="big-mass-empty" style="padding:18px;">Belum ada role petugas pada misa ini.</p>';
+		return '<ul class="' + (className || 'big-mass-role-list') + '">' + rows.map(function(row) {
+			return '<li><strong>' + esc(row.role) + ':</strong> ' + (row.names === '-' ? '<em>Belum terisi</em>' : esc(row.names)) + '</li>';
+		}).join('') + '</ul>';
+	}
+	function requestTagHtml(item) {
+		return item.allowMemberRequest
+			? '<span class="big-mass-tag open">Request Dibuka</span>'
+			: '<span class="big-mass-tag closed">Request Ditutup</span>';
+	}
+	function assignmentTagHtml(item) {
+		if (!item.isCurrentUserAssigned) return '<span class="big-mass-tag closed">Belum Bertugas</span>';
+		return '<span class="big-mass-tag assigned">Anda Bertugas: ' + esc(item.currentUserRoles.join(", ")) + '</span>';
+	}
+	function requestButtonHtml(item) {
+		if (item.allowMemberRequest) {
+			const href = REQUEST_PAGE + '?misa_besar_id=' + encodeURIComponent(item.id || '') + '&date=' + encodeURIComponent(item.date || '');
+			return '<a class="big-mass-request-btn" href="' + href + '">Request Tugas Misa Besar</a>';
+		}
+		return '<span class="big-mass-request-btn disabled">Request Tidak Dibuka</span>';
+	}
+	function loadSchedule() {
+		return scheduleData.filter(function(s) { return normalizeStatus(s.status) === "Published"; });
+	}
+
+	async function fetchJsonSafe(url) {
+		const response = await fetch(url, { headers: { "Accept": "application/json" } });
+		if (!response.ok) throw new Error(url + " " + response.status);
+		return response.json();
+	}
+	async function loadSession() {
+		try { currentSession = await fetchJsonSafe('/api/session'); }
+		catch (err) { currentSession = { logged_in: false, user_id: "", nama: "", role: "" }; }
+	}
+	async function loadOrdinarySchedule(month, year) {
+		try {
+			const rows = await fetchJsonSafe('/api/streaming/schedule?month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year));
+			if (Array.isArray(rows)) {
+				scheduleData = rows.map(function(row) {
+					const roles = {};
+					Object.keys(row.assignments || {}).forEach(function(roleName) { roles[roleName] = row.assignments[roleName]; });
+					return {
+						id: row.id || (row.date + '-' + row.time), type: "biasa", date: row.date, time: normalizeTime(row.time),
+						namaMisa: row.massName || row.mass_name || "Misa", roles: roles, status: "Published"
+					};
+				});
+				return;
+			}
+		} catch (err) {
+			console.warn('Gagal memuat jadwal misa biasa dari DB, pakai fallback:', err);
+		}
+		scheduleData = Array.isArray(window.__cremboJadwalStreamingFallback) ? window.__cremboJadwalStreamingFallback.slice() : [];
+	}
+	async function loadBigMassSchedule(month, year) {
+		let rows = [];
+		try {
+			const data = await fetchJsonSafe('/api/misa-besar/public?month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year));
+			rows = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+		} catch (err) {
+			console.warn('Endpoint /api/misa-besar/public belum tersedia, fallback ke /api/misa-besar:', err);
+			try {
+				const data = await fetchJsonSafe('/api/misa-besar');
+				rows = Array.isArray(data) ? data.filter(function(item) { return normalizeStatus(item.status) === "Published"; }) : [];
+			} catch (err2) { rows = []; }
+		}
+		bigMassData = rows.map(normalizeBigMass).filter(function(item) { return item.status === "Published"; });
 	}
 
 	// ─── DOM REFS ─────────────────────────────────────────────────────────────────
@@ -640,119 +800,118 @@
 	const tableInfoTitle    = document.getElementById("tableInfoTitle");
 	const tableInfoCount    = document.getElementById("tableInfoCount");
 	const filterInfoText    = document.getElementById("filterInfoText");
-	let currentMode = "bulanan";
+	const bigMassStatusText = document.getElementById("bigMassStatusText");
+	const bigMassCardView   = document.getElementById("bigMassCardView");
+	const bigMassTableView  = document.getElementById("bigMassTableView");
+	const bigMassCardBtn    = document.getElementById("bigMassCardBtn");
+	const bigMassTableBtn   = document.getElementById("bigMassTableBtn");
 
-	// ─── SET DEFAULT MONTH ────────────────────────────────────────────────────────
 	(function() {
 		const now = new Date();
 		filterBulan.value = String(now.getMonth() + 1);
 	})();
 
-	// ─── RENDER FUNCTIONS ─────────────────────────────────────────────────────────
 	function renderBulanan(month, year) {
-		const all = loadSchedule();
-		// Get blocked dates (misa besar) for this month+year
-		const blockedDates = new Set(
-			all.filter(s => s.type === "raya" && getMonth(s.date) === month && getYear(s.date) === year).map(s => s.date)
-		);
-		const normal = all.filter(s => s.type === "biasa" && getMonth(s.date) === month && getYear(s.date) === year);
-
-		// Merge: normal rows + blocked rows for raya dates
-		const rayaInMonth = all.filter(s => s.type === "raya" && getMonth(s.date) === month && getYear(s.date) === year);
-		// Get all unique dates in month
-		const allDates = [...new Set([
-			...normal.map(s => s.date),
-			...rayaInMonth.map(s => s.date)
-		])].sort();
-
+		const normal = loadSchedule().filter(function(s) { return getMonth(s.date) === month && getYear(s.date) === year; });
+		const bigInMonth = bigMassData.filter(function(s) { return getMonth(s.date) === month && getYear(s.date) === year; });
+		const blockedDates = new Set(bigInMonth.map(function(s) { return s.date; }));
+		const allDates = [...new Set(normal.map(function(s) { return s.date; }).concat(bigInMonth.map(function(s) { return s.date; })))].sort();
 		let html = "";
 		let no = 0;
-
-		if (allDates.length === 0) {
+		if (!allDates.length) {
 			schedBulananBody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Tidak ada jadwal untuk bulan ini.</p></div></td></tr>';
 			tableInfoCount.textContent = "0 jadwal";
+			filterInfoText.textContent = MONTHS[month - 1] + " " + year;
 			return;
 		}
-
-		allDates.forEach(date => {
-			const normalRow = normal.find(s => s.date === date);
-			const isBlocked  = blockedDates.has(date);
-
-			if (isBlocked) {
-				// Show blocked row with misa besar names
-				const rayaNames = rayaInMonth.filter(s => s.date === date).map(s => s.namaMisa || "Misa Besar").join(", ");
-				no++;
-				html += `<tr class="blocked-row">
-					<td>${no}</td>
-					<td>${esc(formatDate(date))}</td>
-					<td colspan="6"><div class="blocked-inline">🚫 DIBLOK — ${esc(rayaNames)} <span>— beralih ke tab Misa Besar untuk detail petugas.</span></div></td>
-				</tr>`;
-			} else if (normalRow) {
-				no++;
-				const r = normalRow.roles || {};
-				html += `<tr class="normal-row">
-					<td>${no}</td>
-					<td>${esc(formatDate(date))}</td>
-					<td>${esc(normalRow.time || "")}</td>
-					${roleCell(r.PD)}
-					${roleCell((r.OP || "") + (r.vMix ? " / " + r.vMix : ""))}
-					${roleCell(r.Kamera)}
-					${roleCell(r.Supervisor)}
-					${roleCell(r.Fotografer)}
-				</tr>`;
+		allDates.forEach(function(date) {
+			const normalRows = normal.filter(function(s) { return s.date === date; });
+			if (blockedDates.has(date)) {
+				const rayaNames = bigInMonth.filter(function(s) { return s.date === date; }).map(function(s) { return s.namaMisa || "Misa Besar"; }).join(", ");
+				no += 1;
+				html += '<tr class="blocked-row"><td>' + no + '</td><td>' + esc(formatDate(date)) + '</td><td colspan="6"><div class="blocked-inline">🚫 DIBLOK — ' + esc(rayaNames) + '<span>— beralih ke tab Misa Besar untuk detail petugas.</span></div></td></tr>';
+				return;
 			}
+			normalRows.forEach(function(normalRow) {
+				no += 1;
+				const r = normalRow.roles || {};
+				html += '<tr class="normal-row"><td>' + no + '</td><td>' + esc(formatDate(normalRow.date)) + '</td><td>' + esc(normalRow.time || '') + '</td>' + roleCell(r.PD || r.Produser) + roleCell((r.OP || r['Operator Streaming'] || '') + (r.vMix ? ' / ' + r.vMix : '')) + roleCell(r.Kamera || r['Kameramen 1'] || '') + roleCell(r.Supervisor || r.SPV || '') + roleCell(r.Fotografer || '') + '</tr>';
+			});
 		});
-
 		schedBulananBody.innerHTML = html;
-		const monthName = MONTHS[(month - 1)] + " " + year;
+		const monthName = MONTHS[month - 1] + " " + year;
 		tableInfoCount.textContent = no + " jadwal — " + monthName;
 		filterInfoText.textContent = monthName;
 	}
 
-	function renderHariRaya(month, year) {
-		const all = loadSchedule();
-		let data = all.filter(s => s.type === "raya");
-		if (month) data = data.filter(s => getMonth(s.date) === month);
-		if (year)  data = data.filter(s => getYear(s.date) === year);
-		data.sort((a,b) => a.date.localeCompare(b.date));
-
+	function renderBigMassCards(data) {
 		if (!data.length) {
-			schedHariRayaBody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>Tidak ada misa besar pada bulan ini.</p></div></td></tr>';
-			tableInfoCount.textContent = "0 misa besar";
+			bigMassCardView.innerHTML = '<div class="big-mass-empty" style="grid-column:1/-1;"><strong>Tidak ada misa besar publikasi pada periode ini.</strong><p>Jadwal draft tidak ditampilkan untuk anggota.</p></div>';
 			return;
 		}
-
-		let html = "";
-		data.forEach((s, i) => {
-			const r = s.roles || {};
-			html += `<tr class="hariraya-row">
-				<td>${i + 1}</td>
-				<td><span class="misa-name-cell">${esc(s.namaMisa || "Misa Besar")}</span><br><small style="color:var(--muted);font-size:0.78rem;">${esc(formatDate(s.date))}</small></td>
-				<td>${esc(s.time || "")}</td>
-				${roleCell(r.PD)}
-				${roleCell(r.OP)}
-				${roleCell(r.vMix)}
-				${roleCell(r.Kamera)}
-				${roleCell(r.Supervisor)}
-				${roleCell(r.Fotografer)}
-			</tr>`;
-		});
-
-		schedHariRayaBody.innerHTML = html;
-		tableInfoCount.textContent = data.length + " misa besar";
+		bigMassCardView.innerHTML = data.map(function(item) {
+			return '<article class="big-mass-card ' + (item.isCurrentUserAssigned ? 'assigned' : '') + '">' +
+				'<div class="big-mass-card-head"><div><h3 class="big-mass-card-title">' + esc(item.namaMisa) + '</h3><p class="big-mass-date">' + esc(formatDate(item.date)) + ' · <span class="big-mass-time">' + esc(item.time || '-') + ' WIB</span></p></div><span class="misa-type-tag">Published</span></div>' +
+				'<div class="big-mass-tags">' + requestTagHtml(item) + assignmentTagHtml(item) + '</div>' +
+				(item.keterangan ? '<p class="big-mass-note"><strong>Keterangan:</strong> ' + esc(item.keterangan) + '</p>' : '<p class="big-mass-note"><strong>Keterangan:</strong> -</p>') +
+				'<div><strong style="font-size:0.86rem;color:var(--ink);">Petugas bertugas</strong>' + roleListHtml(item.roles, 'big-mass-role-list') + '</div>' +
+				'<div class="big-mass-actions">' + requestButtonHtml(item) + '</div>' +
+			'</article>';
+		}).join('');
 	}
-
+	function renderBigMassTable(data) {
+		if (!data.length) {
+			schedHariRayaBody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Tidak ada misa besar publikasi pada periode ini.</p><p>Jadwal draft tidak ditampilkan untuk anggota.</p></div></td></tr>';
+			return;
+		}
+		schedHariRayaBody.innerHTML = data.map(function(item, i) {
+			return '<tr class="hariraya-row big-mass-table-row ' + (item.isCurrentUserAssigned ? 'assigned' : '') + '">' +
+				'<td>' + (i + 1) + '</td>' +
+				'<td><span class="misa-name-cell">' + esc(item.namaMisa) + '</span><br><span class="misa-type-tag">Published</span></td>' +
+				'<td>' + esc(formatDate(item.date)) + '</td>' +
+				'<td>' + esc(item.time || '-') + ' WIB</td>' +
+				'<td>' + esc(item.keterangan || '-') + '</td>' +
+				'<td>' + roleListHtml(item.roles, 'big-mass-table-petugas') + '</td>' +
+				'<td>' + requestTagHtml(item) + '</td>' +
+				'<td>' + assignmentTagHtml(item) + '</td>' +
+			'</tr>';
+		}).join('');
+	}
+	function renderHariRaya(month, year) {
+		const data = bigMassData.filter(function(s) { return getMonth(s.date) === month && getYear(s.date) === year; }).sort(function(a,b) { return (a.date + a.time).localeCompare(b.date + b.time); });
+		renderBigMassCards(data);
+		renderBigMassTable(data);
+		const assignedCount = data.filter(function(item) { return item.isCurrentUserAssigned; }).length;
+		const openCount = data.filter(function(item) { return item.allowMemberRequest; }).length;
+		const monthName = MONTHS[month - 1] + " " + year;
+		tableInfoCount.textContent = data.length + " misa besar publikasi — " + monthName;
+		filterInfoText.textContent = monthName;
+		bigMassStatusText.textContent = data.length + " misa besar · " + openCount + " request dibuka" + (assignedCount ? " · Anda bertugas di " + assignedCount + " misa" : "");
+	}
 	function render() {
 		const month = parseInt(filterBulan.value, 10);
 		const year  = parseInt(filterTahun.value, 10);
-		if (currentMode === "bulanan") {
-			renderBulanan(month, year);
-		} else {
-			renderHariRaya(month, year);
-		}
+		if (currentMode === "bulanan") renderBulanan(month, year);
+		else renderHariRaya(month, year);
+	}
+	async function refreshDataAndRender() {
+		const month = parseInt(filterBulan.value, 10);
+		const year  = parseInt(filterTahun.value, 10);
+		await loadSession();
+		await Promise.all([loadOrdinarySchedule(month, year), loadBigMassSchedule(month, year)]);
+		render();
+	}
+	function setBigMassViewMode(mode) {
+		bigMassViewMode = mode;
+		const isCard = mode === "card";
+		bigMassCardView.style.display = isCard ? "grid" : "none";
+		bigMassTableView.style.display = isCard ? "none" : "";
+		bigMassCardBtn.classList.toggle("active", isCard);
+		bigMassTableBtn.classList.toggle("active", !isCard);
+		bigMassCardBtn.setAttribute("aria-selected", String(isCard));
+		bigMassTableBtn.setAttribute("aria-selected", String(!isCard));
 	}
 
-	// ─── SWITCH MODE ──────────────────────────────────────────────────────────────
 	function switchMode(mode) {
 		currentMode = mode;
 		if (mode === "bulanan") {
@@ -763,7 +922,6 @@
 			pillBulanan.setAttribute("aria-selected","true");
 			pillHariRaya.setAttribute("aria-selected","false");
 			tableInfoTitle.textContent = "Jadwal Misa Biasa";
-			tableInfoTitle.style.color = "var(--primary)";
 		} else {
 			tableBulanan.style.display = "none";
 			tableHariRaya.style.display = "";
@@ -771,15 +929,18 @@
 			pillBulanan.classList.remove("active","active-gold");
 			pillHariRaya.setAttribute("aria-selected","true");
 			pillBulanan.setAttribute("aria-selected","false");
-			tableInfoTitle.textContent = "Jadwal Misa Besar / Hari Raya";
-			tableInfoTitle.style.color = "var(--primary)";
+			tableInfoTitle.textContent = "Jadwal Misa Besar";
+			setBigMassViewMode(bigMassViewMode);
 		}
+		tableInfoTitle.style.color = "var(--primary)";
 		render();
 	}
 
 	// ─── EVENTS ───────────────────────────────────────────────────────────────────
-	filterBulan.addEventListener("change", render);
-	filterTahun.addEventListener("change", render);
+	filterBulan.addEventListener("change", refreshDataAndRender);
+	filterTahun.addEventListener("change", refreshDataAndRender);
+	bigMassCardBtn.addEventListener("click", function() { setBigMassViewMode("card"); });
+	bigMassTableBtn.addEventListener("click", function() { setBigMassViewMode("table"); });
 
 	searchForm.addEventListener("submit", function(e) {
 		e.preventDefault();
@@ -801,9 +962,7 @@
 
 	mainNav.querySelectorAll("a").forEach(function (link) {
 		link.addEventListener("click", function () {
-			if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
-				return;
-			}
+			if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) return;
 			if (mainNav.classList.contains("open")) {
 				mainNav.classList.remove("open");
 				menuToggle.setAttribute("aria-expanded", "false");
@@ -887,7 +1046,8 @@
 	})();
 
 	// ─── INIT ─────────────────────────────────────────────────────────────────────
-	render();
+	setBigMassViewMode("card");
+	refreshDataAndRender();
 	</script>
 <script src="_public-nav-sync.js"></script>
 </body>
