@@ -2690,11 +2690,17 @@ def normalize_misa_besar_status(value: str | None) -> str:
     return "published" if raw in {"published", "publish", "publikasi"} else "draft"
 
 def fetch_misa_besar_notification_snapshot(cursor, misa_id: int) -> dict[str, object] | None:
-    """Ambil snapshot Misa Besar + petugas untuk kebutuhan notifikasi."""
+    """Ambil snapshot Misa Besar + petugas untuk kebutuhan notifikasi.
+
+    Snapshot ini dipakai untuk dua jenis notifikasi:
+    1. notifikasi petugas yang memang ditugaskan;
+    2. notifikasi ke anggota aktif jika Misa Besar published masih memiliki role/slot kosong.
+    """
     cursor.execute(
         """
         SELECT id, misa_name, DATE_FORMAT(misa_date, '%Y-%m-%d') AS misa_date,
-               DATE_FORMAT(misa_time, '%H:%i') AS misa_time, status
+               DATE_FORMAT(misa_time, '%H:%i') AS misa_time, misa_note,
+               allow_member_request, status
         FROM misa_besar
         WHERE id = %s
         LIMIT 1
@@ -2707,7 +2713,7 @@ def fetch_misa_besar_notification_snapshot(cursor, misa_id: int) -> dict[str, ob
 
     cursor.execute(
         """
-        SELECT n.id AS role_id, n.role_name, a.member_id
+        SELECT n.id AS role_id, n.role_name, n.required_count, a.member_id
         FROM misa_besar_names n
         LEFT JOIN misa_besar_assignments a ON a.role_id = n.id
         WHERE n.misa_id = %s
@@ -2717,25 +2723,58 @@ def fetch_misa_besar_notification_snapshot(cursor, misa_id: int) -> dict[str, ob
     )
 
     assignments: list[dict[str, str]] = []
-    seen: set[tuple[str, str]] = set()
+    seen_assignments: set[tuple[str, str]] = set()
+    roles_by_id: dict[str, dict[str, object]] = {}
+
     for row in cursor.fetchall() or []:
-        member_id = row.get("member_id") if isinstance(row, dict) else None
+        if not isinstance(row, dict):
+            continue
+
+        role_id = normalize_text(row.get("role_id"))
+        role_name = normalize_text(row.get("role_name")) or "Role"
+        required_count = parse_required_int(row.get("required_count"), 1) or 1
+        required_count = max(1, required_count)
+
+        if role_id and role_id not in roles_by_id:
+            roles_by_id[role_id] = {
+                "roleId": role_id,
+                "role": role_name,
+                "requiredCount": required_count,
+                "memberIds": [],
+            }
+
+        member_id = row.get("member_id")
         if member_id in (None, ""):
             continue
-        role_name = normalize_text(row.get("role_name") if isinstance(row, dict) else "Role") or "Role"
-        key = (role_name, str(member_id))
-        if key in seen:
+
+        member_id_text = str(member_id)
+        if role_id and role_id in roles_by_id and member_id_text not in roles_by_id[role_id]["memberIds"]:
+            roles_by_id[role_id]["memberIds"].append(member_id_text)
+
+        key = (role_name, member_id_text)
+        if key in seen_assignments:
             continue
-        seen.add(key)
-        assignments.append({"role": role_name, "memberId": str(member_id)})
+        seen_assignments.add(key)
+        assignments.append({"role": role_name, "memberId": member_id_text})
+
+    roles: list[dict[str, object]] = []
+    for role in roles_by_id.values():
+        filled_count = len(role.get("memberIds") or [])
+        required_count = parse_required_int(role.get("requiredCount"), 1) or 1
+        role["filledCount"] = filled_count
+        role["emptyCount"] = max(required_count - filled_count, 0)
+        roles.append(role)
 
     return {
         "id": int(event.get("id") or misa_id),
         "misaName": normalize_text(event.get("misa_name")) or "Misa Besar",
         "misaDate": normalize_text(event.get("misa_date")),
         "misaTime": format_time_hhmm(event.get("misa_time")),
+        "misaNote": normalize_text(event.get("misa_note")),
+        "allowMemberRequest": bool(event.get("allow_member_request")),
         "status": normalize_misa_besar_status(event.get("status")),
         "assignments": assignments,
+        "roles": roles,
     }
 
 def misa_besar_assignment_keys(snapshot: dict[str, object] | None) -> set[tuple[str, str]]:
@@ -2835,6 +2874,117 @@ def notify_misa_besar_assignment_changes(cursor, old_snapshot: dict[str, object]
     if not changed_keys:
         return 0
     return create_misa_besar_assignment_notifications(cursor, new_snapshot, only_keys=changed_keys)
+
+
+def misa_besar_open_role_labels(snapshot: dict[str, object] | None) -> list[str]:
+    """Kembalikan daftar role/slot Misa Besar yang masih kosong."""
+    if not snapshot:
+        return []
+
+    labels: list[str] = []
+    for role in snapshot.get("roles") or []:
+        if not isinstance(role, dict):
+            continue
+        role_name = normalize_text(role.get("role")) or "Role"
+        empty_count = parse_required_int(role.get("emptyCount"), 0)
+        if empty_count <= 0:
+            continue
+        if empty_count > 1:
+            labels.append(f"{role_name} ({empty_count} slot)")
+        else:
+            labels.append(role_name)
+    return labels
+
+def create_misa_besar_open_role_notifications(cursor, snapshot: dict[str, object] | None) -> int:
+    """Kirim notifikasi kategori tugas ke anggota aktif biasa bila published Misa Besar masih punya slot kosong.
+
+    Notifikasi dibuat per anggota agar dashboard anggota bisa tetap memfilter menggunakan target_user_id,
+    sama seperti notifikasi tugas lain.
+    """
+    if not snapshot or normalize_misa_besar_status(snapshot.get("status")) != "published":
+        return 0
+
+    empty_roles = misa_besar_open_role_labels(snapshot)
+    if not empty_roles:
+        return 0
+
+    ensure_notifications_schema()
+
+    try:
+        date_obj = datetime.strptime(normalize_text(snapshot.get("misaDate")), "%Y-%m-%d")
+        day_name = DAYS_INDO[date_obj.weekday()]
+        date_formatted = date_obj.strftime("%d/%m/%Y")
+    except Exception:
+        day_name = "-"
+        date_formatted = normalize_text(snapshot.get("misaDate")) or "-"
+
+    misa_id = snapshot.get("id")
+    misa_name = normalize_text(snapshot.get("misaName")) or "Misa Besar"
+    misa_time = format_time_hhmm(snapshot.get("misaTime"))
+    request_label = "dibuka" if snapshot.get("allowMemberRequest") else "ditutup"
+    empty_role_text = ", ".join(empty_roles)
+
+    cursor.execute(
+        """
+        SELECT id, nama
+        FROM anggota
+        WHERE LOWER(COALESCE(role, '')) = 'user'
+          AND LOWER(COALESCE(status_akun, '')) = 'aktif'
+        ORDER BY nama ASC, id ASC
+        """
+    )
+    members = cursor.fetchall() or []
+
+    sent = 0
+    for member in members:
+        if not isinstance(member, dict):
+            continue
+        member_id = normalize_text(member.get("id"))
+        if not member_id:
+            continue
+
+        title = "Misa Besar Butuh Petugas"
+        body = (
+            f"Ada Misa Besar baru <b>{html.escape(misa_name)}</b> pada hari {html.escape(day_name)}, "
+            f"{html.escape(date_formatted)} jam {html.escape(misa_time)} WIB yang masih memiliki slot kosong: "
+            f"<b>{html.escape(empty_role_text)}</b>. "
+            f"Status request anggota: <b>{html.escape(request_label)}</b>. "
+            "Silakan buka halaman request tugas untuk melihat detail dan mengajukan tugas."
+        )
+
+        create_notification(
+            cursor,
+            "tugas",
+            title,
+            body,
+            f"/request-tugas-anggota.html?misaBesarId={misa_id}",
+            {
+                "target_user_id": member_id,
+                "notification_kind": "misa_besar_open_roles",
+                "misa_besar_id": misa_id,
+                "misa_type": "misa_besar",
+                "misa_name": misa_name,
+                "misa_date": snapshot.get("misaDate"),
+                "misa_time": misa_time,
+                "empty_roles": empty_roles,
+                "allow_member_request": bool(snapshot.get("allowMemberRequest")),
+            },
+            target_role="user",
+        )
+        sent += 1
+
+    return sent
+
+def notify_misa_besar_open_roles_if_newly_published(cursor, old_snapshot: dict[str, object] | None, new_snapshot: dict[str, object] | None) -> int:
+    """Kirim notifikasi slot kosong hanya saat Misa Besar baru masuk status published."""
+    if not new_snapshot or normalize_misa_besar_status(new_snapshot.get("status")) != "published":
+        return 0
+
+    old_status = normalize_misa_besar_status(old_snapshot.get("status")) if old_snapshot else "draft"
+    if old_status == "published":
+        return 0
+
+    return create_misa_besar_open_role_notifications(cursor, new_snapshot)
 
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
@@ -6425,12 +6575,14 @@ def api_misa_besar():
             )
             new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
             notified_count = notify_misa_besar_assignment_changes(cursor, None, new_snapshot)
+            open_role_notified_count = notify_misa_besar_open_roles_if_newly_published(cursor, None, new_snapshot)
             
             conn.commit()
             return jsonify({
                 "success": True,
                 "id": misa_id,
                 "notifiedCount": notified_count,
+                "openRoleNotifiedCount": open_role_notified_count,
                 "removedRegularAssignments": removed_regular_assignments,
             })
 
@@ -6502,11 +6654,13 @@ def api_misa_besar_detail(misa_id):
             )
             new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
             notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
+            open_role_notified_count = notify_misa_besar_open_roles_if_newly_published(cursor, old_snapshot, new_snapshot)
             
             conn.commit()
             return jsonify({
                 "success": True,
                 "notifiedCount": notified_count,
+                "openRoleNotifiedCount": open_role_notified_count,
                 "removedRegularAssignments": removed_regular_assignments,
             })
     finally:
@@ -6545,10 +6699,12 @@ def api_misa_besar_status(misa_id):
                 )
         new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
         notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
+        open_role_notified_count = notify_misa_besar_open_roles_if_newly_published(cursor, old_snapshot, new_snapshot)
         conn.commit()
         return jsonify({
             "success": True,
             "notifiedCount": notified_count,
+            "openRoleNotifiedCount": open_role_notified_count,
             "removedRegularAssignments": removed_regular_assignments,
         })
     except Exception as e:
