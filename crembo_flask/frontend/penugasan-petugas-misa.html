@@ -684,6 +684,7 @@
         const duplicateError = validateUniqueMembersPerSchedule();
         if (duplicateError) return alert(duplicateError);
 
+        let notifiedTotal = 0;
         for (const item of CURRENT_SCHEDULE) {
             const ev = item.event;
             if (!ev) continue;
@@ -717,14 +718,17 @@
             if (!res.ok || data.success === false) {
                 throw new Error(data.error || `Gagal menyimpan ${ev.misaName}.`);
             }
+            notifiedTotal += Number(data.notifiedCount || 0);
         }
+        return notifiedTotal;
     }
 
     document.getElementById("saveAllBtn").onclick = async () => {
         try {
             if (CURRENT_MODE === "besar") {
-                await saveBigMassAssignments();
-                alert("Penugasan Misa Besar berhasil disimpan!");
+                const notifiedTotal = await saveBigMassAssignments();
+                const notifInfo = Number(notifiedTotal || 0) > 0 ? `\nNotifikasi tugas terkirim ke ${notifiedTotal} petugas.` : "";
+                alert("Penugasan Misa Besar berhasil disimpan!" + notifInfo);
             } else {
                 await saveRegularAssignments();
                 alert("Semua penugasan berhasil disimpan!");

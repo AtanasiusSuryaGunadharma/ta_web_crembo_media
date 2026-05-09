@@ -2656,6 +2656,159 @@ def format_time_hhmm(t_obj):
         return f"{hours:02d}:{minutes:02d}"
     return str(t_obj)[:5].zfill(5)
 
+DAYS_INDO = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+
+def normalize_misa_besar_status(value: str | None) -> str:
+    raw = normalize_text(value).lower()
+    return "published" if raw in {"published", "publish", "publikasi"} else "draft"
+
+def fetch_misa_besar_notification_snapshot(cursor, misa_id: int) -> dict[str, object] | None:
+    """Ambil snapshot Misa Besar + petugas untuk kebutuhan notifikasi."""
+    cursor.execute(
+        """
+        SELECT id, misa_name, DATE_FORMAT(misa_date, '%Y-%m-%d') AS misa_date,
+               DATE_FORMAT(misa_time, '%H:%i') AS misa_time, status
+        FROM misa_besar
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (misa_id,),
+    )
+    event = cursor.fetchone()
+    if not event:
+        return None
+
+    cursor.execute(
+        """
+        SELECT n.id AS role_id, n.role_name, a.member_id
+        FROM misa_besar_names n
+        LEFT JOIN misa_besar_assignments a ON a.role_id = n.id
+        WHERE n.misa_id = %s
+        ORDER BY n.id ASC, a.id ASC
+        """,
+        (misa_id,),
+    )
+
+    assignments: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for row in cursor.fetchall() or []:
+        member_id = row.get("member_id") if isinstance(row, dict) else None
+        if member_id in (None, ""):
+            continue
+        role_name = normalize_text(row.get("role_name") if isinstance(row, dict) else "Role") or "Role"
+        key = (role_name, str(member_id))
+        if key in seen:
+            continue
+        seen.add(key)
+        assignments.append({"role": role_name, "memberId": str(member_id)})
+
+    return {
+        "id": int(event.get("id") or misa_id),
+        "misaName": normalize_text(event.get("misa_name")) or "Misa Besar",
+        "misaDate": normalize_text(event.get("misa_date")),
+        "misaTime": format_time_hhmm(event.get("misa_time")),
+        "status": normalize_misa_besar_status(event.get("status")),
+        "assignments": assignments,
+    }
+
+def misa_besar_assignment_keys(snapshot: dict[str, object] | None) -> set[tuple[str, str]]:
+    if not snapshot:
+        return set()
+    keys: set[tuple[str, str]] = set()
+    for item in snapshot.get("assignments") or []:
+        if not isinstance(item, dict):
+            continue
+        role_name = normalize_text(item.get("role")) or "Role"
+        member_id = normalize_text(item.get("memberId"))
+        if member_id:
+            keys.add((role_name, member_id))
+    return keys
+
+def create_misa_besar_assignment_notifications(
+    cursor,
+    snapshot: dict[str, object] | None,
+    *,
+    only_keys: set[tuple[str, str]] | None = None,
+) -> int:
+    """Kirim notif tugas untuk petugas Misa Besar yang statusnya sudah published."""
+    if not snapshot or normalize_misa_besar_status(snapshot.get("status")) != "published":
+        return 0
+
+    try:
+        date_obj = datetime.strptime(normalize_text(snapshot.get("misaDate")), "%Y-%m-%d")
+        day_name = DAYS_INDO[date_obj.weekday()]
+        date_formatted = date_obj.strftime("%d/%m/%Y")
+    except Exception:
+        day_name = "-"
+        date_formatted = normalize_text(snapshot.get("misaDate")) or "-"
+
+    misa_id = snapshot.get("id")
+    misa_name = normalize_text(snapshot.get("misaName")) or "Misa Besar"
+    misa_time = format_time_hhmm(snapshot.get("misaTime"))
+    sent = 0
+    sent_keys: set[tuple[str, str]] = set()
+
+    for item in snapshot.get("assignments") or []:
+        if not isinstance(item, dict):
+            continue
+        role_name = normalize_text(item.get("role")) or "Role"
+        member_id = normalize_text(item.get("memberId"))
+        key = (role_name, member_id)
+        if not member_id or key in sent_keys:
+            continue
+        if only_keys is not None and key not in only_keys:
+            continue
+
+        title = f"Tugas Baru: {role_name}"
+        body = (
+            f"Anda ditugaskan sebagai <b>{html.escape(role_name)}</b> untuk "
+            f"<b>{html.escape(misa_name)}</b> pada hari {html.escape(day_name)}, "
+            f"{html.escape(date_formatted)} jam {html.escape(misa_time)} WIB."
+        )
+        create_notification(
+            cursor,
+            "tugas",
+            title,
+            body,
+            "/jadwal-tugas-misa-anggota.html",
+            {
+                "target_user_id": member_id,
+                "misa_besar_id": misa_id,
+                "misa_type": "misa_besar",
+                "role": role_name,
+                "misa_name": misa_name,
+                "misa_date": snapshot.get("misaDate"),
+                "misa_time": misa_time,
+            },
+            target_role=None,
+        )
+        sent_keys.add(key)
+        sent += 1
+    return sent
+
+def notify_misa_besar_assignment_changes(cursor, old_snapshot: dict[str, object] | None, new_snapshot: dict[str, object] | None) -> int:
+    """
+    Aturan notifikasi Misa Besar:
+    - draft tidak mengirim notifikasi;
+    - saat berubah ke published, semua petugas terisi dapat notifikasi;
+    - saat sudah published, hanya petugas baru/peran baru yang dapat notifikasi.
+    """
+    if not new_snapshot or normalize_misa_besar_status(new_snapshot.get("status")) != "published":
+        return 0
+
+    ensure_notifications_schema()
+
+    old_status = normalize_misa_besar_status(old_snapshot.get("status")) if old_snapshot else "draft"
+    if old_status != "published":
+        return create_misa_besar_assignment_notifications(cursor, new_snapshot)
+
+    new_keys = misa_besar_assignment_keys(new_snapshot)
+    old_keys = misa_besar_assignment_keys(old_snapshot)
+    changed_keys = new_keys - old_keys
+    if not changed_keys:
+        return 0
+    return create_misa_besar_assignment_notifications(cursor, new_snapshot, only_keys=changed_keys)
+
 def ensure_auth_schema() -> None:
     conn = mysql_connection()
     cursor = conn.cursor()
@@ -6101,9 +6254,12 @@ def api_misa_besar():
                 for m_id in r.get('members', []):
                     if str(m_id).strip():
                         cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (role_id, m_id))
+
+            new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
+            notified_count = notify_misa_besar_assignment_changes(cursor, None, new_snapshot)
             
             conn.commit()
-            return jsonify({"success": True, "id": misa_id})
+            return jsonify({"success": True, "id": misa_id, "notifiedCount": notified_count})
 
         # GET DATA
         cursor.execute("SELECT id, misa_name as misaName, DATE_FORMAT(misa_date, '%Y-%m-%d') as misaDate, DATE_FORMAT(misa_time, '%H:%i') as misaTime, misa_note as misaNote, allow_member_request as allowMemberRequest, status, created_at as updatedAt FROM misa_besar ORDER BY misa_date DESC")
@@ -6143,6 +6299,7 @@ def api_misa_besar_detail(misa_id):
         
         if request.method == "PUT":
             data = request.json
+            old_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
             allow_req = 1 if data.get('allowMemberRequest') else 0
             
             # Update header Misa
@@ -6164,9 +6321,12 @@ def api_misa_besar_detail(misa_id):
                 for m_id in r.get('members', []):
                     if str(m_id).strip():
                         cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (role_id, m_id))
+
+            new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
+            notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
             
             conn.commit()
-            return jsonify({"success": True})
+            return jsonify({"success": True, "notifiedCount": notified_count})
     finally:
         cursor.close()
         conn.close()
@@ -6175,14 +6335,17 @@ def api_misa_besar_detail(misa_id):
 def api_misa_besar_status(misa_id):
     """Endpoint khusus untuk mengubah status ke Draft atau Published dengan cepat"""
     conn = mysql_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
     try:
-        data = request.json
-        new_status = data.get('status', 'draft')
+        data = request.json or {}
+        old_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
+        new_status = normalize_misa_besar_status(data.get('status', 'draft'))
         
         cursor.execute("UPDATE misa_besar SET status = %s WHERE id = %s", (new_status, misa_id))
+        new_snapshot = fetch_misa_besar_notification_snapshot(cursor, misa_id)
+        notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
         conn.commit()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "notifiedCount": notified_count})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
@@ -6192,10 +6355,11 @@ def api_misa_besar_status(misa_id):
 
 @app.route("/api/misa-besar/assign", methods=["POST"])
 def api_misa_besar_assign():
-    data = request.json 
+    data = request.json or {}
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
     try:
+        old_snapshot = fetch_misa_besar_notification_snapshot(cursor, int(data['misaId']))
         cursor.execute("""
             SELECT n.role_name FROM misa_besar_assignments a 
             JOIN misa_besar_names n ON a.role_id = n.id 
@@ -6206,8 +6370,10 @@ def api_misa_besar_assign():
             return jsonify({"success": False, "message": f"Gagal: Orang tersebut sudah bertugas sebagai {existing['role_name']} di jadwal ini."}), 400
 
         cursor.execute("INSERT INTO misa_besar_assignments (role_id, member_id) VALUES (%s, %s)", (data['roleId'], data['memberId']))
+        new_snapshot = fetch_misa_besar_notification_snapshot(cursor, int(data['misaId']))
+        notified_count = notify_misa_besar_assignment_changes(cursor, old_snapshot, new_snapshot)
         conn.commit()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "notifiedCount": notified_count})
     finally:
         cursor.close()
         conn.close()

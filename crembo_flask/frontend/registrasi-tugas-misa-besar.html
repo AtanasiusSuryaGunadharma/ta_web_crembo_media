@@ -801,7 +801,9 @@
       });
 
       if(res.ok) {
-          alert("Berhasil disimpan!");
+          const data = await res.json().catch(() => ({}));
+          const notifInfo = Number(data.notifiedCount || 0) > 0 ? `\nNotifikasi tugas terkirim ke ${data.notifiedCount} petugas.` : "";
+          alert("Berhasil disimpan!" + notifInfo);
           clearRegistrationForm();
           fetchEvents();
       } else {
@@ -924,9 +926,13 @@
         });
 
         if (res.ok) {
+            const data = await res.json().catch(() => ({}));
             fetchEvents(); // Refresh tabel
             if (newStatus === 'draft') alert("Jadwal dikembalikan ke Draft!");
-            if (newStatus === 'published') alert("Jadwal berhasil di-Publish!");
+            if (newStatus === 'published') {
+                const notifInfo = Number(data.notifiedCount || 0) > 0 ? `\nNotifikasi tugas terkirim ke ${data.notifiedCount} petugas.` : "";
+                alert("Jadwal berhasil di-Publish!" + notifInfo);
+            }
         } else {
             alert("Gagal mengubah status jadwal.");
         }
