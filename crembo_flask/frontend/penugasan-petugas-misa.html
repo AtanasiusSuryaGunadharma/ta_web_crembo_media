@@ -18,6 +18,17 @@
     .slot-option:hover, .slot-option.active { background: #ebebeb; }
     .slot-empty { margin: 0; padding: 8px; font-size: 0.78rem; color: #666; font-style: italic; }
     .clear-slot { margin-top: 4px; width: 100%; }
+    .status-stack { display: grid; gap: 6px; min-width: 130px; }
+    .status-pill, .request-pill { display: inline-flex; width: fit-content; align-items: center; border-radius: 999px; padding: 3px 9px; border: 1px solid #b5b5b5; background: #f7f7f7; font-size: 0.74rem; font-weight: 700; white-space: nowrap; }
+    .status-pill.ok { border-color: #99c8ab; background: #eef8ef; color: #116d3f; }
+    .status-pill.pending { border-color: #e3c188; background: #fff8ea; color: #9b5b00; }
+    .status-pill.draft { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
+    .status-pill.published { border-color: #99c8ab; background: #eef8ef; color: #116d3f; }
+    .request-pill.open { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+    .request-pill.closed { border-color: #d1d5db; background: #f3f4f6; color: #4b5563; }
+    .mass-note { display:block; margin-top:4px; color:#6b7280; font-size:0.78rem; line-height:1.35; }
+    .role-not-used { color:#8a8a8a; font-style:italic; font-size:0.82rem; }
+    .slot + .slot { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e5e7eb; }
     
     /* Modal Swap */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 100; justify-content: center; align-items: center; }
@@ -96,8 +107,8 @@
             </select>
           </div>
           <div class="tabs" style="margin-bottom: 0; border: none; display: flex; gap: 8px;">
-            <button id="modeBiasa" class="btn" type="button" style="pointer-events: none;">Misa Biasa</button>
-            <button id="modeBesar" class="btn ghost" type="button" onclick="alert('Fitur Misa Besar dalam pengembangan.')">Misa Besar</button>
+            <button id="modeBiasa" class="btn" type="button">Misa Biasa</button>
+            <button id="modeBesar" class="btn ghost" type="button">Misa Besar</button>
           </div>
         </div>
         <div class="panel-body">
@@ -159,133 +170,346 @@
     let ROLES = [];
     let ACTIVE_MEMBERS = [];
     let CURRENT_SCHEDULE = [];
-    let ASSIGNMENT_MAP = {}; // key: "date_time_role" => memberId
-    
+    let CURRENT_MODE = "biasa";
+    let ASSIGNMENT_MAP = {}; // key slot => memberId
+    let SLOT_META = {};      // key slot => metadata jadwal/role
+    let BIG_EVENTS = [];
+    let BIG_ROLE_NAMES = [];
+
     const monthFilter = document.getElementById("monthFilter");
     const yearFilter = document.getElementById("yearFilter");
     const swapModal = document.getElementById("swapModal");
+    const modeBiasaBtn = document.getElementById("modeBiasa");
+    const modeBesarBtn = document.getElementById("modeBesar");
 
     const now = new Date();
-    monthFilter.value = now.getMonth() + 1;
-    yearFilter.value = now.getFullYear();
+    monthFilter.value = String(now.getMonth() + 1);
+    yearFilter.value = String(now.getFullYear());
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function encodeKeyPart(value) {
+        return encodeURIComponent(String(value ?? "")).replace(/%/g, "_");
+    }
+
+    function normalizeTime(value) {
+        return String(value || "").substring(0, 5);
+    }
+
+    function formatDateId(dateStr) {
+        if (!dateStr) return "-";
+        const parts = String(dateStr).split("-");
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return dateStr;
+    }
+
+    function getMemberById(memberId) {
+        return ACTIVE_MEMBERS.find(m => String(m.id) === String(memberId));
+    }
+
+    function getMemberName(memberId, fallbackName = "") {
+        if (!memberId) return "-- kosong --";
+        const member = getMemberById(memberId);
+        if (member) return member.name;
+        return fallbackName || `ID ${memberId}`;
+    }
+
+    function keyForBiasa(date, time, role) {
+        return `biasa_${encodeKeyPart(date)}_${encodeKeyPart(normalizeTime(time))}_${encodeKeyPart(role)}`;
+    }
+
+    function keyForBesar(misaId, roleId, slotIndex) {
+        return `besar_${encodeKeyPart(misaId)}_${encodeKeyPart(roleId)}_${encodeKeyPart(slotIndex)}`;
+    }
+
+    function setMode(mode) {
+        CURRENT_MODE = mode === "besar" ? "besar" : "biasa";
+        modeBiasaBtn.className = CURRENT_MODE === "biasa" ? "btn" : "btn ghost";
+        modeBesarBtn.className = CURRENT_MODE === "besar" ? "btn" : "btn ghost";
+        document.getElementById("emptyNote").textContent = "Memuat data...";
+        closeAllSlotPanels();
+        swapModal.classList.remove("show");
+        fetchData();
+    }
+
+    async function fetchMembersAndRoles() {
+        const [rolesRes, membersRes] = await Promise.all([
+            fetch("/api/streaming/roles"),
+            fetch("/api/streaming/active-members")
+        ]);
+        ROLES = await rolesRes.json();
+        ACTIVE_MEMBERS = await membersRes.json();
+    }
 
     async function fetchData() {
         try {
-            const [rolesRes, membersRes, assignmentsRes] = await Promise.all([
-                fetch("/api/streaming/roles"),
-                fetch("/api/streaming/active-members"),
-                fetch("/api/streaming/assignments")
-            ]);
-            ROLES = await rolesRes.json();
-            ACTIVE_MEMBERS = await membersRes.json();
-            const assignments = await assignmentsRes.json();
-            
-            ASSIGNMENT_MAP = {};
-            assignments.forEach(a => {
-                const timeStr = a.schedule_time.substring(0,5);
-                const key = `${a.schedule_date}_${timeStr}_${a.role_name}`;
-                ASSIGNMENT_MAP[key] = String(a.member_id);
-            });
-            
-            renderHeader();
-            await loadSchedule();
-        } catch (e) { console.error("Error fetching data:", e); }
-    }
-
-    async function loadSchedule() {
-        const m = monthFilter.value;
-        const y = yearFilter.value;
-        try {
-            const res = await fetch(`/api/streaming/schedule?month=${m}&year=${y}`);
-            const data = await res.json();
-            if (data.success && data.schedule.length > 0) {
-                CURRENT_SCHEDULE = data.schedule;
-                document.getElementById("emptyNote").hidden = true;
-                renderRows(CURRENT_SCHEDULE);
+            await fetchMembersAndRoles();
+            if (CURRENT_MODE === "besar") {
+                await loadBigMassAssignments();
             } else {
-                CURRENT_SCHEDULE = [];
-                document.getElementById("tableRows").innerHTML = "";
-                document.getElementById("emptyNote").hidden = false;
-                document.getElementById("emptyNote").innerText = "Tidak ada jadwal rutin bulan ini.";
+                await loadRegularAssignments();
             }
         } catch (e) {
-            document.getElementById("emptyNote").innerText = "Gagal memuat jadwal.";
+            console.error("Error fetching data:", e);
+            document.getElementById("tableHeader").innerHTML = "";
+            document.getElementById("tableRows").innerHTML = "";
+            document.getElementById("emptyNote").hidden = false;
+            document.getElementById("emptyNote").innerText = "Gagal memuat data penugasan.";
         }
     }
 
-    function renderHeader() {
+    async function loadRegularAssignments() {
+        const assignmentsRes = await fetch("/api/streaming/assignments");
+        const assignments = await assignmentsRes.json();
+
+        ASSIGNMENT_MAP = {};
+        SLOT_META = {};
+        assignments.forEach(a => {
+            const timeStr = normalizeTime(a.schedule_time);
+            const key = keyForBiasa(a.schedule_date, timeStr, a.role_name);
+            ASSIGNMENT_MAP[key] = String(a.member_id);
+        });
+
+        renderRegularHeader();
+        await loadRegularSchedule();
+    }
+
+    async function loadRegularSchedule() {
+        const m = monthFilter.value;
+        const y = yearFilter.value;
+        const res = await fetch(`/api/streaming/schedule?month=${m}&year=${y}`);
+        const data = await res.json();
+        if (data.success && data.schedule.length > 0) {
+            CURRENT_SCHEDULE = data.schedule.map(item => ({
+                ...item,
+                kind: "biasa",
+                time: normalizeTime(item.time),
+                scheduleKey: `biasa_${item.date}_${normalizeTime(item.time)}`,
+                event: null
+            }));
+            document.getElementById("emptyNote").hidden = true;
+            renderRegularRows(CURRENT_SCHEDULE);
+        } else {
+            CURRENT_SCHEDULE = [];
+            document.getElementById("tableRows").innerHTML = "";
+            document.getElementById("emptyNote").hidden = false;
+            document.getElementById("emptyNote").innerText = "Tidak ada jadwal rutin bulan ini.";
+        }
+    }
+
+    function renderRegularHeader() {
         let html = `<tr><th>NAMA MISA</th><th>TANGGAL</th><th>JAM</th>`;
-        ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
+        ROLES.forEach(r => { html += `<th>${escapeHtml(String(r.name || "").toUpperCase())}</th>`; });
         html += `<th>STATUS</th></tr>`;
         document.getElementById("tableHeader").innerHTML = html;
     }
 
-    function updateRowStatus(date, time) {
-        let rolesFilled = 0;
-        ROLES.forEach(role => {
-            const key = `${date}_${time}_${role.name}`;
-            if (ASSIGNMENT_MAP[key]) rolesFilled++;
+    function renderRegularRows(schedule) {
+        SLOT_META = {};
+        document.getElementById("tableRows").innerHTML = schedule.map(item => {
+            const timeStr = normalizeTime(item.time);
+            let rowHtml = `<td><strong>${escapeHtml(item.massName)}</strong></td>
+                           <td>${formatDateId(item.date)}</td>
+                           <td>${escapeHtml(timeStr)}</td>`;
+
+            let roleCells = "";
+            ROLES.forEach(role => {
+                const roleName = role.name || "Role";
+                const key = keyForBiasa(item.date, timeStr, roleName);
+                const scheduleKey = item.scheduleKey;
+                SLOT_META[key] = {
+                    kind: "biasa", scheduleKey, date: item.date, time: timeStr,
+                    role: roleName, massName: item.massName, event: null
+                };
+                roleCells += `<td>${renderSlotControl({
+                    key, kind: "biasa", scheduleKey, date: item.date, time: timeStr,
+                    role: roleName, massName: item.massName, memberId: ASSIGNMENT_MAP[key] || ""
+                })}</td>`;
+            });
+
+            return `<tr>${rowHtml}${roleCells}<td><div class="status-stack" id="status_${item.scheduleKey}"></div></td></tr>`;
+        }).join("");
+
+        schedule.forEach(item => updateRegularRowStatus(item.scheduleKey));
+    }
+
+    async function loadBigMassAssignments() {
+        const res = await fetch("/api/misa-besar");
+        const allEvents = await res.json();
+        const selectedMonth = String(monthFilter.value).padStart(2, "0");
+        const selectedYear = String(yearFilter.value);
+
+        BIG_EVENTS = (Array.isArray(allEvents) ? allEvents : [])
+            .filter(ev => {
+                const date = String(ev.misaDate || "");
+                return date.startsWith(`${selectedYear}-${selectedMonth}-`);
+            })
+            .sort((a, b) => `${a.misaDate || ""} ${normalizeTime(a.misaTime)}`.localeCompare(`${b.misaDate || ""} ${normalizeTime(b.misaTime)}`));
+
+        CURRENT_SCHEDULE = BIG_EVENTS.map(ev => ({
+            kind: "besar",
+            id: ev.id,
+            date: ev.misaDate,
+            time: normalizeTime(ev.misaTime),
+            massName: ev.misaName,
+            scheduleKey: `besar_${ev.id}`,
+            event: ev
+        }));
+
+        ASSIGNMENT_MAP = {};
+        SLOT_META = {};
+        BIG_ROLE_NAMES = [];
+        BIG_EVENTS.forEach(ev => {
+            (ev.roles || []).forEach(role => {
+                const roleName = role.role || "Role";
+                if (!BIG_ROLE_NAMES.includes(roleName)) BIG_ROLE_NAMES.push(roleName);
+                const count = Math.max(1, parseInt(role.count, 10) || 1);
+                const members = Array.isArray(role.members) ? role.members : [];
+                for (let i = 0; i < count; i += 1) {
+                    const key = keyForBesar(ev.id, role.id, i);
+                    ASSIGNMENT_MAP[key] = members[i] ? String(members[i]) : "";
+                }
+            });
         });
-        
-        let statusHtml = "";
-        if (rolesFilled === ROLES.length) {
-             statusHtml = '<span class="status-pill">Lengkap</span>';
-        } else if (rolesFilled > 0) {
-             statusHtml = `<span class="status-pill pending">Kurang ${ROLES.length - rolesFilled}</span>`;
+
+        renderBigMassHeader();
+        if (CURRENT_SCHEDULE.length) {
+            document.getElementById("emptyNote").hidden = true;
+            renderBigMassRows(BIG_EVENTS);
         } else {
-             statusHtml = '<span class="status-pill pending" style="border-color:#d1d5db; color:#4b5563; background:#f3f4f6;">Kosong</span>';
+            document.getElementById("tableRows").innerHTML = "";
+            document.getElementById("emptyNote").hidden = false;
+            document.getElementById("emptyNote").innerText = "Tidak ada jadwal misa besar pada bulan ini.";
         }
-        
-        const statusDiv = document.getElementById(`status_${date}_${time}`);
+    }
+
+    function renderBigMassHeader() {
+        let html = `<tr><th>NAMA MISA</th><th>TANGGAL</th><th>JAM</th>`;
+        BIG_ROLE_NAMES.forEach(roleName => { html += `<th>${escapeHtml(String(roleName).toUpperCase())}</th>`; });
+        html += `<th>STATUS</th></tr>`;
+        document.getElementById("tableHeader").innerHTML = html;
+    }
+
+    function renderBigMassRows(events) {
+        SLOT_META = {};
+        document.getElementById("tableRows").innerHTML = events.map(ev => {
+            const scheduleKey = `besar_${ev.id}`;
+            const timeStr = normalizeTime(ev.misaTime);
+            const requestBadge = ev.allowMemberRequest
+                ? '<span class="request-pill open">Request Dibuka</span>'
+                : '<span class="request-pill closed">Request Ditutup</span>';
+            let rowHtml = `<td><strong>${escapeHtml(ev.misaName)}</strong>
+                              <span class="mass-note">${escapeHtml(ev.misaNote || "-")}</span>
+                              <span class="mass-note">${requestBadge}</span>
+                           </td>
+                           <td>${formatDateId(ev.misaDate)}</td>
+                           <td>${escapeHtml(timeStr)}</td>`;
+
+            let roleCells = "";
+            BIG_ROLE_NAMES.forEach(roleName => {
+                const matchingRoles = (ev.roles || []).filter(role => String(role.role || "Role") === String(roleName));
+                if (!matchingRoles.length) {
+                    roleCells += `<td><span class="role-not-used">Role tidak dipakai</span></td>`;
+                    return;
+                }
+
+                const controls = matchingRoles.map(role => {
+                    const count = Math.max(1, parseInt(role.count, 10) || 1);
+                    const names = Array.isArray(role.memberNames) ? role.memberNames : [];
+                    let html = "";
+                    for (let i = 0; i < count; i += 1) {
+                        const key = keyForBesar(ev.id, role.id, i);
+                        SLOT_META[key] = {
+                            kind: "besar", scheduleKey, date: ev.misaDate, time: timeStr,
+                            role: role.role || "Role", roleId: role.id, slotIndex: i,
+                            massName: ev.misaName, event: ev
+                        };
+                        html += renderSlotControl({
+                            key, kind: "besar", scheduleKey, date: ev.misaDate, time: timeStr,
+                            role: role.role || "Role", massName: ev.misaName,
+                            memberId: ASSIGNMENT_MAP[key] || "", fallbackName: names[i] || ""
+                        });
+                    }
+                    return html;
+                }).join("");
+
+                roleCells += `<td>${controls}</td>`;
+            });
+
+            return `<tr>${rowHtml}${roleCells}<td><div class="status-stack" id="status_${scheduleKey}"></div></td></tr>`;
+        }).join("");
+
+        events.forEach(ev => updateBigMassRowStatus(`besar_${ev.id}`));
+    }
+
+    function renderSlotControl({ key, kind, scheduleKey, date, time, role, massName, memberId, fallbackName = "" }) {
+        const member = memberId ? getMemberById(memberId) : null;
+        const assignedMemberName = getMemberName(memberId, fallbackName);
+        const inactiveMark = memberId && !member ? " <em style='color:#9b5b00;'>(nonaktif)</em>" : "";
+        const assignedMemberTag = memberId ? `Terisi: ${escapeHtml(assignedMemberName)}${inactiveMark}` : "Slot kosong";
+        const emptyClass = memberId ? "" : "empty";
+        const safeMass = escapeHtml(massName || "");
+        return `<div class="slot">
+            <span class="tag ${emptyClass}" id="tag_${key}">${assignedMemberTag}</span>
+            <div class="slot-combo" id="combo_${key}" data-kind="${escapeHtml(kind)}" data-key="${escapeHtml(key)}" data-schedule-key="${escapeHtml(scheduleKey)}" data-date="${escapeHtml(date)}" data-time="${escapeHtml(time)}" data-role="${escapeHtml(role)}" data-massname="${safeMass}">
+                <button class="slot-trigger" type="button" aria-expanded="false" id="trigger_${key}">${escapeHtml(assignedMemberName)}</button>
+                <div class="slot-panel">
+                    <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari anggota aktif..."></div>
+                    <div class="slot-options" id="options_${key}"></div>
+                </div>
+            </div>
+            <button class="btn danger clear-slot mini-btn" type="button" data-key="${escapeHtml(key)}" id="clear_${key}" ${memberId ? "" : "style='display:none;'"}>Hapus</button>
+        </div>`;
+    }
+
+    function countFilledSlots(scheduleKey) {
+        const keys = Object.keys(SLOT_META).filter(key => SLOT_META[key].scheduleKey === scheduleKey);
+        const filled = keys.filter(key => ASSIGNMENT_MAP[key]).length;
+        return { filled, total: keys.length };
+    }
+
+    function updateRegularRowStatus(scheduleKey) {
+        const { filled, total } = countFilledSlots(scheduleKey);
+        let statusHtml = "";
+        if (total > 0 && filled === total) {
+            statusHtml = '<span class="status-pill ok">Lengkap</span>';
+        } else if (filled > 0) {
+            statusHtml = `<span class="status-pill pending">Kurang ${total - filled}</span>`;
+        } else {
+            statusHtml = '<span class="status-pill pending" style="border-color:#d1d5db; color:#4b5563; background:#f3f4f6;">Kosong</span>';
+        }
+        const statusDiv = document.getElementById(`status_${scheduleKey}`);
         if (statusDiv) statusDiv.innerHTML = statusHtml;
     }
 
-    function renderRows(schedule) {
-        document.getElementById("tableRows").innerHTML = schedule.map(item => {
-            const timeStr = item.time.substring(0,5);
-            let rowHtml = `<td><strong>${item.massName}</strong></td>
-                           <td>${item.date.split('-').reverse().join('/')}</td>
-                           <td>${timeStr}</td>`;
-            
-            let roleCells = "";
+    function updateBigMassRowStatus(scheduleKey) {
+        const ev = CURRENT_SCHEDULE.find(item => item.scheduleKey === scheduleKey)?.event;
+        const { filled, total } = countFilledSlots(scheduleKey);
+        const published = String(ev?.status || "draft").toLowerCase() === "published";
+        const statusText = published ? "Published" : "Draft";
+        const statusClass = published ? "published" : "draft";
+        const completion = total > 0 && filled === total
+            ? '<span class="status-pill ok">Petugas Lengkap</span>'
+            : `<span class="status-pill pending">Terisi ${filled}/${total}</span>`;
+        const requestBadge = ev?.allowMemberRequest
+            ? '<span class="request-pill open">Request Dibuka</span>'
+            : '<span class="request-pill closed">Request Ditutup</span>';
+        const statusDiv = document.getElementById(`status_${scheduleKey}`);
+        if (statusDiv) {
+            statusDiv.innerHTML = `<span class="status-pill ${statusClass}">${statusText}</span>${completion}${requestBadge}`;
+        }
+    }
 
-            ROLES.forEach(role => {
-                const key = `${item.date}_${timeStr}_${role.name}`;
-                let assignedMemberId = ASSIGNMENT_MAP[key] || "";
-                let assignedMemberName = "-- kosong --";
-                let assignedMemberTag = "Slot kosong";
-                let emptyClass = "empty";
-                
-                if (assignedMemberId) {
-                    const member = ACTIVE_MEMBERS.find(m => String(m.id) === String(assignedMemberId));
-                    if (member) {
-                        assignedMemberName = member.name;
-                        assignedMemberTag = `Terisi: ${member.name}`;
-                        emptyClass = "";
-                    }
-                }
-
-                roleCells += `<td>
-                  <div class="slot">
-                    <span class="tag ${emptyClass}" id="tag_${key}">${assignedMemberTag}</span>
-                    <div class="slot-combo" data-key="${key}" data-date="${item.date}" data-time="${timeStr}" data-role="${role.name}" data-massname="${item.massName.replace(/\"/g, '&quot;')}">
-                            <button class="slot-trigger" type="button" aria-expanded="false" id="trigger_${key}">${assignedMemberName}</button>
-                            <div class="slot-panel">
-                                <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari anggota..."></div>
-                                <div class="slot-options" id="options_${key}"></div>
-                            </div>
-                        </div>
-                        <button class="btn danger clear-slot mini-btn" type="button" data-key="${key}" id="clear_${key}" ${assignedMemberId ? '' : 'style="display:none;"'}>Hapus</button>
-                    </div>
-                </td>`;
-            });
-
-            return `<tr>${rowHtml}${roleCells}<td><div id="status_${item.date}_${timeStr}"></div></td></tr>`;
-        }).join("");
-        
-        schedule.forEach(item => {
-            updateRowStatus(item.date, item.time.substring(0,5));
-        });
+    function updateScheduleStatus(scheduleKey) {
+        if (CURRENT_MODE === "besar") updateBigMassRowStatus(scheduleKey);
+        else updateRegularRowStatus(scheduleKey);
     }
 
     function renderSlotOptions(comboEl, query) {
@@ -294,30 +518,59 @@
         const cleanQuery = (query || "").trim().toLowerCase();
 
         const filtered = ACTIVE_MEMBERS.filter(m => {
-            const matchName = m.name.toLowerCase().includes(cleanQuery);
-            const matchRole = m.role.toLowerCase().includes(cleanQuery);
+            const matchName = String(m.name || "").toLowerCase().includes(cleanQuery);
+            const matchRole = String(m.role || "").toLowerCase().includes(cleanQuery);
             return !cleanQuery || matchName || matchRole;
         });
 
         const selectedId = ASSIGNMENT_MAP[key] || "";
-        
-        let html = `<button class="slot-option ${selectedId === '' ? 'active' : ''}" type="button" data-value="">-- kosong --</button>`;
+        let html = `<button class="slot-option ${selectedId === "" ? "active" : ""}" type="button" data-value="">-- kosong --</button>`;
 
         filtered.forEach(m => {
-            const isActive = String(m.id) === selectedId ? " active" : "";
-            html += `<button class="slot-option${isActive}" type="button" data-value="${m.id}">${m.name} (${m.role})</button>`;
+            const isActive = String(m.id) === String(selectedId) ? " active" : "";
+            html += `<button class="slot-option${isActive}" type="button" data-value="${escapeHtml(m.id)}">${escapeHtml(m.name)} (${escapeHtml(m.role || "Anggota")})</button>`;
         });
 
         if (!filtered.length) {
-            html += '<p class="slot-empty">Nama anggota tidak ditemukan.</p>';
+            html += '<p class="slot-empty">Nama anggota aktif tidak ditemukan.</p>';
         }
-
         optionsWrap.innerHTML = html;
     }
 
     function closeAllSlotPanels() {
         document.querySelectorAll(".slot-panel").forEach(panel => panel.classList.remove("show"));
         document.querySelectorAll(".slot-trigger").forEach(t => t.setAttribute("aria-expanded", "false"));
+    }
+
+    function scheduleHasMember(scheduleKey, currentKey, memberId) {
+        for (const [otherKey, otherMemberId] of Object.entries(ASSIGNMENT_MAP)) {
+            if (otherKey === currentKey || !otherMemberId) continue;
+            const meta = SLOT_META[otherKey];
+            if (meta && meta.scheduleKey === scheduleKey && String(otherMemberId) === String(memberId)) {
+                return meta;
+            }
+        }
+        return null;
+    }
+
+    function updateSlotVisual(key, memberId) {
+        const triggerEl = document.getElementById(`trigger_${key}`);
+        const tagEl = document.getElementById(`tag_${key}`);
+        const clearBtn = document.getElementById(`clear_${key}`);
+        const memberName = getMemberName(memberId);
+        if (!triggerEl || !tagEl || !clearBtn) return;
+
+        if (memberId) {
+            triggerEl.textContent = memberName;
+            tagEl.textContent = `Terisi: ${memberName}`;
+            tagEl.className = "tag";
+            clearBtn.style.display = "inline-flex";
+        } else {
+            triggerEl.textContent = "-- kosong --";
+            tagEl.textContent = "Slot kosong";
+            tagEl.className = "tag empty";
+            clearBtn.style.display = "none";
+        }
     }
 
     document.addEventListener("click", (event) => {
@@ -327,7 +580,6 @@
             const panel = comboEl.querySelector(".slot-panel");
             const searchInput = comboEl.querySelector(".slot-search-input");
             const willOpen = !panel.classList.contains("show");
-            
             closeAllSlotPanels();
             if (willOpen) {
                 panel.classList.add("show");
@@ -343,45 +595,22 @@
         if (option) {
             const comboEl = option.closest(".slot-combo");
             const key = comboEl.getAttribute("data-key");
-            const date = comboEl.getAttribute("data-date");
-            const time = comboEl.getAttribute("data-time");
-            const role = comboEl.getAttribute("data-role");
+            const scheduleKey = comboEl.getAttribute("data-schedule-key");
             const memberId = option.getAttribute("data-value");
-            
-            // Check conflicts
+
             if (memberId) {
-                for (let otherKey in ASSIGNMENT_MAP) {
-                    if (otherKey.startsWith(`${date}_${time}`) && otherKey !== key) {
-                        if (ASSIGNMENT_MAP[otherKey] === memberId) {
-                            const member = ACTIVE_MEMBERS.find(m => String(m.id) === String(memberId));
-                            alert(`Peringatan: ${member.name} sudah ditugaskan pada role lain di jam yang sama!`);
-                            closeAllSlotPanels();
-                            return;
-                        }
-                    }
+                const conflictMeta = scheduleHasMember(scheduleKey, key, memberId);
+                if (conflictMeta) {
+                    const member = getMemberById(memberId);
+                    alert(`Peringatan: ${member ? member.name : "Petugas ini"} sudah ditugaskan pada role ${conflictMeta.role} di misa yang sama.`);
+                    closeAllSlotPanels();
+                    return;
                 }
             }
 
             ASSIGNMENT_MAP[key] = memberId;
-            
-            const triggerEl = document.getElementById(`trigger_${key}`);
-            const tagEl = document.getElementById(`tag_${key}`);
-            const clearBtn = document.getElementById(`clear_${key}`);
-            
-            if (memberId) {
-                const member = ACTIVE_MEMBERS.find(m => String(m.id) === String(memberId));
-                triggerEl.textContent = member.name;
-                tagEl.textContent = `Terisi: ${member.name}`;
-                tagEl.className = "tag";
-                clearBtn.style.display = "inline-flex";
-            } else {
-                triggerEl.textContent = "-- kosong --";
-                tagEl.textContent = "Slot kosong";
-                tagEl.className = "tag empty";
-                clearBtn.style.display = "none";
-            }
-            
-            updateRowStatus(date, time);
+            updateSlotVisual(key, memberId);
+            updateScheduleStatus(scheduleKey);
             closeAllSlotPanels();
             return;
         }
@@ -389,27 +618,15 @@
         const clearBtn = event.target.closest(".clear-slot");
         if (clearBtn) {
             const key = clearBtn.getAttribute("data-key");
-            const comboEl = document.querySelector(`.slot-combo[data-key="${key}"]`);
-            const date = comboEl.getAttribute("data-date");
-            const time = comboEl.getAttribute("data-time");
-            
+            const meta = SLOT_META[key];
+            if (!meta) return;
             ASSIGNMENT_MAP[key] = "";
-            
-            const triggerEl = document.getElementById(`trigger_${key}`);
-            const tagEl = document.getElementById(`tag_${key}`);
-            
-            triggerEl.textContent = "-- kosong --";
-            tagEl.textContent = "Slot kosong";
-            tagEl.className = "tag empty";
-            clearBtn.style.display = "none";
-            
-            updateRowStatus(date, time);
+            updateSlotVisual(key, "");
+            updateScheduleStatus(meta.scheduleKey);
             return;
         }
 
-        if (!event.target.closest(".slot-combo")) {
-            closeAllSlotPanels();
-        }
+        if (!event.target.closest(".slot-combo")) closeAllSlotPanels();
     });
 
     document.addEventListener("input", (event) => {
@@ -420,116 +637,203 @@
         }
     });
 
-    document.getElementById("saveAllBtn").onclick = async () => {
-        const payload = [];
-        
-        const allCombos = document.querySelectorAll(".slot-combo");
-        allCombos.forEach(combo => {
-            const date = combo.getAttribute("data-date");
-            const time = combo.getAttribute("data-time");
-            const role = combo.getAttribute("data-role");
-            const key = combo.getAttribute("data-key");
-            
-            if (!payload.find(p => p.date === date && p.time === time && p.role === role)) {
-                payload.push({
-                  date: date,
-                  time: time,
-                  role: role,
-                  memberId: ASSIGNMENT_MAP[key] || null,
-                  massName: combo.getAttribute("data-massname") || ""
-                });
+    function validateUniqueMembersPerSchedule() {
+        const seenBySchedule = {};
+        for (const [key, memberId] of Object.entries(ASSIGNMENT_MAP)) {
+            if (!memberId) continue;
+            const meta = SLOT_META[key];
+            if (!meta) continue;
+            if (!seenBySchedule[meta.scheduleKey]) seenBySchedule[meta.scheduleKey] = {};
+            if (seenBySchedule[meta.scheduleKey][memberId]) {
+                const member = getMemberById(memberId);
+                return `${member ? member.name : "Satu petugas"} terisi lebih dari 1 role pada ${meta.massName}.`;
             }
+            seenBySchedule[meta.scheduleKey][memberId] = true;
+        }
+        return "";
+    }
+
+    async function saveRegularAssignments() {
+        const duplicateError = validateUniqueMembersPerSchedule();
+        if (duplicateError) return alert(duplicateError);
+
+        const payload = [];
+        document.querySelectorAll('.slot-combo[data-kind="biasa"]').forEach(combo => {
+            const key = combo.getAttribute("data-key");
+            const meta = SLOT_META[key];
+            if (!meta) return;
+            payload.push({
+                date: meta.date,
+                time: meta.time,
+                role: meta.role,
+                memberId: ASSIGNMENT_MAP[key] || null,
+                massName: meta.massName || ""
+            });
         });
 
-        try {
-            const res = await fetch("/api/streaming/assignments/save", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
+        const res = await fetch("/api/streaming/assignments/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || "Gagal menyimpan penugasan.");
+    }
+
+    async function saveBigMassAssignments() {
+        const duplicateError = validateUniqueMembersPerSchedule();
+        if (duplicateError) return alert(duplicateError);
+
+        for (const item of CURRENT_SCHEDULE) {
+            const ev = item.event;
+            if (!ev) continue;
+            const rolesPayload = (ev.roles || []).map(role => {
+                const count = Math.max(1, parseInt(role.count, 10) || 1);
+                const members = [];
+                for (let i = 0; i < count; i += 1) {
+                    const key = keyForBesar(ev.id, role.id, i);
+                    const memberId = ASSIGNMENT_MAP[key];
+                    if (memberId) members.push(String(memberId));
+                }
+                return { role: role.role || "Role", count, members };
+            });
+
+            const payload = {
+                misaName: ev.misaName,
+                misaDate: ev.misaDate,
+                misaTime: normalizeTime(ev.misaTime),
+                misaNote: ev.misaNote || "",
+                allowMemberRequest: !!ev.allowMemberRequest,
+                status: ev.status || "draft",
+                roles: rolesPayload
+            };
+
+            const res = await fetch(`/api/misa-besar/${ev.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-            const data = await res.json();
-            if(data.success) {
-                alert("Semua penugasan berhasil disimpan!");
-                fetchData();
-            } else {
-                alert("Gagal menyimpan: " + data.error);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.success === false) {
+                throw new Error(data.error || `Gagal menyimpan ${ev.misaName}.`);
             }
+        }
+    }
+
+    document.getElementById("saveAllBtn").onclick = async () => {
+        try {
+            if (CURRENT_MODE === "besar") {
+                await saveBigMassAssignments();
+                alert("Penugasan Misa Besar berhasil disimpan!");
+            } else {
+                await saveRegularAssignments();
+                alert("Semua penugasan berhasil disimpan!");
+            }
+            fetchData();
         } catch (e) {
-            alert("Error menyimpan penugasan.");
+            alert(e.message || "Error menyimpan penugasan.");
         }
     };
 
+    function fillSwapDates(selectId) {
+        const uniqueDates = [...new Set(CURRENT_SCHEDULE.map(i => i.date).filter(Boolean))];
+        document.getElementById(selectId).innerHTML = `<option value="">- Tanggal -</option>` +
+            uniqueDates.map(d => `<option value="${escapeHtml(d)}">${formatDateId(d)}</option>`).join("");
+    }
+
+    function fillSwapSchedules(dateSelectId, scheduleSelectId, roleSelectId) {
+        const dateVal = document.getElementById(dateSelectId).value;
+        const scheduleSelect = document.getElementById(scheduleSelectId);
+        if (!dateVal) {
+            scheduleSelect.innerHTML = `<option value="">- Jadwal -</option>`;
+            fillSwapRoles("", roleSelectId);
+            return;
+        }
+        const items = CURRENT_SCHEDULE.filter(i => i.date === dateVal);
+        scheduleSelect.innerHTML = `<option value="">- Jadwal -</option>` + items.map(i => {
+            const label = `${normalizeTime(i.time)} - ${i.massName || "Misa"}`;
+            return `<option value="${escapeHtml(i.scheduleKey)}">${escapeHtml(label)}</option>`;
+        }).join("");
+        fillSwapRoles("", roleSelectId);
+    }
+
+    function fillSwapRoles(scheduleKey, roleSelectId) {
+        const roleSelect = document.getElementById(roleSelectId);
+        if (!scheduleKey) {
+            roleSelect.innerHTML = `<option value="">- Role terisi -</option>`;
+            return;
+        }
+        const filledSlots = Object.entries(SLOT_META)
+            .filter(([key, meta]) => meta.scheduleKey === scheduleKey && ASSIGNMENT_MAP[key])
+            .map(([key, meta]) => {
+                const memberName = getMemberName(ASSIGNMENT_MAP[key]);
+                const slotLabel = meta.kind === "besar" && Number(meta.slotIndex || 0) > 0 ? ` #${Number(meta.slotIndex) + 1}` : "";
+                return { key, label: `${meta.role}${slotLabel} - ${memberName}` };
+            });
+        roleSelect.innerHTML = `<option value="">- Role terisi -</option>` +
+            filledSlots.map(item => `<option value="${escapeHtml(item.key)}">${escapeHtml(item.label)}</option>`).join("");
+        if (!filledSlots.length) {
+            roleSelect.innerHTML += `<option value="" disabled>Belum ada role terisi</option>`;
+        }
+    }
+
     document.getElementById("openSwapModalBtn").onclick = () => {
-        if(CURRENT_SCHEDULE.length === 0) return alert("Tabel jadwal masih kosong.");
-        
-        const uniqueDates = [...new Set(CURRENT_SCHEDULE.map(i => i.date))];
-        const dateOptions = `<option value="">- Tanggal -</option>` + uniqueDates.map(d => `<option value="${d}">${d.split('-').reverse().join('/')}</option>`).join("");
-        
-        document.getElementById("swapDate1").innerHTML = dateOptions;
-        document.getElementById("swapDate2").innerHTML = dateOptions;
-        
-        const roleOptions = `<option value="">- Role -</option>` + ROLES.map(r => `<option value="${r.name}">${r.name}</option>`).join("");
-        document.getElementById("swapRole1").innerHTML = roleOptions;
-        document.getElementById("swapRole2").innerHTML = roleOptions;
-        
+        if (CURRENT_SCHEDULE.length === 0) return alert("Tabel jadwal masih kosong.");
+        fillSwapDates("swapDate1");
+        fillSwapDates("swapDate2");
+        document.getElementById("swapTime1").innerHTML = `<option value="">- Jadwal -</option>`;
+        document.getElementById("swapTime2").innerHTML = `<option value="">- Jadwal -</option>`;
+        document.getElementById("swapRole1").innerHTML = `<option value="">- Role terisi -</option>`;
+        document.getElementById("swapRole2").innerHTML = `<option value="">- Role terisi -</option>`;
         swapModal.classList.add("show");
     };
 
-    function handleSwapDateChange(dateId, timeId) {
-        const dateVal = document.getElementById(dateId).value;
-        const timeSelect = document.getElementById(timeId);
-        if(!dateVal) {
-            timeSelect.innerHTML = `<option value="">- Jam -</option>`;
-            return;
-        }
-        const times = CURRENT_SCHEDULE.filter(i => i.date === dateVal).map(i => i.time.substring(0,5));
-        const uniqueTimes = [...new Set(times)];
-        timeSelect.innerHTML = `<option value="">- Jam -</option>` + uniqueTimes.map(t => `<option value="${t}">${t}</option>`).join("");
-    }
-
-    document.getElementById("swapDate1").addEventListener("change", () => handleSwapDateChange("swapDate1", "swapTime1"));
-    document.getElementById("swapDate2").addEventListener("change", () => handleSwapDateChange("swapDate2", "swapTime2"));
-    
+    document.getElementById("swapDate1").addEventListener("change", () => fillSwapSchedules("swapDate1", "swapTime1", "swapRole1"));
+    document.getElementById("swapDate2").addEventListener("change", () => fillSwapSchedules("swapDate2", "swapTime2", "swapRole2"));
+    document.getElementById("swapTime1").addEventListener("change", () => fillSwapRoles(document.getElementById("swapTime1").value, "swapRole1"));
+    document.getElementById("swapTime2").addEventListener("change", () => fillSwapRoles(document.getElementById("swapTime2").value, "swapRole2"));
     document.getElementById("closeSwapModal").onclick = () => swapModal.classList.remove("show");
 
     document.getElementById("executeSwapBtn").onclick = () => {
-       const d1 = document.getElementById("swapDate1").value;
-       const t1 = document.getElementById("swapTime1").value;
-       const r1 = document.getElementById("swapRole1").value;
-       const d2 = document.getElementById("swapDate2").value;
-       const t2 = document.getElementById("swapTime2").value;
-       const r2 = document.getElementById("swapRole2").value;
-       
-       if(!d1 || !t1 || !r1 || !d2 || !t2 || !r2) return alert("Mohon lengkapi pilihan kedua slot yang akan ditukar!");
-       
-       const key1 = `${d1}_${t1}_${r1}`;
-       const key2 = `${d2}_${t2}_${r2}`;
-       
-       const id1 = ASSIGNMENT_MAP[key1];
-       const id2 = ASSIGNMENT_MAP[key2];
-       
-       if(!id1 || !id2) {
-           return alert("Kedua slot penugasan harus sudah memiliki petugas untuk dapat ditukar!");
-       }
+        const key1 = document.getElementById("swapRole1").value;
+        const key2 = document.getElementById("swapRole2").value;
+        if (!key1 || !key2) return alert("Pilih dua role yang sudah terisi petugas.");
+        if (key1 === key2) return alert("Anda memilih slot yang sama. Tidak ada yang ditukar.");
+        if (!ASSIGNMENT_MAP[key1] || !ASSIGNMENT_MAP[key2]) {
+            return alert("Kedua slot penugasan harus sudah memiliki petugas untuk dapat ditukar.");
+        }
+        const meta1 = SLOT_META[key1];
+        const meta2 = SLOT_META[key2];
+        if (!meta1 || !meta2 || meta1.kind !== CURRENT_MODE || meta2.kind !== CURRENT_MODE) {
+            return alert("Tukar petugas hanya bisa dilakukan sesama jenis misa pada tab yang sedang aktif.");
+        }
 
-       if(key1 === key2) return alert("Anda memilih slot yang sama. Tidak ada yang ditukar.");
+        const id1 = ASSIGNMENT_MAP[key1];
+        const id2 = ASSIGNMENT_MAP[key2];
+        ASSIGNMENT_MAP[key1] = id2;
+        ASSIGNMENT_MAP[key2] = id1;
 
-       ASSIGNMENT_MAP[key1] = id2;
-       ASSIGNMENT_MAP[key2] = id1;
-       
-       renderRows(CURRENT_SCHEDULE);
-       
-       alert("Berhasil ditukar di tampilan! Jangan lupa klik 'Simpan Semua Penugasan' agar tersimpan ke database.");
-       swapModal.classList.remove("show");
+        if (CURRENT_MODE === "besar") renderBigMassRows(BIG_EVENTS);
+        else renderRegularRows(CURRENT_SCHEDULE);
+
+        alert("Berhasil ditukar di tampilan! Jangan lupa klik 'Simpan Semua Penugasan' agar tersimpan ke database.");
+        swapModal.classList.remove("show");
     };
 
-    monthFilter.onchange = () => { fetchData(); };
-    yearFilter.onchange = () => { fetchData(); };
+    modeBiasaBtn.addEventListener("click", () => setMode("biasa"));
+    modeBesarBtn.addEventListener("click", () => setMode("besar"));
+    monthFilter.onchange = () => fetchData();
+    yearFilter.onchange = () => fetchData();
 
-    setInterval(() => {
+    function updateLiveTime() {
         const n = new Date();
-        document.getElementById("liveDateTime", 10000).textContent = n.toLocaleString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) + " WIB";
-    }, 10000);
+        document.getElementById("liveDateTime").textContent = n.toLocaleString("id-ID", {
+            weekday: "long", day: "2-digit", month: "long", year: "numeric",
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+        }) + " WIB";
+    }
+    updateLiveTime();
+    setInterval(updateLiveTime, 1000);
     fetchData();
   </script>
 <script src="_sidebar-fix.js"></script>
