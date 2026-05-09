@@ -131,6 +131,17 @@
 
 		/* Normal row */
 		.schedule-table tbody tr.normal-row td:first-child { border-left: 3px solid #22c55e; }
+		.schedule-table tbody tr.normal-row.ordinary-row-assigned { background: linear-gradient(90deg, rgba(212,160,23,0.10), rgba(255,255,255,0.96)); }
+		.schedule-table tbody tr.normal-row.ordinary-row-assigned td:first-child { border-left-color: var(--accent-gold); }
+		.ordinary-assigned-wrap { display: grid; gap: 5px; align-items: start; }
+		.ordinary-assigned-tag {
+			display: inline-flex; align-items: center; width: fit-content; border-radius: 999px;
+			padding: 3px 10px; border: 1px solid rgba(212,160,23,0.7);
+			background: #fff8e1; color: #7a4d00; font-size: 0.72rem; font-weight: 800;
+		}
+		.ordinary-user-cell { background: rgba(255,248,225,0.55); color: var(--primary-dark) !important; font-weight: 700; }
+		.ordinary-user-name { display: inline-flex; align-items: center; gap: 5px; }
+		.ordinary-user-name::after { content: "Anda"; border: 1px solid rgba(212,160,23,0.7); background: #fff8e1; color: #7a4d00; border-radius: 999px; padding: 1px 7px; font-size: 0.68rem; font-weight: 800; }
 
 		/* Blocked row */
 		.schedule-table tbody tr.blocked-row { background: rgba(128,0,0,0.05); }
@@ -649,9 +660,27 @@
 	function normalizeStatus(value) { return String(value || "").toLowerCase() === "published" ? "Published" : "Draft"; }
 	function normalizeTime(value) { return String(value || "").slice(0, 5); }
 	function normalizedSessionUserId() { return String(currentSession && currentSession.user_id ? currentSession.user_id : ""); }
-	function roleCell(val) {
+	function normalizeCompareText(value) {
+		return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+	}
+	function currentSessionNameCandidates() {
+		const raw = [currentSession && currentSession.nama, currentSession && currentSession.username, currentSession && currentSession.name].filter(Boolean).map(String);
+		const names = [];
+		raw.forEach(function(name) {
+			const clean = normalizeCompareText(name);
+			if (clean) names.push(clean);
+			const first = clean.split(" ")[0];
+			if (first && first.length >= 3) names.push(first);
+		});
+		return [...new Set(names)];
+	}
+	function splitAssignmentNames(value) {
+		return String(value || "").split(/[,;\/]+/).map(normalizeCompareText).filter(Boolean);
+	}
+	function roleCell(val, isCurrentUserRole) {
 		if (!val) return '<td><span style="color:var(--muted);font-style:italic;font-size:0.8rem;">—</span></td>';
-		return '<td>' + esc(val) + '</td>';
+		const content = isCurrentUserRole ? '<span class="ordinary-user-name">' + esc(val) + '</span>' : esc(val);
+		return '<td' + (isCurrentUserRole ? ' class="ordinary-user-cell"' : '') + '>' + content + '</td>';
 	}
 	function memberNamesForRole(role) {
 		if (!role) return [];
@@ -795,6 +824,32 @@
 		const roles = row.roles || {};
 		return roles[roleName] || roles[String(roleName || '').trim()] || "";
 	}
+	function roleMemberIdFromRow(row, roleName) {
+		const ids = row.roleMemberIds || row.assignmentIds || {};
+		return String(ids[roleName] || ids[String(roleName || '').trim()] || "");
+	}
+	function ordinaryCurrentUserRoles(row) {
+		if (!currentSession || !currentSession.logged_in) return [];
+		const currentUserId = normalizedSessionUserId();
+		const nameCandidates = currentSessionNameCandidates();
+		const matches = [];
+		ordinaryRoles.forEach(function(roleName) {
+			const memberId = roleMemberIdFromRow(row, roleName);
+			if (currentUserId && memberId && String(memberId) === currentUserId) {
+				matches.push(roleName);
+				return;
+			}
+			const names = splitAssignmentNames(roleValueFromRow(row, roleName));
+			if (names.length && nameCandidates.some(function(name) { return names.includes(name); })) {
+				matches.push(roleName);
+			}
+		});
+		return [...new Set(matches)];
+	}
+	function ordinaryAssignmentTagHtml(roles) {
+		if (!roles || !roles.length) return "";
+		return '<span class="ordinary-assigned-tag">Anda Bertugas: ' + esc(roles.join(", ")) + '</span>';
+	}
 
 	async function fetchJsonSafe(url) {
 		const response = await fetch(url, { headers: { "Accept": "application/json" } });
@@ -818,9 +873,15 @@
 
 			scheduleData = rows.map(function(row) {
 				const assignments = row.assignments || {};
+				const assignmentIds = row.assignmentIds || row.assignment_ids || {};
 				const roles = {};
-				ordinaryRoles.forEach(function(roleName) { roles[roleName] = assignments[roleName] || ""; });
+				const roleMemberIds = {};
+				ordinaryRoles.forEach(function(roleName) {
+					roles[roleName] = assignments[roleName] || "";
+					roleMemberIds[roleName] = assignmentIds[roleName] || "";
+				});
 				Object.keys(assignments).forEach(function(roleName) { if (!roles[roleName]) roles[roleName] = assignments[roleName]; });
+				Object.keys(assignmentIds).forEach(function(roleName) { if (!roleMemberIds[roleName]) roleMemberIds[roleName] = assignmentIds[roleName]; });
 				return {
 					id: row.id || (row.date + '-' + row.time),
 					type: "biasa",
@@ -829,6 +890,7 @@
 					namaMisa: row.massName || row.mass_name || "Misa",
 					dayName: row.dayName || row.day_name || "",
 					roles: roles,
+					roleMemberIds: roleMemberIds,
 					status: "Published"
 				};
 			});
@@ -929,13 +991,17 @@
 				return;
 			}
 			const normalRow = entry.row;
-			html += '<tr class="normal-row"><td>' + no + '</td><td>' + esc(formatDate(normalRow.date)) + '</td><td>' + esc(normalRow.time || '') + '</td>' + ordinaryRoles.map(function(role) {
-				return roleCell(roleValueFromRow(normalRow, role));
+			const assignedRoles = ordinaryCurrentUserRoles(normalRow);
+			const assignedSet = new Set(assignedRoles);
+			const dateCell = '<div class="ordinary-assigned-wrap"><span>' + esc(formatDate(normalRow.date)) + '</span>' + ordinaryAssignmentTagHtml(assignedRoles) + '</div>';
+			html += '<tr class="normal-row ' + (assignedRoles.length ? 'ordinary-row-assigned' : '') + '"><td>' + no + '</td><td>' + dateCell + '</td><td>' + esc(normalRow.time || '') + '</td>' + ordinaryRoles.map(function(role) {
+				return roleCell(roleValueFromRow(normalRow, role), assignedSet.has(role));
 			}).join('') + '</tr>';
 		});
 		schedBulananBody.innerHTML = html;
 		const monthName = MONTHS[month - 1] + " " + year;
-		tableInfoCount.textContent = entries.length + " jadwal tampil — " + monthName;
+		const assignedCount = entries.filter(function(entry) { return entry.kind === "normal" && ordinaryCurrentUserRoles(entry.row).length; }).length;
+		tableInfoCount.textContent = entries.length + " jadwal tampil — " + monthName + (assignedCount ? " · Anda bertugas di " + assignedCount + " jadwal" : "");
 		filterInfoText.textContent = monthName;
 	}
 
