@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -601,6 +601,97 @@
       font-weight: 700;
     }
 
+
+    .schedule-kind-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .request-pill {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid #c8d2df;
+      background: #f8fafc;
+      color: #475569;
+      padding: 3px 9px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      width: fit-content;
+    }
+
+    .request-pill.open {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .request-pill.closed {
+      border-color: #d1d5db;
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .published-pill {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid #99c8ab;
+      background: #eef8ef;
+      color: #116d3f;
+      padding: 3px 9px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      width: fit-content;
+    }
+
+    .role-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    .role-list.compact {
+      padding-left: 16px;
+      min-width: 220px;
+    }
+
+    .role-list strong {
+      color: #1f2937;
+    }
+
+    .big-mass-note {
+      border: 1px dashed #d7dde7;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .schedule-card.big-mass {
+      background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%);
+    }
+
+    .schedule-card.big-mass.request-open {
+      border-color: #bfdbfe;
+    }
+
+    .schedule-card.big-mass.request-closed {
+      border-color: #dbe2ef;
+    }
+
     .note {
       margin: 0;
       color: var(--muted);
@@ -693,7 +784,7 @@
       <header class="topbar">
         <div>
           <h2 class="headline">Dashboard Anggota Crembo Media</h2>
-          <p class="subhead">Lihat jadwal misa biasa yang diambil langsung dari database, tersedia dalam model card dan tabel.</p>
+          <p class="subhead">Lihat jadwal misa biasa dan Misa Besar berstatus publikasi dalam model card dan tabel.</p>
         </div>
         <div class="quick-filter" aria-label="Ringkasan jadwal streaming">
           <span class="quick-chip"><strong>Modul:</strong> Jadwal Streaming</span>
@@ -704,15 +795,19 @@
       <div class="content">
         <section class="hero">
           <div>
-            <h2>Jadwal Misa Biasa</h2>
-            <p>Data yang tampil mengikuti isi database. Misa besar belum ditampilkan dulu supaya fokus ke jadwal biasa.</p>
+            <h2 id="scheduleHeroTitle">Jadwal Misa Biasa</h2>
+            <p id="scheduleHeroText">Data yang tampil mengikuti isi database. Pilih tab Misa Besar untuk melihat jadwal publikasi dari registrasi misa besar.</p>
           </div>
-          <span class="chip">Modul Jadwal Streaming</span>
+          <div class="schedule-kind-tabs" role="tablist" aria-label="Pilih jenis jadwal misa">
+            <button id="regularScheduleTab" class="tab-btn active" type="button" role="tab" aria-selected="true">Misa Biasa</button>
+            <button id="bigMassScheduleTab" class="tab-btn" type="button" role="tab" aria-selected="false">Misa Besar</button>
+            <span id="scheduleModeChip" class="chip">Modul Jadwal Streaming</span>
+          </div>
         </section>
 
         <section class="panel">
           <header class="panel-head">
-            <h2>Model Card</h2>
+            <h2 id="cardPanelTitle">Model Card - Misa Biasa</h2>
             <div class="panel-tools">
               <div class="tabs" role="tablist" aria-label="Model tampilan jadwal">
                 <button id="biasaTab" class="tab-btn active" type="button">Card</button>
@@ -742,10 +837,10 @@
             </div>
           </header>
           <div class="panel-body">
-            <p class="note">Panel card membaca jadwal dari backend beserta petugas per role yang tersimpan di database.</p>
+            <p id="cardPanelNote" class="note">Panel card membaca jadwal misa biasa dari backend beserta petugas per role yang tersimpan di database.</p>
             <div id="scheduleGrid" class="schedule-grid"></div>
             <div class="btn-row">
-              <a class="btn" href="request-tugas-anggota.html">Buka Request Tugas</a>
+              <a id="primaryRequestBtn" class="btn" href="request-tugas-anggota.html">Buka Request Tugas</a>
               <a class="btn ghost" href="dashboard-anggota.html?role=anggota">Kembali ke Dashboard</a>
             </div>
           </div>
@@ -753,7 +848,7 @@
 
         <section class="panel">
           <header class="panel-head">
-            <h2>Model Tabel</h2>
+            <h2 id="tablePanelTitle">Model Tabel - Misa Biasa</h2>
             <div class="panel-tools">
               <div class="tabs" role="tablist" aria-label="Model tampilan jadwal">
                 <button id="tableCardTab" class="tab-btn" type="button">Card</button>
@@ -808,11 +903,19 @@
     const memberAvatar = document.getElementById("memberAvatar");
     const memberName = document.getElementById("memberName");
     const memberRoleText = document.getElementById("memberRoleText");
+    const regularScheduleTab = document.getElementById("regularScheduleTab");
+    const bigMassScheduleTab = document.getElementById("bigMassScheduleTab");
+    const scheduleHeroTitle = document.getElementById("scheduleHeroTitle");
+    const scheduleHeroText = document.getElementById("scheduleHeroText");
+    const scheduleModeChip = document.getElementById("scheduleModeChip");
+    const cardPanelTitle = document.getElementById("cardPanelTitle");
+    const tablePanelTitle = document.getElementById("tablePanelTitle");
+    const cardPanelNote = document.getElementById("cardPanelNote");
+    const primaryRequestBtn = document.getElementById("primaryRequestBtn");
     const cardTab = document.getElementById("biasaTab");
     const tableTab = document.getElementById("besarTab");
     const tableCardTab = document.getElementById("tableCardTab");
     const tableTabelTab = document.getElementById("tableTabelTab");
-    const backToCardBtn = document.getElementById("backToCardBtn");
     const cardSearchInput = document.getElementById("cardSearch");
     const tableSearchInput = document.getElementById("tableSearch");
     const cardMonthSelect = document.getElementById("cardMonthSelect");
@@ -820,8 +923,8 @@
     const tableMonthSelect = document.getElementById("tableMonthSelect");
     const tableYearSelect = document.getElementById("tableYearSelect");
     const scheduleGrid = document.getElementById("scheduleGrid");
-    const summaryTable = document.querySelector("#summaryRows").closest("table");
     const summaryRows = document.getElementById("summaryRows");
+    const summaryTable = summaryRows.closest("table");
     const metricTotal = document.getElementById("metricTotal");
     const metricRegular = document.getElementById("metricRegular");
     const metricRaya = document.getElementById("metricRaya");
@@ -830,8 +933,10 @@
     const tablePanel = summaryRows.closest(".panel");
 
     const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const DAY_NAMES = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
     let activeView = "card";
+    let currentScheduleMode = "regular";
     let selectedMonthIndex = new Date().getMonth();
     let selectedYear = new Date().getFullYear();
     let currentSearchKeyword = "";
@@ -851,14 +956,11 @@
     let STREAMING_MEMBER_LOOKUP = new Map();
     let STREAMING_ASSIGNMENT_LOOKUP = new Map();
     let STREAMING_VIEW_ENTRIES = [];
-    let loadAttempt = 0;
+    let BIG_MASS_ITEMS = [];
+    let BIG_MASS_VIEW_ENTRIES = [];
 
     function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
+      try { return JSON.parse(raw); } catch (error) { return null; }
     }
 
     function escapeHtml(value) {
@@ -876,40 +978,35 @@
 
     function formatDateLabel(dateValue) {
       const parts = String(dateValue || "").split("-");
-      if (parts.length !== 3) {
-        return String(dateValue || "-");
-      }
+      if (parts.length !== 3) return String(dateValue || "-");
       return parts[2] + "/" + parts[1] + "/" + parts[0];
     }
 
-    function getSelectedMonthYear() {
-      return {
-        monthIndex: Number(selectedMonthIndex),
-        year: Number(selectedYear)
-      };
+    function getDayName(dateValue) {
+      const date = new Date(String(dateValue || "") + "T00:00:00");
+      if (Number.isNaN(date.getTime())) return "-";
+      return DAY_NAMES[date.getDay()];
     }
 
-    function formatMonthLabel(monthIndex, year) {
-      return MONTH_NAMES[monthIndex] + " " + year;
+    function normalizeDisplayTime(value) {
+      const text = String(value || "").trim();
+      if (!text) return "-";
+      return text.slice(0, 5);
+    }
+
+    function getSelectedMonthYear() {
+      return { monthIndex: Number(selectedMonthIndex), year: Number(selectedYear) };
     }
 
     function syncFilterControls() {
       [cardSearchInput, tableSearchInput].forEach(function (input) {
-        if (input) {
-          input.value = currentSearchKeyword;
-        }
+        if (input) input.value = currentSearchKeyword;
       });
-
       [cardMonthSelect, tableMonthSelect].forEach(function (select) {
-        if (select) {
-          select.value = String(selectedMonthIndex);
-        }
+        if (select) select.value = String(selectedMonthIndex);
       });
-
       [cardYearSelect, tableYearSelect].forEach(function (select) {
-        if (select) {
-          select.value = String(selectedYear);
-        }
+        if (select) select.value = String(selectedYear);
       });
     }
 
@@ -917,58 +1014,36 @@
       return String(currentSearchKeyword || "").trim().toLowerCase();
     }
 
-    function filterViewEntries(entries) {
-      const keyword = getSearchKeyword();
-      if (!keyword) {
-        return entries.slice();
-      }
-
-      return entries.filter(function (entry) {
-        const haystack = [
-          "misa biasa",
-          entry.dayName,
-          entry.date,
-          entry.time,
-          entry.massName,
-          entry.status,
-          entry.isMine ? "jadwal saya" : ""
-        ].concat(entry.roleAssignments.map(function (roleItem) {
-          return [roleItem.roleName, roleItem.memberName, roleItem.memberRole, roleItem.memberUsername].join(" ");
-        })).join(" ").toLowerCase();
-
-        return haystack.includes(keyword);
-      });
-    }
-
-    function isCurrentUserMatch(value) {
-      const currentUserKeys = [
+    function currentUserKeys() {
+      return [
         CURRENT_USER.userId,
         CURRENT_USER.username,
         CURRENT_USER.nama,
         CURRENT_USER.fullName,
         CURRENT_USER.displayName
       ].map(normalizeKey).filter(Boolean);
+    }
 
+    function isCurrentUserMatch(value) {
+      const keys = currentUserKeys();
       const candidate = normalizeKey(value);
-      return Boolean(candidate) && currentUserKeys.includes(candidate);
+      return Boolean(candidate) && keys.includes(candidate);
     }
 
     function isCurrentUserAssignment(roleItem) {
-      if (!roleItem || !roleItem.assigned) {
-        return false;
-      }
+      if (!roleItem || !roleItem.assigned) return false;
       return isCurrentUserMatch(roleItem.memberId)
         || isCurrentUserMatch(roleItem.memberUsername)
-        || isCurrentUserMatch(roleItem.memberName);
+        || isCurrentUserMatch(roleItem.memberName)
+        || (Array.isArray(roleItem.memberIds) && roleItem.memberIds.some(isCurrentUserMatch))
+        || (Array.isArray(roleItem.memberNames) && roleItem.memberNames.some(isCurrentUserMatch));
     }
 
     function memberInitials(nameValue) {
       const text = String(nameValue || "").trim();
       if (!text) return "AG";
       const parts = text.split(/\s+/).filter(Boolean);
-      const initials = parts.slice(0, 2).map(function (part) {
-        return part.charAt(0).toUpperCase();
-      }).join("");
+      const initials = parts.slice(0, 2).map(function (part) { return part.charAt(0).toUpperCase(); }).join("");
       return initials || text.charAt(0).toUpperCase() || "AG";
     }
 
@@ -983,13 +1058,9 @@
     async function fetchJsonSafe(url) {
       try {
         const response = await fetch(url, { credentials: "same-origin" });
-        if (!response.ok) {
-          return null;
-        }
+        if (!response.ok) return null;
         const rawText = await response.text();
-        if (!rawText) {
-          return null;
-        }
+        if (!rawText) return null;
         return JSON.parse(rawText);
       } catch (error) {
         return null;
@@ -1002,11 +1073,8 @@
       const storedSession = safeParse(localStorage.getItem("crembo-login-session")) || {};
       try {
         const sessionRes = await fetch("/api/session");
-        if (sessionRes.ok) {
-          sessionUser = await sessionRes.json();
-        }
-      } catch (error) {
-      }
+        if (sessionRes.ok) sessionUser = await sessionRes.json();
+      } catch (error) {}
       const displayName = String(sessionUser.full_name || sessionUser.fullName || sessionUser.nama || templateUser.full_name || templateUser.fullName || templateUser.nama || storedSession.fullName || storedSession.full_name || "Atanasius Surya Guna").trim();
       const roleValue = String(sessionUser.role || templateUser.role || storedSession.role || "").trim();
       const resolvedName = displayName || "Atanasius Surya Guna";
@@ -1022,9 +1090,7 @@
       };
 
       memberName.textContent = resolvedName;
-      if (memberRoleText) {
-        memberRoleText.textContent = formatRoleLabel(roleValue || "user");
-      }
+      if (memberRoleText) memberRoleText.textContent = formatRoleLabel(roleValue || "user");
       memberAvatar.textContent = memberInitials(resolvedName);
       window.CREMBO_CURRENT_USER = CURRENT_USER;
     }
@@ -1042,13 +1108,11 @@
       STREAMING_ASSIGNMENT_LOOKUP = new Map();
       STREAMING_ASSIGNMENTS.forEach(function (assignment) {
         const scheduleKey = getScheduleKey(assignment.schedule_date, assignment.schedule_time);
-        if (!STREAMING_ASSIGNMENT_LOOKUP.has(scheduleKey)) {
-          STREAMING_ASSIGNMENT_LOOKUP.set(scheduleKey, new Map());
-        }
+        if (!STREAMING_ASSIGNMENT_LOOKUP.has(scheduleKey)) STREAMING_ASSIGNMENT_LOOKUP.set(scheduleKey, new Map());
         const member = STREAMING_MEMBER_LOOKUP.get(String(assignment.member_id)) || null;
         STREAMING_ASSIGNMENT_LOOKUP.get(scheduleKey).set(normalizeKey(assignment.role_name), {
           roleName: assignment.role_name,
-          memberId: assignment.member_id,
+          memberId: String(assignment.member_id || ""),
           memberName: member ? member.name : ("#" + assignment.member_id),
           memberUsername: member ? member.username : "",
           memberRole: member ? member.role : ""
@@ -1056,33 +1120,30 @@
       });
     }
 
-    function buildViewEntries() {
+    function buildRegularViewEntries() {
       return STREAMING_SCHEDULE.map(function (item) {
         const roleAssignments = STREAMING_ROLES.map(function (role) {
           const assigned = (STREAMING_ASSIGNMENT_LOOKUP.get(getScheduleKey(item.date, item.time)) || new Map()).get(normalizeKey(role.name)) || null;
           return {
             roleName: role.name,
+            memberId: assigned ? assigned.memberId : "",
             memberName: assigned ? assigned.memberName : "",
+            memberUsername: assigned ? assigned.memberUsername : "",
             memberRole: assigned ? assigned.memberRole : "",
             assigned: Boolean(assigned)
           };
         });
-
-        const assignedCount = roleAssignments.filter(function (roleItem) {
-          return roleItem.assigned;
-        }).length;
+        const assignedCount = roleAssignments.filter(function (roleItem) { return roleItem.assigned; }).length;
         const totalRoles = STREAMING_ROLES.length;
         const status = assignedCount === 0 ? "Belum terisi" : (assignedCount === totalRoles ? "Penuh" : "Sebagian terisi");
         const statusClass = assignedCount === 0 ? "status-wait" : (assignedCount === totalRoles ? "status-ok" : "status-wait");
-        const isMine = roleAssignments.some(function (roleItem) {
-          return isCurrentUserAssignment(roleItem);
-        });
-
+        const isMine = roleAssignments.some(isCurrentUserAssignment);
         return {
+          type: "regular",
           date: item.date,
           time: item.time,
-          dayName: item.dayName,
-          massName: item.massName,
+          dayName: item.dayName || getDayName(item.date),
+          massName: item.massName || "Misa Biasa",
           roleAssignments: roleAssignments,
           assignedCount: assignedCount,
           totalRoles: totalRoles,
@@ -1093,21 +1154,83 @@
       });
     }
 
-    function renderMetrics(entries) {
-      if (!metricTotal || !metricRegular || !metricRaya || !metricPending) {
-        return;
-      }
-      const total = entries.length;
-      const full = entries.filter(function (entry) {
-        return entry.totalRoles > 0 && entry.assignedCount === entry.totalRoles;
-      }).length;
-      const partial = entries.filter(function (entry) {
-        return entry.assignedCount > 0 && entry.assignedCount < entry.totalRoles;
-      }).length;
-      const empty = entries.filter(function (entry) {
-        return entry.assignedCount === 0;
-      }).length;
+    function normalizeBigMassRoles(item) {
+      return (Array.isArray(item.roles) ? item.roles : []).map(function (role) {
+        const names = Array.isArray(role.memberNames) ? role.memberNames.filter(Boolean) : [];
+        const ids = Array.isArray(role.memberIds) ? role.memberIds.map(String) : (Array.isArray(role.members) ? role.members.map(String) : []);
+        const assigned = names.length > 0 || ids.length > 0;
+        return {
+          roleName: String(role.role || role.roleName || "Role").trim() || "Role",
+          memberName: names.join(", "),
+          memberNames: names,
+          memberIds: ids,
+          count: Number(role.count || role.required_count || 1),
+          assigned: assigned
+        };
+      });
+    }
 
+    function buildBigMassViewEntries() {
+      return BIG_MASS_ITEMS.map(function (item) {
+        const roleAssignments = normalizeBigMassRoles(item);
+        const assignedCount = roleAssignments.filter(function (roleItem) { return roleItem.assigned; }).length;
+        const totalRoles = roleAssignments.length;
+        const isMine = Boolean(item.isCurrentUserAssigned) || roleAssignments.some(isCurrentUserAssignment);
+        const currentUserRoles = Array.isArray(item.currentUserRoles) ? item.currentUserRoles : [];
+        const requestOpen = Boolean(item.allowMemberRequest);
+        return {
+          type: "big",
+          id: item.id,
+          date: item.misaDate,
+          time: normalizeDisplayTime(item.misaTime),
+          dayName: getDayName(item.misaDate),
+          massName: item.misaName || "Misa Besar",
+          misaNote: item.misaNote || "-",
+          allowMemberRequest: requestOpen,
+          requestLabel: requestOpen ? "Request Dibuka" : "Request Ditutup",
+          roleAssignments: roleAssignments,
+          assignedCount: assignedCount,
+          totalRoles: totalRoles,
+          status: requestOpen ? "Publikasi • Request Dibuka" : "Publikasi • Request Ditutup",
+          statusClass: requestOpen ? "status-ok" : "status-wait",
+          isMine: isMine,
+          currentUserRoles: currentUserRoles
+        };
+      });
+    }
+
+    function activeEntries() {
+      return currentScheduleMode === "big" ? BIG_MASS_VIEW_ENTRIES : STREAMING_VIEW_ENTRIES;
+    }
+
+    function filterViewEntries(entries) {
+      const keyword = getSearchKeyword();
+      if (!keyword) return entries.slice();
+      return entries.filter(function (entry) {
+        const haystack = [
+          entry.type === "big" ? "misa besar" : "misa biasa",
+          entry.dayName,
+          entry.date,
+          formatDateLabel(entry.date),
+          entry.time,
+          entry.massName,
+          entry.misaNote || "",
+          entry.status,
+          entry.allowMemberRequest ? "request dibuka boleh request tugas anggota" : "request ditutup tidak boleh request tugas anggota",
+          entry.isMine ? "jadwal saya sedang tugas" : ""
+        ].concat(entry.roleAssignments.map(function (roleItem) {
+          return [roleItem.roleName, roleItem.memberName, (roleItem.memberNames || []).join(" ")].join(" ");
+        })).join(" ").toLowerCase();
+        return haystack.includes(keyword);
+      });
+    }
+
+    function renderMetrics(entries) {
+      if (!metricTotal || !metricRegular || !metricRaya || !metricPending) return;
+      const total = entries.length;
+      const full = entries.filter(function (entry) { return entry.totalRoles > 0 && entry.assignedCount === entry.totalRoles; }).length;
+      const partial = entries.filter(function (entry) { return entry.assignedCount > 0 && entry.assignedCount < entry.totalRoles; }).length;
+      const empty = entries.filter(function (entry) { return entry.assignedCount === 0; }).length;
       metricTotal.textContent = String(total);
       metricRegular.textContent = String(full);
       metricRaya.textContent = String(partial);
@@ -1115,11 +1238,14 @@
     }
 
     function renderTableHeader() {
-      let html = "<tr><th>Tanggal</th><th>Jam</th><th>Misa</th>";
-      STREAMING_ROLES.forEach(function (role) {
-        html += "<th>" + escapeHtml(role.name) + "</th>";
-      });
-      html += "<th>Status</th></tr>";
+      let html = "";
+      if (currentScheduleMode === "big") {
+        html = "<tr><th>Tanggal</th><th>Jam</th><th>Nama Misa</th><th>Keterangan</th><th>Petugas Bertugas</th><th>Status</th></tr>";
+      } else {
+        html = "<tr><th>Tanggal</th><th>Jam</th><th>Misa</th>";
+        STREAMING_ROLES.forEach(function (role) { html += "<th>" + escapeHtml(role.name) + "</th>"; });
+        html += "<th>Status</th></tr>";
+      }
       let thead = summaryTable.querySelector("thead");
       if (!thead) {
         thead = document.createElement("thead");
@@ -1128,18 +1254,24 @@
       thead.innerHTML = html;
     }
 
-    function renderCards(entries) {
+    function renderRoleList(roleAssignments, compact) {
+      if (!roleAssignments.length) return '<p class="note">Belum ada role yang terdaftar.</p>';
+      return '<ul class="role-list' + (compact ? ' compact' : '') + '">' + roleAssignments.map(function (roleItem) {
+        const isMine = isCurrentUserAssignment(roleItem);
+        return '<li><strong>' + escapeHtml(roleItem.roleName) + ':</strong> ' + escapeHtml(roleItem.memberName || '-') + (isMine ? ' <span class="mine-badge">Jadwal Saya</span>' : '') + '</li>';
+      }).join("") + '</ul>';
+    }
+
+    function renderRegularCards(entries) {
       const filteredEntries = filterViewEntries(entries);
       if (!entries.length) {
         scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Tidak ada jadwal pada bulan ini.</h3><p>Coba ubah bulan atau tahun yang dipilih.</p></div>';
         return;
       }
-
       if (!filteredEntries.length) {
         scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Tidak ada jadwal yang cocok.</h3><p>Coba ubah kata kunci pencarian, bulan, atau tahun.</p></div>';
         return;
       }
-
       scheduleGrid.innerHTML = filteredEntries.map(function (entry) {
         const roleRows = entry.roleAssignments.length
           ? entry.roleAssignments.map(function (roleItem) {
@@ -1147,7 +1279,6 @@
               return '<p' + (isMine ? ' class="mine-row"' : '') + '><strong>' + escapeHtml(roleItem.roleName) + ':</strong> ' + escapeHtml(roleItem.memberName || "-") + (isMine ? ' <span class="mine-badge">Jadwal Saya</span>' : '') + '</p>';
             }).join("")
           : '<p>Belum ada role streaming yang terdaftar.</p>';
-
         return '<article class="schedule-card' + (entry.isMine ? ' mine' : '') + '">'
           + '<span class="schedule-pill">Misa Biasa</span>'
           + '<h3>' + escapeHtml(entry.dayName) + ', ' + formatDateLabel(entry.date) + '</h3>'
@@ -1161,39 +1292,118 @@
       }).join("");
     }
 
-    function renderTable(entries) {
-      const rows = filterViewEntries(entries);
-
+    function renderBigMassCards(entries) {
+      const filteredEntries = filterViewEntries(entries);
       if (!entries.length) {
-        summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Tidak ada jadwal pada bulan ini.</td></tr>';
+        scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Tidak ada Misa Besar publikasi pada bulan ini.</h3><p>Data draft tidak ditampilkan untuk anggota biasa.</p></div>';
         return;
       }
+      if (!filteredEntries.length) {
+        scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Tidak ada Misa Besar yang cocok.</h3><p>Coba ubah kata kunci pencarian, bulan, atau tahun.</p></div>';
+        return;
+      }
+      scheduleGrid.innerHTML = filteredEntries.map(function (entry) {
+        const requestClass = entry.allowMemberRequest ? "open" : "closed";
+        const action = entry.allowMemberRequest
+          ? '<a class="btn" href="request-tugas-anggota.html?misaBesarId=' + encodeURIComponent(entry.id || '') + '">Request Tugas Misa Besar</a>'
+          : '<span class="btn disabled">Request Ditutup</span>';
+        return '<article class="schedule-card big-mass request-' + requestClass + (entry.isMine ? ' mine' : '') + '">'
+          + '<div class="tag-row"><span class="schedule-pill">Misa Besar</span><span class="published-pill">Publikasi</span><span class="request-pill ' + requestClass + '">' + escapeHtml(entry.requestLabel) + '</span>' + (entry.isMine ? '<span class="mine-badge">Anda Bertugas</span>' : '') + '</div>'
+          + '<h3>' + escapeHtml(entry.massName) + '</h3>'
+          + '<p><strong>' + escapeHtml(entry.dayName) + ', ' + formatDateLabel(entry.date) + '</strong> • Jam ' + escapeHtml(entry.time) + ' WIB</p>'
+          + '<p class="big-mass-note"><strong>Keterangan:</strong> ' + escapeHtml(entry.misaNote || '-') + '</p>'
+          + renderRoleList(entry.roleAssignments, false)
+          + (entry.isMine && entry.currentUserRoles.length ? '<p><span class="mine-badge">Role Anda: ' + escapeHtml(entry.currentUserRoles.join(", ")) + '</span></p>' : '')
+          + '<div class="btn-row">' + action + '</div>'
+          + '</article>';
+      }).join("");
+    }
 
+    function renderCards(entries) {
+      if (currentScheduleMode === "big") renderBigMassCards(entries);
+      else renderRegularCards(entries);
+    }
+
+    function renderRegularTable(entries) {
+      const rows = filterViewEntries(entries);
+      const colspan = 4 + STREAMING_ROLES.length;
+      if (!entries.length) {
+        summaryRows.innerHTML = '<tr><td colspan="' + colspan + '">Tidak ada jadwal pada bulan ini.</td></tr>';
+        return;
+      }
       if (!rows.length) {
-        summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Tidak ada jadwal yang cocok dengan pencarian.</td></tr>';
+        summaryRows.innerHTML = '<tr><td colspan="' + colspan + '">Tidak ada jadwal yang cocok dengan pencarian.</td></tr>';
         return;
       }
-
       summaryRows.innerHTML = rows.map(function (entry) {
         let cols = '<td><strong>' + escapeHtml(entry.dayName) + '</strong><br>' + formatDateLabel(entry.date) + (entry.isMine ? '<br><span class="mine-badge">Jadwal Saya</span>' : '') + '</td>'
           + '<td>' + escapeHtml(entry.time) + '</td>'
           + '<td>' + escapeHtml(entry.massName) + '</td>';
-
         entry.roleAssignments.forEach(function (roleItem) {
-          cols += '<td>' + escapeHtml(roleItem.memberName || "-") + '</td>';
+          const isMine = isCurrentUserAssignment(roleItem);
+          cols += '<td>' + escapeHtml(roleItem.memberName || "-") + (isMine ? '<br><span class="mine-badge">Jadwal Saya</span>' : '') + '</td>';
         });
-
         cols += '<td><span class="' + entry.statusClass + '">' + escapeHtml(entry.status) + '</span></td>';
         return '<tr' + (entry.isMine ? ' class="mine-row"' : '') + '>' + cols + '</tr>';
       }).join("");
     }
 
+    function renderBigMassTable(entries) {
+      const rows = filterViewEntries(entries);
+      if (!entries.length) {
+        summaryRows.innerHTML = '<tr><td colspan="6">Tidak ada Misa Besar publikasi pada bulan ini.</td></tr>';
+        return;
+      }
+      if (!rows.length) {
+        summaryRows.innerHTML = '<tr><td colspan="6">Tidak ada Misa Besar yang cocok dengan pencarian.</td></tr>';
+        return;
+      }
+      summaryRows.innerHTML = rows.map(function (entry) {
+        const requestClass = entry.allowMemberRequest ? "open" : "closed";
+        return '<tr' + (entry.isMine ? ' class="mine-row"' : '') + '>'
+          + '<td><strong>' + escapeHtml(entry.dayName) + '</strong><br>' + formatDateLabel(entry.date) + (entry.isMine ? '<br><span class="mine-badge">Anda Bertugas</span>' : '') + '</td>'
+          + '<td>' + escapeHtml(entry.time) + '</td>'
+          + '<td><strong>' + escapeHtml(entry.massName) + '</strong><br><span class="published-pill">Publikasi</span></td>'
+          + '<td>' + escapeHtml(entry.misaNote || '-') + '</td>'
+          + '<td>' + renderRoleList(entry.roleAssignments, true) + '</td>'
+          + '<td><span class="request-pill ' + requestClass + '">' + escapeHtml(entry.requestLabel) + '</span>' + (entry.isMine && entry.currentUserRoles.length ? '<br><span class="mine-badge">Role: ' + escapeHtml(entry.currentUserRoles.join(", ")) + '</span>' : '') + '</td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    function renderTable(entries) {
+      if (currentScheduleMode === "big") renderBigMassTable(entries);
+      else renderRegularTable(entries);
+    }
+
+    function updateModeText() {
+      const isBig = currentScheduleMode === "big";
+      regularScheduleTab.classList.toggle("active", !isBig);
+      bigMassScheduleTab.classList.toggle("active", isBig);
+      regularScheduleTab.setAttribute("aria-selected", String(!isBig));
+      bigMassScheduleTab.setAttribute("aria-selected", String(isBig));
+      scheduleHeroTitle.textContent = isBig ? "Jadwal Misa Besar" : "Jadwal Misa Biasa";
+      scheduleHeroText.textContent = isBig
+        ? "Menampilkan Misa Besar yang sudah publikasi saja, lengkap dengan petugas, jadwal, keterangan, dan status request anggota."
+        : "Data yang tampil mengikuti isi database. Pilih tab Misa Besar untuk melihat jadwal publikasi dari registrasi misa besar.";
+      scheduleModeChip.textContent = isBig ? "Misa Besar: Published" : "Modul Jadwal Streaming";
+      cardPanelTitle.textContent = "Model Card - " + (isBig ? "Misa Besar" : "Misa Biasa");
+      tablePanelTitle.textContent = "Model Tabel - " + (isBig ? "Misa Besar" : "Misa Biasa");
+      cardPanelNote.textContent = isBig
+        ? "Panel card membaca Misa Besar berstatus publikasi dari backend. Draft tidak ditampilkan untuk anggota biasa."
+        : "Panel card membaca jadwal misa biasa dari backend beserta petugas per role yang tersimpan di database.";
+      primaryRequestBtn.textContent = isBig ? "Buka Request Tugas Misa Besar" : "Buka Request Tugas";
+    }
+
     function renderAll() {
-      STREAMING_VIEW_ENTRIES = buildViewEntries();
+      STREAMING_VIEW_ENTRIES = buildRegularViewEntries();
+      BIG_MASS_VIEW_ENTRIES = buildBigMassViewEntries();
+      updateModeText();
+      const entries = activeEntries();
       renderTableHeader();
-      renderMetrics(STREAMING_VIEW_ENTRIES);
-      renderCards(STREAMING_VIEW_ENTRIES);
-      renderTable(STREAMING_VIEW_ENTRIES);
+      renderMetrics(entries);
+      renderCards(entries);
+      renderTable(entries);
     }
 
     function setActiveView(viewMode) {
@@ -1206,54 +1416,41 @@
       tablePanel.hidden = viewMode !== "table";
     }
 
+    function setScheduleMode(mode) {
+      currentScheduleMode = mode === "big" ? "big" : "regular";
+      renderAll();
+    }
+
     async function loadStreamingData() {
       const monthYear = getSelectedMonthYear();
       STREAMING_ROLES = await fetchJsonSafe("/api/streaming/roles") || [];
       ACTIVE_MEMBERS = await fetchJsonSafe("/api/streaming/active-members") || [];
       const scheduleData = await fetchJsonSafe("/api/streaming/schedule?month=" + (monthYear.monthIndex + 1) + "&year=" + monthYear.year) || {};
       STREAMING_ASSIGNMENTS = await fetchJsonSafe("/api/streaming/assignments") || [];
+      const bigMassData = await fetchJsonSafe("/api/misa-besar/public?month=" + (monthYear.monthIndex + 1) + "&year=" + monthYear.year) || {};
       STREAMING_SCHEDULE = Array.isArray(scheduleData?.schedule) ? scheduleData.schedule : [];
+      BIG_MASS_ITEMS = Array.isArray(bigMassData?.items) ? bigMassData.items : [];
       buildLookups();
       renderAll();
     }
 
     function handleLoadError() {
       scheduleGrid.innerHTML = '<div class="schedule-card"><h3>Gagal memuat jadwal.</h3><p>Periksa koneksi backend atau database.</p></div>';
-      summaryRows.innerHTML = '<tr><td colspan="' + (4 + STREAMING_ROLES.length) + '">Gagal memuat ringkasan jadwal.</td></tr>';
+      summaryRows.innerHTML = '<tr><td colspan="6">Gagal memuat ringkasan jadwal.</td></tr>';
     }
 
     syncFilterControls();
 
-    cardTab.addEventListener("click", function () {
-      setActiveView("card");
-    });
+    regularScheduleTab.addEventListener("click", function () { setScheduleMode("regular"); });
+    bigMassScheduleTab.addEventListener("click", function () { setScheduleMode("big"); });
 
-    tableTab.addEventListener("click", function () {
-      setActiveView("table");
-    });
-
-    if (tableCardTab) {
-      tableCardTab.addEventListener("click", function () {
-        setActiveView("card");
-      });
-    }
-
-    if (tableTabelTab) {
-      tableTabelTab.addEventListener("click", function () {
-        setActiveView("table");
-      });
-    }
-
-    if (backToCardBtn) {
-      backToCardBtn.addEventListener("click", function () {
-        setActiveView("card");
-      });
-    }
+    cardTab.addEventListener("click", function () { setActiveView("card"); });
+    tableTab.addEventListener("click", function () { setActiveView("table"); });
+    if (tableCardTab) tableCardTab.addEventListener("click", function () { setActiveView("card"); });
+    if (tableTabelTab) tableTabelTab.addEventListener("click", function () { setActiveView("table"); });
 
     [cardSearchInput, tableSearchInput].forEach(function (input) {
-      if (!input) {
-        return;
-      }
+      if (!input) return;
       input.addEventListener("input", function () {
         currentSearchKeyword = input.value;
         syncFilterControls();
@@ -1262,9 +1459,7 @@
     });
 
     [cardMonthSelect, tableMonthSelect].forEach(function (select) {
-      if (!select) {
-        return;
-      }
+      if (!select) return;
       select.addEventListener("change", function () {
         selectedMonthIndex = Number(select.value);
         syncFilterControls();
@@ -1273,9 +1468,7 @@
     });
 
     [cardYearSelect, tableYearSelect].forEach(function (select) {
-      if (!select) {
-        return;
-      }
+      if (!select) return;
       select.addEventListener("change", function () {
         selectedYear = Number(select.value);
         syncFilterControls();
@@ -1299,27 +1492,18 @@
       document.body.style.overflow = isOpen ? "hidden" : "";
     }
 
-    mobileMenuBtn.addEventListener("click", function () {
-      setSidebarOpen(!sidebar.classList.contains("show"));
-    });
-
-    sidebarBackdrop.addEventListener("click", function () {
-      setSidebarOpen(false);
-    });
-
+    mobileMenuBtn.addEventListener("click", function () { setSidebarOpen(!sidebar.classList.contains("show")); });
+    sidebarBackdrop.addEventListener("click", function () { setSidebarOpen(false); });
     document.querySelectorAll(".sidebar a").forEach(function (link) {
       link.addEventListener("click", function () {
-        if (window.matchMedia("(max-width: 1080px)").matches) {
-          setSidebarOpen(false);
-        }
+        if (window.matchMedia("(max-width: 1080px)").matches) setSidebarOpen(false);
       });
     });
 
     function updateLiveDateTime() {
       const current = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const day = dayNames[current.getDay()];
+      const day = DAY_NAMES[current.getDay()];
       const date = String(current.getDate()).padStart(2, "0");
       const month = monthNames[current.getMonth()];
       const year = current.getFullYear();
@@ -1330,17 +1514,17 @@
     }
 
     setActiveView("card");
+    updateModeText();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
 
     window.addEventListener("load", async function () {
-      loadAttempt = 0;
       selectedMonthIndex = new Date().getMonth();
       selectedYear = new Date().getFullYear();
       syncFilterControls();
       await applyCurrentUser();
       syncFilterControls();
-      loadStreamingData();
+      loadStreamingData().catch(handleLoadError);
     });
   </script>
 <script src="_sidebar-fix.js"></script>
