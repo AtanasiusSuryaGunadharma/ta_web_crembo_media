@@ -840,10 +840,30 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // FUNGSI BARU: Mengubah status secara instan
     window.changeStatus = async function(id, newStatus) {
         const payload = { status: newStatus };
-        await fetch(`/api/misa-besar/${id}/status`, { method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload) });
-        fetchEvents();
+        const res = await fetch(`/api/misa-besar/${id}/status`, { 
+            method: "PUT", 
+            headers: {"Content-Type": "application/json"}, 
+            body: JSON.stringify(payload) 
+        });
+
+        if (res.ok) {
+            fetchEvents(); // Refresh tabel
+            if (newStatus === 'draft') alert("Jadwal dikembalikan ke Draft!");
+            if (newStatus === 'published') alert("Jadwal berhasil di-Publish!");
+        } else {
+            alert("Gagal mengubah status jadwal.");
+        }
+    };
+
+    window.publishDraftById = async function(id) {
+        changeStatus(id, 'published');
+    };
+
+    window.restoreScheduleToDraft = async function(id) {
+        changeStatus(id, 'draft');
     };
 
     window.deleteScheduleItem = async function(id) {

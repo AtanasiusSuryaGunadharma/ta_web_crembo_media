@@ -6171,6 +6171,25 @@ def api_misa_besar_detail(misa_id):
         cursor.close()
         conn.close()
 
+@app.route("/api/misa-besar/<int:misa_id>/status", methods=["PUT"])
+def api_misa_besar_status(misa_id):
+    """Endpoint khusus untuk mengubah status ke Draft atau Published dengan cepat"""
+    conn = mysql_connection()
+    cursor = conn.cursor(buffered=True)
+    try:
+        data = request.json
+        new_status = data.get('status', 'draft')
+        
+        cursor.execute("UPDATE misa_besar SET status = %s WHERE id = %s", (new_status, misa_id))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route("/api/misa-besar/assign", methods=["POST"])
 def api_misa_besar_assign():
     data = request.json 
