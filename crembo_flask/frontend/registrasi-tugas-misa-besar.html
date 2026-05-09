@@ -177,7 +177,7 @@
     /* Scheduled List */
     .schedule-filters { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
     .schedule-table-wrap { margin-top: 10px; overflow-x: auto; border: 1px solid #cbcbcb; border-radius: 8px; }
-    .schedule-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 0.84rem; background: #fff; }
+    .schedule-table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: 0.84rem; background: #fff; }
     .schedule-table th, .schedule-table td { border: 1px solid #cbcbcb; padding: 8px; text-align: left; vertical-align: top; }
     .schedule-table th { background: #efefef; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.02em; }
     .schedule-action-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -187,6 +187,12 @@
     .schedule-chip.raya { border-color: #c6b07b; background: #fff8ea; color: #7a5a1f; }
     .schedule-chip.biasa { border-color: #91c89c; background: #ecf8ef; color: #235c2d; }
     .schedule-note { margin: 6px 0 0; color: #4b5563; font-size: 0.82rem; line-height: 1.45; }
+    .petugas-list { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; color: #374151; font-size: 0.82rem; line-height: 1.45; }
+    .petugas-list.compact { margin: 0; padding-left: 16px; min-width: 220px; }
+    .petugas-list li { margin: 0; }
+    .petugas-list em { color: #6b7280; }
+    .petugas-count { color: #6b7280; font-size: 0.76rem; }
+    .petugas-empty { margin: 6px 0 0; color: #6b7280; font-size: 0.82rem; font-style: italic; }
     .schedule-empty { margin: 0; border: 1px dashed #adadad; background: #fbfbfb; padding: 10px; font-size: 0.86rem; color: #616161; }
 
     /* Modal Info Draft */
@@ -202,6 +208,7 @@
     }
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_admin-theme.css">
 </head>
 <body>
   <div class="layout">
@@ -230,6 +237,14 @@
         <h1>Registrasi Tugas Misa Besar</h1>
         <div class="head-meta">
           <span id="liveDateTime">-</span>
+          <a class="home-globe" href="home.html?session=active" title="Kembali ke Home (tetap login)">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
         </div>
       </header>
 
@@ -383,6 +398,8 @@
                   <th>Jam</th>
                   <th>Nama Misa</th>
                   <th>Keterangan</th>
+                  <th>Petugas</th>
+                  <th>Request Anggota</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
@@ -454,6 +471,28 @@
       const date = new Date(dateStr + "T00:00:00");
       if (Number.isNaN(date.getTime())) return dateStr;
       return date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+    }
+
+    function roleMemberNames(role) {
+      return Array.isArray(role && role.memberNames) ? role.memberNames.filter(Boolean) : [];
+    }
+
+    function renderRoleAssignmentsList(roles, options) {
+      const items = Array.isArray(roles) ? roles : [];
+      if (!items.length) return '<p class="petugas-empty">Belum ada role tersimpan.</p>';
+      const compactClass = options && options.compact ? ' compact' : '';
+      return `<ul class="petugas-list${compactClass}">${items.map(role => {
+        const names = roleMemberNames(role);
+        const count = Math.max(1, parseInt(role && role.count, 10) || 1);
+        const countBadge = count > 1 ? ` <span class="petugas-count">(${names.length}/${count})</span>` : '';
+        const namesHtml = names.length ? names.map(escapeHtml).join(', ') : '<em>Belum ada petugas</em>';
+        return `<li><strong>${escapeHtml(role && role.role ? role.role : 'Role')}:</strong> ${namesHtml}${countBadge}</li>`;
+      }).join('')}</ul>`;
+    }
+
+    function roleAssignmentsText(roles) {
+      const items = Array.isArray(roles) ? roles : [];
+      return items.map(role => `${role && role.role ? role.role : 'Role'}: ${roleMemberNames(role).join(', ')}`).join(' ');
     }
 
     // --- MISA NAME COMBO LOGIC ---
@@ -759,14 +798,16 @@
                       <p class="draft-meta">
                           Jadwal: ${formatDisplayDate(d.misaDate)} ${d.misaTime} WIB<br>
                           Keterangan: ${escapeHtml(d.misaNote || "-")}<br>
-                          Role Tersimpan: ${d.roles.length}
+                          Role Tersimpan: ${Array.isArray(d.roles) ? d.roles.length : 0}
                       </p>
+                      ${renderRoleAssignmentsList(d.roles)}
                   </div>
                   <span class="draft-badge">DRAFT</span>
               </div>
               <div class="draft-actions">
                   <button class="btn secondary" onclick="renderDraftDetail(${d.id})">Detail</button>
                   <button class="btn secondary" onclick="editScheduleItem(${d.id})">Edit</button>
+                  <button class="btn" onclick="publishDraftById(${d.id})">Publish Draft</button>
                   <button class="btn danger" onclick="deleteScheduleItem(${d.id})">Hapus</button>
               </div>
           </article>
@@ -786,7 +827,8 @@
 
       const filtered = published.filter(item => {
           const dateObj = new Date(item.misaDate);
-          const sMatch = !qSearch || item.misaName.toLowerCase().includes(qSearch) || item.misaDate.includes(qSearch);
+          const petugasText = roleAssignmentsText(item.roles).toLowerCase();
+          const sMatch = !qSearch || item.misaName.toLowerCase().includes(qSearch) || item.misaDate.includes(qSearch) || petugasText.includes(qSearch);
           const misaMatch = qMisa === "all" || item.misaName === qMisa;
           const monthMatch = qMonth === "all" || (dateObj.getMonth() + 1).toString() === qMonth;
           const yearMatch = qYear === "all" || dateObj.getFullYear().toString() === qYear;
@@ -805,6 +847,7 @@
               <td>${item.misaTime}</td>
               <td><strong>${escapeHtml(item.misaName)}</strong></td>
               <td><span class="schedule-note">${escapeHtml(item.misaNote || '-')}</span></td>
+              <td>${renderRoleAssignmentsList(item.roles, { compact: true })}</td>
               <td>${item.allowMemberRequest ? '<span class="schedule-chip biasa">Dibuka</span>' : '<span class="schedule-chip">Ditutup</span>'}</td>
               <td><span class="schedule-chip raya">Published</span></td>
               <td>
@@ -877,8 +920,7 @@
         const d = ALL_EVENTS.find(e => e.id === id);
         if(!d) return;
         
-        const rolesHtml = d.roles.length === 0 ? '<p class="draft-detail-empty">Belum ada role.</p>' : 
-        '<ul class="draft-detail-list">' + d.roles.map(r => `<li><strong>${r.role}:</strong> ${r.memberNames.length > 0 ? r.memberNames.join(', ') : '-'}</li>`).join("") + '</ul>';
+        const rolesHtml = renderRoleAssignmentsList(d.roles);
 
         document.getElementById("draftDetailBody").innerHTML = `
             <p class="draft-detail-summary"><strong>${escapeHtml(d.misaName)}</strong><br>

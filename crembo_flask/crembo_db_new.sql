@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 09 Bulan Mei 2026 pada 04.22
+-- Waktu pembuatan: 09 Bulan Mei 2026 pada 04.49
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -456,7 +456,7 @@ CREATE TABLE `misa_besar` (
 --
 
 INSERT INTO `misa_besar` (`id`, `misa_name`, `misa_date`, `misa_time`, `misa_note`, `allow_member_request`, `status`, `created_at`) VALUES
-(2, 'Jumat agung Sabtu', '2026-05-30', '09:22:00', 'Jumat agung hari sabtu', 0, 'published', '2026-05-09 02:18:26');
+(3, 'Misa Kamis Putih', '2026-05-16', '09:28:00', 'Misa kamis putih hari rabu', 1, 'draft', '2026-05-09 02:25:49');
 
 -- --------------------------------------------------------
 
@@ -475,10 +475,7 @@ CREATE TABLE `misa_besar_assignments` (
 --
 
 INSERT INTO `misa_besar_assignments` (`id`, `role_id`, `member_id`) VALUES
-(28, 31, 23),
-(29, 32, 21),
-(30, 32, 22),
-(31, 33, 36);
+(39, 40, 73);
 
 -- --------------------------------------------------------
 
@@ -498,9 +495,7 @@ CREATE TABLE `misa_besar_names` (
 --
 
 INSERT INTO `misa_besar_names` (`id`, `misa_id`, `role_name`, `required_count`) VALUES
-(31, 2, 'Cleaning', 1),
-(32, 2, 'Fotografer', 2),
-(33, 2, 'PD', 1);
+(40, 3, 'PD', 1);
 
 -- --------------------------------------------------------
 
@@ -2827,19 +2822,19 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `misa_besar`
 --
 ALTER TABLE `misa_besar`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_assignments`
 --
 ALTER TABLE `misa_besar_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_names`
 --
 ALTER TABLE `misa_besar_names`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT untuk tabel `news_category_mapping`
