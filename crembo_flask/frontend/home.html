@@ -1473,6 +1473,41 @@
 		.home-request-tag.closed { border-color: #d1d5db; background: #f3f4f6; color: #4b5563; }
 		.home-status-tag.published { border-color: rgba(128,0,0,0.25); background: rgba(128,0,0,0.08); color: var(--primary); }
 
+		/* Penanda user login yang sedang bertugas pada Misa Besar di homepage */
+		.schedule-table tbody tr.home-big-row-assigned td { background: linear-gradient(90deg, rgba(212,160,23,0.13), rgba(255,255,255,0.98)); }
+		.schedule-table tbody tr.home-big-row-assigned td:first-child { border-left: 3px solid var(--accent-gold) !important; }
+		.home-big-assigned-tag {
+			display: inline-flex;
+			align-items: center;
+			width: fit-content;
+			margin-top: 5px;
+			border-radius: 999px;
+			padding: 3px 10px;
+			border: 1px solid rgba(212,160,23,0.72);
+			background: #fff8e1;
+			color: #7a4d00;
+			font-size: 0.72rem;
+			font-weight: 800;
+		}
+		.home-role-list li.home-role-assigned {
+			border-radius: 8px;
+			padding: 3px 6px;
+			margin-left: -6px;
+			background: rgba(255,248,225,0.72);
+			color: var(--primary-dark);
+		}
+		.home-big-user-name { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; font-weight: 700; color: var(--primary-dark); }
+		.home-big-user-name::after {
+			content: "Anda";
+			border: 1px solid rgba(212,160,23,0.72);
+			background: #fff8e1;
+			color: #7a4d00;
+			border-radius: 999px;
+			padding: 1px 7px;
+			font-size: 0.68rem;
+			font-weight: 800;
+		}
+
 		.home-role-list {
 			margin: 0;
 			padding-left: 18px;
@@ -3037,11 +3072,26 @@
 		function normalizeBigMassHome(item) {
 			const roles = Array.isArray(item.roles) ? item.roles.map(function (role) {
 				return {
-					role: role.role || role.roleName || role.role_name || "Role",
-					memberNames: Array.isArray(role.memberNames) ? role.memberNames : [],
+					role: role.role || role.roleName || role.role_name || role.name || "Role",
+					memberNames: Array.isArray(role.memberNames) ? role.memberNames.map(String) : [],
+					memberIds: Array.isArray(role.memberIds) ? role.memberIds.map(String) : (Array.isArray(role.members) ? role.members.map(function (member) {
+						return member && typeof member === "object" ? String(member.id || member.memberId || member.member_id || "") : String(member || "");
+					}).filter(Boolean) : []),
 					count: Number(role.count || role.requiredCount || role.required_count || 1) || 1
 				};
 			}) : [];
+			let currentUserRoles = Array.isArray(item.currentUserRoles) ? item.currentUserRoles.map(String).filter(Boolean) : [];
+			if (!currentUserRoles.length && homeCurrentUser && homeCurrentUser.logged_in) {
+				const currentUserId = homeCurrentUserId();
+				const nameCandidates = homeCurrentUserNameCandidates();
+				roles.forEach(function (role) {
+					const matchesById = currentUserId && Array.isArray(role.memberIds) && role.memberIds.includes(currentUserId);
+					const roleNames = (role.memberNames || []).map(normalizeCompareText);
+					const matchesByName = roleNames.length && nameCandidates.some(function (candidate) { return roleNames.includes(candidate); });
+					if (matchesById || matchesByName) currentUserRoles.push(role.role || "Role");
+				});
+			}
+			currentUserRoles = uniqueValues(currentUserRoles);
 			return {
 				type: "big",
 				id: item.id || "",
@@ -3050,7 +3100,9 @@
 				time: normalizeTime(item.misaTime || item.time || item.misa_time || ""),
 				misaNote: item.misaNote || item.keterangan || item.note || item.misa_note || "",
 				allowMemberRequest: Boolean(item.allowMemberRequest || item.allow_member_request),
-				roles: roles
+				roles: roles,
+				currentUserRoles: currentUserRoles,
+				isCurrentUserAssigned: Boolean(item.isCurrentUserAssigned || item.is_current_user_assigned || currentUserRoles.length)
 			};
 		}
 
@@ -3136,11 +3188,40 @@
 			requestAnimationFrame(updateTableScrollShells);
 		}
 
+		function homeRoleIsCurrentUserForBig(role) {
+			if (!homeCurrentUser || !homeCurrentUser.logged_in || !role) return false;
+			const currentUserId = homeCurrentUserId();
+			if (currentUserId && Array.isArray(role.memberIds) && role.memberIds.includes(currentUserId)) return true;
+			const nameCandidates = homeCurrentUserNameCandidates();
+			const names = (role.memberNames || []).map(normalizeCompareText);
+			return Boolean(names.length && nameCandidates.some(function (candidate) { return names.includes(candidate); }));
+		}
+
+		function homeCurrentUserRolesForBig(item) {
+			if (!homeCurrentUser || !homeCurrentUser.logged_in || !item) return [];
+			const directRoles = Array.isArray(item.currentUserRoles) ? item.currentUserRoles.map(String).filter(Boolean) : [];
+			const computedRoles = (item.roles || []).filter(homeRoleIsCurrentUserForBig).map(function (role) { return role.role || "Role"; });
+			return uniqueValues(directRoles.concat(computedRoles));
+		}
+
+		function homeBigAssignmentTagHtml(item) {
+			const roles = homeCurrentUserRolesForBig(item);
+			if (!roles.length) return "";
+			return '<span class="home-big-assigned-tag">Anda Bertugas: ' + escapeHtml(roles.join(", ")) + '</span>';
+		}
+
+		function homeBigMemberNamesHtml(role) {
+			if (!Array.isArray(role.memberNames) || !role.memberNames.length) return '<em>Belum terisi</em>';
+			const isAssignedRole = homeRoleIsCurrentUserForBig(role);
+			const namesText = escapeHtml(role.memberNames.join(", "));
+			return isAssignedRole ? '<span class="home-big-user-name">' + namesText + '</span>' : namesText;
+		}
+
 		function roleListHtmlHome(roles) {
 			if (!roles || !roles.length) return '<em>Belum ada role.</em>';
 			return '<ul class="home-role-list">' + roles.map(function (role) {
-				const names = Array.isArray(role.memberNames) && role.memberNames.length ? escapeHtml(role.memberNames.join(", ")) : '<em>Belum terisi</em>';
-				return '<li><strong>' + escapeHtml(role.role || 'Role') + ':</strong> ' + names + '</li>';
+				const assignedClass = homeRoleIsCurrentUserForBig(role) ? ' class="home-role-assigned"' : '';
+				return '<li' + assignedClass + '><strong>' + escapeHtml(role.role || 'Role') + ':</strong> ' + homeBigMemberNamesHtml(role) + '</li>';
 			}).join("") + '</ul>';
 		}
 
@@ -3151,7 +3232,10 @@
 			homeBigMassPage = Math.min(Math.max(0, homeBigMassPage), totalPages - 1);
 			const startIndex = homeBigMassPage * HOME_SCHEDULE_PAGE_SIZE;
 			const pageItems = homeBigMassItems.slice(startIndex, startIndex + HOME_SCHEDULE_PAGE_SIZE);
-			if (homeBigMassCountLabel) homeBigMassCountLabel.textContent = total ? (total + " Misa Besar coming soon") : "Belum ada Misa Besar coming soon";
+			if (homeBigMassCountLabel) {
+				const assignedCount = homeBigMassItems.filter(function (item) { return homeCurrentUserRolesForBig(item).length; }).length;
+				homeBigMassCountLabel.textContent = total ? (total + " Misa Besar coming soon" + (assignedCount ? " · Anda bertugas di " + assignedCount + " misa" : "")) : "Belum ada Misa Besar coming soon";
+			}
 			if (homeBigMassPager) homeBigMassPager.hidden = total <= HOME_SCHEDULE_PAGE_SIZE;
 			if (homeBigMassPageInfo) homeBigMassPageInfo.textContent = "Halaman " + (homeBigMassPage + 1) + " dari " + totalPages;
 			if (homeBigMassPrev) homeBigMassPrev.disabled = homeBigMassPage <= 0;
@@ -3162,8 +3246,10 @@
 			}
 			homeBigMassBody.innerHTML = pageItems.map(function (item, index) {
 				const requestTag = item.allowMemberRequest ? '<span class="home-request-tag open">Request Dibuka</span>' : '<span class="home-request-tag closed">Request Ditutup</span>';
-				return '<tr class="hariraya-row"><td>' + (startIndex + index + 1) + '</td>' +
-					'<td><strong>' + escapeHtml(formatDateWithDay(item.date)) + '</strong><br><span class="hariraya-label">' + escapeHtml(item.misaName) + '</span><br><span class="home-status-tag published">Published</span></td>' +
+				const assignedRoles = homeCurrentUserRolesForBig(item);
+				const assignedTag = homeBigAssignmentTagHtml(item);
+				return '<tr class="hariraya-row ' + (assignedRoles.length ? 'home-big-row-assigned' : '') + '"><td>' + (startIndex + index + 1) + '</td>' +
+					'<td><strong>' + escapeHtml(formatDateWithDay(item.date)) + '</strong><br><span class="hariraya-label">' + escapeHtml(item.misaName) + '</span><br><span class="home-status-tag published">Published</span><br>' + assignedTag + '</td>' +
 					'<td>' + escapeHtml(item.time || '-') + ' WIB</td>' +
 					'<td>' + escapeHtml(item.misaNote || '-') + '</td>' +
 					'<td>' + requestTag + '</td>' +
