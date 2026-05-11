@@ -7702,6 +7702,542 @@ def api_request_tugas_history():
         cursor.close()
         conn.close()
 
+
+# -----------------------------------------------------------------------------
+# Pembatalan Tugas Anggota: self-service cancel assignment H-3
+# -----------------------------------------------------------------------------
+
+def ensure_task_cancellation_schema(cursor=None) -> None:
+    """Pastikan tabel riwayat pembatalan tugas tersedia."""
+    ensure_task_request_schema(cursor)
+    ensure_notifications_schema()
+
+    owns_connection = cursor is None
+    conn = None
+    if owns_connection:
+        conn = mysql_connection()
+        cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `task_cancellations` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `member_id` int(11) NOT NULL,
+              `member_name` varchar(255) DEFAULT NULL,
+              `kind` varchar(20) NOT NULL,
+              `type_label` varchar(50) DEFAULT NULL,
+              `misa_id` int(11) DEFAULT NULL,
+              `role_id` int(11) DEFAULT NULL,
+              `assignment_id` int(11) DEFAULT NULL,
+              `schedule_date` date NOT NULL,
+              `schedule_time` time NOT NULL,
+              `misa_name` varchar(255) DEFAULT NULL,
+              `role_name` varchar(100) DEFAULT NULL,
+              `request_source` varchar(30) DEFAULT NULL,
+              `cancelled_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `status` varchar(30) NOT NULL DEFAULT 'batal',
+              `note` text DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              KEY `idx_task_cancel_member` (`member_id`),
+              KEY `idx_task_cancel_date` (`schedule_date`),
+              KEY `idx_task_cancel_kind` (`kind`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        # Aman untuk database lama yang sudah pernah dibuat sebelum struktur lengkap.
+        ensure_column(cursor, "task_cancellations", "member_name", "`member_name` varchar(255) DEFAULT NULL")
+        ensure_column(cursor, "task_cancellations", "type_label", "`type_label` varchar(50) DEFAULT NULL")
+        ensure_column(cursor, "task_cancellations", "misa_id", "`misa_id` int(11) DEFAULT NULL")
+        ensure_column(cursor, "task_cancellations", "role_id", "`role_id` int(11) DEFAULT NULL")
+        ensure_column(cursor, "task_cancellations", "assignment_id", "`assignment_id` int(11) DEFAULT NULL")
+        ensure_column(cursor, "task_cancellations", "request_source", "`request_source` varchar(30) DEFAULT NULL")
+        ensure_column(cursor, "task_cancellations", "note", "`note` text DEFAULT NULL")
+        if conn:
+            conn.commit()
+    finally:
+        if owns_connection:
+            cursor.close()
+            conn.close()
+
+
+def cancel_task_can_cancel(date_text: str) -> bool:
+    """Boleh dibatalkan maksimal H-3: hari ini <= tanggal tugas - 3 hari."""
+    try:
+        schedule_date = datetime.strptime(normalize_text(date_text), "%Y-%m-%d").date()
+        return schedule_date >= (datetime.now().date() + timedelta(days=3))
+    except Exception:
+        return False
+
+
+def cancel_task_rule_label(date_text: str) -> str:
+    try:
+        schedule_date = datetime.strptime(normalize_text(date_text), "%Y-%m-%d").date()
+        deadline = schedule_date - timedelta(days=3)
+        return request_task_format_date(deadline.strftime("%Y-%m-%d"))
+    except Exception:
+        return "-"
+
+
+def cancel_task_build_item(row: dict[str, object], *, kind: str) -> dict[str, object]:
+    date_text = normalize_text(row.get("date") or row.get("schedule_date") or row.get("misa_date"))
+    time_text = format_time_hhmm(row.get("time") or row.get("schedule_time") or row.get("misa_time"))
+    type_label = "Misa Besar" if kind == "besar" else "Misa Biasa"
+    misa_name = normalize_text(row.get("misa_name") or row.get("mass_name")) or type_label
+    role_name = normalize_text(row.get("role") or row.get("role_name")) or "Role"
+    can_cancel = cancel_task_can_cancel(date_text)
+    return {
+        "id": f"{kind}:{row.get('assignment_id') or row.get('id') or row.get('role_id') or ''}:{date_text}:{time_text}:{role_name}",
+        "type": kind,
+        "typeLabel": type_label,
+        "assignmentId": row.get("assignment_id") or row.get("id"),
+        "misaId": row.get("misa_id"),
+        "roleId": row.get("role_id"),
+        "misaName": misa_name,
+        "date": date_text,
+        "dateLabel": request_task_format_date(date_text),
+        "dayName": request_task_day_name(date_text),
+        "time": time_text,
+        "role": role_name,
+        "status": "Terdaftar",
+        "source": normalize_text(row.get("request_source")) or "admin",
+        "sourceLabel": "Request Mandiri" if normalize_text(row.get("request_source")) == "member_request" else "Ditugaskan Admin",
+        "canCancel": can_cancel,
+        "deadlineLabel": cancel_task_rule_label(date_text),
+    }
+
+
+def cancel_task_filter_items(items: list[dict[str, object]], *, search_text: str = "", kind_filter: str = "all") -> list[dict[str, object]]:
+    keyword = normalize_text(search_text).lower()
+    kind = (normalize_text(kind_filter) or "all").lower()
+    filtered = []
+    for item in items:
+        if kind in {"biasa", "besar"} and item.get("type") != kind:
+            continue
+        haystack = " ".join([
+            normalize_text(item.get("typeLabel")), normalize_text(item.get("misaName")),
+            normalize_text(item.get("dayName")), normalize_text(item.get("dateLabel")),
+            normalize_text(item.get("date")), normalize_text(item.get("time")),
+            normalize_text(item.get("role")), normalize_text(item.get("status")),
+            normalize_text(item.get("sourceLabel")),
+        ]).lower()
+        if keyword and keyword not in haystack:
+            continue
+        filtered.append(item)
+    return filtered
+
+
+def cancel_task_sort_items(items: list[dict[str, object]], sort_mode: str, *, history: bool = False) -> list[dict[str, object]]:
+    mode = normalize_text(sort_mode) or ("cancelled_desc" if history else "date_asc")
+
+    def schedule_key(item):
+        return (normalize_text(item.get("date")), normalize_text(item.get("time")), normalize_text(item.get("misaName")), normalize_text(item.get("role")))
+
+    def cancelled_key(item):
+        return normalize_text(item.get("cancelledAt"))
+
+    if mode == "date_desc":
+        return sorted(items, key=schedule_key, reverse=True)
+    if mode == "cancelled_asc":
+        return sorted(items, key=cancelled_key)
+    if mode == "cancelled_desc":
+        return sorted(items, key=cancelled_key, reverse=True)
+    return sorted(items, key=schedule_key)
+
+
+def cancel_task_paginate(items: list[dict[str, object]], page: int, page_size: int) -> tuple[list[dict[str, object]], dict[str, int]]:
+    page = max(1, page)
+    page_size = max(1, min(25, page_size))
+    total = len(items)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    if page > total_pages:
+        page = total_pages
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_items = items[start:end]
+    for no, item in enumerate(page_items, start=start + 1):
+        item["no"] = no
+    return page_items, {"page": page, "pageSize": page_size, "total": total, "totalPages": total_pages}
+
+
+def cancel_task_notify(cursor, *, member: dict[str, object], item: dict[str, object]) -> None:
+    member_id = normalize_text(member.get("id"))
+    member_name = normalize_text(member.get("name") or member.get("nama")) or "Anggota"
+    type_label = normalize_text(item.get("typeLabel")) or "Jadwal"
+    misa_name = normalize_text(item.get("misaName")) or type_label
+    role_name = normalize_text(item.get("role")) or "Role"
+    day_label = normalize_text(item.get("dayName")) or request_task_day_name(item.get("date"))
+    date_label = normalize_text(item.get("dateLabel")) or request_task_format_date(item.get("date"))
+    time_text = format_time_hhmm(item.get("time"))
+    safe_member = html.escape(member_name)
+    safe_type = html.escape(type_label)
+    safe_misa = html.escape(misa_name)
+    safe_role = html.escape(role_name)
+    safe_day = html.escape(day_label)
+    safe_date = html.escape(date_label)
+    safe_time = html.escape(time_text)
+
+    admin_body = (
+        f"<b>{safe_member}</b> membatalkan tugas sebagai <b>{safe_role}</b> pada "
+        f"<b>{safe_type} - {safe_misa}</b>, hari {safe_day}, {safe_date} jam {safe_time} WIB."
+    )
+    create_notification(
+        cursor,
+        "tugas",
+        f"Pembatalan Tugas: {member_name}",
+        admin_body,
+        "/dashboard.html",
+        {
+            "notification_kind": "task_cancelled_by_member",
+            "member_id": member_id,
+            "member_name": member_name,
+            "misa_type": item.get("type"),
+            "misa_name": misa_name,
+            "role": role_name,
+            "misa_date": item.get("date"),
+            "misa_time": time_text,
+        },
+        target_role="admin",
+    )
+
+    user_body = (
+        f"Tugas Anda sebagai <b>{safe_role}</b> untuk <b>{safe_type} - {safe_misa}</b> "
+        f"pada hari {safe_day}, {safe_date} jam {safe_time} WIB telah berhasil dibatalkan."
+    )
+    create_notification(
+        cursor,
+        "tugas",
+        f"Tugas Dibatalkan: {role_name}",
+        user_body,
+        "/pembatalan-tugas-anggota.html",
+        {
+            "target_user_id": member_id,
+            "notification_kind": "task_cancelled_success",
+            "misa_type": item.get("type"),
+            "misa_name": misa_name,
+            "role": role_name,
+            "misa_date": item.get("date"),
+            "misa_time": time_text,
+        },
+        target_role="user",
+    )
+
+
+def cancel_task_insert_history(cursor, *, member: dict[str, object], item: dict[str, object]) -> None:
+    cursor.execute(
+        """
+        INSERT INTO task_cancellations
+          (member_id, member_name, kind, type_label, misa_id, role_id, assignment_id,
+           schedule_date, schedule_time, misa_name, role_name, request_source, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'batal')
+        """,
+        (
+            member.get("id"), member.get("name") or member.get("nama"), item.get("type"), item.get("typeLabel"),
+            item.get("misaId"), item.get("roleId"), item.get("assignmentId"), item.get("date"),
+            format_time_hhmm(item.get("time")), item.get("misaName"), item.get("role"), item.get("source"),
+        ),
+    )
+
+
+@app.route("/api/cancel-tugas/me", methods=["GET"])
+def api_cancel_tugas_me():
+    ensure_task_cancellation_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        return jsonify({"success": True, "member": {"id": member.get("id"), "name": member.get("name"), "role": "user"}})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/cancel-tugas/active", methods=["GET"])
+def api_cancel_tugas_active():
+    ensure_task_cancellation_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        member_id = member["id"]
+        today = datetime.now().date()
+        min_cancel_date = (today + timedelta(days=3)).strftime("%Y-%m-%d")
+        month = request.args.get("month")
+        year = request.args.get("year")
+        if month in (None, "", "current"):
+            month = str(today.month)
+        if year in (None, "", "current"):
+            year = str(today.year)
+        month_int = parse_required_int(month, today.month)
+        year_int = parse_required_int(year, today.year)
+        month_int = min(12, max(1, month_int))
+        start_date = f"{year_int:04d}-{month_int:02d}-01"
+        last_day = calendar.monthrange(year_int, month_int)[1]
+        end_date = f"{year_int:04d}-{month_int:02d}-{last_day:02d}"
+        kind_filter = (normalize_text(request.args.get("type")) or "all").lower()
+        search_text = normalize_text(request.args.get("search"))
+        sort_mode = normalize_text(request.args.get("sort")) or "date_asc"
+        page = max(1, parse_required_int(request.args.get("page"), 1))
+        page_size = max(1, min(25, parse_required_int(request.args.get("pageSize"), 5)))
+
+        items: list[dict[str, object]] = []
+        if kind_filter in {"all", "biasa"}:
+            cursor.execute(
+                """
+                SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%%Y-%%m-%%d') AS date,
+                       DATE_FORMAT(sa.schedule_time, '%%H:%%i') AS time,
+                       sa.role_name AS role, COALESCE(sa.request_source, 'admin') AS request_source,
+                       COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
+                FROM streaming_assignments sa
+                LEFT JOIN streaming_weekly_config cfg
+                  ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                    WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                    WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                    ELSE 'Minggu' END
+                  AND DATE_FORMAT(cfg.start_time, '%%H:%%i') = DATE_FORMAT(sa.schedule_time, '%%H:%%i')
+                WHERE sa.member_id = %s
+                  AND sa.schedule_date BETWEEN %s AND %s
+                  AND sa.schedule_date >= %s
+                """,
+                (member_id, start_date, end_date, min_cancel_date),
+            )
+            for row in cursor.fetchall() or []:
+                items.append(cancel_task_build_item(row, kind="biasa"))
+
+        if kind_filter in {"all", "besar"}:
+            cursor.execute(
+                """
+                SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
+                       mb.misa_name, DATE_FORMAT(mb.misa_date, '%%Y-%%m-%%d') AS date,
+                       DATE_FORMAT(mb.misa_time, '%%H:%%i') AS time,
+                       n.role_name AS role, COALESCE(a.request_source, 'admin') AS request_source
+                FROM misa_besar_assignments a
+                JOIN misa_besar_names n ON n.id = a.role_id
+                JOIN misa_besar mb ON mb.id = n.misa_id
+                WHERE a.member_id = %s
+                  AND mb.status = 'published'
+                  AND mb.misa_date BETWEEN %s AND %s
+                  AND mb.misa_date >= %s
+                """,
+                (member_id, start_date, end_date, min_cancel_date),
+            )
+            for row in cursor.fetchall() or []:
+                items.append(cancel_task_build_item(row, kind="besar"))
+
+        items = cancel_task_filter_items(items, search_text=search_text, kind_filter=kind_filter)
+        items = cancel_task_sort_items(items, sort_mode, history=False)
+        page_items, pagination = cancel_task_paginate(items, page, page_size)
+        return jsonify({
+            "success": True,
+            "items": page_items,
+            "pagination": pagination,
+            "filters": {"month": month_int, "year": year_int, "type": kind_filter},
+            "rule": {"minCancelDate": min_cancel_date, "description": "Pembatalan hanya bisa dilakukan paling lambat H-3 sebelum jadwal."},
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/cancel-tugas/history", methods=["GET"])
+def api_cancel_tugas_history():
+    ensure_task_cancellation_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        member_id = member["id"]
+        kind_filter = (normalize_text(request.args.get("type")) or "all").lower()
+        month = normalize_text(request.args.get("month")) or "all"
+        year = normalize_text(request.args.get("year")) or "all"
+        search_text = normalize_text(request.args.get("search"))
+        sort_mode = normalize_text(request.args.get("sort")) or "cancelled_desc"
+        page = max(1, parse_required_int(request.args.get("page"), 1))
+        page_size = max(1, min(25, parse_required_int(request.args.get("pageSize"), 5)))
+
+        conditions = ["member_id = %s"]
+        params: list[object] = [member_id]
+        if kind_filter in {"biasa", "besar"}:
+            conditions.append("kind = %s")
+            params.append(kind_filter)
+        if month != "all":
+            month_int = min(12, max(1, parse_required_int(month, 1)))
+            conditions.append("MONTH(schedule_date) = %s")
+            params.append(month_int)
+        if year != "all":
+            year_int = parse_required_int(year, datetime.now().year)
+            conditions.append("YEAR(schedule_date) = %s")
+            params.append(year_int)
+        where_clause = " AND ".join(conditions)
+        cursor.execute(
+            f"""
+            SELECT id, kind, type_label, misa_id, role_id, assignment_id,
+                   DATE_FORMAT(schedule_date, '%%Y-%%m-%%d') AS date,
+                   DATE_FORMAT(schedule_time, '%%H:%%i') AS time,
+                   misa_name, role_name AS role, request_source,
+                   cancelled_at, status
+            FROM task_cancellations
+            WHERE {where_clause}
+            """,
+            tuple(params),
+        )
+        items = []
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("date"))
+            time_text = format_time_hhmm(row.get("time"))
+            kind = normalize_text(row.get("kind")) or "biasa"
+            type_label = normalize_text(row.get("type_label")) or ("Misa Besar" if kind == "besar" else "Misa Biasa")
+            cancelled_at = row.get("cancelled_at")
+            items.append({
+                "id": row.get("id"),
+                "type": kind,
+                "typeLabel": type_label,
+                "misaId": row.get("misa_id"),
+                "roleId": row.get("role_id"),
+                "assignmentId": row.get("assignment_id"),
+                "misaName": normalize_text(row.get("misa_name")) or type_label,
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": request_task_day_name(date_text),
+                "time": time_text,
+                "role": normalize_text(row.get("role")) or "Role",
+                "source": normalize_text(row.get("request_source")) or "admin",
+                "status": "Batal",
+                "cancelledAt": cancelled_at.isoformat() if hasattr(cancelled_at, "isoformat") else normalize_text(cancelled_at),
+                "cancelledAtLabel": cancelled_at.strftime("%d/%m/%Y %H:%M:%S") if hasattr(cancelled_at, "strftime") else normalize_text(cancelled_at),
+            })
+        items = cancel_task_filter_items(items, search_text=search_text, kind_filter=kind_filter)
+        items = cancel_task_sort_items(items, sort_mode, history=True)
+        page_items, pagination = cancel_task_paginate(items, page, page_size)
+        return jsonify({"success": True, "items": page_items, "pagination": pagination})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/cancel-tugas/cancel", methods=["POST"])
+def api_cancel_tugas_cancel():
+    ensure_task_cancellation_schema()
+    data = request.get_json(silent=True) or {}
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        member_id = member["id"]
+        kind = (normalize_text(data.get("type")) or "biasa").lower()
+        assignment_id = parse_optional_int(data.get("assignmentId"))
+
+        if kind == "besar":
+            misa_id = parse_optional_int(data.get("misaId"))
+            role_id = parse_optional_int(data.get("roleId"))
+            if assignment_id is not None:
+                cursor.execute(
+                    """
+                    SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
+                           mb.misa_name, DATE_FORMAT(mb.misa_date, '%%Y-%%m-%%d') AS date,
+                           DATE_FORMAT(mb.misa_time, '%%H:%%i') AS time,
+                           n.role_name AS role, COALESCE(a.request_source, 'admin') AS request_source
+                    FROM misa_besar_assignments a
+                    JOIN misa_besar_names n ON n.id = a.role_id
+                    JOIN misa_besar mb ON mb.id = n.misa_id
+                    WHERE a.id = %s AND a.member_id = %s
+                    LIMIT 1
+                    """,
+                    (assignment_id, member_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
+                           mb.misa_name, DATE_FORMAT(mb.misa_date, '%%Y-%%m-%%d') AS date,
+                           DATE_FORMAT(mb.misa_time, '%%H:%%i') AS time,
+                           n.role_name AS role, COALESCE(a.request_source, 'admin') AS request_source
+                    FROM misa_besar_assignments a
+                    JOIN misa_besar_names n ON n.id = a.role_id
+                    JOIN misa_besar mb ON mb.id = n.misa_id
+                    WHERE mb.id = %s AND n.id = %s AND a.member_id = %s
+                    LIMIT 1
+                    """,
+                    (misa_id, role_id, member_id),
+                )
+            row = cursor.fetchone()
+            if not row:
+                return jsonify({"success": False, "error": "Tugas Misa Besar tidak ditemukan atau bukan milik Anda."}), 404
+            item = cancel_task_build_item(row, kind="besar")
+            if not cancel_task_can_cancel(item.get("date")):
+                return jsonify({"success": False, "error": "Tugas ini sudah melewati batas pembatalan H-3."}), 400
+            cancel_task_insert_history(cursor, member=member, item=item)
+            cursor.execute("DELETE FROM misa_besar_assignments WHERE id = %s AND member_id = %s", (item.get("assignmentId"), member_id))
+        else:
+            date_text = parse_optional_date(data.get("date"))
+            time_text = format_time_hhmm(data.get("time"))
+            role_name = normalize_text(data.get("role"))
+            if assignment_id is not None:
+                cursor.execute(
+                    """
+                    SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%%Y-%%m-%%d') AS date,
+                           DATE_FORMAT(sa.schedule_time, '%%H:%%i') AS time,
+                           sa.role_name AS role, COALESCE(sa.request_source, 'admin') AS request_source,
+                           COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
+                    FROM streaming_assignments sa
+                    LEFT JOIN streaming_weekly_config cfg
+                      ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                        WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                        WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                        ELSE 'Minggu' END
+                      AND DATE_FORMAT(cfg.start_time, '%%H:%%i') = DATE_FORMAT(sa.schedule_time, '%%H:%%i')
+                    WHERE sa.id = %s AND sa.member_id = %s
+                    LIMIT 1
+                    """,
+                    (assignment_id, member_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%%Y-%%m-%%d') AS date,
+                           DATE_FORMAT(sa.schedule_time, '%%H:%%i') AS time,
+                           sa.role_name AS role, COALESCE(sa.request_source, 'admin') AS request_source,
+                           COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
+                    FROM streaming_assignments sa
+                    LEFT JOIN streaming_weekly_config cfg
+                      ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                        WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                        WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                        ELSE 'Minggu' END
+                      AND DATE_FORMAT(cfg.start_time, '%%H:%%i') = DATE_FORMAT(sa.schedule_time, '%%H:%%i')
+                    WHERE sa.schedule_date = %s AND DATE_FORMAT(sa.schedule_time, '%%H:%%i') = %s
+                      AND sa.role_name = %s AND sa.member_id = %s
+                    LIMIT 1
+                    """,
+                    (date_text, time_text, role_name, member_id),
+                )
+            row = cursor.fetchone()
+            if not row:
+                return jsonify({"success": False, "error": "Tugas Misa Biasa tidak ditemukan atau bukan milik Anda."}), 404
+            item = cancel_task_build_item(row, kind="biasa")
+            if not cancel_task_can_cancel(item.get("date")):
+                return jsonify({"success": False, "error": "Tugas ini sudah melewati batas pembatalan H-3."}), 400
+            cancel_task_insert_history(cursor, member=member, item=item)
+            cursor.execute("DELETE FROM streaming_assignments WHERE id = %s AND member_id = %s", (item.get("assignmentId"), member_id))
+
+        cancel_task_notify(cursor, member=member, item=item)
+        conn.commit()
+        return jsonify({"success": True, "message": "Tugas berhasil dibatalkan.", "item": item})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()

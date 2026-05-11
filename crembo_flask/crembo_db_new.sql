@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 11 Bulan Mei 2026 pada 23.10
+-- Waktu pembuatan: 11 Bulan Mei 2026 pada 23.56
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1170,6 +1170,31 @@ INSERT INTO `streaming_weekly_config` (`id`, `day_name`, `start_time`, `mass_nam
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `task_cancellations`
+--
+
+CREATE TABLE `task_cancellations` (
+  `id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  `member_name` varchar(255) DEFAULT NULL,
+  `kind` varchar(20) NOT NULL,
+  `type_label` varchar(50) DEFAULT NULL,
+  `misa_id` int(11) DEFAULT NULL,
+  `role_id` int(11) DEFAULT NULL,
+  `assignment_id` int(11) DEFAULT NULL,
+  `schedule_date` date NOT NULL,
+  `schedule_time` time NOT NULL,
+  `misa_name` varchar(255) DEFAULT NULL,
+  `role_name` varchar(100) DEFAULT NULL,
+  `request_source` varchar(30) DEFAULT NULL,
+  `cancelled_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` varchar(30) NOT NULL DEFAULT 'batal',
+  `note` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `tentang_crembo_config`
 --
 
@@ -1414,6 +1439,15 @@ ALTER TABLE `streaming_weekly_config`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indeks untuk tabel `task_cancellations`
+--
+ALTER TABLE `task_cancellations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_task_cancel_member` (`member_id`),
+  ADD KEY `idx_task_cancel_date` (`schedule_date`),
+  ADD KEY `idx_task_cancel_kind` (`kind`);
+
+--
 -- Indeks untuk tabel `tentang_crembo_config`
 --
 ALTER TABLE `tentang_crembo_config`
@@ -1488,6 +1522,12 @@ ALTER TABLE `streaming_roles`
 --
 ALTER TABLE `streaming_weekly_config`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+
+--
+-- AUTO_INCREMENT untuk tabel `task_cancellations`
+--
+ALTER TABLE `task_cancellations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `tentang_crembo_config`

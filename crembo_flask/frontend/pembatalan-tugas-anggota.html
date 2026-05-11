@@ -302,11 +302,17 @@
 
     .helper { margin: 0 0 10px; color: var(--muted); font-size: 0.84rem; }
 
-    .filters {
+    .filters,
+    .history-filters {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr;
+      grid-template-columns: 1.35fr 0.8fr 0.8fr 0.9fr 0.9fr;
       gap: 8px;
       margin-bottom: 10px;
+      align-items: end;
+    }
+
+    .history-filters {
+      grid-template-columns: 1.35fr 0.8fr 0.8fr 0.9fr 0.9fr;
     }
 
     .field { display: grid; gap: 5px; }
@@ -421,6 +427,43 @@
       cursor: not-allowed;
     }
 
+    .btn.small {
+      padding: 5px 9px;
+      font-size: 0.73rem;
+      border-radius: 8px;
+    }
+
+    .schedule-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .schedule-title strong {
+      color: #111827;
+    }
+
+    .schedule-title small {
+      color: #64748b;
+      line-height: 1.35;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+
+    .inline-note {
+      margin: 8px 0 0;
+      color: #64748b;
+      font-size: 0.8rem;
+    }
+
     @media (max-width: 1080px) {
       .layout { grid-template-columns: 1fr; }
       .main { padding: 14px; }
@@ -441,7 +484,7 @@
       .topbar > div:first-child { width: 100%; min-width: 0; }
       .quick-filter { justify-content: flex-start; }
       .quick-filter .quick-chip { display: inline-block; width: 100%; }
-      .filters { grid-template-columns: 1fr; }
+      .filters, .history-filters { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 520px) {
@@ -527,29 +570,43 @@
             <div class="filters">
               <div class="field">
                 <label for="taskSearch">Search</label>
-                <input id="taskSearch" type="search" placeholder="Cari jadwal, role, atau status...">
+                <input id="taskSearch" type="search" placeholder="Cari nama misa, tanggal, role...">
               </div>
               <div class="field">
                 <label for="taskMonthFilter">Bulan</label>
                 <select id="taskMonthFilter">
-                  <option value="all">Semua Bulan</option>
-                  <option value="0">Januari</option>
-                  <option value="1">Februari</option>
-                  <option value="2">Maret</option>
-                  <option value="3">April</option>
-                  <option value="4">Mei</option>
-                  <option value="5">Juni</option>
-                  <option value="6">Juli</option>
-                  <option value="7">Agustus</option>
-                  <option value="8">September</option>
-                  <option value="9">Oktober</option>
-                  <option value="10">November</option>
-                  <option value="11">Desember</option>
+                  <option value="1">Januari</option>
+                  <option value="2">Februari</option>
+                  <option value="3">Maret</option>
+                  <option value="4">April</option>
+                  <option value="5">Mei</option>
+                  <option value="6">Juni</option>
+                  <option value="7">Juli</option>
+                  <option value="8">Agustus</option>
+                  <option value="9">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
                 </select>
               </div>
               <div class="field">
                 <label for="taskYearFilter">Tahun</label>
                 <select id="taskYearFilter"></select>
+              </div>
+              <div class="field">
+                <label for="taskTypeFilter">Jenis Misa</label>
+                <select id="taskTypeFilter">
+                  <option value="all">Misa Biasa & Besar</option>
+                  <option value="biasa">Misa Biasa</option>
+                  <option value="besar">Misa Besar</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="taskSortFilter">Urutan</label>
+                <select id="taskSortFilter">
+                  <option value="date_asc">Tanggal Terdekat</option>
+                  <option value="date_desc">Tanggal Terjauh</option>
+                </select>
               </div>
             </div>
 
@@ -557,16 +614,18 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Jadwal</th>
+                    <th>No</th>
+                    <th>Nama Misa & Jadwal</th>
+                    <th>Jenis</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th>Aturan H-3</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="taskRows"></tbody>
               </table>
             </div>
+            <div id="taskPagination" class="pagination"></div>
           </div>
         </section>
 
@@ -574,18 +633,68 @@
           <header class="panel-head">
             <h2>Riwayat Pembatalan</h2>
           </header>
-          <div class="panel-body table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Jadwal</th>
-                  <th>Role</th>
-                  <th>Waktu Batal</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="cancelRows"></tbody>
-            </table>
+          <div class="panel-body">
+            <div class="history-filters">
+              <div class="field">
+                <label for="historySearch">Search</label>
+                <input id="historySearch" type="search" placeholder="Cari riwayat pembatalan...">
+              </div>
+              <div class="field">
+                <label for="historyMonthFilter">Bulan</label>
+                <select id="historyMonthFilter">
+                  <option value="all">Semua Bulan</option>
+                  <option value="1">Januari</option>
+                  <option value="2">Februari</option>
+                  <option value="3">Maret</option>
+                  <option value="4">April</option>
+                  <option value="5">Mei</option>
+                  <option value="6">Juni</option>
+                  <option value="7">Juli</option>
+                  <option value="8">Agustus</option>
+                  <option value="9">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="historyYearFilter">Tahun</label>
+                <select id="historyYearFilter"></select>
+              </div>
+              <div class="field">
+                <label for="historyTypeFilter">Jenis Misa</label>
+                <select id="historyTypeFilter">
+                  <option value="all">Misa Biasa & Besar</option>
+                  <option value="biasa">Misa Biasa</option>
+                  <option value="besar">Misa Besar</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="historySortFilter">Urutan</label>
+                <select id="historySortFilter">
+                  <option value="cancelled_desc">Terbaru Dibatalkan</option>
+                  <option value="cancelled_asc">Terlama Dibatalkan</option>
+                  <option value="date_desc">Tanggal Tugas Terjauh</option>
+                  <option value="date_asc">Tanggal Tugas Terdekat</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Misa & Jadwal</th>
+                    <th>Jenis</th>
+                    <th>Role</th>
+                    <th>Waktu Batal</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="cancelRows"></tbody>
+              </table>
+            </div>
+            <div id="historyPagination" class="pagination"></div>
           </div>
         </section>
       </div>
@@ -593,132 +702,213 @@
   </div>
 
   <script>
-    const TASKS_KEY = "crembo-member-registered-tasks";
+    const PAGE_SIZE = 5;
     const taskRows = document.getElementById("taskRows");
     const cancelRows = document.getElementById("cancelRows");
+    const taskPagination = document.getElementById("taskPagination");
+    const historyPagination = document.getElementById("historyPagination");
     const taskSearch = document.getElementById("taskSearch");
     const taskMonthFilter = document.getElementById("taskMonthFilter");
     const taskYearFilter = document.getElementById("taskYearFilter");
+    const taskTypeFilter = document.getElementById("taskTypeFilter");
+    const taskSortFilter = document.getElementById("taskSortFilter");
+    const historySearch = document.getElementById("historySearch");
+    const historyMonthFilter = document.getElementById("historyMonthFilter");
+    const historyYearFilter = document.getElementById("historyYearFilter");
+    const historyTypeFilter = document.getElementById("historyTypeFilter");
+    const historySortFilter = document.getElementById("historySortFilter");
     const sidebar = document.getElementById("sidebar");
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const memberName = document.getElementById("memberName");
 
-    function safeParse(raw, fallback) {
-      try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
-      } catch (error) {
-        return fallback;
-      }
-    }
+    let taskPage = 1;
+    let historyPage = 1;
+    let activeItems = [];
+    let historyItems = [];
 
-    function seedTasksIfEmpty() {
-      const existing = localStorage.getItem(TASKS_KEY);
-      if (existing) {
-        return;
-      }
-      const demo = [
-        { id: "tsk-1", title: "Misa Harian - Senin", date: "2026-04-14", time: "17:00", role: "Operator", status: "Terdaftar" },
-        { id: "tsk-2", title: "Misa Harian - Rabu", date: "2026-04-16", time: "17:00", role: "Kameramen", status: "Terdaftar" },
-        { id: "tsk-3", title: "Misa Mingguan - Minggu", date: "2026-04-19", time: "08:00", role: "Supervisor", status: "Terdaftar" },
-        { id: "tsk-4", title: "Misa Besar - Kamis Putih", date: "2026-04-02", time: "18:00", role: "Kameramen", status: "Dibatalkan", canceledAt: "2026-03-29T08:30:00" }
-      ];
-      localStorage.setItem(TASKS_KEY, JSON.stringify(demo));
-    }
-
-    function readTasks() {
-      return safeParse(localStorage.getItem(TASKS_KEY), []);
-    }
-
-    function saveTasks(items) {
-      localStorage.setItem(TASKS_KEY, JSON.stringify(items));
-    }
-
-    function formatDateTime(dateText, timeText) {
-      const date = new Date(dateText + "T00:00:00");
-      if (Number.isNaN(date.getTime())) {
-        return dateText + " " + timeText;
-      }
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      return dayNames[date.getDay()] + ", " + String(date.getDate()).padStart(2, "0") + " " + monthNames[date.getMonth()] + " " + date.getFullYear() + " " + timeText;
-    }
-
-    function canCancelByH3(item) {
-      const now = new Date();
-      const target = new Date(item.date + "T" + item.time + ":00");
-      if (Number.isNaN(target.getTime())) {
-        return false;
-      }
-      const diffMs = target.getTime() - now.getTime();
-      const diffDays = diffMs / (1000 * 60 * 60 * 24);
-      return diffDays >= 3;
-    }
-
-    function getFilteredTasks() {
-      const search = taskSearch.value.trim().toLowerCase();
-      const month = taskMonthFilter.value;
-      const year = taskYearFilter.value;
-      return readTasks().filter(function (item) {
-        const dateObj = new Date(item.date + "T00:00:00");
-        if (Number.isNaN(dateObj.getTime())) {
-          return false;
-        }
-        const text = [item.title, item.role, item.status, item.date, item.time].join(" ").toLowerCase();
-        const matchSearch = !search || text.includes(search);
-        const matchMonth = month === "all" || String(dateObj.getMonth()) === month;
-        const matchYear = year === "all" || String(dateObj.getFullYear()) === year;
-        return matchSearch && matchMonth && matchYear;
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>'"]/g, function (char) {
+        return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char];
       });
     }
 
-    function renderTaskRows() {
-      const rows = getFilteredTasks();
-      const active = rows.filter(function (item) { return item.status !== "Dibatalkan"; });
-      if (!active.length) {
-        taskRows.innerHTML = '<tr><td colspan="5">Tidak ada tugas aktif sesuai filter.</td></tr>';
-      } else {
-        taskRows.innerHTML = active.map(function (item) {
-          const h3Allowed = canCancelByH3(item);
-          const ruleBadge = h3Allowed
-            ? '<span class="status-ok">Bisa Dibatalkan</span>'
-            : '<span class="status-warn">Lewat Batas H-3</span>';
-          const button = h3Allowed
-            ? '<button class="btn danger" type="button" data-action="cancel" data-id="' + item.id + '">Batalkan</button>'
-            : '<button class="btn" type="button" disabled>Tidak Bisa</button>';
-          return '<tr>'
-            + '<td>' + item.title + ' - ' + formatDateTime(item.date, item.time) + '</td>'
-            + '<td>' + item.role + '</td>'
-            + '<td><span class="status-ok">' + item.status + '</span></td>'
-            + '<td>' + ruleBadge + '</td>'
-            + '<td>' + button + '</td>'
-            + '</tr>';
-        }).join("");
+    async function fetchJson(url, options) {
+      const response = await fetch(url, Object.assign({ credentials: "same-origin" }, options || {}));
+      let payload = null;
+      try { payload = await response.json(); } catch (error) { payload = null; }
+      if (!response.ok || (payload && payload.success === false)) {
+        throw new Error((payload && payload.error) || "Permintaan gagal diproses.");
       }
-
-      const canceled = rows.filter(function (item) { return item.status === "Dibatalkan"; });
-      cancelRows.innerHTML = canceled.length
-        ? canceled.map(function (item) {
-            const canceledAt = item.canceledAt ? new Date(item.canceledAt).toLocaleString("id-ID") : "-";
-            return '<tr>'
-              + '<td>' + item.title + ' - ' + formatDateTime(item.date, item.time) + '</td>'
-              + '<td>' + item.role + '</td>'
-              + '<td>' + canceledAt + '</td>'
-              + '<td><span class="status-danger">Dibatalkan</span></td>'
-              + '</tr>';
-          }).join("")
-        : '<tr><td colspan="4">Belum ada riwayat pembatalan sesuai filter.</td></tr>';
+      return payload;
     }
 
-    function setYearFilterOptions() {
+    function formatSchedule(item) {
+      return '<div class="schedule-title">'
+        + '<strong>' + escapeHtml(item.misaName || item.typeLabel || "Jadwal") + '</strong>'
+        + '<small>' + escapeHtml(item.dayName || "-") + ', ' + escapeHtml(item.dateLabel || item.date || "-") + ' · ' + escapeHtml(item.time || "-") + ' WIB</small>'
+        + '<small>' + escapeHtml(item.sourceLabel || "") + (item.deadlineLabel ? ' · Batas batal: ' + escapeHtml(item.deadlineLabel) : '') + '</small>'
+        + '</div>';
+    }
+
+    function renderPagination(container, pagination, onPrev, onNext) {
+      if (!container || !pagination) return;
+      const total = Number(pagination.total || 0);
+      const page = Number(pagination.page || 1);
+      const totalPages = Number(pagination.totalPages || 1);
+      container.innerHTML = ''
+        + '<button class="btn ghost small" type="button" data-page="prev" ' + (page <= 1 ? 'disabled' : '') + '>← Sebelumnya</button>'
+        + '<span>Halaman ' + page + ' dari ' + totalPages + ' · ' + total + ' data</span>'
+        + '<button class="btn ghost small" type="button" data-page="next" ' + (page >= totalPages ? 'disabled' : '') + '>Berikutnya →</button>';
+      container.querySelector('[data-page="prev"]').addEventListener("click", onPrev);
+      container.querySelector('[data-page="next"]').addEventListener("click", onNext);
+    }
+
+    function activeQueryParams() {
+      return new URLSearchParams({
+        search: taskSearch.value.trim(),
+        month: taskMonthFilter.value,
+        year: taskYearFilter.value,
+        type: taskTypeFilter.value,
+        sort: taskSortFilter.value,
+        page: String(taskPage),
+        pageSize: String(PAGE_SIZE)
+      });
+    }
+
+    function historyQueryParams() {
+      return new URLSearchParams({
+        search: historySearch.value.trim(),
+        month: historyMonthFilter.value,
+        year: historyYearFilter.value,
+        type: historyTypeFilter.value,
+        sort: historySortFilter.value,
+        page: String(historyPage),
+        pageSize: String(PAGE_SIZE)
+      });
+    }
+
+    async function loadMe() {
+      try {
+        const payload = await fetchJson('/api/cancel-tugas/me');
+        if (payload.member && payload.member.name) {
+          memberName.textContent = payload.member.name;
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    async function loadActiveTasks() {
+      taskRows.innerHTML = '<tr><td colspan="6">Memuat daftar tugas...</td></tr>';
+      try {
+        const payload = await fetchJson('/api/cancel-tugas/active?' + activeQueryParams().toString());
+        activeItems = payload.items || [];
+        if (!activeItems.length) {
+          taskRows.innerHTML = '<tr><td colspan="6">Tidak ada tugas aktif yang masih bisa dibatalkan sesuai filter dan aturan H-3.</td></tr>';
+        } else {
+          taskRows.innerHTML = activeItems.map(function (item) {
+            const button = item.canCancel
+              ? '<button class="btn danger" type="button" data-action="cancel" data-id="' + escapeHtml(item.id) + '">Batalkan Tugas</button>'
+              : '<button class="btn" type="button" disabled>Lewat H-3</button>';
+            return '<tr>'
+              + '<td>' + escapeHtml(item.no || "") + '</td>'
+              + '<td>' + formatSchedule(item) + '</td>'
+              + '<td>' + escapeHtml(item.typeLabel || "-") + '</td>'
+              + '<td><strong>' + escapeHtml(item.role || "-") + '</strong></td>'
+              + '<td><span class="status-ok">Terdaftar</span></td>'
+              + '<td>' + button + '</td>'
+              + '</tr>';
+          }).join("");
+        }
+        renderPagination(taskPagination, payload.pagination, function () {
+          if (taskPage > 1) { taskPage -= 1; loadActiveTasks(); }
+        }, function () {
+          if (payload.pagination && taskPage < payload.pagination.totalPages) { taskPage += 1; loadActiveTasks(); }
+        });
+      } catch (error) {
+        taskRows.innerHTML = '<tr><td colspan="6">' + escapeHtml(error.message) + '</td></tr>';
+        taskPagination.innerHTML = '';
+      }
+    }
+
+    async function loadHistory() {
+      cancelRows.innerHTML = '<tr><td colspan="6">Memuat riwayat pembatalan...</td></tr>';
+      try {
+        const payload = await fetchJson('/api/cancel-tugas/history?' + historyQueryParams().toString());
+        historyItems = payload.items || [];
+        if (!historyItems.length) {
+          cancelRows.innerHTML = '<tr><td colspan="6">Belum ada riwayat pembatalan sesuai filter.</td></tr>';
+        } else {
+          cancelRows.innerHTML = historyItems.map(function (item) {
+            return '<tr>'
+              + '<td>' + escapeHtml(item.no || "") + '</td>'
+              + '<td>' + formatSchedule(item) + '</td>'
+              + '<td>' + escapeHtml(item.typeLabel || "-") + '</td>'
+              + '<td><strong>' + escapeHtml(item.role || "-") + '</strong></td>'
+              + '<td>' + escapeHtml(item.cancelledAtLabel || "-") + '</td>'
+              + '<td><span class="status-danger">Batal</span></td>'
+              + '</tr>';
+          }).join("");
+        }
+        renderPagination(historyPagination, payload.pagination, function () {
+          if (historyPage > 1) { historyPage -= 1; loadHistory(); }
+        }, function () {
+          if (payload.pagination && historyPage < payload.pagination.totalPages) { historyPage += 1; loadHistory(); }
+        });
+      } catch (error) {
+        cancelRows.innerHTML = '<tr><td colspan="6">' + escapeHtml(error.message) + '</td></tr>';
+        historyPagination.innerHTML = '';
+      }
+    }
+
+    function buildConfirmText(item) {
+      return 'Apakah Anda yakin ingin membatalkan tugas pada ' + (item.typeLabel || 'jadwal') + ' "' + (item.misaName || '-') + '"\n'
+        + 'Hari/Tanggal: ' + (item.dayName || '-') + ', ' + (item.dateLabel || item.date || '-') + '\n'
+        + 'Jam: ' + (item.time || '-') + ' WIB\n'
+        + 'Role: ' + (item.role || '-') + '?';
+    }
+
+    taskRows.addEventListener("click", async function (event) {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement) || target.getAttribute("data-action") !== "cancel") return;
+      const item = activeItems.find(function (entry) { return String(entry.id) === String(target.getAttribute("data-id")); });
+      if (!item) return;
+      if (!window.confirm(buildConfirmText(item))) return;
+      target.disabled = true;
+      target.textContent = "Memproses...";
+      try {
+        await fetchJson('/api/cancel-tugas/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: item.type,
+            assignmentId: item.assignmentId,
+            misaId: item.misaId,
+            roleId: item.roleId,
+            date: item.date,
+            time: item.time,
+            role: item.role
+          })
+        });
+        window.alert("Tugas berhasil dibatalkan.");
+        await loadActiveTasks();
+        await loadHistory();
+      } catch (error) {
+        window.alert(error.message);
+        target.disabled = false;
+        target.textContent = "Batalkan Tugas";
+      }
+    });
+
+    function setYearFilterOptions(select, includeAll) {
       const nowYear = new Date().getFullYear();
-      taskYearFilter.innerHTML = '<option value="all">Semua Tahun</option>';
-      for (let year = nowYear - 2; year <= nowYear + 2; year += 1) {
+      select.innerHTML = includeAll ? '<option value="all">Semua Tahun</option>' : '';
+      for (let year = nowYear - 2; year <= nowYear + 3; year += 1) {
         const option = document.createElement("option");
         option.value = String(year);
         option.textContent = String(year);
-        taskYearFilter.appendChild(option);
+        select.appendChild(option);
       }
     }
 
@@ -736,19 +926,6 @@
       document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
-        }
-      } catch (error) {
-      }
-    }
-
     document.querySelectorAll(".menu-toggle").forEach(function (button) {
       button.addEventListener("click", function () {
         const group = button.closest(".menu-group");
@@ -758,31 +935,6 @@
       });
     });
 
-    taskRows.addEventListener("click", function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLButtonElement)) {
-        return;
-      }
-      if (target.getAttribute("data-action") !== "cancel") {
-        return;
-      }
-      const taskId = target.getAttribute("data-id");
-      const tasks = readTasks();
-      const item = tasks.find(function (task) { return task.id === taskId; });
-      if (!item) {
-        return;
-      }
-      const ok = window.confirm("Batalkan tugas " + item.title + " pada " + formatDateTime(item.date, item.time) + "?");
-      if (!ok) {
-        return;
-      }
-      item.status = "Dibatalkan";
-      item.canceledAt = new Date().toISOString();
-      saveTasks(tasks);
-      renderTaskRows();
-      window.alert("Tugas berhasil dibatalkan.");
-    });
-
     function setSidebarOpen(isOpen) {
       sidebar.classList.toggle("show", isOpen);
       sidebarBackdrop.classList.toggle("show", isOpen);
@@ -790,32 +942,33 @@
       document.body.style.overflow = isOpen ? "hidden" : "";
     }
 
-    mobileMenuBtn.addEventListener("click", function () {
-      setSidebarOpen(!sidebar.classList.contains("show"));
-    });
-
-    sidebarBackdrop.addEventListener("click", function () {
-      setSidebarOpen(false);
-    });
-
+    mobileMenuBtn.addEventListener("click", function () { setSidebarOpen(!sidebar.classList.contains("show")); });
+    sidebarBackdrop.addEventListener("click", function () { setSidebarOpen(false); });
     document.querySelectorAll(".sidebar a").forEach(function (link) {
       link.addEventListener("click", function () {
-        if (window.matchMedia("(max-width: 1080px)").matches) {
-          setSidebarOpen(false);
-        }
+        if (window.matchMedia("(max-width: 1080px)").matches) setSidebarOpen(false);
       });
     });
 
-    taskSearch.addEventListener("input", renderTaskRows);
-    taskMonthFilter.addEventListener("change", renderTaskRows);
-    taskYearFilter.addEventListener("change", renderTaskRows);
+    [taskSearch, taskMonthFilter, taskYearFilter, taskTypeFilter, taskSortFilter].forEach(function (el) {
+      el.addEventListener("input", function () { taskPage = 1; loadActiveTasks(); });
+      el.addEventListener("change", function () { taskPage = 1; loadActiveTasks(); });
+    });
+    [historySearch, historyMonthFilter, historyYearFilter, historyTypeFilter, historySortFilter].forEach(function (el) {
+      el.addEventListener("input", function () { historyPage = 1; loadHistory(); });
+      el.addEventListener("change", function () { historyPage = 1; loadHistory(); });
+    });
 
-    seedTasksIfEmpty();
-    setYearFilterOptions();
+    setYearFilterOptions(taskYearFilter, false);
+    setYearFilterOptions(historyYearFilter, true);
     const now = new Date();
-    taskMonthFilter.value = String(now.getMonth());
+    taskMonthFilter.value = String(now.getMonth() + 1);
     taskYearFilter.value = String(now.getFullYear());
-    renderTaskRows();
+    historyMonthFilter.value = "all";
+    historyYearFilter.value = "all";
+    loadMe();
+    loadActiveTasks();
+    loadHistory();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
