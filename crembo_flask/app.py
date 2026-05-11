@@ -1533,7 +1533,12 @@ def ensure_misa_besar_schema():
               UNIQUE KEY `uniq_role_member` (`role_id`, `member_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
         """)
-        conn.commit()
+        try:
+            ensure_column(cursor, "misa_besar_assignments", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
+            ensure_column(cursor, "misa_besar_assignments", "request_source", "`request_source` varchar(30) NOT NULL DEFAULT 'admin'")
+            conn.commit()
+        except Exception as exc:
+            print(f"[WARN] Failed to ensure misa besar assignment metadata: {exc}")
     finally:
         cursor.close()
         conn.close()
@@ -2631,7 +2636,12 @@ def ensure_streaming_schema() -> None:
               UNIQUE KEY `uniq_assignment` (`schedule_date`, `schedule_time`, `role_name`)
             )
         """)
-        conn.commit()
+        try:
+            ensure_column(cursor, "streaming_assignments", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
+            ensure_column(cursor, "streaming_assignments", "request_source", "`request_source` varchar(30) NOT NULL DEFAULT 'admin'")
+            conn.commit()
+        except Exception as exc:
+            print(f"[WARN] Failed to ensure streaming assignment metadata: {exc}")
         
         cursor.execute("SELECT COUNT(*) FROM `streaming_roles`")
         res = cursor.fetchone()
@@ -6431,9 +6441,12 @@ def save_assignments():
             
             if m_id:
                 cursor.execute("""
-                    INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id)
-                    VALUES (%s, %s, %s, %s)
-                    ON DUPLICATE KEY UPDATE member_id = VALUES(member_id)
+                    INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id, request_source, created_at)
+                    VALUES (%s, %s, %s, %s, 'admin', CURRENT_TIMESTAMP)
+                    ON DUPLICATE KEY UPDATE
+                        created_at = IF(member_id <> VALUES(member_id), CURRENT_TIMESTAMP, created_at),
+                        request_source = IF(member_id <> VALUES(member_id), 'admin', request_source),
+                        member_id = VALUES(member_id)
                 """, (d_str, t_str, r_str, m_id))
                 
                 if existing_assignments.get(key) != m_id:
@@ -6759,6 +6772,671 @@ def api_misa_besar_unassign():
         cursor.execute("DELETE FROM misa_besar_assignments WHERE role_id = %s AND member_id = %s", (data['roleId'], data['memberId']))
         conn.commit()
         return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# -----------------------------------------------------------------------------
+# Request Tugas Anggota: self-service assignment for Misa Biasa & Misa Besar
+# -----------------------------------------------------------------------------
+
+def ensure_task_request_schema(cursor=None) -> None:
+    """Pastikan tabel penugasan memiliki metadata untuk request anggota."""
+    ensure_streaming_schema()
+    ensure_misa_besar_schema()
+
+    owns_connection = cursor is None
+    conn = None
+    if owns_connection:
+        conn = mysql_connection()
+        cursor = conn.cursor(buffered=True)
+
+    try:
+        ensure_column(cursor, "streaming_assignments", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
+        ensure_column(cursor, "streaming_assignments", "request_source", "`request_source` varchar(30) NOT NULL DEFAULT 'admin'")
+        ensure_column(cursor, "misa_besar_assignments", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
+        ensure_column(cursor, "misa_besar_assignments", "request_source", "`request_source` varchar(30) NOT NULL DEFAULT 'admin'")
+        if conn:
+            conn.commit()
+    finally:
+        if owns_connection:
+            cursor.close()
+            conn.close()
+
+
+def require_active_request_member(cursor):
+    if not session.get("logged_in"):
+        return None, (jsonify({"success": False, "error": "Anda harus login terlebih dahulu."}), 401)
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return None, (jsonify({"success": False, "error": "Sesi tidak valid."}), 401)
+
+    cursor.execute(
+        """
+        SELECT id, nama, role, status_akun
+        FROM anggota
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+    member = cursor.fetchone()
+    if not member:
+        return None, (jsonify({"success": False, "error": "Akun anggota tidak ditemukan."}), 404)
+
+    if normalize_role_value(member.get("role") or "user") != "user":
+        return None, (jsonify({"success": False, "error": "Halaman request tugas hanya untuk anggota biasa."}), 403)
+
+    if normalize_status(member.get("status_akun") or "aktif") != "aktif":
+        return None, (jsonify({"success": False, "error": "Akun Anda sedang nonaktif."}), 403)
+
+    member["id"] = str(member.get("id"))
+    member["name"] = normalize_text(member.get("nama")) or "Anggota"
+    return member, None
+
+
+def request_task_is_past(date_text: str, time_text: str = "00:00") -> bool:
+    try:
+        schedule_dt = datetime.strptime(f"{date_text} {format_time_hhmm(time_text)}", "%Y-%m-%d %H:%M")
+        return schedule_dt < datetime.now()
+    except Exception:
+        try:
+            return datetime.strptime(date_text, "%Y-%m-%d").date() < datetime.now().date()
+        except Exception:
+            return False
+
+
+def request_task_day_name(date_text: str) -> str:
+    try:
+        return DAYS_INDO[datetime.strptime(date_text, "%Y-%m-%d").weekday()]
+    except Exception:
+        return "-"
+
+
+def request_task_format_date(date_text: str) -> str:
+    try:
+        return datetime.strptime(date_text, "%Y-%m-%d").strftime("%d/%m/%Y")
+    except Exception:
+        return normalize_text(date_text) or "-"
+
+
+def request_task_schedule_key(kind: str, date_text: str, time_text: str, misa_id: object | None = None) -> str:
+    if kind == "besar":
+        return f"besar:{misa_id}"
+    return f"biasa:{date_text}:{format_time_hhmm(time_text)}"
+
+
+def request_task_get_regular_cfg(cursor, date_text: str, time_text: str):
+    day_name = request_task_day_name(date_text)
+    cursor.execute(
+        """
+        SELECT mass_name, day_name, DATE_FORMAT(start_time, '%H:%i') AS start_time
+        FROM streaming_weekly_config
+        WHERE day_name = %s AND DATE_FORMAT(start_time, '%H:%i') = %s
+        LIMIT 1
+        """,
+        (day_name, format_time_hhmm(time_text)),
+    )
+    return cursor.fetchone()
+
+
+def request_task_regular_slot_blocked(cursor, date_text: str, time_text: str) -> str:
+    time_text = format_time_hhmm(time_text)
+    cursor.execute(
+        """
+        SELECT 1 FROM streaming_cancelled
+        WHERE mass_date = %s AND DATE_FORMAT(mass_time, '%H:%i') = %s
+        LIMIT 1
+        """,
+        (date_text, time_text),
+    )
+    if cursor.fetchone():
+        return "Jadwal ditiadakan."
+
+    cursor.execute(
+        """
+        SELECT misa_name FROM misa_besar
+        WHERE status = 'published'
+          AND misa_date = %s
+          AND DATE_FORMAT(misa_time, '%H:%i') = %s
+        LIMIT 1
+        """,
+        (date_text, time_text),
+    )
+    row = cursor.fetchone()
+    if row:
+        return f"Bentrok dengan Misa Besar: {normalize_text(row.get('misa_name')) or 'Misa Besar'}."
+    return ""
+
+
+def request_task_fetch_roles(cursor) -> list[str]:
+    cursor.execute("SELECT role_name AS name FROM streaming_roles ORDER BY order_index ASC, id ASC")
+    return [normalize_text(row.get("name")) for row in (cursor.fetchall() or []) if normalize_text(row.get("name"))]
+
+
+def request_task_regular_items(cursor, month: int, year: int, member_id: str) -> list[dict[str, object]]:
+    roles = request_task_fetch_roles(cursor)
+    cursor.execute("SELECT day_name, mass_name, DATE_FORMAT(start_time, '%H:%i') AS start_time FROM streaming_weekly_config ORDER BY start_time ASC, id ASC")
+    weekly_configs = cursor.fetchall() or []
+
+    cursor.execute(
+        """
+        SELECT DATE_FORMAT(schedule_date, '%Y-%m-%d') AS schedule_date,
+               DATE_FORMAT(schedule_time, '%H:%i') AS schedule_time,
+               role_name, member_id, COALESCE(a.nama, CONCAT('ID ', sa.member_id)) AS member_name
+        FROM streaming_assignments sa
+        LEFT JOIN anggota a ON a.id = sa.member_id
+        WHERE MONTH(schedule_date) = %s AND YEAR(schedule_date) = %s
+        """,
+        (month, year),
+    )
+    assignments: dict[tuple[str, str], dict[str, dict[str, str]]] = {}
+    for row in cursor.fetchall() or []:
+        key = (row.get("schedule_date"), format_time_hhmm(row.get("schedule_time")))
+        assignments.setdefault(key, {})[normalize_text(row.get("role_name"))] = {
+            "memberId": str(row.get("member_id") or ""),
+            "memberName": normalize_text(row.get("member_name")),
+        }
+
+    items: list[dict[str, object]] = []
+    num_days = calendar.monthrange(year, month)[1]
+    for day in range(1, num_days + 1):
+        date_obj = datetime(year, month, day)
+        date_text = date_obj.strftime("%Y-%m-%d")
+        day_name = DAYS_INDO[date_obj.weekday()]
+        for cfg in weekly_configs:
+            if normalize_text(cfg.get("day_name")) != day_name:
+                continue
+            time_text = format_time_hhmm(cfg.get("start_time"))
+            blocked_reason = request_task_regular_slot_blocked(cursor, date_text, time_text)
+            if blocked_reason:
+                continue
+
+            key = (date_text, time_text)
+            slot_assignments = assignments.get(key, {})
+            role_details = []
+            open_roles = []
+            current_user_roles = []
+            for role_name in roles:
+                assigned = slot_assignments.get(role_name) or {}
+                member_id_text = normalize_text(assigned.get("memberId"))
+                member_name = normalize_text(assigned.get("memberName"))
+                filled = bool(member_id_text)
+                if not filled:
+                    open_roles.append({"role": role_name})
+                elif member_id and str(member_id) == member_id_text:
+                    current_user_roles.append(role_name)
+                role_details.append({
+                    "role": role_name,
+                    "filled": filled,
+                    "memberId": member_id_text,
+                    "memberName": member_name,
+                })
+
+            is_past = request_task_is_past(date_text, time_text)
+            is_current_user_assigned = bool(current_user_roles)
+            can_request = bool(open_roles) and not is_current_user_assigned and not is_past
+            status_label = "Terbuka" if can_request else "Tertutup"
+            if is_current_user_assigned:
+                reason = "Anda sudah bertugas di jadwal ini."
+            elif is_past:
+                reason = "Jadwal sudah lewat."
+            elif not open_roles:
+                reason = "Semua role sudah terisi."
+            else:
+                reason = "Masih ada role kosong."
+
+            items.append({
+                "id": request_task_schedule_key("biasa", date_text, time_text),
+                "type": "biasa",
+                "typeLabel": "Misa Biasa",
+                "misaName": normalize_text(cfg.get("mass_name")) or "Misa Biasa",
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": day_name,
+                "time": time_text,
+                "roles": role_details,
+                "openRoles": open_roles,
+                "currentUserRoles": current_user_roles,
+                "isCurrentUserAssigned": is_current_user_assigned,
+                "canRequest": can_request,
+                "status": status_label,
+                "statusReason": reason,
+            })
+
+    items.sort(key=lambda item: (item.get("date"), item.get("time")))
+    return items
+
+
+def request_task_big_items(cursor, month: int, year: int, member_id: str) -> list[dict[str, object]]:
+    cursor.execute(
+        """
+        SELECT id, misa_name, DATE_FORMAT(misa_date, '%Y-%m-%d') AS misa_date,
+               DATE_FORMAT(misa_time, '%H:%i') AS misa_time, misa_note,
+               allow_member_request, status
+        FROM misa_besar
+        WHERE status = 'published' AND MONTH(misa_date) = %s AND YEAR(misa_date) = %s
+        ORDER BY misa_date ASC, misa_time ASC, id ASC
+        """,
+        (month, year),
+    )
+    events = cursor.fetchall() or []
+    items: list[dict[str, object]] = []
+    for event in events:
+        misa_id = event.get("id")
+        cursor.execute(
+            """
+            SELECT n.id AS role_id, n.role_name, n.required_count,
+                   a.member_id, COALESCE(ag.nama, CONCAT('ID ', a.member_id)) AS member_name
+            FROM misa_besar_names n
+            LEFT JOIN misa_besar_assignments a ON a.role_id = n.id
+            LEFT JOIN anggota ag ON ag.id = a.member_id
+            WHERE n.misa_id = %s
+            ORDER BY n.id ASC, a.id ASC
+            """,
+            (misa_id,),
+        )
+        grouped: dict[str, dict[str, object]] = {}
+        for row in cursor.fetchall() or []:
+            role_id = str(row.get("role_id") or "")
+            if not role_id:
+                continue
+            if role_id not in grouped:
+                grouped[role_id] = {
+                    "roleId": role_id,
+                    "role": normalize_text(row.get("role_name")) or "Role",
+                    "requiredCount": max(1, parse_required_int(row.get("required_count"), 1)),
+                    "members": [],
+                }
+            if row.get("member_id") not in (None, ""):
+                grouped[role_id]["members"].append({
+                    "memberId": str(row.get("member_id")),
+                    "memberName": normalize_text(row.get("member_name")),
+                })
+
+        role_details = []
+        open_roles = []
+        current_user_roles = []
+        for role in grouped.values():
+            members = role.get("members") or []
+            filled_count = len(members)
+            required_count = max(1, parse_required_int(role.get("requiredCount"), 1))
+            empty_count = max(required_count - filled_count, 0)
+            for member_row in members:
+                if member_id and str(member_row.get("memberId")) == str(member_id):
+                    current_user_roles.append(normalize_text(role.get("role")) or "Role")
+            if empty_count > 0:
+                open_roles.append({
+                    "role": normalize_text(role.get("role")) or "Role",
+                    "roleId": role.get("roleId"),
+                    "emptyCount": empty_count,
+                })
+            role_details.append({
+                "roleId": role.get("roleId"),
+                "role": normalize_text(role.get("role")) or "Role",
+                "requiredCount": required_count,
+                "filledCount": filled_count,
+                "emptyCount": empty_count,
+                "members": members,
+            })
+
+        date_text = normalize_text(event.get("misa_date"))
+        time_text = format_time_hhmm(event.get("misa_time"))
+        allow_request = bool(event.get("allow_member_request"))
+        is_past = request_task_is_past(date_text, time_text)
+        is_current_user_assigned = bool(current_user_roles)
+        can_request = allow_request and bool(open_roles) and not is_current_user_assigned and not is_past
+        if is_current_user_assigned:
+            reason = "Anda sudah bertugas di misa ini."
+        elif is_past:
+            reason = "Jadwal sudah lewat."
+        elif not allow_request:
+            reason = "Request ditutup admin."
+        elif not open_roles:
+            reason = "Semua role sudah terisi."
+        else:
+            reason = "Masih ada role kosong."
+
+        items.append({
+            "id": request_task_schedule_key("besar", date_text, time_text, misa_id),
+            "type": "besar",
+            "typeLabel": "Misa Besar",
+            "misaId": misa_id,
+            "misaName": normalize_text(event.get("misa_name")) or "Misa Besar",
+            "date": date_text,
+            "dateLabel": request_task_format_date(date_text),
+            "dayName": request_task_day_name(date_text),
+            "time": time_text,
+            "note": normalize_text(event.get("misa_note")),
+            "allowMemberRequest": allow_request,
+            "roles": role_details,
+            "openRoles": open_roles,
+            "currentUserRoles": current_user_roles,
+            "isCurrentUserAssigned": is_current_user_assigned,
+            "canRequest": can_request,
+            "status": "Terbuka" if can_request else "Tertutup",
+            "statusReason": reason,
+        })
+    return items
+
+
+@app.route("/api/request-tugas/me", methods=["GET"])
+def api_request_tugas_me():
+    ensure_auth_schema()
+    viewer = current_user_context()
+    return jsonify({"success": True, "currentUser": viewer})
+
+
+@app.route("/api/request-tugas/schedules", methods=["GET"])
+def api_request_tugas_schedules():
+    ensure_task_request_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+
+        month = parse_required_int(request.args.get("month"), datetime.now().month)
+        year = parse_required_int(request.args.get("year"), datetime.now().year)
+        kind = normalize_text(request.args.get("type")) or "biasa"
+        status_filter = (normalize_text(request.args.get("slot")) or "all").lower()
+        search_text = normalize_text(request.args.get("search")).lower()
+
+        if kind == "besar":
+            items = request_task_big_items(cursor, month, year, member["id"])
+        elif kind == "all":
+            items = request_task_regular_items(cursor, month, year, member["id"]) + request_task_big_items(cursor, month, year, member["id"])
+        else:
+            kind = "biasa"
+            items = request_task_regular_items(cursor, month, year, member["id"])
+
+        if status_filter in {"open", "terbuka"}:
+            items = [item for item in items if item.get("canRequest")]
+        elif status_filter in {"closed", "tertutup"}:
+            items = [item for item in items if not item.get("canRequest")]
+
+        if search_text:
+            def haystack(item):
+                role_texts = []
+                for role in item.get("roles") or []:
+                    role_texts.append(normalize_text(role.get("role")))
+                    for member_row in role.get("members") or []:
+                        role_texts.append(normalize_text(member_row.get("memberName")))
+                    if role.get("memberName"):
+                        role_texts.append(normalize_text(role.get("memberName")))
+                return " ".join([
+                    normalize_text(item.get("typeLabel")),
+                    normalize_text(item.get("misaName")),
+                    normalize_text(item.get("dateLabel")),
+                    normalize_text(item.get("dayName")),
+                    normalize_text(item.get("time")),
+                    normalize_text(item.get("statusReason")),
+                    " ".join(role_texts),
+                ]).lower()
+            items = [item for item in items if search_text in haystack(item)]
+
+        items.sort(key=lambda item: (item.get("date") or "", item.get("time") or "", item.get("misaName") or ""))
+        return jsonify({
+            "success": True,
+            "currentUser": {"id": member["id"], "name": member["name"]},
+            "items": items,
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/request-tugas/claim", methods=["POST"])
+def api_request_tugas_claim():
+    ensure_task_request_schema()
+    data = request.get_json(silent=True) or {}
+    kind = normalize_text(data.get("type"))
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        member_id = member["id"]
+
+        if kind == "besar":
+            misa_id = parse_required_int(data.get("misaId"), 0)
+            role_id = parse_required_int(data.get("roleId"), 0)
+            if not misa_id or not role_id:
+                return jsonify({"success": False, "error": "Jadwal Misa Besar dan role wajib dipilih."}), 400
+
+            cursor.execute(
+                """
+                SELECT mb.id, mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS misa_date,
+                       DATE_FORMAT(mb.misa_time, '%H:%i') AS misa_time, mb.allow_member_request, mb.status,
+                       n.id AS role_id, n.role_name, n.required_count
+                FROM misa_besar mb
+                JOIN misa_besar_names n ON n.misa_id = mb.id
+                WHERE mb.id = %s AND n.id = %s
+                LIMIT 1
+                """,
+                (misa_id, role_id),
+            )
+            event = cursor.fetchone()
+            if not event:
+                return jsonify({"success": False, "error": "Jadwal atau role Misa Besar tidak ditemukan."}), 404
+            if normalize_misa_besar_status(event.get("status")) != "published":
+                return jsonify({"success": False, "error": "Misa Besar belum dipublish."}), 400
+            if not bool(event.get("allow_member_request")):
+                return jsonify({"success": False, "error": "Request anggota untuk Misa Besar ini sedang ditutup."}), 400
+            if request_task_is_past(event.get("misa_date"), event.get("misa_time")):
+                return jsonify({"success": False, "error": "Jadwal Misa Besar sudah lewat."}), 400
+
+            cursor.execute(
+                """
+                SELECT n.role_name
+                FROM misa_besar_assignments a
+                JOIN misa_besar_names n ON n.id = a.role_id
+                WHERE n.misa_id = %s AND a.member_id = %s
+                LIMIT 1
+                """,
+                (misa_id, member_id),
+            )
+            existing = cursor.fetchone()
+            if existing:
+                return jsonify({"success": False, "error": f"Anda sudah bertugas sebagai {existing.get('role_name')} di Misa Besar ini."}), 409
+
+            cursor.execute("SELECT COUNT(*) AS filled FROM misa_besar_assignments WHERE role_id = %s", (role_id,))
+            filled = parse_required_int((cursor.fetchone() or {}).get("filled"), 0)
+            required_count = max(1, parse_required_int(event.get("required_count"), 1))
+            if filled >= required_count:
+                return jsonify({"success": False, "error": "Slot role ini sudah penuh."}), 409
+
+            cursor.execute(
+                """
+                INSERT INTO misa_besar_assignments (role_id, member_id, request_source, created_at)
+                VALUES (%s, %s, 'member_request', CURRENT_TIMESTAMP)
+                """,
+                (role_id, member_id),
+            )
+            message = f"Anda berhasil terdaftar sebagai {event.get('role_name')} untuk {event.get('misa_name')}."
+
+        else:
+            kind = "biasa"
+            date_text = parse_optional_date(data.get("date"))
+            time_text = format_time_hhmm(data.get("time"))
+            role_name = normalize_text(data.get("role"))
+            if not date_text or not time_text or not role_name:
+                return jsonify({"success": False, "error": "Jadwal dan role wajib dipilih."}), 400
+
+            cfg = request_task_get_regular_cfg(cursor, date_text, time_text)
+            if not cfg:
+                return jsonify({"success": False, "error": "Jadwal Misa Biasa tidak ditemukan."}), 404
+            blocked_reason = request_task_regular_slot_blocked(cursor, date_text, time_text)
+            if blocked_reason:
+                return jsonify({"success": False, "error": blocked_reason}), 400
+            if request_task_is_past(date_text, time_text):
+                return jsonify({"success": False, "error": "Jadwal Misa Biasa sudah lewat."}), 400
+            cursor.execute("SELECT 1 FROM streaming_roles WHERE role_name = %s LIMIT 1", (role_name,))
+            if not cursor.fetchone():
+                return jsonify({"success": False, "error": "Role tidak ditemukan di konfigurasi jadwal streaming."}), 404
+
+            cursor.execute(
+                """
+                SELECT role_name FROM streaming_assignments
+                WHERE schedule_date = %s AND DATE_FORMAT(schedule_time, '%H:%i') = %s AND member_id = %s
+                LIMIT 1
+                """,
+                (date_text, time_text, member_id),
+            )
+            existing = cursor.fetchone()
+            if existing:
+                return jsonify({"success": False, "error": f"Anda sudah bertugas sebagai {existing.get('role_name')} di jadwal ini."}), 409
+
+            cursor.execute(
+                """
+                SELECT member_id FROM streaming_assignments
+                WHERE schedule_date = %s AND DATE_FORMAT(schedule_time, '%H:%i') = %s AND role_name = %s
+                LIMIT 1
+                """,
+                (date_text, time_text, role_name),
+            )
+            if cursor.fetchone():
+                return jsonify({"success": False, "error": "Slot role ini sudah terisi."}), 409
+
+            cursor.execute(
+                """
+                INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id, request_source, created_at)
+                VALUES (%s, %s, %s, %s, 'member_request', CURRENT_TIMESTAMP)
+                """,
+                (date_text, time_text, role_name, member_id),
+            )
+            message = f"Anda berhasil terdaftar sebagai {role_name} untuk {cfg.get('mass_name') or 'Misa Biasa'}."
+
+        conn.commit()
+        return jsonify({"success": True, "message": message})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/request-tugas/history", methods=["GET"])
+def api_request_tugas_history():
+    ensure_task_request_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        member_id = member["id"]
+        page = max(1, parse_required_int(request.args.get("page"), 1))
+        page_size = max(1, min(25, parse_required_int(request.args.get("pageSize"), 5)))
+        kind_filter = (normalize_text(request.args.get("type")) or "all").lower()
+        role_filter = normalize_text(request.args.get("role")).lower()
+        search_text = normalize_text(request.args.get("search")).lower()
+
+        rows: list[dict[str, object]] = []
+        cursor.execute(
+            """
+            SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name AS role,
+                   COALESCE(sa.request_source, 'admin') AS request_source,
+                   sa.created_at,
+                   cfg.mass_name
+            FROM streaming_assignments sa
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE sa.member_id = %s
+            """,
+            (member_id,),
+        )
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("date"))
+            time_text = format_time_hhmm(row.get("time"))
+            rows.append({
+                "type": "biasa",
+                "typeLabel": "Misa Biasa",
+                "misaName": normalize_text(row.get("mass_name")) or "Misa Biasa",
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": request_task_day_name(date_text),
+                "time": time_text,
+                "role": normalize_text(row.get("role")),
+                "status": "Terdaftar",
+                "source": normalize_text(row.get("request_source")) or "admin",
+                "createdAt": row.get("created_at").isoformat() if row.get("created_at") else None,
+            })
+
+        cursor.execute(
+            """
+            SELECT mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name AS role,
+                   COALESCE(a.request_source, 'admin') AS request_source,
+                   a.created_at
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            WHERE a.member_id = %s
+            """,
+            (member_id,),
+        )
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("date"))
+            time_text = format_time_hhmm(row.get("time"))
+            rows.append({
+                "type": "besar",
+                "typeLabel": "Misa Besar",
+                "misaName": normalize_text(row.get("misa_name")) or "Misa Besar",
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": request_task_day_name(date_text),
+                "time": time_text,
+                "role": normalize_text(row.get("role")),
+                "status": "Terdaftar",
+                "source": normalize_text(row.get("request_source")) or "admin",
+                "createdAt": row.get("created_at").isoformat() if row.get("created_at") else None,
+            })
+
+        if kind_filter in {"biasa", "besar"}:
+            rows = [item for item in rows if item.get("type") == kind_filter]
+        if role_filter:
+            rows = [item for item in rows if role_filter in normalize_text(item.get("role")).lower()]
+        if search_text:
+            rows = [item for item in rows if search_text in " ".join([
+                normalize_text(item.get("typeLabel")), normalize_text(item.get("misaName")),
+                normalize_text(item.get("dateLabel")), normalize_text(item.get("dayName")),
+                normalize_text(item.get("time")), normalize_text(item.get("role")),
+                normalize_text(item.get("source")),
+            ]).lower()]
+
+        rows.sort(key=lambda item: (normalize_text(item.get("createdAt")), normalize_text(item.get("date")), normalize_text(item.get("time"))), reverse=True)
+        total = len(rows)
+        start = (page - 1) * page_size
+        end = start + page_size
+        page_items = rows[start:end]
+        for idx, item in enumerate(page_items, start=start + 1):
+            item["no"] = idx
+            item["sourceLabel"] = "Request Mandiri" if item.get("source") == "member_request" else "Ditugaskan Admin"
+            item["description"] = "Request otomatis masuk ke daftar petugas." if item.get("source") == "member_request" else "Nama Anda terdaftar pada jadwal tugas."
+
+        return jsonify({
+            "success": True,
+            "items": page_items,
+            "pagination": {
+                "page": page,
+                "pageSize": page_size,
+                "total": total,
+                "totalPages": max(1, (total + page_size - 1) // page_size),
+            },
+        })
     finally:
         cursor.close()
         conn.close()
