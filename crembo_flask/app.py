@@ -7988,8 +7988,8 @@ def api_cancel_tugas_active():
         if kind_filter in {"all", "biasa"}:
             cursor.execute(
                 """
-                SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%%Y-%%m-%%d') AS date,
-                       DATE_FORMAT(sa.schedule_time, '%%H:%%i') AS time,
+                SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                       DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
                        sa.role_name AS role, COALESCE(sa.request_source, 'admin') AS request_source,
                        COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
                 FROM streaming_assignments sa
@@ -7998,7 +7998,7 @@ def api_cancel_tugas_active():
                     WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
                     WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
                     ELSE 'Minggu' END
-                  AND DATE_FORMAT(cfg.start_time, '%%H:%%i') = DATE_FORMAT(sa.schedule_time, '%%H:%%i')
+                  AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
                 WHERE sa.member_id = %s
                   AND sa.schedule_date BETWEEN %s AND %s
                   AND sa.schedule_date >= %s
@@ -8012,8 +8012,8 @@ def api_cancel_tugas_active():
             cursor.execute(
                 """
                 SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
-                       mb.misa_name, DATE_FORMAT(mb.misa_date, '%%Y-%%m-%%d') AS date,
-                       DATE_FORMAT(mb.misa_time, '%%H:%%i') AS time,
+                       mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                       DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
                        n.role_name AS role, COALESCE(a.request_source, 'admin') AS request_source
                 FROM misa_besar_assignments a
                 JOIN misa_besar_names n ON n.id = a.role_id
@@ -8078,8 +8078,8 @@ def api_cancel_tugas_history():
         cursor.execute(
             f"""
             SELECT id, kind, type_label, misa_id, role_id, assignment_id,
-                   DATE_FORMAT(schedule_date, '%%Y-%%m-%%d') AS date,
-                   DATE_FORMAT(schedule_time, '%%H:%%i') AS time,
+                   DATE_FORMAT(schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(schedule_time, '%H:%i') AS time,
                    misa_name, role_name AS role, request_source,
                    cancelled_at, status
             FROM task_cancellations
@@ -8142,8 +8142,8 @@ def api_cancel_tugas_cancel():
                 cursor.execute(
                     """
                     SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
-                           mb.misa_name, DATE_FORMAT(mb.misa_date, '%%Y-%%m-%%d') AS date,
-                           DATE_FORMAT(mb.misa_time, '%%H:%%i') AS time,
+                           mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                           DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
                            n.role_name AS role, COALESCE(a.request_source, 'admin') AS request_source
                     FROM misa_besar_assignments a
                     JOIN misa_besar_names n ON n.id = a.role_id
@@ -8157,8 +8157,8 @@ def api_cancel_tugas_cancel():
                 cursor.execute(
                     """
                     SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
-                           mb.misa_name, DATE_FORMAT(mb.misa_date, '%%Y-%%m-%%d') AS date,
-                           DATE_FORMAT(mb.misa_time, '%%H:%%i') AS time,
+                           mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                           DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
                            n.role_name AS role, COALESCE(a.request_source, 'admin') AS request_source
                     FROM misa_besar_assignments a
                     JOIN misa_besar_names n ON n.id = a.role_id
@@ -8183,8 +8183,8 @@ def api_cancel_tugas_cancel():
             if assignment_id is not None:
                 cursor.execute(
                     """
-                    SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%%Y-%%m-%%d') AS date,
-                           DATE_FORMAT(sa.schedule_time, '%%H:%%i') AS time,
+                    SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                           DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
                            sa.role_name AS role, COALESCE(sa.request_source, 'admin') AS request_source,
                            COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
                     FROM streaming_assignments sa
@@ -8193,7 +8193,7 @@ def api_cancel_tugas_cancel():
                         WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
                         WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
                         ELSE 'Minggu' END
-                      AND DATE_FORMAT(cfg.start_time, '%%H:%%i') = DATE_FORMAT(sa.schedule_time, '%%H:%%i')
+                      AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
                     WHERE sa.id = %s AND sa.member_id = %s
                     LIMIT 1
                     """,
@@ -8202,8 +8202,8 @@ def api_cancel_tugas_cancel():
             else:
                 cursor.execute(
                     """
-                    SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%%Y-%%m-%%d') AS date,
-                           DATE_FORMAT(sa.schedule_time, '%%H:%%i') AS time,
+                    SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                           DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
                            sa.role_name AS role, COALESCE(sa.request_source, 'admin') AS request_source,
                            COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
                     FROM streaming_assignments sa
@@ -8212,8 +8212,8 @@ def api_cancel_tugas_cancel():
                         WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
                         WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
                         ELSE 'Minggu' END
-                      AND DATE_FORMAT(cfg.start_time, '%%H:%%i') = DATE_FORMAT(sa.schedule_time, '%%H:%%i')
-                    WHERE sa.schedule_date = %s AND DATE_FORMAT(sa.schedule_time, '%%H:%%i') = %s
+                      AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+                    WHERE sa.schedule_date = %s AND DATE_FORMAT(sa.schedule_time, '%H:%i') = %s
                       AND sa.role_name = %s AND sa.member_id = %s
                     LIMIT 1
                     """,

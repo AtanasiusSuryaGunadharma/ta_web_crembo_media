@@ -504,7 +504,7 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div id="accountAvatar" class="avatar">AG</div>
         <div class="account-text">
           <strong id="memberName">Atanasius Surya Guna</strong>
           <small>Role: Anggota Multimedia</small>
@@ -721,6 +721,7 @@
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const memberName = document.getElementById("memberName");
+    const accountAvatar = document.getElementById("accountAvatar");
 
     let taskPage = 1;
     let historyPage = 1;
@@ -731,6 +732,19 @@
       return String(value ?? "").replace(/[&<>'"]/g, function (char) {
         return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char];
       });
+    }
+
+    function makeInitials(name) {
+      const parts = String(name || "Anggota").trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return "AG";
+      if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function applyMemberProfile(member) {
+      const name = (member && member.name) ? String(member.name) : "Anggota";
+      if (memberName) memberName.textContent = name;
+      if (accountAvatar) accountAvatar.textContent = makeInitials(name);
     }
 
     async function fetchJson(url, options) {
@@ -791,8 +805,8 @@
     async function loadMe() {
       try {
         const payload = await fetchJson('/api/cancel-tugas/me');
-        if (payload.member && payload.member.name) {
-          memberName.textContent = payload.member.name;
+        if (payload.member) {
+          applyMemberProfile(payload.member);
         }
       } catch (error) {
         console.warn(error);
@@ -821,6 +835,7 @@
               + '</tr>';
           }).join("");
         }
+        if (payload.pagination && payload.pagination.page) taskPage = Number(payload.pagination.page) || taskPage;
         renderPagination(taskPagination, payload.pagination, function () {
           if (taskPage > 1) { taskPage -= 1; loadActiveTasks(); }
         }, function () {
@@ -851,6 +866,7 @@
               + '</tr>';
           }).join("");
         }
+        if (payload.pagination && payload.pagination.page) historyPage = Number(payload.pagination.page) || historyPage;
         renderPagination(historyPagination, payload.pagination, function () {
           if (historyPage > 1) { historyPage -= 1; loadHistory(); }
         }, function () {
