@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 11 Bulan Mei 2026 pada 17.18
+-- Waktu pembuatan: 11 Bulan Mei 2026 pada 18.37
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -475,39 +475,42 @@ INSERT INTO `misa_besar` (`id`, `misa_name`, `misa_date`, `misa_time`, `misa_not
 CREATE TABLE `misa_besar_assignments` (
   `id` int(11) NOT NULL,
   `role_id` int(11) NOT NULL,
-  `member_id` int(11) NOT NULL
+  `member_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `request_source` varchar(30) NOT NULL DEFAULT 'admin'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `misa_besar_assignments`
 --
 
-INSERT INTO `misa_besar_assignments` (`id`, `role_id`, `member_id`) VALUES
-(102, 127, 21),
-(103, 128, 6),
-(104, 129, 53),
-(105, 130, 53),
-(106, 131, 6),
-(107, 131, 50),
-(108, 132, 73),
-(109, 133, 67),
-(110, 133, 72),
-(112, 137, 73),
-(113, 140, 21),
-(114, 141, 6),
-(115, 142, 53),
-(116, 145, 21),
-(117, 146, 6),
-(118, 147, 67),
-(119, 148, 21),
-(120, 149, 6),
-(121, 150, 53),
-(122, 151, 36),
-(124, 153, 6),
-(125, 153, 21),
-(123, 153, 53),
-(127, 158, 3),
-(126, 158, 21);
+INSERT INTO `misa_besar_assignments` (`id`, `role_id`, `member_id`, `created_at`, `request_source`) VALUES
+(102, 127, 21, '2026-05-11 23:29:59', 'admin'),
+(103, 128, 6, '2026-05-11 23:29:59', 'admin'),
+(104, 129, 53, '2026-05-11 23:29:59', 'admin'),
+(105, 130, 53, '2026-05-11 23:29:59', 'admin'),
+(106, 131, 6, '2026-05-11 23:29:59', 'admin'),
+(107, 131, 50, '2026-05-11 23:29:59', 'admin'),
+(108, 132, 73, '2026-05-11 23:29:59', 'admin'),
+(109, 133, 67, '2026-05-11 23:29:59', 'admin'),
+(110, 133, 72, '2026-05-11 23:29:59', 'admin'),
+(112, 137, 73, '2026-05-11 23:29:59', 'admin'),
+(113, 140, 21, '2026-05-11 23:29:59', 'admin'),
+(114, 141, 6, '2026-05-11 23:29:59', 'admin'),
+(115, 142, 53, '2026-05-11 23:29:59', 'admin'),
+(116, 145, 21, '2026-05-11 23:29:59', 'admin'),
+(117, 146, 6, '2026-05-11 23:29:59', 'admin'),
+(118, 147, 67, '2026-05-11 23:29:59', 'admin'),
+(119, 148, 21, '2026-05-11 23:29:59', 'admin'),
+(120, 149, 6, '2026-05-11 23:29:59', 'admin'),
+(121, 150, 53, '2026-05-11 23:29:59', 'admin'),
+(122, 151, 36, '2026-05-11 23:29:59', 'admin'),
+(123, 153, 53, '2026-05-11 23:29:59', 'admin'),
+(124, 153, 6, '2026-05-11 23:29:59', 'admin'),
+(125, 153, 21, '2026-05-11 23:29:59', 'admin'),
+(126, 158, 21, '2026-05-11 23:29:59', 'admin'),
+(127, 158, 3, '2026-05-11 23:29:59', 'admin'),
+(128, 139, 53, '2026-05-11 23:34:02', 'member_request');
 
 -- --------------------------------------------------------
 
@@ -994,22 +997,26 @@ CREATE TABLE `streaming_assignments` (
   `schedule_date` date NOT NULL,
   `schedule_time` time NOT NULL,
   `role_name` varchar(100) NOT NULL,
-  `member_id` int(11) NOT NULL
+  `member_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `request_source` varchar(30) NOT NULL DEFAULT 'admin'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `streaming_assignments`
 --
 
-INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `role_name`, `member_id`) VALUES
-(120, '2026-05-01', '18:00:00', 'Operator', 73),
-(121, '2026-05-01', '18:00:00', 'Kameramen', 72),
-(122, '2026-05-01', '18:00:00', 'SPV', 20),
-(126, '2026-05-02', '18:00:00', 'Operator', 21),
-(127, '2026-05-02', '18:00:00', 'Kameramen', 53),
-(128, '2026-05-02', '18:00:00', 'SPV', 6),
-(135, '2026-05-30', '18:00:00', 'Operator', 21),
-(158, '2026-05-10', '07:30:00', 'Kameramen', 21);
+INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `role_name`, `member_id`, `created_at`, `request_source`) VALUES
+(120, '2026-05-01', '18:00:00', 'Operator', 73, '2026-05-11 23:32:15', 'admin'),
+(121, '2026-05-01', '18:00:00', 'Kameramen', 72, '2026-05-11 23:32:15', 'admin'),
+(122, '2026-05-01', '18:00:00', 'SPV', 20, '2026-05-11 23:32:15', 'admin'),
+(126, '2026-05-02', '18:00:00', 'Operator', 21, '2026-05-11 23:32:15', 'admin'),
+(127, '2026-05-02', '18:00:00', 'Kameramen', 53, '2026-05-11 23:32:15', 'admin'),
+(128, '2026-05-02', '18:00:00', 'SPV', 6, '2026-05-11 23:32:15', 'admin'),
+(135, '2026-05-30', '18:00:00', 'Operator', 21, '2026-05-11 23:32:15', 'admin'),
+(158, '2026-05-10', '07:30:00', 'Kameramen', 21, '2026-05-11 23:32:15', 'admin'),
+(160, '2026-05-30', '18:00:00', 'Kameramen', 53, '2026-05-11 23:34:53', 'member_request'),
+(161, '2026-05-29', '18:00:00', 'Operator', 53, '2026-05-11 23:34:58', 'member_request');
 
 -- --------------------------------------------------------
 
@@ -1351,7 +1358,7 @@ ALTER TABLE `misa_besar`
 -- AUTO_INCREMENT untuk tabel `misa_besar_assignments`
 --
 ALTER TABLE `misa_besar_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_names`
@@ -1375,7 +1382,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
