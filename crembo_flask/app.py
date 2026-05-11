@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 import os
 import re
@@ -2480,9 +2480,246 @@ def create_notification(cursor, type_value: str, title: str, body: str, url: str
     )
     return nid
 
+def create_notification_once(
+    cursor,
+    type_value: str,
+    title: str,
+    body: str,
+    url: str | None = None,
+    data: dict | None = None,
+    target_role: str | None = None,
+    *,
+    dedupe_key: str | None = None,
+):
+    """Buat notifikasi sekali saja berdasarkan dedupe_key di payload data."""
+    payload = dict(data or {})
+    clean_key = normalize_text(dedupe_key or payload.get("dedupe_key"))
+    if clean_key:
+        payload["dedupe_key"] = clean_key
+        cursor.execute(
+            """
+            SELECT `id` FROM `notifications`
+            WHERE `type` = %s AND `data` LIKE %s
+            LIMIT 1
+            """,
+            (str(type_value or ""), f'%"dedupe_key": "{clean_key}"%'),
+        )
+        existing = cursor.fetchone()
+        if existing:
+            return existing.get("id") if isinstance(existing, dict) else existing[0]
+    return create_notification(cursor, type_value, title, body, url, payload, target_role)
+
+
+def notification_target_url_for_member_role(role_value: str | None, *, default_user_url: str = "/jadwal-tugas-misa-anggota.html") -> str:
+    normalized = normalize_role_value(role_value or "user")
+    if normalized in {"admin", "super_admin"}:
+        return "/jadwal-tugas-streaming-admin.html"
+    return default_user_url
+
+
+def create_task_success_notification(
+    cursor,
+    *,
+    member_id: object,
+    member_role: str | None = "user",
+    misa_type: str,
+    misa_name: str,
+    role_name: str,
+    date_text: str,
+    time_text: str,
+    source: str = "member_request",
+    misa_besar_id: object | None = None,
+):
+    """Notif langsung setelah anggota berhasil mengambil/request jadwal mandiri."""
+    safe_role = normalize_text(role_name) or "Role"
+    safe_misa = normalize_text(misa_name) or ("Misa Besar" if misa_type == "misa_besar" else "Misa Biasa")
+    time_label = format_time_hhmm(time_text)
+    day_label = request_task_day_name(date_text) if 'request_task_day_name' in globals() else "-"
+    date_label = request_task_format_date(date_text) if 'request_task_format_date' in globals() else normalize_text(date_text)
+    title = f"Request Tugas Berhasil: {safe_role}"
+    body = (
+        f"Anda berhasil terdaftar sebagai <b>{html.escape(safe_role)}</b> untuk "
+        f"<b>{html.escape(safe_misa)}</b> pada hari {html.escape(day_label)}, "
+        f"{html.escape(date_label)} jam {html.escape(time_label)} WIB."
+    )
+    return create_notification(
+        cursor,
+        "tugas",
+        title,
+        body,
+        "/request-tugas-anggota.html",
+        {
+            "target_user_id": str(member_id),
+            "notification_kind": "member_request_success",
+            "misa_type": misa_type,
+            "misa_besar_id": misa_besar_id,
+            "misa_name": safe_misa,
+            "role": safe_role,
+            "misa_date": date_text,
+            "misa_time": time_label,
+            "source": source,
+        },
+        target_role=None,
+    )
+
+
+def create_due_task_reminder_notifications() -> int:
+    """Generate pengingat H-1 dan hari-H untuk semua petugas yang sudah terdaftar.
+
+    Fungsi ini dipanggil saat dashboard memuat notifikasi. Dedupe key mencegah
+    notifikasi H-1 / hari-H dibuat berulang untuk jadwal dan petugas yang sama.
+    """
+    ensure_task_request_schema()
+    ensure_notifications_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    sent = 0
+    try:
+        today = datetime.now().date()
+        tomorrow = today + timedelta(days=1)
+        today_text = today.strftime("%Y-%m-%d")
+        tomorrow_text = tomorrow.strftime("%Y-%m-%d")
+
+        reminder_labels = {
+            today_text: ("hari_h", "Hari Ini", "Pengingat Tugas Hari Ini"),
+            tomorrow_text: ("h_1", "H-1", "Pengingat Tugas H-1"),
+        }
+
+        # Misa Biasa
+        cursor.execute(
+            """
+            SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS schedule_date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS schedule_time,
+                   sa.role_name, sa.member_id,
+                   COALESCE(a.nama, CONCAT('ID ', sa.member_id)) AS member_name,
+                   COALESCE(a.role, 'user') AS member_role,
+                   COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
+            FROM streaming_assignments sa
+            JOIN anggota a ON a.id = sa.member_id
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE sa.schedule_date IN (%s, %s)
+              AND LOWER(COALESCE(a.status_akun, 'aktif')) IN ('', 'aktif', 'active')
+            """,
+            (today_text, tomorrow_text),
+        )
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("schedule_date"))
+            reminder_code, reminder_label, title_prefix = reminder_labels.get(date_text, ("", "", ""))
+            if not reminder_code:
+                continue
+            time_text = format_time_hhmm(row.get("schedule_time"))
+            role_name = normalize_text(row.get("role_name")) or "Role"
+            misa_name = normalize_text(row.get("mass_name")) or "Misa Biasa"
+            member_id = normalize_text(row.get("member_id"))
+            member_role = normalize_text(row.get("member_role")) or "user"
+            day_label = request_task_day_name(date_text)
+            date_label = request_task_format_date(date_text)
+            title = f"{title_prefix}: {role_name}"
+            body = (
+                f"{html.escape(reminder_label)}: Anda bertugas sebagai <b>{html.escape(role_name)}</b> "
+                f"untuk <b>{html.escape(misa_name)}</b> pada hari {html.escape(day_label)}, "
+                f"{html.escape(date_label)} jam {html.escape(time_text)} WIB."
+            )
+            dedupe_key = f"task-reminder:biasa:{date_text}:{time_text}:{role_name}:{member_id}:{reminder_code}"
+            create_notification_once(
+                cursor, "tugas", title, body,
+                notification_target_url_for_member_role(member_role),
+                {
+                    "target_user_id": member_id,
+                    "notification_kind": "task_reminder",
+                    "reminder": reminder_code,
+                    "reminder_label": reminder_label,
+                    "misa_type": "misa_biasa",
+                    "misa_name": misa_name,
+                    "role": role_name,
+                    "misa_date": date_text,
+                    "misa_time": time_text,
+                },
+                target_role=None,
+                dedupe_key=dedupe_key,
+            )
+            sent += 1
+
+        # Misa Besar
+        cursor.execute(
+            """
+            SELECT mb.id AS misa_id, mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS misa_date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS misa_time,
+                   n.id AS role_id, n.role_name, a.member_id,
+                   COALESCE(ag.nama, CONCAT('ID ', a.member_id)) AS member_name,
+                   COALESCE(ag.role, 'user') AS member_role
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            JOIN anggota ag ON ag.id = a.member_id
+            WHERE mb.status = 'published'
+              AND mb.misa_date IN (%s, %s)
+              AND LOWER(COALESCE(ag.status_akun, 'aktif')) IN ('', 'aktif', 'active')
+            """,
+            (today_text, tomorrow_text),
+        )
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("misa_date"))
+            reminder_code, reminder_label, title_prefix = reminder_labels.get(date_text, ("", "", ""))
+            if not reminder_code:
+                continue
+            time_text = format_time_hhmm(row.get("misa_time"))
+            role_name = normalize_text(row.get("role_name")) or "Role"
+            misa_name = normalize_text(row.get("misa_name")) or "Misa Besar"
+            misa_id = row.get("misa_id")
+            member_id = normalize_text(row.get("member_id"))
+            member_role = normalize_text(row.get("member_role")) or "user"
+            day_label = request_task_day_name(date_text)
+            date_label = request_task_format_date(date_text)
+            title = f"{title_prefix}: {role_name}"
+            body = (
+                f"{html.escape(reminder_label)}: Anda bertugas sebagai <b>{html.escape(role_name)}</b> "
+                f"untuk <b>{html.escape(misa_name)}</b> pada hari {html.escape(day_label)}, "
+                f"{html.escape(date_label)} jam {html.escape(time_text)} WIB."
+            )
+            dedupe_key = f"task-reminder:besar:{misa_id}:{row.get('role_id')}:{member_id}:{reminder_code}"
+            create_notification_once(
+                cursor, "tugas", title, body,
+                notification_target_url_for_member_role(member_role),
+                {
+                    "target_user_id": member_id,
+                    "notification_kind": "task_reminder",
+                    "reminder": reminder_code,
+                    "reminder_label": reminder_label,
+                    "misa_type": "misa_besar",
+                    "misa_besar_id": misa_id,
+                    "misa_name": misa_name,
+                    "role": role_name,
+                    "misa_date": date_text,
+                    "misa_time": time_text,
+                },
+                target_role=None,
+                dedupe_key=dedupe_key,
+            )
+            sent += 1
+
+        conn.commit()
+        return sent
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route("/api/notifications", methods=["GET"])
 def get_notifications():
     ensure_notifications_schema()
+    try:
+        create_due_task_reminder_notifications()
+    except Exception as exc:
+        print(f"[WARN] Gagal membuat notifikasi pengingat tugas: {exc}")
     viewer = current_user_context()
     client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
     user_key = None
@@ -7192,6 +7429,7 @@ def api_request_tugas_schedules():
 @app.route("/api/request-tugas/claim", methods=["POST"])
 def api_request_tugas_claim():
     ensure_task_request_schema()
+    ensure_notifications_schema()
     data = request.get_json(silent=True) or {}
     kind = normalize_text(data.get("type"))
     conn = mysql_connection()
@@ -7258,6 +7496,18 @@ def api_request_tugas_claim():
                 (role_id, member_id),
             )
             message = f"Anda berhasil terdaftar sebagai {event.get('role_name')} untuk {event.get('misa_name')}."
+            create_task_success_notification(
+                cursor,
+                member_id=member_id,
+                member_role=member.get("role") or "user",
+                misa_type="misa_besar",
+                misa_name=event.get("misa_name") or "Misa Besar",
+                role_name=event.get("role_name") or "Role",
+                date_text=event.get("misa_date"),
+                time_text=event.get("misa_time"),
+                source="member_request",
+                misa_besar_id=misa_id,
+            )
 
         else:
             kind = "biasa"
@@ -7310,6 +7560,17 @@ def api_request_tugas_claim():
                 (date_text, time_text, role_name, member_id),
             )
             message = f"Anda berhasil terdaftar sebagai {role_name} untuk {cfg.get('mass_name') or 'Misa Biasa'}."
+            create_task_success_notification(
+                cursor,
+                member_id=member_id,
+                member_role=member.get("role") or "user",
+                misa_type="misa_biasa",
+                misa_name=cfg.get("mass_name") or "Misa Biasa",
+                role_name=role_name,
+                date_text=date_text,
+                time_text=time_text,
+                source="member_request",
+            )
 
         conn.commit()
         return jsonify({"success": True, "message": message})
