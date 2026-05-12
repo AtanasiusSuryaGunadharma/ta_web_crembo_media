@@ -8590,9 +8590,16 @@ def exchange_fetch_target_tasks(cursor, *, current_member_id: object, kind: str,
               AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
             WHERE sa.member_id <> %s AND mem.status_akun = 'aktif'
               AND sa.schedule_date BETWEEN %s AND %s AND sa.schedule_date > %s
+              AND NOT EXISTS (
+                SELECT 1
+                FROM streaming_assignments mine
+                WHERE mine.member_id = %s
+                  AND mine.schedule_date = sa.schedule_date
+                  AND DATE_FORMAT(mine.schedule_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+              )
             ORDER BY sa.schedule_date ASC, sa.schedule_time ASC
             """,
-            (current_member_id, start_date, end_date, today),
+            (current_member_id, start_date, end_date, today, current_member_id),
         )
         items.extend(exchange_format_row(row) for row in (cursor.fetchall() or []))
     elif clean_kind == "besar":
@@ -8609,9 +8616,15 @@ def exchange_fetch_target_tasks(cursor, *, current_member_id: object, kind: str,
             JOIN anggota mem ON mem.id = a.member_id
             WHERE a.member_id <> %s AND mem.status_akun = 'aktif' AND mb.status = 'published'
               AND mb.misa_date BETWEEN %s AND %s AND mb.misa_date > %s
+              AND NOT EXISTS (
+                SELECT 1
+                FROM misa_besar_assignments mine
+                JOIN misa_besar_names mine_role ON mine_role.id = mine.role_id
+                WHERE mine.member_id = %s AND mine_role.misa_id = mb.id
+              )
             ORDER BY mb.misa_date ASC, mb.misa_time ASC
             """,
-            (current_member_id, start_date, end_date, today),
+            (current_member_id, start_date, end_date, today, current_member_id),
         )
         items.extend(exchange_format_row(row) for row in (cursor.fetchall() or []))
     return items
@@ -8689,6 +8702,36 @@ def exchange_member_already_in_schedule(cursor, *, kind: str, member_id: object,
         cursor.execute(f"SELECT id FROM streaming_assignments WHERE {where} LIMIT 1", tuple(params))
     return cursor.fetchone() is not None
 
+
+
+
+def exchange_schedule_member_ids(cursor, *, kind: str, date_text: str, time_text: str, misa_id: object | None = None) -> list[str]:
+    # Return all member IDs assigned in a single misa session, so candidates never create double roles.
+    clean_kind = normalize_text(kind).lower()
+    if clean_kind == "besar":
+        if not misa_id:
+            return []
+        cursor.execute(
+            """
+            SELECT DISTINCT a.member_id
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            WHERE n.misa_id = %s AND a.member_id IS NOT NULL
+            """,
+            (misa_id,),
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT DISTINCT member_id
+            FROM streaming_assignments
+            WHERE schedule_date = %s
+              AND DATE_FORMAT(schedule_time, '%H:%i') = %s
+              AND member_id IS NOT NULL
+            """,
+            (date_text, format_time_hhmm(time_text)),
+        )
+    return [str(row.get("member_id")) for row in (cursor.fetchall() or []) if row.get("member_id") is not None]
 
 def exchange_insert_notification(cursor, *, target_user_id: object, target_role: str | None, title: str, body: str, request_id: object, status: str = "pending", url: str | None = None):
     role_norm = normalize_role_value(target_role or exchange_member_role_for_target(cursor, target_user_id))
@@ -8907,6 +8950,13 @@ def api_task_exchanges_options():
         active_members = exchange_fetch_active_members(cursor, exclude_member_id=member["id"])
         for task in my_tasks:
             task["hasPendingRequest"] = exchange_has_pending_for_assignment(cursor, member["id"], task.get("type"), task.get("assignmentId"))
+            task["assignedMemberIds"] = exchange_schedule_member_ids(
+                cursor,
+                kind=task.get("type"),
+                date_text=task.get("date"),
+                time_text=task.get("time"),
+                misa_id=task.get("misaId"),
+            )
         return jsonify({"success": True, "myTasks": my_tasks, "targetTasks": target_tasks, "members": active_members, "filters": {"month": month, "year": year, "type": kind}})
     finally:
         cursor.close()
@@ -8961,6 +9011,10 @@ def api_task_exchanges_create():
                 return jsonify({"success": False, "error": "Anda tidak bisa memilih jadwal sendiri sebagai jadwal tukar."}), 400
             if not exchange_date_is_eligible(target_task.get("date")):
                 return jsonify({"success": False, "error": "Jadwal teman harus jadwal yang akan datang minimal H-1."}), 400
+            if exchange_member_already_in_schedule(cursor, kind=kind, member_id=requester_id, date_text=target_task.get("date"), time_text=target_task.get("time"), misa_id=target_task.get("misaId")):
+                return jsonify({"success": False, "error": "Jadwal teman tidak bisa dipilih karena Anda sudah bertugas pada sesi tersebut."}), 409
+            if exchange_member_already_in_schedule(cursor, kind=kind, member_id=target_task.get("memberId"), date_text=my_task.get("date"), time_text=my_task.get("time"), misa_id=my_task.get("misaId")):
+                return jsonify({"success": False, "error": "Teman tersebut sudah bertugas pada sesi jadwal Anda, sehingga tidak bisa ditukar."}), 409
             target_user_id = str(target_task.get("memberId"))
         else:
             target_user_id = normalize_text(data.get("targetUserId"))
@@ -8972,6 +9026,8 @@ def api_task_exchanges_create():
             target_member = cursor.fetchone()
             if not target_member or normalize_status(target_member.get("status_akun") or "aktif") != "aktif":
                 return jsonify({"success": False, "error": "Teman pengganti tidak ditemukan atau tidak aktif."}), 404
+            if exchange_member_already_in_schedule(cursor, kind=kind, member_id=target_user_id, date_text=my_task.get("date"), time_text=my_task.get("time"), misa_id=my_task.get("misaId")):
+                return jsonify({"success": False, "error": "Teman pengganti sudah bertugas pada sesi tersebut, sehingga tidak bisa memegang 2 role."}), 409
             target_task = {"memberId": target_user_id, "memberName": normalize_text(target_member.get("nama")) or "Teman"}
 
         cursor.execute(
@@ -9153,6 +9209,10 @@ def api_task_exchanges_respond(request_id):
                 return jsonify({"success": False, "error": "Jadwal Anda untuk ditukar sudah tidak valid."}), 409
             if not exchange_date_is_eligible(target_task.get("date")):
                 return jsonify({"success": False, "error": "Jadwal Anda sudah masuk hari-H atau lewat."}), 400
+            if exchange_member_already_in_schedule(cursor, kind=kind, member_id=row.get("requester_id"), date_text=target_task.get("date"), time_text=target_task.get("time"), misa_id=target_task.get("misaId")):
+                return jsonify({"success": False, "error": "Pengaju sudah bertugas pada sesi jadwal Anda. Request tidak bisa diterima karena akan membuat double role."}), 409
+            if exchange_member_already_in_schedule(cursor, kind=kind, member_id=member["id"], date_text=my_task.get("date"), time_text=my_task.get("time"), misa_id=my_task.get("misaId")):
+                return jsonify({"success": False, "error": "Anda sudah bertugas pada sesi jadwal pengaju. Request tidak bisa diterima karena akan membuat double role."}), 409
             if kind == "besar":
                 cursor.execute("UPDATE misa_besar_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (member["id"], my_task.get("assignmentId")))
                 cursor.execute("UPDATE misa_besar_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (row.get("requester_id"), target_task.get("assignmentId")))

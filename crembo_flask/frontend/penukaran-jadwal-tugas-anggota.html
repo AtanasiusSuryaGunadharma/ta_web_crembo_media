@@ -413,6 +413,18 @@
       background: #ebebeb;
     }
 
+    .slot-option[disabled] {
+      background: #f3f4f6;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .slot-trigger[aria-disabled="true"] {
+      background: #f3f4f6;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
     .slot-empty {
       margin: 0;
       padding: 8px 10px;
@@ -642,17 +654,17 @@
             <div class="grid-form">
               <div class="field">
                 <label for="myTaskSelect">Jadwal Saya</label>
-                <select id="myTaskSelect"></select>
+                <select id="myTaskSelect" class="combo-source" data-placeholder="-- pilih jadwal saya --"></select>
                 <small class="helper" style="margin:0;">Hanya jadwal besok atau setelahnya yang bisa diajukan.</small>
               </div>
               <div id="swapTargetField" class="field">
                 <label for="targetTaskSelect">Jadwal Teman untuk Tukeran</label>
-                <select id="targetTaskSelect"></select>
+                <select id="targetTaskSelect" class="combo-source" data-placeholder="-- pilih jadwal teman --"></select>
                 <small class="helper" style="margin:0;">Daftar hanya berisi jadwal sesama jenis misa.</small>
               </div>
               <div id="substituteTargetField" class="field" style="display:none;">
                 <label for="targetMemberSelect">Teman Pengganti</label>
-                <select id="targetMemberSelect"></select>
+                <select id="targetMemberSelect" class="combo-source" data-placeholder="-- pilih teman pengganti --"></select>
                 <small class="helper" style="margin:0;">Bisa anggota aktif, admin, atau super admin.</small>
               </div>
             </div>
@@ -783,12 +795,109 @@
     function initials(name) {
       const parts = String(name || "A").trim().split(/\s+/).filter(Boolean);
       if (!parts.length) return "AG";
-      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
     function showToast(message) {
       alert(message);
     }
+
+    const comboRegistry = new Map();
+    function closeAllCombos(exceptPanel) {
+      comboRegistry.forEach(combo => {
+        if (combo.panel !== exceptPanel) combo.panel.classList.remove("show");
+      });
+    }
+    function ensureUsableSelection(select) {
+      const options = Array.from(select.options);
+      const current = options.find(opt => opt.value === select.value && !opt.disabled);
+      if (current) return;
+      const firstValid = options.find(opt => !opt.disabled && opt.value !== "") || options.find(opt => !opt.disabled);
+      if (firstValid) select.value = firstValid.value;
+    }
+    function setupSearchCombo(select) {
+      if (!select || comboRegistry.has(select.id)) return;
+      select.classList.add("combo-source");
+      const placeholder = select.dataset.placeholder || "-- pilih data --";
+      const wrapper = document.createElement("div");
+      wrapper.className = "slot-combo";
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "slot-trigger";
+      const panel = document.createElement("div");
+      panel.className = "slot-panel";
+      panel.innerHTML = '<div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari data..."></div><div class="slot-options"></div>';
+      select.insertAdjacentElement("afterend", wrapper);
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(panel);
+      const searchInput = panel.querySelector(".slot-search-input");
+      const optionBox = panel.querySelector(".slot-options");
+      const combo = {
+        select, wrapper, trigger, panel, searchInput, optionBox, placeholder,
+        render() {
+          ensureUsableSelection(select);
+          const selected = Array.from(select.options).find(opt => opt.value === select.value);
+          trigger.textContent = selected && selected.value ? selected.textContent : placeholder;
+          trigger.setAttribute("aria-disabled", select.disabled ? "true" : "false");
+          const query = (searchInput.value || "").trim().toLowerCase();
+          const options = Array.from(select.options).filter(opt => {
+            if (!opt.value && opt.textContent.trim().startsWith("--")) return !query;
+            return !query || opt.textContent.toLowerCase().includes(query);
+          });
+          optionBox.innerHTML = "";
+          if (!options.length) {
+            optionBox.innerHTML = '<p class="slot-empty">Tidak ada data yang cocok.</p>';
+            return;
+          }
+          options.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "slot-option" + (opt.value === select.value ? " active" : "");
+            btn.textContent = opt.textContent;
+            btn.dataset.value = opt.value;
+            if (opt.disabled) btn.disabled = true;
+            optionBox.appendChild(btn);
+          });
+        }
+      };
+      trigger.addEventListener("click", () => {
+        if (select.disabled) return;
+        const willOpen = !panel.classList.contains("show");
+        closeAllCombos(panel);
+        panel.classList.toggle("show", willOpen);
+        if (willOpen) {
+          searchInput.value = "";
+          combo.render();
+          setTimeout(() => searchInput.focus(), 0);
+        }
+      });
+      searchInput.addEventListener("input", () => combo.render());
+      optionBox.addEventListener("click", event => {
+        const btn = event.target.closest("button.slot-option");
+        if (!btn || btn.disabled) return;
+        select.value = btn.dataset.value || "";
+        panel.classList.remove("show");
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        combo.render();
+      });
+      select.addEventListener("change", () => combo.render());
+      comboRegistry.set(select.id, combo);
+      combo.render();
+    }
+    function setupSearchCombos() {
+      [myTaskSelect, targetTaskSelect, targetMemberSelect].forEach(setupSearchCombo);
+      document.addEventListener("click", event => {
+        if (!event.target.closest(".slot-combo")) closeAllCombos();
+      });
+    }
+    function refreshCombo(select) {
+      const combo = comboRegistry.get(select && select.id);
+      if (combo) combo.render();
+    }
+    function refreshAllCombos() {
+      [myTaskSelect, targetTaskSelect, targetMemberSelect].forEach(refreshCombo);
+    }
+
     async function apiFetch(url, options) {
       const res = await fetch(url, Object.assign({ credentials: "same-origin" }, options || {}));
       const data = await res.json().catch(() => ({}));
@@ -830,16 +939,43 @@
       const pending = task.hasPendingRequest ? " — sudah ada request aktif" : "";
       return `${task.typeLabel} · ${task.misaName} · ${task.dayName}, ${task.dateLabel} ${task.time} WIB · ${task.role}${pending}`;
     }
+    function selectedMyTask() {
+      return state.myTasks.find(task => String(task.assignmentId) === String(myTaskSelect.value)) || null;
+    }
+    function blockedMemberIdsForSelectedTask() {
+      const task = selectedMyTask();
+      return new Set(((task && task.assignedMemberIds) || []).map(String));
+    }
+    function fillSelect(select, placeholderHtml, itemsHtml) {
+      select.innerHTML = placeholderHtml + itemsHtml;
+      ensureUsableSelection(select);
+    }
     function renderFormOptions() {
-      myTaskSelect.innerHTML = state.myTasks.length
+      const previousMy = myTaskSelect.value;
+      const myOptions = state.myTasks.length
         ? state.myTasks.map(t => `<option value="${escapeHtml(t.assignmentId)}" ${t.hasPendingRequest ? "disabled" : ""}>${escapeHtml(optionText(t))}</option>`).join("")
         : '<option value="">Tidak ada jadwal Anda yang bisa diajukan</option>';
-      targetTaskSelect.innerHTML = state.targetTasks.length
-        ? '<option value="">-- pilih jadwal teman --</option>' + state.targetTasks.map(t => `<option value="${escapeHtml(t.assignmentId)}">${escapeHtml(t.memberName)} · ${escapeHtml(optionText(t))}</option>`).join("")
-        : '<option value="">Tidak ada jadwal teman untuk ditukar</option>';
-      targetMemberSelect.innerHTML = state.members.length
-        ? '<option value="">-- pilih teman pengganti --</option>' + state.members.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)} · ${escapeHtml(m.roleLabel)}</option>`).join("")
-        : '<option value="">Tidak ada anggota aktif</option>';
+      myTaskSelect.innerHTML = myOptions;
+      if (previousMy && Array.from(myTaskSelect.options).some(opt => opt.value === previousMy && !opt.disabled)) {
+        myTaskSelect.value = previousMy;
+      } else {
+        ensureUsableSelection(myTaskSelect);
+      }
+      renderDependentOptions();
+      refreshCombo(myTaskSelect);
+    }
+    function renderDependentOptions() {
+      const blocked = blockedMemberIdsForSelectedTask();
+      const availableTargets = state.targetTasks.filter(t => !blocked.has(String(t.memberId)));
+      const availableMembers = state.members.filter(m => !blocked.has(String(m.id)));
+      targetTaskSelect.innerHTML = availableTargets.length
+        ? '<option value="">-- pilih jadwal teman --</option>' + availableTargets.map(t => `<option value="${escapeHtml(t.assignmentId)}">${escapeHtml(t.memberName)} · ${escapeHtml(optionText(t))}</option>`).join("")
+        : '<option value="">Tidak ada jadwal teman yang aman untuk ditukar</option>';
+      targetMemberSelect.innerHTML = availableMembers.length
+        ? '<option value="">-- pilih teman pengganti --</option>' + availableMembers.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)} · ${escapeHtml(m.roleLabel)}</option>`).join("")
+        : '<option value="">Tidak ada anggota aktif yang bisa menggantikan sesi ini</option>';
+      refreshCombo(targetTaskSelect);
+      refreshCombo(targetMemberSelect);
     }
     function currentMode() { return modeSubstitute.checked ? "substitute" : "swap"; }
     function toggleMode() {
@@ -955,6 +1091,7 @@
     sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
     modeSwap.addEventListener("change", toggleMode);
     modeSubstitute.addEventListener("change", toggleMode);
+    myTaskSelect.addEventListener("change", renderDependentOptions);
     [formMonth, formYear, formType].forEach(el => el.addEventListener("change", loadOptions));
     submitSwapBtn.addEventListener("click", submitRequest);
     resetSwapBtn.addEventListener("click", () => { reasonInput.value = ""; renderFormOptions(); });
@@ -973,7 +1110,7 @@
       loadTables();
     });
     async function init() {
-      populateMonthYear(); toggleMode(); updateLiveDateTime(); setInterval(updateLiveDateTime, 1000);
+      populateMonthYear(); setupSearchCombos(); toggleMode(); updateLiveDateTime(); setInterval(updateLiveDateTime, 1000);
       await loadMe(); await loadOptions(); await loadTables();
     }
     init();
