@@ -662,21 +662,39 @@
       return matched ? normalizePermissions(matched.permissions) : defaultPermissions();
     }
 
-    // Load Prioritas Hari Ini: Ambil dari API Peminjaman dan Laporan Kerusakan
+    // Load Prioritas Hari Ini: peminjaman, kerusakan, dan request tukar/ganti tugas yang masuk ke admin/super admin
     async function loadPrioritasHariIni() {
       const todoList = document.getElementById("todoList");
       if (!todoList) return;
 
       try {
-        const [resLoan, resDamage] = await Promise.all([
+        const [resLoan, resDamage, resExchange] = await Promise.all([
           fetch('/api/pengajuan'),
-          fetch('/api/form-kerusakan/history')
+          fetch('/api/form-kerusakan/history'),
+          fetch('/api/task-exchanges/pending-actions?limit=8', { credentials: 'same-origin' })
         ]);
         
         const dataLoan = await resLoan.json();
         const dataDamage = await resDamage.json();
+        const dataExchange = await resExchange.json().catch(() => ({ success:false, items:[] }));
         
         let htmlList = "";
+
+        if (dataExchange.success && Array.isArray(dataExchange.items)) {
+          dataExchange.items.forEach(item => {
+            const targetInfo = item.mode === 'swap'
+              ? `<br><b>Jadwal Anda:</b> ${escapeHtml(item.targetLabel || '-')}`
+              : '<br><b>Mode:</b> diminta menjadi pengganti tugas.';
+            htmlList += `<li class="todo-item" style="border-left-color:#b91c1c;">
+              <strong>${escapeHtml(item.modeLabel)} Jadwal dari ${escapeHtml(item.requesterName || 'Anggota')}</strong>
+              <small><b>Jadwal pengaju:</b> ${escapeHtml(item.myLabel || '-')}${targetInfo}<br><b>Alasan:</b> ${escapeHtml(item.reason || '-')}</small>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                <button class="mini-btn" type="button" data-exchange-action="accept" data-exchange-id="${item.id}">Terima</button>
+                <button class="mini-btn ghost" type="button" data-exchange-action="reject" data-exchange-id="${item.id}">Tolak</button>
+              </div>
+            </li>`;
+          });
+        }
 
         if (dataLoan.success && dataLoan.items) {
           const pendingLoans = dataLoan.items.filter(item => item.status === 'pending');
@@ -713,6 +731,29 @@
         todoList.innerHTML = '<li class="todo-item" style="border-left-color: #ef4444;"><strong>Gagal memuat prioritas</strong><small>Periksa koneksi internet.</small></li>';
       }
     }
+
+    async function handleExchangeAction(action, id) {
+      const label = action === 'accept' ? 'menerima' : 'menolak';
+      if (!window.confirm('Yakin ingin ' + label + ' permintaan tukar/ganti tugas ini?')) return;
+      try {
+        const res = await fetch('/api/task-exchanges/' + encodeURIComponent(id) + '/respond', {
+          method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) throw new Error(data.error || 'Aksi gagal diproses.');
+        await loadPrioritasHariIni();
+        await renderNotifications();
+      } catch (err) {
+        window.alert(err.message || 'Aksi gagal diproses.');
+      }
+    }
+
+    document.addEventListener('click', function(event) {
+      const btn = event.target.closest('[data-exchange-action][data-exchange-id]');
+      if (!btn) return;
+      handleExchangeAction(btn.getAttribute('data-exchange-action'), btn.getAttribute('data-exchange-id'));
+    });
 
 
     async function fetchNotifications() {

@@ -536,7 +536,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_admin-theme.css">
 </head>
-<body>
+<body data-current-user='{{ current_user | default({}, true) | tojson | e }}'>
   <div class="layout">
     <aside id="sidebar" class="sidebar" aria-label="Sidebar anggota">
       <div class="brand">
@@ -545,10 +545,10 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div id="memberAvatar" class="avatar">AG</div>
         <div class="account-text">
-          <strong id="memberName">Atanasius Surya Guna</strong>
-          <small>Role: Anggota Multimedia</small>
+          <strong id="memberName">Memuat...</strong>
+          <small id="memberRoleText">Role: Anggota Multimedia</small>
         </div>
       </div>
 
@@ -605,110 +605,61 @@
             <h2>Ajukan Penukaran ke Teman</h2>
           </header>
           <div class="panel-body">
-            <p class="helper">Anda hanya bisa ajukan penukaran untuk jadwal yang sudah terdaftar atas nama Anda.</p>
-            
-            <!-- Mode Selection -->
-            <div style="margin-bottom:14px;padding:10px;background:#f8fafc;border-radius:9px;border:1px solid var(--line);">
+            <p class="helper">Pilih jadwal Anda yang akan datang, lalu ajukan tukeran jadwal sesama jenis misa atau minta teman aktif menjadi pengganti.</p>
+
+            <div class="filters" style="grid-template-columns:repeat(3,minmax(160px,1fr));">
+              <div class="field">
+                <label for="formMonth">Bulan Jadwal</label>
+                <select id="formMonth"></select>
+              </div>
+              <div class="field">
+                <label for="formYear">Tahun</label>
+                <select id="formYear"></select>
+              </div>
+              <div class="field">
+                <label for="formType">Jenis Misa</label>
+                <select id="formType">
+                  <option value="biasa">Misa Biasa</option>
+                  <option value="besar">Misa Besar</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin:0 0 14px;padding:10px;background:#f8fafc;border-radius:9px;border:1px solid var(--line);">
               <label style="display:block;font-size:0.73rem;text-transform:uppercase;letter-spacing:0.03em;color:#64748b;font-weight:700;margin-bottom:8px;">Tipe Penukaran</label>
               <div style="display:flex;gap:16px;flex-wrap:wrap;">
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;font-weight:500;">
-                  <input type="radio" id="modeSwap" name="swapMode" value="tukeran" checked style="cursor:pointer;">
-                  <span>Tukeran (saya & teman sama-sama punya jadwal)</span>
+                  <input type="radio" id="modeSwap" name="swapMode" value="swap" checked>
+                  <span>Tukeran — saya dan teman sama-sama punya jadwal</span>
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;font-weight:500;">
-                  <input type="radio" id="modeSubstitute" name="swapMode" value="menggantikan" style="cursor:pointer;">
-                  <span>Menggantikan (teman sukarela membantu saya)</span>
+                  <input type="radio" id="modeSubstitute" name="swapMode" value="substitute">
+                  <span>Menggantikan — teman sukarela menggantikan saya</span>
                 </label>
               </div>
             </div>
 
-            <!-- Tukeran Mode Form -->
-            <div id="tukeranForm" style="display:block;">
-              <div class="grid-form">
-                <div class="field">
-                  <label for="myTaskSelect">Jadwal Saya</label>
-                  <select id="myTaskSelect" class="combo-source"></select>
-                  <div id="myTaskCombo" class="slot-combo">
-                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih jadwal saya --</button>
-                    <div class="slot-panel">
-                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari jadwal saya..."></div>
-                      <div class="slot-options"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="field">
-                  <label for="swapSlotSelect">Pilih Jadwal Tukar (Tanggal & Jam)</label>
-                  <select id="swapSlotSelect" class="combo-source">
-                    <option value="">-- pilih jadwal tukar --</option>
-                  </select>
-                  <div id="swapSlotCombo" class="slot-combo">
-                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih jadwal tukar --</button>
-                    <div class="slot-panel">
-                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari tanggal/jam jadwal tukar..."></div>
-                      <div class="slot-options"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="grid-form">
-                <div class="field">
-                  <label for="targetFriendSelect">Teman Tujuan (Role Ditampilkan)</label>
-                  <select id="targetFriendSelect" class="combo-source">
-                    <option value="">-- Pilih slot dulu --</option>
-                  </select>
-                  <div id="friendTargetCombo" class="slot-combo">
-                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih slot dulu --</button>
-                    <div class="slot-panel">
-                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari teman tujuan..."></div>
-                      <div class="slot-options"></div>
-                    </div>
-                  </div>
-                  <small style="color:var(--muted);font-size:0.73rem;margin-top:4px;">Pilihan teman akan menyesuaikan slot tanggal/jam yang dipilih</small>
-                </div>
-              </div>
+            <div class="grid-form">
               <div class="field">
-                <label for="swapReason">Alasan Penukaran</label>
-                <textarea id="swapReason" placeholder="Contoh: bentrok jadwal kuliah atau kerja..."></textarea>
+                <label for="myTaskSelect">Jadwal Saya</label>
+                <select id="myTaskSelect"></select>
+                <small class="helper" style="margin:0;">Hanya jadwal besok atau setelahnya yang bisa diajukan.</small>
+              </div>
+              <div id="swapTargetField" class="field">
+                <label for="targetTaskSelect">Jadwal Teman untuk Tukeran</label>
+                <select id="targetTaskSelect"></select>
+                <small class="helper" style="margin:0;">Daftar hanya berisi jadwal sesama jenis misa.</small>
+              </div>
+              <div id="substituteTargetField" class="field" style="display:none;">
+                <label for="targetMemberSelect">Teman Pengganti</label>
+                <select id="targetMemberSelect"></select>
+                <small class="helper" style="margin:0;">Bisa anggota aktif, admin, atau super admin.</small>
               </div>
             </div>
 
-            <!-- Menggantikan Mode Form -->
-            <div id="substitutForm" style="display:none;">
-              <div class="grid-form">
-                <div class="field">
-                  <label for="myTaskSelectSub">Jadwal Saya</label>
-                  <select id="myTaskSelectSub" class="combo-source"></select>
-                  <div id="myTaskSubCombo" class="slot-combo">
-                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih jadwal saya --</button>
-                    <div class="slot-panel">
-                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari jadwal saya..."></div>
-                      <div class="slot-options"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="field">
-                  <label for="targetFriendSelectSub">Teman Pengganti</label>
-                  <select id="targetFriendSelectSub" class="combo-source">
-                    <option value="">-- Pilih Teman --</option>
-                    <option value="Rikha">Rikha</option>
-                    <option value="Jeni">Jeni</option>
-                    <option value="Tyas">Tyas</option>
-                    <option value="Lisa">Lisa</option>
-                    <option value="Evan">Evan</option>
-                  </select>
-                  <div id="targetFriendSubCombo" class="slot-combo">
-                    <button class="slot-trigger" type="button" aria-expanded="false">-- pilih teman --</button>
-                    <div class="slot-panel">
-                      <div class="slot-search-box"><input class="slot-search-input" type="search" placeholder="Cari teman pengganti..."></div>
-                      <div class="slot-options"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="field">
-                <label for="swapReasonSub">Alasan Meminta Pengganti</label>
-                <textarea id="swapReasonSub" placeholder="Contoh: sakit, ada acara keluarga, dll..."></textarea>
-              </div>
+            <div class="field">
+              <label for="reasonInput">Alasan</label>
+              <textarea id="reasonInput" placeholder="Contoh: bentrok jadwal kuliah, kerja, sakit, atau urusan keluarga..."></textarea>
             </div>
 
             <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -719,81 +670,68 @@
         </section>
 
         <section class="panel">
-          <header class="panel-head">
-            <h2>Filter Jadwal Terdaftar</h2>
-          </header>
+          <header class="panel-head"><h2>Filter Request</h2></header>
           <div class="panel-body">
-            <div class="filters">
+            <div class="filters" style="grid-template-columns:1.4fr .9fr .9fr .9fr;">
               <div class="field">
                 <label for="swapSearch">Search</label>
                 <input id="swapSearch" type="search" placeholder="Cari jadwal, role, nama teman, status...">
               </div>
               <div class="field">
-                <label for="swapMonthFilter">Bulan</label>
-                <select id="swapMonthFilter">
-                  <option value="all">Semua Bulan</option>
-                  <option value="0">Januari</option>
-                  <option value="1">Februari</option>
-                  <option value="2">Maret</option>
-                  <option value="3">April</option>
-                  <option value="4">Mei</option>
-                  <option value="5">Juni</option>
-                  <option value="6">Juli</option>
-                  <option value="7">Agustus</option>
-                  <option value="8">September</option>
-                  <option value="9">Oktober</option>
-                  <option value="10">November</option>
-                  <option value="11">Desember</option>
+                <label for="requestTypeFilter">Jenis Misa</label>
+                <select id="requestTypeFilter">
+                  <option value="all">Semua Jenis</option>
+                  <option value="biasa">Misa Biasa</option>
+                  <option value="besar">Misa Besar</option>
                 </select>
               </div>
               <div class="field">
-                <label for="swapYearFilter">Tahun</label>
-                <select id="swapYearFilter"></select>
+                <label for="requestStatusFilter">Status</label>
+                <select id="requestStatusFilter">
+                  <option value="all">Semua Status</option>
+                  <option value="pending">Menunggu</option>
+                  <option value="accepted">Diterima</option>
+                  <option value="rejected">Ditolak</option>
+                  <option value="cancelled">Dibatalkan</option>
+                  <option value="auto_cancelled">Batal Otomatis</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="requestSortFilter">Urutan</label>
+                <select id="requestSortFilter">
+                  <option value="created_desc">Terbaru</option>
+                  <option value="created_asc">Terlama</option>
+                  <option value="date_asc">Tanggal Terdekat</option>
+                  <option value="date_desc">Tanggal Terjauh</option>
+                </select>
               </div>
             </div>
           </div>
         </section>
 
         <section class="panel">
-          <header class="panel-head">
-            <h2>Request Masuk dari Teman</h2>
-          </header>
-          <div class="panel-body table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Teman</th>
-                  <th>Role</th>
-                  <th>Tipe</th>
-                  <th>Jadwal</th>
-                  <th>Alasan</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="incomingRows"></tbody>
-            </table>
+          <header class="panel-head"><h2>Request Masuk dari Teman</h2></header>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>No</th><th>Teman</th><th>Tipe</th><th>Jadwal Pengaju</th><th>Jadwal Anda</th><th>Alasan</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody id="incomingRows"></tbody>
+              </table>
+            </div>
+            <div id="incomingPagination" class="pagination"></div>
           </div>
         </section>
 
         <section class="panel">
-          <header class="panel-head">
-            <h2>Request Keluar Saya</h2>
-          </header>
-          <div class="panel-body table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Jadwal Saya & Role</th>
-                  <th>Dikirim Ke</th>
-                  <th>Tipe</th>
-                  <th>Alasan</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="outgoingRows"></tbody>
-            </table>
+          <header class="panel-head"><h2>Request Keluar Saya</h2></header>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>No</th><th>Jadwal Saya & Role</th><th>Dikirim Ke</th><th>Tipe</th><th>Jadwal Teman</th><th>Alasan</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody id="outgoingRows"></tbody>
+              </table>
+            </div>
+            <div id="outgoingPagination" class="pagination"></div>
           </div>
         </section>
       </div>
@@ -801,695 +739,244 @@
   </div>
 
   <script>
-    const TASKS_KEY = "crembo-member-registered-tasks";
-    const SWAP_IN_KEY = "crembo-member-swap-incoming";
-    const SWAP_OUT_KEY = "crembo-member-swap-outgoing";
+    const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const state = { myTasks: [], targetTasks: [], members: [], incomingPage: 1, outgoingPage: 1, loading: false };
 
-    // Mode and Form Elements
-    const modeSwapRadio = document.getElementById("modeSwap");
-    const modeSubstituteRadio = document.getElementById("modeSubstitute");
-    const tukeranForm = document.getElementById("tukeranForm");
-    const substitutForm = document.getElementById("substitutForm");
-
-    // Tukeran form elements
-    const myTaskSelect = document.getElementById("myTaskSelect");
-    const targetFriendSelect = document.getElementById("targetFriendSelect");
-    const myTaskCombo = document.getElementById("myTaskCombo");
-    const friendTargetCombo = document.getElementById("friendTargetCombo");
-    const swapSlotSelect = document.getElementById("swapSlotSelect");
-    const swapSlotCombo = document.getElementById("swapSlotCombo");
-    const swapReason = document.getElementById("swapReason");
-
-    // Menggantikan form elements
-    const myTaskSelectSub = document.getElementById("myTaskSelectSub");
-    const targetFriendSelectSub = document.getElementById("targetFriendSelectSub");
-    const myTaskSubCombo = document.getElementById("myTaskSubCombo");
-    const targetFriendSubCombo = document.getElementById("targetFriendSubCombo");
-    const swapReasonSub = document.getElementById("swapReasonSub");
-
-    // Common elements
-    const submitSwapBtn = document.getElementById("submitSwapBtn");
-    const resetSwapBtn = document.getElementById("resetSwapBtn");
-    const incomingRows = document.getElementById("incomingRows");
-    const outgoingRows = document.getElementById("outgoingRows");
-    const swapSearch = document.getElementById("swapSearch");
-    const swapMonthFilter = document.getElementById("swapMonthFilter");
-    const swapYearFilter = document.getElementById("swapYearFilter");
-    const memberName = document.getElementById("memberName");
     const sidebar = document.getElementById("sidebar");
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const memberName = document.getElementById("memberName");
+    const memberAvatar = document.getElementById("memberAvatar");
+    const memberRoleText = document.getElementById("memberRoleText");
+    const formMonth = document.getElementById("formMonth");
+    const formYear = document.getElementById("formYear");
+    const formType = document.getElementById("formType");
+    const modeSwap = document.getElementById("modeSwap");
+    const modeSubstitute = document.getElementById("modeSubstitute");
+    const myTaskSelect = document.getElementById("myTaskSelect");
+    const targetTaskSelect = document.getElementById("targetTaskSelect");
+    const targetMemberSelect = document.getElementById("targetMemberSelect");
+    const swapTargetField = document.getElementById("swapTargetField");
+    const substituteTargetField = document.getElementById("substituteTargetField");
+    const reasonInput = document.getElementById("reasonInput");
+    const submitSwapBtn = document.getElementById("submitSwapBtn");
+    const resetSwapBtn = document.getElementById("resetSwapBtn");
+    const swapSearch = document.getElementById("swapSearch");
+    const requestTypeFilter = document.getElementById("requestTypeFilter");
+    const requestStatusFilter = document.getElementById("requestStatusFilter");
+    const requestSortFilter = document.getElementById("requestSortFilter");
+    const incomingRows = document.getElementById("incomingRows");
+    const outgoingRows = document.getElementById("outgoingRows");
+    const incomingPagination = document.getElementById("incomingPagination");
+    const outgoingPagination = document.getElementById("outgoingPagination");
 
     function escapeHtml(value) {
       return String(value == null ? "" : value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
     }
-
-    const FRIEND_SCHEDULES = {
-      "Rikha": [
-        { id: "rikha-1", title: "Misa Harian", date: "2026-04-15", time: "18:00", role: "Sound Engineer" },
-        { id: "rikha-2", title: "Misa Mingguan", date: "2026-04-20", time: "09:00", role: "Operator Kamera" }
-      ],
-      "Jeni": [
-        { id: "jeni-1", title: "Misa Harian", date: "2026-04-14", time: "17:00", role: "Operator Kamera" },
-        { id: "jeni-2", title: "Misa Mingguan", date: "2026-04-21", time: "08:00", role: "Sound Engineer" }
-      ],
-      "Tyas": [
-        { id: "tyas-1", title: "Misa Harian", date: "2026-04-16", time: "17:00", role: "Producer" }
-      ],
-      "Lisa": [
-        { id: "lisa-1", title: "Misa Mingguan", date: "2026-04-19", time: "08:00", role: "Operator Kamera" }
-      ],
-      "Evan": [
-        { id: "evan-1", title: "Misa Harian", date: "2026-04-17", time: "18:00", role: "Sound Engineer" }
-      ]
-    };
-
-    function safeParse(raw, fallback) {
+    function roleLabel(role) {
+      if (role === "super_admin") return "Super Admin";
+      if (role === "admin") return "Admin";
+      return "Anggota Multimedia";
+    }
+    function initials(name) {
+      const parts = String(name || "A").trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return "AG";
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    function showToast(message) {
+      alert(message);
+    }
+    async function apiFetch(url, options) {
+      const res = await fetch(url, Object.assign({ credentials: "same-origin" }, options || {}));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.error || "Terjadi kesalahan.");
+      return data;
+    }
+    function populateMonthYear() {
+      const now = new Date();
+      formMonth.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join("");
+      formMonth.value = String(now.getMonth() + 1);
+      const y = now.getFullYear();
+      formYear.innerHTML = Array.from({ length: 7 }, (_, idx) => y - 2 + idx).map(year => `<option value="${year}">${year}</option>`).join("");
+      formYear.value = String(y);
+    }
+    async function loadMe() {
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
-      } catch (error) {
-        return fallback;
+        const data = await apiFetch("/api/task-exchanges/me");
+        const name = data.member && data.member.name ? data.member.name : "Anggota";
+        memberName.textContent = name;
+        if (memberAvatar) memberAvatar.textContent = initials(name);
+        if (memberRoleText) memberRoleText.textContent = "Role: " + roleLabel(data.member && data.member.role);
+      } catch (err) {}
+    }
+    async function loadOptions() {
+      const params = new URLSearchParams({ month: formMonth.value, year: formYear.value, type: formType.value });
+      try {
+        const data = await apiFetch("/api/task-exchanges/options?" + params.toString());
+        state.myTasks = data.myTasks || [];
+        state.targetTasks = data.targetTasks || [];
+        state.members = data.members || [];
+        renderFormOptions();
+      } catch (err) {
+        state.myTasks = []; state.targetTasks = []; state.members = [];
+        renderFormOptions();
+        showToast(err.message);
       }
     }
-
-    function readTasks() {
-      return safeParse(localStorage.getItem(TASKS_KEY), []);
+    function optionText(task) {
+      const pending = task.hasPendingRequest ? " — sudah ada request aktif" : "";
+      return `${task.typeLabel} · ${task.misaName} · ${task.dayName}, ${task.dateLabel} ${task.time} WIB · ${task.role}${pending}`;
     }
-
-    function seedIfEmpty() {
-      if (!localStorage.getItem(SWAP_IN_KEY)) {
-        const incoming = [
-          { 
-            id: "in-1", 
-            fromName: "Rikha", 
-            taskLabel: "Misa Harian - Senin, 14 Apr 2026 17:00", 
-            role: "Operator Kamera",
-            friendRole: "Operator Kamera",
-            reason: "Tukeran dengan jadwal saya", 
-            status: "Menunggu", 
-            date: "2026-04-14",
-            type: "tukeran"
-          },
-          { 
-            id: "in-2", 
-            fromName: "Jeni", 
-            taskLabel: "Misa Mingguan - Minggu, 19 Apr 2026 08:00", 
-            role: "Sound Engineer",
-            reason: "Acara keluarga", 
-            status: "Menunggu", 
-            date: "2026-04-19",
-            type: "menggantikan"
-          }
-        ];
-        localStorage.setItem(SWAP_IN_KEY, JSON.stringify(incoming));
-      }
-      if (!localStorage.getItem(SWAP_OUT_KEY)) {
-        const outgoing = [
-          { 
-            id: "out-1", 
-            toName: "Tyas", 
-            taskLabel: "Misa Harian - Rabu, 16 Apr 2026 17:00", 
-            role: "Operator Kamera",
-            reason: "Ujian kampus", 
-            status: "Menunggu", 
-            date: "2026-04-16",
-            type: "tukeran"
-          }
-        ];
-        localStorage.setItem(SWAP_OUT_KEY, JSON.stringify(outgoing));
-      }
+    function renderFormOptions() {
+      myTaskSelect.innerHTML = state.myTasks.length
+        ? state.myTasks.map(t => `<option value="${escapeHtml(t.assignmentId)}" ${t.hasPendingRequest ? "disabled" : ""}>${escapeHtml(optionText(t))}</option>`).join("")
+        : '<option value="">Tidak ada jadwal Anda yang bisa diajukan</option>';
+      targetTaskSelect.innerHTML = state.targetTasks.length
+        ? '<option value="">-- pilih jadwal teman --</option>' + state.targetTasks.map(t => `<option value="${escapeHtml(t.assignmentId)}">${escapeHtml(t.memberName)} · ${escapeHtml(optionText(t))}</option>`).join("")
+        : '<option value="">Tidak ada jadwal teman untuk ditukar</option>';
+      targetMemberSelect.innerHTML = state.members.length
+        ? '<option value="">-- pilih teman pengganti --</option>' + state.members.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)} · ${escapeHtml(m.roleLabel)}</option>`).join("")
+        : '<option value="">Tidak ada anggota aktif</option>';
     }
-
-    function readIncoming() {
-      return safeParse(localStorage.getItem(SWAP_IN_KEY), []).map(function (item) {
-        return {
-          type: item.type || "menggantikan",
-          role: item.role || item.friendRole || "-",
-          ...item
-        };
-      });
+    function currentMode() { return modeSubstitute.checked ? "substitute" : "swap"; }
+    function toggleMode() {
+      const isSub = currentMode() === "substitute";
+      swapTargetField.style.display = isSub ? "none" : "grid";
+      substituteTargetField.style.display = isSub ? "grid" : "none";
     }
-
-    function readOutgoing() {
-      return safeParse(localStorage.getItem(SWAP_OUT_KEY), []).map(function (item) {
-        return {
-          type: item.type || "menggantikan",
-          role: item.role || "-",
-          ...item
-        };
-      });
-    }
-
-    function saveIncoming(items) {
-      localStorage.setItem(SWAP_IN_KEY, JSON.stringify(items));
-    }
-
-    function saveOutgoing(items) {
-      localStorage.setItem(SWAP_OUT_KEY, JSON.stringify(items));
-    }
-
-    function setYearFilterOptions() {
-      const nowYear = new Date().getFullYear();
-      swapYearFilter.innerHTML = '<option value="all">Semua Tahun</option>';
-      for (let year = nowYear - 2; year <= nowYear + 2; year += 1) {
-        const option = document.createElement("option");
-        option.value = String(year);
-        option.textContent = String(year);
-        swapYearFilter.appendChild(option);
-      }
-    }
-
-    function getRegisteredTasksForSwap() {
-      return readTasks().filter(function (item) {
-        return item.status === "Terdaftar";
-      });
-    }
-
-    function renderTaskSelects() {
-      const tasks = getRegisteredTasksForSwap();
-      if (!tasks.length) {
-        myTaskSelect.innerHTML = '<option value="">Belum ada jadwal terdaftar</option>';
-        myTaskSelectSub.innerHTML = '<option value="">Belum ada jadwal terdaftar</option>';
-        refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
-        refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
-        return;
-      }
-      const html = tasks.map(function (item) {
-        const label = item.title + " - " + item.date + " " + item.time + " (" + item.role + ")";
-        return '<option value="' + item.id + '">' + label + '</option>';
-      }).join("");
-      myTaskSelect.innerHTML = html;
-      myTaskSelectSub.innerHTML = html;
-      refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
-      refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
-    }
-
-    function closeAllComboPanels(exceptCombo) {
-      document.querySelectorAll(".slot-combo").forEach(function (comboEl) {
-        if (exceptCombo && comboEl === exceptCombo) {
-          return;
-        }
-        const panel = comboEl.querySelector(".slot-panel");
-        const trigger = comboEl.querySelector(".slot-trigger");
-        if (panel) {
-          panel.classList.remove("show");
-        }
-        if (trigger) {
-          trigger.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-
-    function setComboTriggerText(selectEl, comboEl, fallbackText) {
-      const trigger = comboEl.querySelector(".slot-trigger");
-      const selected = selectEl.options[selectEl.selectedIndex];
-      trigger.textContent = selected && selected.value ? selected.textContent : fallbackText;
-    }
-
-    function renderComboOptions(selectEl, comboEl, query, fallbackText) {
-      const optionsWrap = comboEl.querySelector(".slot-options");
-      const normalizedQuery = (query || "").trim().toLowerCase();
-      const allOptions = Array.from(selectEl.options || []);
-      const filtered = allOptions.filter(function (opt) {
-        return !normalizedQuery || opt.textContent.toLowerCase().indexOf(normalizedQuery) !== -1;
-      });
-
-      if (!filtered.length) {
-        optionsWrap.innerHTML = '<p class="slot-empty">Data tidak ditemukan.</p>';
-        return;
-      }
-
-      const selectedValue = selectEl.value;
-      optionsWrap.innerHTML = filtered.map(function (opt) {
-        const activeClass = opt.value === selectedValue ? " active" : "";
-        return '<button class="slot-option' + activeClass + '" type="button" data-value="' + escapeHtml(opt.value) + '">' + escapeHtml(opt.textContent) + '</button>';
-      }).join("");
-
-      optionsWrap.querySelectorAll(".slot-option").forEach(function (buttonEl) {
-        buttonEl.addEventListener("click", function () {
-          const previousValue = selectEl.value;
-          selectEl.value = buttonEl.getAttribute("data-value") || "";
-          setComboTriggerText(selectEl, comboEl, fallbackText);
-          if (previousValue !== selectEl.value) {
-            selectEl.dispatchEvent(new Event("change"));
-          }
-          closeAllComboPanels();
-        });
-      });
-    }
-
-    function refreshComboFromSelect(selectEl, comboEl, fallbackText) {
-      if (!comboEl) {
-        return;
-      }
-      const searchInput = comboEl.querySelector(".slot-search-input");
-      setComboTriggerText(selectEl, comboEl, fallbackText);
-      renderComboOptions(selectEl, comboEl, searchInput ? searchInput.value : "", fallbackText);
-    }
-
-    function initCombo(selectEl, comboEl, fallbackText) {
-      const trigger = comboEl.querySelector(".slot-trigger");
-      const panel = comboEl.querySelector(".slot-panel");
-      const searchInput = comboEl.querySelector(".slot-search-input");
-
-      trigger.addEventListener("click", function () {
-        const shouldOpen = !panel.classList.contains("show");
-        closeAllComboPanels(comboEl);
-        if (shouldOpen) {
-          panel.classList.add("show");
-          trigger.setAttribute("aria-expanded", "true");
-          renderComboOptions(selectEl, comboEl, searchInput.value, fallbackText);
-          searchInput.focus();
-        } else {
-          panel.classList.remove("show");
-          trigger.setAttribute("aria-expanded", "false");
-        }
-      });
-
-      searchInput.addEventListener("input", function () {
-        renderComboOptions(selectEl, comboEl, searchInput.value, fallbackText);
-      });
-    }
-
-    function getAllFriendScheduleSlots() {
-      return Object.keys(FRIEND_SCHEDULES).reduce(function (acc, friendName) {
-        const rows = FRIEND_SCHEDULES[friendName].map(function (sched) {
-          return {
-            ...sched,
-            friendName: friendName,
-            slotLabel: sched.date + " " + sched.time + " - " + sched.title
-          };
-        });
-        return acc.concat(rows);
-      }, []);
-    }
-
-    function renderSwapSlotOptions() {
-      const uniqueLabels = Array.from(new Set(getAllFriendScheduleSlots().map(function (item) {
-        return item.slotLabel;
-      })));
-      swapSlotSelect.innerHTML = '<option value="">-- pilih jadwal tukar --</option>' + uniqueLabels.map(function (label) {
-        return '<option value="' + label + '">' + label + '</option>';
-      }).join("");
-      refreshComboFromSelect(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
-    }
-
-    function updateFriendsBySelectedSlot() {
-      const selectedSlot = (swapSlotSelect.value || "").trim();
-      const matchingSlots = getAllFriendScheduleSlots().filter(function (item) {
-        return item.slotLabel === selectedSlot;
-      });
-
-      if (!matchingSlots.length) {
-        targetFriendSelect.innerHTML = '<option value="">-- Pilih slot dulu --</option>';
-        refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
-        return;
-      }
-
-      const optionsHtml = matchingSlots.map(function (item) {
-        return '<option value="' + item.id + '">' + item.friendName + ' (' + item.role + ')</option>';
-      }).join("");
-      targetFriendSelect.innerHTML = '<option value="">-- Pilih Teman --</option>' + optionsHtml;
-      refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
-    }
-
-    function passesFilter(dateText, searchableText) {
-      const search = swapSearch.value.trim().toLowerCase();
-      const month = swapMonthFilter.value;
-      const year = swapYearFilter.value;
-      const dateObj = new Date(dateText + "T00:00:00");
-      if (Number.isNaN(dateObj.getTime())) {
-        return false;
-      }
-      const okSearch = !search || searchableText.toLowerCase().includes(search);
-      const okMonth = month === "all" || String(dateObj.getMonth()) === month;
-      const okYear = year === "all" || String(dateObj.getFullYear()) === year;
-      return okSearch && okMonth && okYear;
-    }
-
-    function statusBadge(status) {
-      if (status === "Disetujui") {
-        return '<span class="status-ok">Disetujui</span>';
-      }
-      if (status === "Ditolak") {
-        return '<span class="status-danger">Ditolak</span>';
-      }
-      if (status === "Dibatalkan") {
-        return '<span class="status-danger">Dibatalkan</span>';
-      }
-      return '<span class="status-warn">Menunggu</span>';
-    }
-
-    function typeBadge(type) {
-      if (type === "tukeran") {
-        return '<span class="status-ok" style="background:#e0f2fe;border-color:#0284c7;color:#0c4a6e;">Tukeran</span>';
-      }
-      return '<span class="status-warn" style="background:#fef3c7;border-color:#fbbf24;color:#78350f;">Menggantikan</span>';
-    }
-
-    function renderSwapTables() {
-      const incoming = readIncoming().filter(function (item) {
-        return passesFilter(item.date, [item.fromName, item.taskLabel, item.reason, item.status, item.role].join(" "));
-      });
-      const outgoing = readOutgoing().filter(function (item) {
-        return passesFilter(item.date, [item.toName, item.taskLabel, item.reason, item.status, item.role].join(" "));
-      });
-
-      incomingRows.innerHTML = incoming.length
-        ? incoming.map(function (item) {
-            const actions = item.status === "Menunggu"
-              ? '<button class="btn" type="button" data-action="accept" data-id="' + item.id + '">Terima</button> <button class="btn danger" type="button" data-action="reject" data-id="' + item.id + '">Tolak</button>'
-              : '-';
-            return '<tr>'
-              + '<td>' + item.fromName + '</td>'
-              + '<td>' + (item.role || '-') + '</td>'
-              + '<td>' + typeBadge(item.type) + '</td>'
-              + '<td>' + item.taskLabel + '</td>'
-              + '<td>' + item.reason + '</td>'
-              + '<td>' + statusBadge(item.status) + '</td>'
-              + '<td>' + actions + '</td>'
-              + '</tr>';
-          }).join("")
-        : '<tr><td colspan="7">Tidak ada request masuk sesuai filter.</td></tr>';
-
-      outgoingRows.innerHTML = outgoing.length
-        ? outgoing.map(function (item) {
-            const roleText = item.role ? ' (' + item.role + ')' : '';
-            const actions = item.status === "Menunggu"
-              ? '<button class="btn danger" type="button" data-action="cancel" data-id="' + item.id + '">Batalkan</button>'
-              : '-';
-            return '<tr>'
-              + '<td>' + item.taskLabel + roleText + '</td>'
-              + '<td>' + item.toName + '</td>'
-              + '<td>' + typeBadge(item.type) + '</td>'
-              + '<td>' + item.reason + '</td>'
-              + '<td>' + statusBadge(item.status) + '</td>'
-              + '<td>' + actions + '</td>'
-              + '</tr>';
-          }).join("")
-        : '<tr><td colspan="6">Tidak ada request keluar sesuai filter.</td></tr>';
-    }
-
-    function submitSwapRequest() {
-      const mode = document.querySelector("input[name='swapMode']:checked").value;
-
-      if (mode === "tukeran") {
-        submitTukeran();
+    async function submitRequest() {
+      const mode = currentMode();
+      const payload = { mode, type: formType.value, myAssignmentId: myTaskSelect.value, reason: reasonInput.value.trim() };
+      if (!payload.myAssignmentId) return showToast("Pilih jadwal Anda terlebih dahulu.");
+      if (!payload.reason) return showToast("Alasan wajib diisi.");
+      if (mode === "swap") {
+        payload.targetAssignmentId = targetTaskSelect.value;
+        if (!payload.targetAssignmentId) return showToast("Pilih jadwal teman untuk tukeran.");
       } else {
-        submitMenggantikan();
+        payload.targetUserId = targetMemberSelect.value;
+        if (!payload.targetUserId) return showToast("Pilih teman pengganti.");
+      }
+      submitSwapBtn.disabled = true;
+      try {
+        await apiFetch("/api/task-exchanges", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        reasonInput.value = "";
+        await loadOptions();
+        await loadTables();
+        showToast("Request berhasil dikirim. Sekarang menunggu balasan teman.");
+      } catch (err) {
+        showToast(err.message);
+      } finally {
+        submitSwapBtn.disabled = false;
       }
     }
-
-    function submitTukeran() {
-      const taskId = myTaskSelect.value;
-      const selectedFriendSlotId = targetFriendSelect.value;
-      const selectedSlot = (swapSlotSelect.value || "").trim();
-      const reason = swapReason.value.trim();
-      const task = getRegisteredTasksForSwap().find(function (item) { return item.id === taskId; });
-      const selectedFriendSlot = getAllFriendScheduleSlots().find(function (item) {
-        return item.id === selectedFriendSlotId;
-      });
-      const hasPendingSameDate = readOutgoing().some(function (item) {
-        return item.status === "Menunggu" && item.type === "tukeran" && item.date === (task ? task.date : "");
-      });
-
-      if (!task) {
-        window.alert("Pilih jadwal Anda yang valid.");
-        return;
-      }
-      if (!selectedSlot) {
-        window.alert("Pilih slot jadwal tukar (tanggal dan jam).");
-        return;
-      }
-      if (!selectedFriendSlotId || !selectedFriendSlot) {
-        window.alert("Pilih teman tujuan.");
-        return;
-      }
-      if (!reason) {
-        window.alert("Alasan penukaran wajib diisi.");
-        return;
-      }
-      if (hasPendingSameDate) {
-        window.alert("Anda sudah punya request tukeran aktif di tanggal ini. Batalkan request sebelumnya terlebih dahulu.");
-        return;
-      }
-
-      const outItems = readOutgoing();
-      outItems.unshift({
-        id: "out-" + Date.now(),
-        toName: selectedFriendSlot.friendName,
-        taskLabel: task.title + " - " + task.date + " " + task.time,
-        role: task.role,
-        friendRole: selectedFriendSlot.role,
-        friendTaskLabel: selectedFriendSlot.title + " - " + selectedFriendSlot.date + " " + selectedFriendSlot.time,
-        reason: reason,
-        status: "Menunggu",
-        date: task.date,
-        type: "tukeran"
-      });
-      saveOutgoing(outItems);
-      
-      swapReason.value = "";
-      myTaskSelect.selectedIndex = 0;
-      refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
-      swapSlotSelect.value = "";
-      refreshComboFromSelect(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
-      targetFriendSelect.innerHTML = '<option value="">-- Pilih slot dulu --</option>';
-      refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
-      renderTaskSelects();
-      renderSwapTables();
-      window.alert("Request penukaran berhasil dikirim.");
+    function requestStatusClass(status) {
+      if (status === "accepted") return "status-ok";
+      if (status === "pending") return "status-warn";
+      if (status === "rejected" || status === "cancelled" || status === "auto_cancelled") return "status-danger";
+      return "status-warn";
     }
-
-    function submitMenggantikan() {
-      const taskId = myTaskSelectSub.value;
-      const friendName = targetFriendSelectSub.value;
-      const reason = swapReasonSub.value.trim();
-      const task = getRegisteredTasksForSwap().find(function (item) { return item.id === taskId; });
-
-      if (!task) {
-        window.alert("Pilih jadwal Anda yang valid.");
-        return;
-      }
-      if (!friendName) {
-        window.alert("Pilih teman pengganti.");
-        return;
-      }
-      if (!reason) {
-        window.alert("Alasan wajib diisi.");
-        return;
-      }
-
-      const outItems = readOutgoing();
-      outItems.unshift({
-        id: "out-" + Date.now(),
-        toName: friendName,
-        taskLabel: task.title + " - " + task.date + " " + task.time,
-        role: task.role,
-        reason: reason,
-        status: "Menunggu",
-        date: task.date,
-        type: "menggantikan"
-      });
-      saveOutgoing(outItems);
-      
-      swapReasonSub.value = "";
-      myTaskSelectSub.selectedIndex = 0;
-      refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
-      targetFriendSelectSub.selectedIndex = 0;
-      refreshComboFromSelect(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
-      renderTaskSelects();
-      renderSwapTables();
-      window.alert("Request pengganti berhasil dikirim.");
+    function requestQuery(page) {
+      return new URLSearchParams({
+        search: swapSearch.value || "",
+        type: requestTypeFilter.value || "all",
+        status: requestStatusFilter.value || "all",
+        sort: requestSortFilter.value || "created_desc",
+        page: page || 1,
+        pageSize: 5
+      }).toString();
     }
-
-    function handleIncomingAction(action, id) {
-      const items = readIncoming();
-      const target = items.find(function (item) { return item.id === id; });
-      if (!target || target.status !== "Menunggu") {
-        return;
-      }
-      target.status = action === "accept" ? "Disetujui" : "Ditolak";
-      saveIncoming(items);
-      renderSwapTables();
+    async function loadTables() {
+      try {
+        const [incoming, outgoing] = await Promise.all([
+          apiFetch("/api/task-exchanges/incoming?" + requestQuery(state.incomingPage)),
+          apiFetch("/api/task-exchanges/outgoing?" + requestQuery(state.outgoingPage))
+        ]);
+        renderIncoming(incoming.items || [], incoming.pagination || {});
+        renderOutgoing(outgoing.items || [], outgoing.pagination || {});
+      } catch (err) { showToast(err.message); }
     }
-
-    function handleOutgoingAction(action, id) {
-      if (action !== "cancel") return;
-      
-      const items = readOutgoing();
-      const target = items.find(function (item) { return item.id === id; });
-      if (!target || target.status !== "Menunggu") {
-        return;
-      }
-      
-      if (window.confirm("Batalkan request ini?")) {
-        target.status = "Dibatalkan";
-        saveOutgoing(items);
-        renderSwapTables();
-      }
+    function renderPagination(el, pagination, type) {
+      const page = pagination.page || 1;
+      const totalPages = pagination.totalPages || 1;
+      const total = pagination.total || 0;
+      el.innerHTML = `<button class="btn ghost small" data-page-type="${type}" data-page-delta="-1" ${!pagination.hasPrev ? "disabled" : ""}>← Sebelumnya</button><span>Halaman ${page} dari ${totalPages} · ${total} data</span><button class="btn ghost small" data-page-type="${type}" data-page-delta="1" ${!pagination.hasNext ? "disabled" : ""}>Berikutnya →</button>`;
     }
-
+    function renderIncoming(items, pagination) {
+      const startNo = ((pagination.page || 1) - 1) * (pagination.pageSize || 5);
+      incomingRows.innerHTML = items.length ? items.map((item, idx) => {
+        const can = item.canAct;
+        const targetLabel = item.mode === "swap" ? item.targetLabel : "Diminta menggantikan jadwal pengaju";
+        const actions = item.status === "pending" ? `<button class="btn small" data-action="accept" data-id="${item.id}" ${!can ? "disabled" : ""}>Terima</button> <button class="btn danger small" data-action="reject" data-id="${item.id}" ${!can ? "disabled" : ""}>Tolak</button>` : "-";
+        return `<tr><td>${startNo + idx + 1}</td><td><strong>${escapeHtml(item.requesterName)}</strong></td><td>${escapeHtml(item.modeLabel)}<br><small>${escapeHtml(item.typeLabel)}</small></td><td>${escapeHtml(item.myLabel)}</td><td>${escapeHtml(targetLabel || "-")}</td><td>${escapeHtml(item.reason || "-")}</td><td><span class="${requestStatusClass(item.status)}">${escapeHtml(item.statusLabel)}</span></td><td>${actions}</td></tr>`;
+      }).join("") : '<tr><td colspan="8">Tidak ada request masuk sesuai filter.</td></tr>';
+      renderPagination(incomingPagination, pagination, "incoming");
+    }
+    function renderOutgoing(items, pagination) {
+      const startNo = ((pagination.page || 1) - 1) * (pagination.pageSize || 5);
+      outgoingRows.innerHTML = items.length ? items.map((item, idx) => {
+        const targetLabel = item.mode === "swap" ? item.targetLabel : "Pengganti: " + item.targetName;
+        const actions = item.canCancel ? `<button class="btn danger small" data-action="cancel" data-id="${item.id}">Cancel</button>` : "-";
+        return `<tr><td>${startNo + idx + 1}</td><td>${escapeHtml(item.myLabel)}</td><td><strong>${escapeHtml(item.targetName)}</strong></td><td>${escapeHtml(item.modeLabel)}<br><small>${escapeHtml(item.typeLabel)}</small></td><td>${escapeHtml(targetLabel || "-")}</td><td>${escapeHtml(item.reason || "-")}</td><td><span class="${requestStatusClass(item.status)}">${escapeHtml(item.statusLabel)}</span></td><td>${actions}</td></tr>`;
+      }).join("") : '<tr><td colspan="8">Tidak ada request keluar sesuai filter.</td></tr>';
+      renderPagination(outgoingPagination, pagination, "outgoing");
+    }
+    async function handleAction(action, id) {
+      try {
+        if (action === "cancel") {
+          if (!confirm("Batalkan request ini?")) return;
+          await apiFetch(`/api/task-exchanges/${encodeURIComponent(id)}/cancel`, { method: "POST" });
+        } else if (action === "accept" || action === "reject") {
+          const label = action === "accept" ? "menerima" : "menolak";
+          if (!confirm(`Yakin ingin ${label} request ini?`)) return;
+          await apiFetch(`/api/task-exchanges/${encodeURIComponent(id)}/respond`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) });
+        }
+        await loadOptions();
+        await loadTables();
+      } catch (err) { showToast(err.message); }
+    }
     function updateLiveDateTime() {
       const now = new Date();
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-      document.getElementById("liveDateTime").textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+      document.getElementById("liveDateTime").textContent = now.toLocaleString("id-ID", { weekday:"long", day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit", second:"2-digit" }).replace("pukul", "");
     }
-
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
-        }
-      } catch (error) {
-      }
-    }
-
-    document.querySelectorAll(".menu-toggle").forEach(function (button) {
-      button.addEventListener("click", function () {
-        const group = button.closest(".menu-group");
-        group.classList.toggle("open");
-        const mark = button.querySelector("span");
-        mark.textContent = group.classList.contains("open") ? "-" : "+";
-      });
-    });
-
     function setSidebarOpen(isOpen) {
       sidebar.classList.toggle("show", isOpen);
       sidebarBackdrop.classList.toggle("show", isOpen);
       mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
       document.body.style.overflow = isOpen ? "hidden" : "";
     }
-
-    mobileMenuBtn.addEventListener("click", function () {
-      setSidebarOpen(!sidebar.classList.contains("show"));
+    document.querySelectorAll(".menu-toggle").forEach(btn => btn.addEventListener("click", () => {
+      const group = btn.closest(".menu-group"); group.classList.toggle("open");
+      const mark = btn.querySelector("span"); if (mark) mark.textContent = group.classList.contains("open") ? "-" : "+";
+    }));
+    mobileMenuBtn.addEventListener("click", () => setSidebarOpen(!sidebar.classList.contains("show")));
+    sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
+    modeSwap.addEventListener("change", toggleMode);
+    modeSubstitute.addEventListener("change", toggleMode);
+    [formMonth, formYear, formType].forEach(el => el.addEventListener("change", loadOptions));
+    submitSwapBtn.addEventListener("click", submitRequest);
+    resetSwapBtn.addEventListener("click", () => { reasonInput.value = ""; renderFormOptions(); });
+    [swapSearch, requestTypeFilter, requestStatusFilter, requestSortFilter].forEach(el => {
+      el.addEventListener("input", () => { state.incomingPage = 1; state.outgoingPage = 1; loadTables(); });
+      el.addEventListener("change", () => { state.incomingPage = 1; state.outgoingPage = 1; loadTables(); });
     });
-
-    sidebarBackdrop.addEventListener("click", function () {
-      setSidebarOpen(false);
+    incomingRows.addEventListener("click", e => { const btn = e.target.closest("button[data-action]"); if (btn) handleAction(btn.dataset.action, btn.dataset.id); });
+    outgoingRows.addEventListener("click", e => { const btn = e.target.closest("button[data-action]"); if (btn) handleAction(btn.dataset.action, btn.dataset.id); });
+    document.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-page-type]");
+      if (!btn) return;
+      const delta = Number(btn.dataset.pageDelta || 0);
+      if (btn.dataset.pageType === "incoming") state.incomingPage = Math.max(1, state.incomingPage + delta);
+      if (btn.dataset.pageType === "outgoing") state.outgoingPage = Math.max(1, state.outgoingPage + delta);
+      loadTables();
     });
-
-    document.querySelectorAll(".sidebar a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        if (window.matchMedia("(max-width: 1080px)").matches) {
-          setSidebarOpen(false);
-        }
-      });
-    });
-
-    // Mode switching
-    modeSwapRadio.addEventListener("change", function () {
-      if (this.checked) {
-        tukeranForm.style.display = "block";
-        substitutForm.style.display = "none";
-      }
-    });
-
-    modeSubstituteRadio.addEventListener("change", function () {
-      if (this.checked) {
-        tukeranForm.style.display = "none";
-        substitutForm.style.display = "block";
-      }
-    });
-
-    submitSwapBtn.addEventListener("click", submitSwapRequest);
-    resetSwapBtn.addEventListener("click", function () {
-      const mode = document.querySelector("input[name='swapMode']:checked").value;
-      if (mode === "tukeran") {
-        swapReason.value = "";
-        myTaskSelect.selectedIndex = 0;
-        refreshComboFromSelect(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
-        swapSlotSelect.value = "";
-        refreshComboFromSelect(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
-        targetFriendSelect.innerHTML = '<option value="">-- Pilih slot dulu --</option>';
-        refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
-      } else {
-        swapReasonSub.value = "";
-        myTaskSelectSub.selectedIndex = 0;
-        refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
-        targetFriendSelectSub.selectedIndex = 0;
-        refreshComboFromSelect(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
-      }
-    });
-
-    incomingRows.addEventListener("click", function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLButtonElement)) {
-        return;
-      }
-      const action = target.getAttribute("data-action");
-      const id = target.getAttribute("data-id");
-      if (!action || !id) {
-        return;
-      }
-      handleIncomingAction(action, id);
-    });
-
-    outgoingRows.addEventListener("click", function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLButtonElement)) {
-        return;
-      }
-      const action = target.getAttribute("data-action");
-      const id = target.getAttribute("data-id");
-      if (!action || !id) {
-        return;
-      }
-      handleOutgoingAction(action, id);
-    });
-
-    swapSearch.addEventListener("input", renderSwapTables);
-    swapMonthFilter.addEventListener("change", renderSwapTables);
-    swapYearFilter.addEventListener("change", renderSwapTables);
-    swapSlotSelect.addEventListener("change", updateFriendsBySelectedSlot);
-
-    initCombo(myTaskSelect, myTaskCombo, "-- pilih jadwal saya --");
-    initCombo(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
-    initCombo(swapSlotSelect, swapSlotCombo, "-- pilih jadwal tukar --");
-    initCombo(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
-    initCombo(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
-
-    document.addEventListener("click", function (event) {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const insideCombo = event.target.closest(".slot-combo");
-      if (!insideCombo) {
-        closeAllComboPanels();
-      }
-    });
-
-    seedIfEmpty();
-    setYearFilterOptions();
-    const now = new Date();
-    swapMonthFilter.value = String(now.getMonth());
-    swapYearFilter.value = String(now.getFullYear());
-    renderSwapSlotOptions();
-    renderTaskSelects();
-    refreshComboFromSelect(myTaskSelectSub, myTaskSubCombo, "-- pilih jadwal saya --");
-    refreshComboFromSelect(targetFriendSelectSub, targetFriendSubCombo, "-- pilih teman --");
-    refreshComboFromSelect(targetFriendSelect, friendTargetCombo, "-- pilih slot dulu --");
-    renderSwapTables();
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    async function init() {
+      populateMonthYear(); toggleMode(); updateLiveDateTime(); setInterval(updateLiveDateTime, 1000);
+      await loadMe(); await loadOptions(); await loadTables();
+    }
+    init();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

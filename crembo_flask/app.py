@@ -8275,6 +8275,950 @@ def api_cancel_tugas_cancel():
         cursor.close()
         conn.close()
 
+# -----------------------------------------------------------------------------
+# Penukaran Jadwal Tugas Anggota: tukeran / pengganti tugas
+# -----------------------------------------------------------------------------
+
+def ensure_task_exchange_schema(cursor=None) -> None:
+    ensure_task_request_schema(cursor)
+    ensure_notifications_schema()
+    owns_connection = cursor is None
+    conn = None
+    if owns_connection:
+        conn = mysql_connection()
+        cursor = conn.cursor(buffered=True)
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `task_exchange_requests` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `requester_id` varchar(50) NOT NULL,
+              `target_user_id` varchar(50) NOT NULL,
+              `kind` varchar(20) NOT NULL DEFAULT 'biasa',
+              `request_mode` varchar(30) NOT NULL DEFAULT 'swap',
+              `my_assignment_id` int(11) DEFAULT NULL,
+              `my_misa_id` int(11) DEFAULT NULL,
+              `my_role_id` int(11) DEFAULT NULL,
+              `my_type_label` varchar(80) DEFAULT NULL,
+              `my_misa_name` varchar(255) DEFAULT NULL,
+              `my_role_name` varchar(255) DEFAULT NULL,
+              `my_schedule_date` date DEFAULT NULL,
+              `my_schedule_time` time DEFAULT NULL,
+              `target_assignment_id` int(11) DEFAULT NULL,
+              `target_misa_id` int(11) DEFAULT NULL,
+              `target_role_id` int(11) DEFAULT NULL,
+              `target_type_label` varchar(80) DEFAULT NULL,
+              `target_misa_name` varchar(255) DEFAULT NULL,
+              `target_role_name` varchar(255) DEFAULT NULL,
+              `target_schedule_date` date DEFAULT NULL,
+              `target_schedule_time` time DEFAULT NULL,
+              `reason` text DEFAULT NULL,
+              `status` varchar(30) NOT NULL DEFAULT 'pending',
+              `response_note` text DEFAULT NULL,
+              `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              `responded_at` datetime DEFAULT NULL,
+              `cancelled_at` datetime DEFAULT NULL,
+              `auto_cancelled_at` datetime DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              KEY `idx_exchange_requester` (`requester_id`),
+              KEY `idx_exchange_target` (`target_user_id`),
+              KEY `idx_exchange_status` (`status`),
+              KEY `idx_exchange_my_date` (`my_schedule_date`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        for col, definition in {
+            "request_mode": "`request_mode` varchar(30) NOT NULL DEFAULT 'swap'",
+            "my_assignment_id": "`my_assignment_id` int(11) DEFAULT NULL",
+            "my_misa_id": "`my_misa_id` int(11) DEFAULT NULL",
+            "my_role_id": "`my_role_id` int(11) DEFAULT NULL",
+            "my_type_label": "`my_type_label` varchar(80) DEFAULT NULL",
+            "my_misa_name": "`my_misa_name` varchar(255) DEFAULT NULL",
+            "my_role_name": "`my_role_name` varchar(255) DEFAULT NULL",
+            "my_schedule_date": "`my_schedule_date` date DEFAULT NULL",
+            "my_schedule_time": "`my_schedule_time` time DEFAULT NULL",
+            "target_assignment_id": "`target_assignment_id` int(11) DEFAULT NULL",
+            "target_misa_id": "`target_misa_id` int(11) DEFAULT NULL",
+            "target_role_id": "`target_role_id` int(11) DEFAULT NULL",
+            "target_type_label": "`target_type_label` varchar(80) DEFAULT NULL",
+            "target_misa_name": "`target_misa_name` varchar(255) DEFAULT NULL",
+            "target_role_name": "`target_role_name` varchar(255) DEFAULT NULL",
+            "target_schedule_date": "`target_schedule_date` date DEFAULT NULL",
+            "target_schedule_time": "`target_schedule_time` time DEFAULT NULL",
+            "response_note": "`response_note` text DEFAULT NULL",
+            "responded_at": "`responded_at` datetime DEFAULT NULL",
+            "cancelled_at": "`cancelled_at` datetime DEFAULT NULL",
+            "auto_cancelled_at": "`auto_cancelled_at` datetime DEFAULT NULL",
+        }.items():
+            ensure_column(cursor, "task_exchange_requests", col, definition)
+        if conn:
+            conn.commit()
+    finally:
+        if owns_connection:
+            cursor.close()
+            conn.close()
+
+
+def exchange_current_member(cursor, *, require_active: bool = True):
+    if not session.get("logged_in"):
+        return None, (jsonify({"success": False, "error": "Anda harus login terlebih dahulu."}), 401)
+    user_id = session.get("user_id")
+    if not user_id:
+        return None, (jsonify({"success": False, "error": "Sesi tidak valid."}), 401)
+    cursor.execute(
+        """
+        SELECT id, nama, role, status_akun
+        FROM anggota
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+    member = cursor.fetchone()
+    if not member:
+        return None, (jsonify({"success": False, "error": "Akun tidak ditemukan."}), 404)
+    if require_active and normalize_status(member.get("status_akun") or "aktif") != "aktif":
+        return None, (jsonify({"success": False, "error": "Akun Anda sedang nonaktif."}), 403)
+    member["id"] = str(member.get("id"))
+    member["name"] = normalize_text(member.get("nama")) or "Anggota"
+    member["roleNormalized"] = normalize_role_value(member.get("role") or "user")
+    return member, None
+
+
+def exchange_date_is_eligible(date_text: str) -> bool:
+    """Penukaran hanya bisa untuk jadwal besok atau setelahnya; hari-H tidak bisa."""
+    try:
+        return datetime.strptime(normalize_text(date_text), "%Y-%m-%d").date() > datetime.now().date()
+    except Exception:
+        return False
+
+
+def exchange_status_label(status: str) -> str:
+    return {
+        "pending": "Menunggu",
+        "accepted": "Diterima",
+        "rejected": "Ditolak",
+        "cancelled": "Dibatalkan",
+        "auto_cancelled": "Batal Otomatis",
+    }.get(normalize_text(status).lower(), normalize_text(status) or "Menunggu")
+
+
+def exchange_mode_label(mode: str) -> str:
+    return "Menggantikan" if normalize_text(mode).lower() in {"substitute", "menggantikan"} else "Tukeran"
+
+
+def exchange_kind_label(kind: str) -> str:
+    return "Misa Besar" if normalize_text(kind).lower() == "besar" else "Misa Biasa"
+
+
+def exchange_member_role_for_target(cursor, member_id: object) -> str:
+    cursor.execute("SELECT role FROM anggota WHERE id = %s LIMIT 1", (member_id,))
+    row = cursor.fetchone()
+    return normalize_role_value((row or {}).get("role") or "user") if isinstance(row, dict) else "user"
+
+
+def exchange_task_label_from_parts(name: str, date_text: str, time_text: str, role: str) -> str:
+    return f"{normalize_text(name) or 'Misa'} - {request_task_day_name(date_text)}, {request_task_format_date(date_text)} {format_time_hhmm(time_text)} WIB ({normalize_text(role) or 'Role'})"
+
+
+def exchange_format_row(row: dict[str, object]) -> dict[str, object]:
+    date_text = normalize_text(row.get("date") or row.get("schedule_date") or row.get("my_schedule_date"))
+    time_text = format_time_hhmm(row.get("time") or row.get("schedule_time") or row.get("my_schedule_time"))
+    kind = normalize_text(row.get("kind") or row.get("type") or "biasa").lower()
+    type_label = normalize_text(row.get("type_label") or row.get("typeLabel")) or exchange_kind_label(kind)
+    misa_name = normalize_text(row.get("misa_name") or row.get("mass_name") or row.get("misaName")) or type_label
+    role = normalize_text(row.get("role") or row.get("role_name") or row.get("roleName")) or "Role"
+    member_id = normalize_text(row.get("member_id") or row.get("memberId"))
+    member_name = normalize_text(row.get("member_name") or row.get("memberName")) or "Anggota"
+    assignment_id = row.get("assignment_id") or row.get("assignmentId")
+    return {
+        "assignmentId": assignment_id,
+        "id": f"{kind}:{assignment_id}",
+        "type": kind,
+        "typeLabel": type_label,
+        "misaId": row.get("misa_id") or row.get("misaId"),
+        "roleId": row.get("role_id") or row.get("roleId"),
+        "misaName": misa_name,
+        "date": date_text,
+        "dateLabel": request_task_format_date(date_text),
+        "dayName": request_task_day_name(date_text),
+        "time": time_text,
+        "role": role,
+        "memberId": member_id,
+        "memberName": member_name,
+        "label": exchange_task_label_from_parts(misa_name, date_text, time_text, role),
+    }
+
+
+def exchange_fetch_assignment(cursor, *, kind: str, assignment_id: object | None = None, member_id: object | None = None, for_update: bool = False) -> dict[str, object] | None:
+    clean_kind = normalize_text(kind).lower()
+    lock_clause = " FOR UPDATE" if for_update else ""
+    params: list[object] = []
+    if clean_kind == "besar":
+        where_parts = []
+        if assignment_id is not None:
+            where_parts.append("a.id = %s")
+            params.append(assignment_id)
+        if member_id is not None:
+            where_parts.append("a.member_id = %s")
+            params.append(member_id)
+        if not where_parts:
+            return None
+        cursor.execute(
+            f"""
+            SELECT a.id AS assignment_id, a.member_id, COALESCE(mem.nama, CONCAT('ID ', a.member_id)) AS member_name,
+                   mb.id AS misa_id, n.id AS role_id, mb.misa_name,
+                   DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name AS role, 'besar' AS kind, 'Misa Besar' AS type_label
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            LEFT JOIN anggota mem ON mem.id = a.member_id
+            WHERE {' AND '.join(where_parts)} AND mb.status = 'published'
+            LIMIT 1{lock_clause}
+            """,
+            tuple(params),
+        )
+    else:
+        where_parts = []
+        if assignment_id is not None:
+            where_parts.append("sa.id = %s")
+            params.append(assignment_id)
+        if member_id is not None:
+            where_parts.append("sa.member_id = %s")
+            params.append(member_id)
+        if not where_parts:
+            return None
+        cursor.execute(
+            f"""
+            SELECT sa.id AS assignment_id, sa.member_id, COALESCE(mem.nama, CONCAT('ID ', sa.member_id)) AS member_name,
+                   NULL AS misa_id, NULL AS role_id,
+                   COALESCE(cfg.mass_name, 'Misa Biasa') AS misa_name,
+                   DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name AS role, 'biasa' AS kind, 'Misa Biasa' AS type_label
+            FROM streaming_assignments sa
+            LEFT JOIN anggota mem ON mem.id = sa.member_id
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE {' AND '.join(where_parts)}
+            LIMIT 1{lock_clause}
+            """,
+            tuple(params),
+        )
+    row = cursor.fetchone()
+    return exchange_format_row(row) if row else None
+
+
+def exchange_fetch_user_tasks(cursor, *, member_id: object, kind: str, month: int, year: int) -> list[dict[str, object]]:
+    today = datetime.now().date()
+    start_date = f"{year:04d}-{month:02d}-01"
+    end_date = f"{year:04d}-{month:02d}-{calendar.monthrange(year, month)[1]:02d}"
+    items: list[dict[str, object]] = []
+    clean_kind = normalize_text(kind).lower()
+    if clean_kind in {"all", "biasa"}:
+        cursor.execute(
+            """
+            SELECT sa.id AS assignment_id, sa.member_id, COALESCE(mem.nama, CONCAT('ID ', sa.member_id)) AS member_name,
+                   COALESCE(cfg.mass_name, 'Misa Biasa') AS misa_name,
+                   DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name AS role, 'biasa' AS kind, 'Misa Biasa' AS type_label
+            FROM streaming_assignments sa
+            LEFT JOIN anggota mem ON mem.id = sa.member_id
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE sa.member_id = %s AND sa.schedule_date BETWEEN %s AND %s AND sa.schedule_date > %s
+            ORDER BY sa.schedule_date ASC, sa.schedule_time ASC
+            """,
+            (member_id, start_date, end_date, today),
+        )
+        items.extend(exchange_format_row(row) for row in (cursor.fetchall() or []))
+    if clean_kind in {"all", "besar"}:
+        cursor.execute(
+            """
+            SELECT a.id AS assignment_id, a.member_id, COALESCE(mem.nama, CONCAT('ID ', a.member_id)) AS member_name,
+                   mb.id AS misa_id, n.id AS role_id, mb.misa_name,
+                   DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name AS role, 'besar' AS kind, 'Misa Besar' AS type_label
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            LEFT JOIN anggota mem ON mem.id = a.member_id
+            WHERE a.member_id = %s AND mb.status = 'published' AND mb.misa_date BETWEEN %s AND %s AND mb.misa_date > %s
+            ORDER BY mb.misa_date ASC, mb.misa_time ASC
+            """,
+            (member_id, start_date, end_date, today),
+        )
+        items.extend(exchange_format_row(row) for row in (cursor.fetchall() or []))
+    items.sort(key=lambda item: (item.get("date") or "", item.get("time") or ""))
+    return items
+
+
+def exchange_fetch_target_tasks(cursor, *, current_member_id: object, kind: str, month: int, year: int) -> list[dict[str, object]]:
+    today = datetime.now().date()
+    start_date = f"{year:04d}-{month:02d}-01"
+    end_date = f"{year:04d}-{month:02d}-{calendar.monthrange(year, month)[1]:02d}"
+    items: list[dict[str, object]] = []
+    clean_kind = normalize_text(kind).lower()
+    if clean_kind == "biasa":
+        cursor.execute(
+            """
+            SELECT sa.id AS assignment_id, sa.member_id, COALESCE(mem.nama, CONCAT('ID ', sa.member_id)) AS member_name,
+                   COALESCE(cfg.mass_name, 'Misa Biasa') AS misa_name,
+                   DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name AS role, 'biasa' AS kind, 'Misa Biasa' AS type_label
+            FROM streaming_assignments sa
+            JOIN anggota mem ON mem.id = sa.member_id
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE sa.member_id <> %s AND mem.status_akun = 'aktif'
+              AND sa.schedule_date BETWEEN %s AND %s AND sa.schedule_date > %s
+            ORDER BY sa.schedule_date ASC, sa.schedule_time ASC
+            """,
+            (current_member_id, start_date, end_date, today),
+        )
+        items.extend(exchange_format_row(row) for row in (cursor.fetchall() or []))
+    elif clean_kind == "besar":
+        cursor.execute(
+            """
+            SELECT a.id AS assignment_id, a.member_id, COALESCE(mem.nama, CONCAT('ID ', a.member_id)) AS member_name,
+                   mb.id AS misa_id, n.id AS role_id, mb.misa_name,
+                   DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name AS role, 'besar' AS kind, 'Misa Besar' AS type_label
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            JOIN anggota mem ON mem.id = a.member_id
+            WHERE a.member_id <> %s AND mem.status_akun = 'aktif' AND mb.status = 'published'
+              AND mb.misa_date BETWEEN %s AND %s AND mb.misa_date > %s
+            ORDER BY mb.misa_date ASC, mb.misa_time ASC
+            """,
+            (current_member_id, start_date, end_date, today),
+        )
+        items.extend(exchange_format_row(row) for row in (cursor.fetchall() or []))
+    return items
+
+
+def exchange_fetch_active_members(cursor, *, exclude_member_id: object | None = None) -> list[dict[str, object]]:
+    params: list[object] = []
+    where = "WHERE status_akun = 'aktif'"
+    if exclude_member_id is not None:
+        where += " AND id <> %s"
+        params.append(exclude_member_id)
+    cursor.execute(
+        f"""
+        SELECT id, nama, role
+        FROM anggota
+        {where}
+        ORDER BY FIELD(role, 'user', 'admin', 'super_admin'), nama ASC
+        """,
+        tuple(params),
+    )
+    results = []
+    for row in cursor.fetchall() or []:
+        role_value = normalize_role_value(row.get("role") or "user")
+        results.append({
+            "id": str(row.get("id")),
+            "name": normalize_text(row.get("nama")) or f"Anggota {row.get('id')}",
+            "role": role_value,
+            "roleLabel": "Super Admin" if role_value == "super_admin" else ("Admin" if role_value == "admin" else "Anggota"),
+        })
+    return results
+
+
+def exchange_has_pending_for_assignment(cursor, requester_id: object, kind: str, assignment_id: object, exclude_id: object | None = None) -> bool:
+    params: list[object] = [str(requester_id), normalize_text(kind).lower(), assignment_id]
+    extra = ""
+    if exclude_id is not None:
+        extra = " AND id <> %s"
+        params.append(exclude_id)
+    cursor.execute(
+        f"""
+        SELECT id FROM task_exchange_requests
+        WHERE requester_id = %s AND kind = %s AND my_assignment_id = %s AND status = 'pending'{extra}
+        LIMIT 1
+        """,
+        tuple(params),
+    )
+    return cursor.fetchone() is not None
+
+
+def exchange_member_already_in_schedule(cursor, *, kind: str, member_id: object, date_text: str, time_text: str, misa_id: object | None = None, exclude_assignment_id: object | None = None) -> bool:
+    clean_kind = normalize_text(kind).lower()
+    params: list[object] = []
+    if clean_kind == "besar":
+        where = "a.member_id = %s AND mb.id = %s"
+        params = [member_id, misa_id]
+        if exclude_assignment_id is not None:
+            where += " AND a.id <> %s"
+            params.append(exclude_assignment_id)
+        cursor.execute(
+            f"""
+            SELECT a.id FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            WHERE {where}
+            LIMIT 1
+            """,
+            tuple(params),
+        )
+    else:
+        where = "member_id = %s AND schedule_date = %s AND DATE_FORMAT(schedule_time, '%H:%i') = %s"
+        params = [member_id, date_text, format_time_hhmm(time_text)]
+        if exclude_assignment_id is not None:
+            where += " AND id <> %s"
+            params.append(exclude_assignment_id)
+        cursor.execute(f"SELECT id FROM streaming_assignments WHERE {where} LIMIT 1", tuple(params))
+    return cursor.fetchone() is not None
+
+
+def exchange_insert_notification(cursor, *, target_user_id: object, target_role: str | None, title: str, body: str, request_id: object, status: str = "pending", url: str | None = None):
+    role_norm = normalize_role_value(target_role or exchange_member_role_for_target(cursor, target_user_id))
+    return create_notification(
+        cursor,
+        "tukar",
+        title,
+        body,
+        url,
+        {
+            "target_user_id": str(target_user_id),
+            "exchange_request_id": int(request_id) if str(request_id).isdigit() else request_id,
+            "exchange_status": status,
+        },
+        target_role=role_norm,
+    )
+
+
+def exchange_notify_new_request(cursor, request_row: dict[str, object]):
+    target_role = exchange_member_role_for_target(cursor, request_row.get("target_user_id"))
+    requester_name = normalize_text(request_row.get("requester_name")) or "Teman"
+    mode_label = exchange_mode_label(request_row.get("request_mode"))
+    my_label = exchange_task_label_from_parts(request_row.get("my_misa_name"), normalize_text(request_row.get("my_schedule_date")), request_row.get("my_schedule_time"), request_row.get("my_role_name"))
+    if normalize_text(request_row.get("request_mode")).lower() in {"substitute", "menggantikan"}:
+        title = f"Permintaan Pengganti dari {requester_name}"
+        body = f"<b>{html.escape(requester_name)}</b> meminta Anda menggantikan tugas <b>{html.escape(str(request_row.get('my_role_name') or 'Role'))}</b> pada <b>{html.escape(str(request_row.get('my_misa_name') or 'Misa'))}</b>, {html.escape(request_task_day_name(normalize_text(request_row.get('my_schedule_date'))))}, {html.escape(request_task_format_date(normalize_text(request_row.get('my_schedule_date'))))} jam {html.escape(format_time_hhmm(request_row.get('my_schedule_time')))} WIB."
+    else:
+        target_label = exchange_task_label_from_parts(request_row.get("target_misa_name"), normalize_text(request_row.get("target_schedule_date")), request_row.get("target_schedule_time"), request_row.get("target_role_name"))
+        title = f"Permintaan Tukar Jadwal dari {requester_name}"
+        body = f"<b>{html.escape(requester_name)}</b> mengajak tukeran jadwal. Jadwal dia: {html.escape(my_label)}. Jadwal Anda: {html.escape(target_label)}."
+    url = None if target_role in {"admin", "super_admin"} else "/penukaran-jadwal-tugas-anggota.html"
+    exchange_insert_notification(cursor, target_user_id=request_row.get("target_user_id"), target_role=target_role, title=title, body=body, request_id=request_row.get("id"), status="pending", url=url)
+
+
+def exchange_notify_requester_result(cursor, request_row: dict[str, object], status: str):
+    status_label = exchange_status_label(status)
+    target_name = normalize_text(request_row.get("target_name")) or "Teman"
+    title_map = {
+        "accepted": "Penukaran Jadwal Diterima",
+        "rejected": "Penukaran Jadwal Ditolak",
+        "cancelled": "Penukaran Jadwal Dibatalkan",
+        "auto_cancelled": "Penukaran Jadwal Batal Otomatis",
+    }
+    title = title_map.get(status, f"Status Penukaran: {status_label}")
+    my_label = exchange_task_label_from_parts(request_row.get("my_misa_name"), normalize_text(request_row.get("my_schedule_date")), request_row.get("my_schedule_time"), request_row.get("my_role_name"))
+    if status == "accepted":
+        body = f"Permintaan Anda sudah <b>diterima</b> oleh <b>{html.escape(target_name)}</b>. Jadwal terkait: {html.escape(my_label)}."
+    elif status == "rejected":
+        body = f"Permintaan Anda <b>ditolak</b> oleh <b>{html.escape(target_name)}</b>. Jadwal terkait: {html.escape(my_label)}."
+    elif status == "cancelled":
+        body = f"Permintaan penukaran/pengganti untuk jadwal {html.escape(my_label)} sudah dibatalkan."
+    else:
+        body = f"Permintaan penukaran/pengganti untuk jadwal {html.escape(my_label)} otomatis dibatalkan karena belum direspons sampai hari-H jadwal."
+    exchange_insert_notification(cursor, target_user_id=request_row.get("requester_id"), target_role="user", title=title, body=body, request_id=request_row.get("id"), status=status, url="/penukaran-jadwal-tugas-anggota.html")
+
+
+def exchange_fetch_request_row(cursor, request_id: object, for_update: bool = False) -> dict[str, object] | None:
+    lock_clause = " FOR UPDATE" if for_update else ""
+    cursor.execute(
+        f"""
+        SELECT er.*, req.nama AS requester_name, tgt.nama AS target_name,
+               req.role AS requester_role, tgt.role AS target_role
+        FROM task_exchange_requests er
+        LEFT JOIN anggota req ON req.id = er.requester_id
+        LEFT JOIN anggota tgt ON tgt.id = er.target_user_id
+        WHERE er.id = %s
+        LIMIT 1{lock_clause}
+        """,
+        (request_id,),
+    )
+    return cursor.fetchone()
+
+
+def exchange_expire_pending_requests(cursor) -> int:
+    today = datetime.now().date()
+    cursor.execute(
+        """
+        SELECT er.*, req.nama AS requester_name, tgt.nama AS target_name,
+               req.role AS requester_role, tgt.role AS target_role
+        FROM task_exchange_requests er
+        LEFT JOIN anggota req ON req.id = er.requester_id
+        LEFT JOIN anggota tgt ON tgt.id = er.target_user_id
+        WHERE er.status = 'pending' AND er.my_schedule_date <= %s
+        """,
+        (today,),
+    )
+    rows = cursor.fetchall() or []
+    for row in rows:
+        cursor.execute(
+            """
+            UPDATE task_exchange_requests
+            SET status = 'auto_cancelled', auto_cancelled_at = NOW(), updated_at = NOW()
+            WHERE id = %s AND status = 'pending'
+            """,
+            (row.get("id"),),
+        )
+        row["status"] = "auto_cancelled"
+        exchange_notify_requester_result(cursor, row, "auto_cancelled")
+        exchange_insert_notification(
+            cursor,
+            target_user_id=row.get("target_user_id"),
+            target_role=row.get("target_role"),
+            title="Permintaan Tukar Jadwal Batal Otomatis",
+            body="Permintaan tukar/ganti tugas otomatis dibatalkan karena belum direspons sampai hari-H jadwal.",
+            request_id=row.get("id"),
+            status="auto_cancelled",
+            url=None if normalize_role_value(row.get("target_role") or "user") in {"admin", "super_admin"} else "/penukaran-jadwal-tugas-anggota.html",
+        )
+    return len(rows)
+
+
+def exchange_request_to_dict(row: dict[str, object], *, direction: str) -> dict[str, object]:
+    status = normalize_text(row.get("status") or "pending").lower()
+    my_date = normalize_text(row.get("my_schedule_date"))
+    target_date = normalize_text(row.get("target_schedule_date"))
+    created_at = row.get("created_at")
+    responded_at = row.get("responded_at")
+    return {
+        "id": row.get("id"),
+        "direction": direction,
+        "type": normalize_text(row.get("kind")) or "biasa",
+        "typeLabel": exchange_kind_label(row.get("kind")),
+        "mode": normalize_text(row.get("request_mode")) or "swap",
+        "modeLabel": exchange_mode_label(row.get("request_mode")),
+        "requesterId": str(row.get("requester_id") or ""),
+        "requesterName": normalize_text(row.get("requester_name")) or "Anggota",
+        "targetUserId": str(row.get("target_user_id") or ""),
+        "targetName": normalize_text(row.get("target_name")) or "Teman",
+        "myAssignmentId": row.get("my_assignment_id"),
+        "targetAssignmentId": row.get("target_assignment_id"),
+        "myMisaName": normalize_text(row.get("my_misa_name")),
+        "myRole": normalize_text(row.get("my_role_name")),
+        "myDate": my_date,
+        "myDateLabel": request_task_format_date(my_date),
+        "myDayName": request_task_day_name(my_date),
+        "myTime": format_time_hhmm(row.get("my_schedule_time")),
+        "myLabel": exchange_task_label_from_parts(row.get("my_misa_name"), my_date, row.get("my_schedule_time"), row.get("my_role_name")),
+        "targetMisaName": normalize_text(row.get("target_misa_name")),
+        "targetRole": normalize_text(row.get("target_role_name")),
+        "targetDate": target_date,
+        "targetDateLabel": request_task_format_date(target_date),
+        "targetDayName": request_task_day_name(target_date),
+        "targetTime": format_time_hhmm(row.get("target_schedule_time")),
+        "targetLabel": exchange_task_label_from_parts(row.get("target_misa_name"), target_date, row.get("target_schedule_time"), row.get("target_role_name")) if target_date else "-",
+        "reason": normalize_text(row.get("reason")),
+        "status": status,
+        "statusLabel": exchange_status_label(status),
+        "canAct": status == "pending" and direction == "incoming" and exchange_date_is_eligible(my_date),
+        "canCancel": status == "pending" and direction == "outgoing" and exchange_date_is_eligible(my_date),
+        "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at),
+        "createdAtLabel": created_at.strftime("%d/%m/%Y %H:%M") if hasattr(created_at, "strftime") else normalize_text(created_at),
+        "respondedAt": responded_at.isoformat() if hasattr(responded_at, "isoformat") else normalize_text(responded_at),
+    }
+
+
+def exchange_filter_requests(items: list[dict[str, object]], search_text: str = "") -> list[dict[str, object]]:
+    keyword = normalize_text(search_text).lower()
+    if not keyword:
+        return items
+    filtered = []
+    for item in items:
+        haystack = " ".join([
+            normalize_text(item.get("requesterName")), normalize_text(item.get("targetName")),
+            normalize_text(item.get("myLabel")), normalize_text(item.get("targetLabel")),
+            normalize_text(item.get("myRole")), normalize_text(item.get("targetRole")),
+            normalize_text(item.get("reason")), normalize_text(item.get("statusLabel")),
+            normalize_text(item.get("typeLabel")), normalize_text(item.get("modeLabel")),
+        ]).lower()
+        if keyword in haystack:
+            filtered.append(item)
+    return filtered
+
+
+def exchange_paginate(items: list[dict[str, object]], page: int, page_size: int = 5):
+    total = len(items)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    page = max(1, min(page, total_pages))
+    start = (page - 1) * page_size
+    return items[start:start + page_size], {"page": page, "pageSize": page_size, "total": total, "totalPages": total_pages, "hasPrev": page > 1, "hasNext": page < total_pages}
+
+
+@app.route("/api/task-exchanges/me", methods=["GET"])
+def api_task_exchanges_me():
+    ensure_task_exchange_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = exchange_current_member(cursor)
+        if error:
+            return error
+        return jsonify({"success": True, "member": {"id": member["id"], "name": member["name"], "role": member["roleNormalized"]}})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/task-exchanges/options", methods=["GET"])
+def api_task_exchanges_options():
+    ensure_task_exchange_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        exchange_expire_pending_requests(cursor)
+        conn.commit()
+        now = datetime.now()
+        month = min(12, max(1, parse_required_int(request.args.get("month"), now.month)))
+        year = parse_required_int(request.args.get("year"), now.year)
+        kind = normalize_text(request.args.get("type")) or "biasa"
+        if kind not in {"biasa", "besar"}:
+            kind = "biasa"
+        my_tasks = exchange_fetch_user_tasks(cursor, member_id=member["id"], kind=kind, month=month, year=year)
+        target_tasks = exchange_fetch_target_tasks(cursor, current_member_id=member["id"], kind=kind, month=month, year=year)
+        active_members = exchange_fetch_active_members(cursor, exclude_member_id=member["id"])
+        for task in my_tasks:
+            task["hasPendingRequest"] = exchange_has_pending_for_assignment(cursor, member["id"], task.get("type"), task.get("assignmentId"))
+        return jsonify({"success": True, "myTasks": my_tasks, "targetTasks": target_tasks, "members": active_members, "filters": {"month": month, "year": year, "type": kind}})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/task-exchanges", methods=["POST"])
+def api_task_exchanges_create():
+    ensure_task_exchange_schema()
+    data = request.get_json(silent=True) or {}
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        requester_id = member["id"]
+        mode = normalize_text(data.get("mode") or data.get("requestMode") or "swap").lower()
+        if mode in {"tukeran", "swap"}:
+            mode = "swap"
+        elif mode in {"menggantikan", "substitute"}:
+            mode = "substitute"
+        else:
+            return jsonify({"success": False, "error": "Tipe request tidak valid."}), 400
+        kind = normalize_text(data.get("type") or data.get("kind") or "biasa").lower()
+        if kind not in {"biasa", "besar"}:
+            return jsonify({"success": False, "error": "Jenis misa tidak valid."}), 400
+        my_assignment_id = parse_optional_int(data.get("myAssignmentId"))
+        if my_assignment_id is None:
+            return jsonify({"success": False, "error": "Pilih jadwal Anda terlebih dahulu."}), 400
+        reason = normalize_text(data.get("reason"))
+        if not reason:
+            return jsonify({"success": False, "error": "Alasan wajib diisi."}), 400
+        my_task = exchange_fetch_assignment(cursor, kind=kind, assignment_id=my_assignment_id, member_id=requester_id, for_update=True)
+        if not my_task:
+            return jsonify({"success": False, "error": "Jadwal Anda tidak ditemukan atau bukan milik Anda."}), 404
+        if not exchange_date_is_eligible(my_task.get("date")):
+            return jsonify({"success": False, "error": "Penukaran hanya bisa diajukan minimal H-1. Jadwal hari ini atau yang sudah lewat tidak bisa diajukan."}), 400
+        if exchange_has_pending_for_assignment(cursor, requester_id, kind, my_assignment_id):
+            return jsonify({"success": False, "error": "Jadwal ini sudah memiliki request aktif. Batalkan request sebelumnya terlebih dahulu."}), 409
+
+        target_task = None
+        target_user_id = None
+        if mode == "swap":
+            target_assignment_id = parse_optional_int(data.get("targetAssignmentId"))
+            if target_assignment_id is None:
+                return jsonify({"success": False, "error": "Pilih jadwal teman yang ingin diajak tukeran."}), 400
+            target_task = exchange_fetch_assignment(cursor, kind=kind, assignment_id=target_assignment_id, for_update=True)
+            if not target_task:
+                return jsonify({"success": False, "error": "Jadwal teman tidak ditemukan."}), 404
+            if str(target_task.get("memberId")) == str(requester_id):
+                return jsonify({"success": False, "error": "Anda tidak bisa memilih jadwal sendiri sebagai jadwal tukar."}), 400
+            if not exchange_date_is_eligible(target_task.get("date")):
+                return jsonify({"success": False, "error": "Jadwal teman harus jadwal yang akan datang minimal H-1."}), 400
+            target_user_id = str(target_task.get("memberId"))
+        else:
+            target_user_id = normalize_text(data.get("targetUserId"))
+            if not target_user_id:
+                return jsonify({"success": False, "error": "Pilih teman pengganti."}), 400
+            if str(target_user_id) == str(requester_id):
+                return jsonify({"success": False, "error": "Teman pengganti tidak boleh diri sendiri."}), 400
+            cursor.execute("SELECT id, nama, role, status_akun FROM anggota WHERE id = %s LIMIT 1", (target_user_id,))
+            target_member = cursor.fetchone()
+            if not target_member or normalize_status(target_member.get("status_akun") or "aktif") != "aktif":
+                return jsonify({"success": False, "error": "Teman pengganti tidak ditemukan atau tidak aktif."}), 404
+            target_task = {"memberId": target_user_id, "memberName": normalize_text(target_member.get("nama")) or "Teman"}
+
+        cursor.execute(
+            """
+            INSERT INTO task_exchange_requests
+            (requester_id, target_user_id, kind, request_mode,
+             my_assignment_id, my_misa_id, my_role_id, my_type_label, my_misa_name, my_role_name, my_schedule_date, my_schedule_time,
+             target_assignment_id, target_misa_id, target_role_id, target_type_label, target_misa_name, target_role_name, target_schedule_date, target_schedule_time,
+             reason, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending')
+            """,
+            (
+                requester_id, target_user_id, kind, mode,
+                my_task.get("assignmentId"), my_task.get("misaId"), my_task.get("roleId"), my_task.get("typeLabel"), my_task.get("misaName"), my_task.get("role"), my_task.get("date"), format_time_hhmm(my_task.get("time")),
+                target_task.get("assignmentId") if mode == "swap" else None,
+                target_task.get("misaId") if mode == "swap" else None,
+                target_task.get("roleId") if mode == "swap" else None,
+                target_task.get("typeLabel") if mode == "swap" else None,
+                target_task.get("misaName") if mode == "swap" else None,
+                target_task.get("role") if mode == "swap" else None,
+                target_task.get("date") if mode == "swap" else None,
+                format_time_hhmm(target_task.get("time")) if mode == "swap" else None,
+                reason,
+            ),
+        )
+        req_id = cursor.lastrowid
+        row = exchange_fetch_request_row(cursor, req_id)
+        exchange_notify_new_request(cursor, row)
+        conn.commit()
+        return jsonify({"success": True, "message": "Request berhasil dikirim.", "request": exchange_request_to_dict(row, direction="outgoing")})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def exchange_list_requests(*, direction: str):
+    ensure_task_exchange_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = exchange_current_member(cursor)
+        if error:
+            return error
+        exchange_expire_pending_requests(cursor)
+        conn.commit()
+        member_id = member["id"]
+        search_text = normalize_text(request.args.get("search"))
+        sort_mode = normalize_text(request.args.get("sort")) or "created_desc"
+        page = max(1, parse_required_int(request.args.get("page"), 1))
+        page_size = max(1, min(25, parse_required_int(request.args.get("pageSize"), 5)))
+        status_filter = normalize_text(request.args.get("status")) or "all"
+        kind_filter = normalize_text(request.args.get("type")) or "all"
+        conditions = ["er.target_user_id = %s" if direction == "incoming" else "er.requester_id = %s"]
+        params: list[object] = [member_id]
+        if status_filter != "all":
+            conditions.append("er.status = %s")
+            params.append(status_filter)
+        if kind_filter in {"biasa", "besar"}:
+            conditions.append("er.kind = %s")
+            params.append(kind_filter)
+        where_clause = " AND ".join(conditions)
+        cursor.execute(
+            f"""
+            SELECT er.*, req.nama AS requester_name, tgt.nama AS target_name,
+                   req.role AS requester_role, tgt.role AS target_role
+            FROM task_exchange_requests er
+            LEFT JOIN anggota req ON req.id = er.requester_id
+            LEFT JOIN anggota tgt ON tgt.id = er.target_user_id
+            WHERE {where_clause}
+            """,
+            tuple(params),
+        )
+        items = [exchange_request_to_dict(row, direction=direction) for row in (cursor.fetchall() or [])]
+        items = exchange_filter_requests(items, search_text)
+        if sort_mode == "created_asc":
+            items.sort(key=lambda item: item.get("createdAt") or "")
+        elif sort_mode == "date_asc":
+            items.sort(key=lambda item: (item.get("myDate") or "", item.get("myTime") or ""))
+        elif sort_mode == "date_desc":
+            items.sort(key=lambda item: (item.get("myDate") or "", item.get("myTime") or ""), reverse=True)
+        else:
+            items.sort(key=lambda item: item.get("createdAt") or "", reverse=True)
+        page_items, pagination = exchange_paginate(items, page, page_size)
+        return jsonify({"success": True, "items": page_items, "pagination": pagination})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/task-exchanges/incoming", methods=["GET"])
+def api_task_exchanges_incoming():
+    return exchange_list_requests(direction="incoming")
+
+
+@app.route("/api/task-exchanges/outgoing", methods=["GET"])
+def api_task_exchanges_outgoing():
+    return exchange_list_requests(direction="outgoing")
+
+
+@app.route("/api/task-exchanges/pending-actions", methods=["GET"])
+def api_task_exchanges_pending_actions():
+    ensure_task_exchange_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = exchange_current_member(cursor)
+        if error:
+            return error
+        exchange_expire_pending_requests(cursor)
+        conn.commit()
+        limit = max(1, min(20, parse_required_int(request.args.get("limit"), 5)))
+        cursor.execute(
+            """
+            SELECT er.*, req.nama AS requester_name, tgt.nama AS target_name,
+                   req.role AS requester_role, tgt.role AS target_role
+            FROM task_exchange_requests er
+            LEFT JOIN anggota req ON req.id = er.requester_id
+            LEFT JOIN anggota tgt ON tgt.id = er.target_user_id
+            WHERE er.target_user_id = %s AND er.status = 'pending' AND er.my_schedule_date > CURDATE()
+            ORDER BY er.created_at DESC
+            LIMIT %s
+            """,
+            (member["id"], limit),
+        )
+        items = [exchange_request_to_dict(row, direction="incoming") for row in (cursor.fetchall() or [])]
+        return jsonify({"success": True, "items": items})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/task-exchanges/<int:request_id>/respond", methods=["POST"])
+def api_task_exchanges_respond(request_id):
+    ensure_task_exchange_schema()
+    data = request.get_json(silent=True) or {}
+    action = normalize_text(data.get("action") or "").lower()
+    if action not in {"accept", "reject"}:
+        return jsonify({"success": False, "error": "Aksi tidak valid."}), 400
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = exchange_current_member(cursor)
+        if error:
+            return error
+        exchange_expire_pending_requests(cursor)
+        row = exchange_fetch_request_row(cursor, request_id, for_update=True)
+        if not row:
+            return jsonify({"success": False, "error": "Request tidak ditemukan."}), 404
+        if str(row.get("target_user_id")) != str(member["id"]):
+            return jsonify({"success": False, "error": "Request ini bukan untuk Anda."}), 403
+        if normalize_text(row.get("status")) != "pending":
+            return jsonify({"success": False, "error": f"Request sudah berstatus {exchange_status_label(row.get('status'))}."}), 400
+        if not exchange_date_is_eligible(normalize_text(row.get("my_schedule_date"))):
+            cursor.execute("UPDATE task_exchange_requests SET status = 'auto_cancelled', auto_cancelled_at = NOW(), updated_at = NOW() WHERE id = %s", (request_id,))
+            row["status"] = "auto_cancelled"
+            exchange_notify_requester_result(cursor, row, "auto_cancelled")
+            conn.commit()
+            return jsonify({"success": False, "error": "Request otomatis batal karena sudah masuk hari-H atau jadwal sudah lewat."}), 400
+        if action == "reject":
+            cursor.execute("UPDATE task_exchange_requests SET status = 'rejected', responded_at = NOW(), updated_at = NOW() WHERE id = %s", (request_id,))
+            row["status"] = "rejected"
+            exchange_notify_requester_result(cursor, row, "rejected")
+            conn.commit()
+            return jsonify({"success": True, "message": "Request berhasil ditolak."})
+
+        kind = normalize_text(row.get("kind") or "biasa")
+        mode = normalize_text(row.get("request_mode") or "swap")
+        my_task = exchange_fetch_assignment(cursor, kind=kind, assignment_id=row.get("my_assignment_id"), member_id=row.get("requester_id"), for_update=True)
+        if not my_task:
+            return jsonify({"success": False, "error": "Jadwal pengaju sudah tidak valid."}), 409
+        if not exchange_date_is_eligible(my_task.get("date")):
+            return jsonify({"success": False, "error": "Jadwal pengaju sudah masuk hari-H atau lewat."}), 400
+        if mode == "swap":
+            target_task = exchange_fetch_assignment(cursor, kind=kind, assignment_id=row.get("target_assignment_id"), member_id=member["id"], for_update=True)
+            if not target_task:
+                return jsonify({"success": False, "error": "Jadwal Anda untuk ditukar sudah tidak valid."}), 409
+            if not exchange_date_is_eligible(target_task.get("date")):
+                return jsonify({"success": False, "error": "Jadwal Anda sudah masuk hari-H atau lewat."}), 400
+            if kind == "besar":
+                cursor.execute("UPDATE misa_besar_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (member["id"], my_task.get("assignmentId")))
+                cursor.execute("UPDATE misa_besar_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (row.get("requester_id"), target_task.get("assignmentId")))
+            else:
+                cursor.execute("UPDATE streaming_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (member["id"], my_task.get("assignmentId")))
+                cursor.execute("UPDATE streaming_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (row.get("requester_id"), target_task.get("assignmentId")))
+        else:
+            if exchange_member_already_in_schedule(cursor, kind=kind, member_id=member["id"], date_text=my_task.get("date"), time_text=my_task.get("time"), misa_id=my_task.get("misaId"), exclude_assignment_id=my_task.get("assignmentId")):
+                return jsonify({"success": False, "error": "Anda sudah bertugas pada jadwal/misa tersebut."}), 409
+            if kind == "besar":
+                cursor.execute("UPDATE misa_besar_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (member["id"], my_task.get("assignmentId")))
+            else:
+                cursor.execute("UPDATE streaming_assignments SET member_id = %s, request_source = 'exchange', created_at = NOW() WHERE id = %s", (member["id"], my_task.get("assignmentId")))
+        cursor.execute("UPDATE task_exchange_requests SET status = 'accepted', responded_at = NOW(), updated_at = NOW() WHERE id = %s", (request_id,))
+        row["status"] = "accepted"
+        exchange_notify_requester_result(cursor, row, "accepted")
+        conn.commit()
+        return jsonify({"success": True, "message": "Request berhasil diterima dan jadwal sudah diperbarui."})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/task-exchanges/<int:request_id>/cancel", methods=["POST"])
+def api_task_exchanges_cancel(request_id):
+    ensure_task_exchange_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        row = exchange_fetch_request_row(cursor, request_id, for_update=True)
+        if not row:
+            return jsonify({"success": False, "error": "Request tidak ditemukan."}), 404
+        if str(row.get("requester_id")) != str(member["id"]):
+            return jsonify({"success": False, "error": "Anda hanya bisa membatalkan request keluar milik Anda."}), 403
+        if normalize_text(row.get("status")) != "pending":
+            return jsonify({"success": False, "error": "Request ini sudah tidak bisa dibatalkan."}), 400
+        cursor.execute("UPDATE task_exchange_requests SET status = 'cancelled', cancelled_at = NOW(), updated_at = NOW() WHERE id = %s", (request_id,))
+        row["status"] = "cancelled"
+        target_role = row.get("target_role")
+        exchange_insert_notification(
+            cursor,
+            target_user_id=row.get("target_user_id"),
+            target_role=target_role,
+            title="Permintaan Tukar Jadwal Dibatalkan",
+            body=f"Permintaan tukar/ganti tugas dari <b>{html.escape(member['name'])}</b> telah dibatalkan oleh pengaju.",
+            request_id=request_id,
+            status="cancelled",
+            url=None if normalize_role_value(target_role or "user") in {"admin", "super_admin"} else "/penukaran-jadwal-tugas-anggota.html",
+        )
+        exchange_notify_requester_result(cursor, row, "cancelled")
+        conn.commit()
+        return jsonify({"success": True, "message": "Request berhasil dibatalkan."})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()
