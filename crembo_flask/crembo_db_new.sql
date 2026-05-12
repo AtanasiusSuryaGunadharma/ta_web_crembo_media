@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 12 Bulan Mei 2026 pada 11.09
+-- Waktu pembuatan: 12 Bulan Mei 2026 pada 14.41
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -512,12 +512,12 @@ INSERT INTO `misa_besar_assignments` (`id`, `role_id`, `member_id`, `created_at`
 (125, 153, 21, '2026-05-11 23:29:59', 'admin'),
 (126, 158, 21, '2026-05-11 23:29:59', 'admin'),
 (127, 158, 3, '2026-05-11 23:29:59', 'admin'),
-(128, 139, 53, '2026-05-11 23:34:02', 'member_request'),
+(128, 139, 21, '2026-05-12 18:39:14', 'exchange'),
 (129, 161, 6, '2026-05-11 23:56:48', 'admin'),
 (130, 162, 21, '2026-05-11 23:56:48', 'admin'),
 (131, 162, 53, '2026-05-11 23:57:34', 'member_request'),
 (133, 164, 6, '2026-05-12 05:18:41', 'admin'),
-(134, 165, 53, '2026-05-12 05:18:41', 'admin');
+(134, 165, 53, '2026-05-12 18:39:14', 'exchange');
 
 -- --------------------------------------------------------
 
@@ -945,7 +945,13 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778575610185-bcfd3c', 'tugas', 'Pengingat Tugas Hari Ini: Kameramen', 'Hari Ini: Anda bertugas sebagai <b>Kameramen</b> untuk <b>Misa Harian</b> pada hari Selasa, 12/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\", \"notification_kind\": \"task_reminder\", \"reminder\": \"hari_h\", \"reminder_label\": \"Hari Ini\", \"misa_type\": \"misa_biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"Kameramen\", \"misa_date\": \"2026-05-12\", \"misa_time\": \"18:00\", \"dedupe_key\": \"task-reminder:biasa:2026-05-12:18:00:Kameramen:53:hari_h\"}', '2026-05-12 15:46:50', NULL),
 ('notif-1778575610186-c6ce05', 'tugas', 'Pengingat Tugas Hari Ini: SPV', 'Hari Ini: Anda bertugas sebagai <b>SPV</b> untuk <b>Misa Harian</b> pada hari Selasa, 12/05/2026 jam 18:00 WIB.', '/jadwal-tugas-streaming-admin.html', '{\"target_user_id\": \"6\", \"notification_kind\": \"task_reminder\", \"reminder\": \"hari_h\", \"reminder_label\": \"Hari Ini\", \"misa_type\": \"misa_biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"SPV\", \"misa_date\": \"2026-05-12\", \"misa_time\": \"18:00\", \"dedupe_key\": \"task-reminder:biasa:2026-05-12:18:00:SPV:6:hari_h\"}', '2026-05-12 15:46:50', NULL),
 ('notif-1778576031281-e79bd6', 'tukar', 'Permintaan Tukar Jadwal dari Aura', '<b>Aura</b> mengajak tukeran jadwal. Jadwal dia: Misa Mingguan - Sabtu, 30/05/2026 18:00 WIB (Operator). Jadwal Anda: Misa Mingguan - Minggu, 17/05/2026 16:30 WIB (Kameramen).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"53\", \"exchange_request_id\": 1, \"exchange_status\": \"pending\"}', '2026-05-12 15:53:51', 'user'),
-('notif-1778576178650-e997bf', 'tukar', 'Penukaran Jadwal Ditolak', 'Permintaan Anda <b>ditolak</b> oleh <b>Daflo</b>. Jadwal terkait: Misa Mingguan - Sabtu, 30/05/2026 18:00 WIB (Operator).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"21\", \"exchange_request_id\": 1, \"exchange_status\": \"rejected\"}', '2026-05-12 15:56:18', 'user');
+('notif-1778576178650-e997bf', 'tukar', 'Penukaran Jadwal Ditolak', 'Permintaan Anda <b>ditolak</b> oleh <b>Daflo</b>. Jadwal terkait: Misa Mingguan - Sabtu, 30/05/2026 18:00 WIB (Operator).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"21\", \"exchange_request_id\": 1, \"exchange_status\": \"rejected\"}', '2026-05-12 15:56:18', 'user'),
+('notif-1778585548654-c48f65', 'tukar', 'Permintaan Pengganti dari Aura', '<b>Aura</b> meminta Anda menggantikan tugas <b>Operator</b> pada <b>Misa Mingguan</b>, Sabtu, 30/05/2026 jam 18:00 WIB.', NULL, '{\"target_user_id\": \"6\", \"exchange_request_id\": 2, \"exchange_status\": \"pending\"}', '2026-05-12 18:32:28', 'super_admin'),
+('notif-1778585574366-481034', 'tukar', 'Penukaran Jadwal Diterima', 'Permintaan Anda sudah <b>diterima</b> oleh <b>Pria</b>. Jadwal terkait: Misa Mingguan - Sabtu, 30/05/2026 18:00 WIB (Operator).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"21\", \"exchange_request_id\": 2, \"exchange_status\": \"accepted\"}', '2026-05-12 18:32:54', 'user'),
+('notif-1778585728176-b7eaf9', 'tukar', 'Permintaan Pengganti dari Daflo', '<b>Daflo</b> meminta Anda menggantikan tugas <b>Kamera</b> pada <b>Tes Misa Besar Cancel Notif</b>, Kamis, 28/05/2026 jam 10:00 WIB.', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"21\", \"exchange_request_id\": 3, \"exchange_status\": \"pending\"}', '2026-05-12 18:35:28', 'user'),
+('notif-1778585843625-5aef94', 'tukar', 'Penukaran Jadwal Diterima', 'Permintaan Anda sudah <b>diterima</b> oleh <b>Aura</b>. Jadwal terkait: Tes Misa Besar Cancel Notif - Kamis, 28/05/2026 10:00 WIB (Kamera).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"53\", \"exchange_request_id\": 3, \"exchange_status\": \"accepted\"}', '2026-05-12 18:37:23', 'user'),
+('notif-1778585918309-68eebf', 'tukar', 'Permintaan Tukar Jadwal dari Aura', '<b>Aura</b> mengajak tukeran jadwal. Jadwal dia: Tes Misa Besar Cancel Notif - Kamis, 28/05/2026 10:00 WIB (Kamera). Jadwal Anda: Misa Pentahbisan - Minggu, 31/05/2026 14:56 WIB (Fotografer).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"53\", \"exchange_request_id\": 4, \"exchange_status\": \"pending\"}', '2026-05-12 18:38:38', 'user'),
+('notif-1778585954102-841d10', 'tukar', 'Penukaran Jadwal Diterima', 'Permintaan Anda sudah <b>diterima</b> oleh <b>Daflo</b>. Jadwal terkait: Tes Misa Besar Cancel Notif - Kamis, 28/05/2026 10:00 WIB (Kamera).', '/penukaran-jadwal-tugas-anggota.html', '{\"target_user_id\": \"21\", \"exchange_request_id\": 4, \"exchange_status\": \"accepted\"}', '2026-05-12 18:39:14', 'user');
 
 -- --------------------------------------------------------
 
@@ -973,7 +979,10 @@ INSERT INTO `notification_reads` (`notification_id`, `user_key`, `read_at`) VALU
 ('notif-1778324048668-78f110', 'member:77', '2026-05-09 18:21:48'),
 ('notif-1778339309062-a7461e', 'member:53', '2026-05-09 22:09:06'),
 ('notif-1778518921235-c9b33a', 'member:21', '2026-05-12 00:02:25'),
-('notif-1778576031281-e79bd6', 'member:53', '2026-05-12 15:55:36');
+('notif-1778576031281-e79bd6', 'member:53', '2026-05-12 15:55:36'),
+('notif-1778585548654-c48f65', 'member:6', '2026-05-12 18:32:45'),
+('notif-1778585728176-b7eaf9', 'member:21', '2026-05-12 18:37:05'),
+('notif-1778585918309-68eebf', 'member:53', '2026-05-12 18:39:03');
 
 -- --------------------------------------------------------
 
@@ -1124,7 +1133,7 @@ INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `ro
 (126, '2026-05-02', '18:00:00', 'Operator', 21, '2026-05-11 23:32:15', 'admin'),
 (127, '2026-05-02', '18:00:00', 'Kameramen', 53, '2026-05-11 23:32:15', 'admin'),
 (128, '2026-05-02', '18:00:00', 'SPV', 6, '2026-05-11 23:32:15', 'admin'),
-(135, '2026-05-30', '18:00:00', 'Operator', 21, '2026-05-11 23:32:15', 'admin'),
+(135, '2026-05-30', '18:00:00', 'Operator', 6, '2026-05-12 18:32:54', 'exchange'),
 (158, '2026-05-10', '07:30:00', 'Kameramen', 21, '2026-05-11 23:32:15', 'admin'),
 (160, '2026-05-30', '18:00:00', 'Kameramen', 53, '2026-05-11 23:34:53', 'member_request'),
 (161, '2026-05-29', '18:00:00', 'Operator', 53, '2026-05-11 23:34:58', 'member_request'),
@@ -1271,6 +1280,15 @@ CREATE TABLE `task_exchange_requests` (
   `cancelled_at` datetime DEFAULT NULL,
   `auto_cancelled_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `task_exchange_requests`
+--
+
+INSERT INTO `task_exchange_requests` (`id`, `requester_id`, `target_user_id`, `kind`, `request_mode`, `my_assignment_id`, `my_misa_id`, `my_role_id`, `my_type_label`, `my_misa_name`, `my_role_name`, `my_schedule_date`, `my_schedule_time`, `target_assignment_id`, `target_misa_id`, `target_role_id`, `target_type_label`, `target_misa_name`, `target_role_name`, `target_schedule_date`, `target_schedule_time`, `reason`, `status`, `response_note`, `created_at`, `updated_at`, `responded_at`, `cancelled_at`, `auto_cancelled_at`) VALUES
+(2, '21', '6', 'biasa', 'substitute', 135, NULL, NULL, 'Misa Biasa', 'Misa Mingguan', 'Operator', '2026-05-30', '18:00:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Tes Menggantikan aja super admin', 'accepted', NULL, '2026-05-12 18:32:28', '2026-05-12 18:32:54', '2026-05-12 18:32:54', NULL, NULL),
+(3, '53', '21', 'besar', 'substitute', 134, 15, 165, 'Misa Besar', 'Tes Misa Besar Cancel Notif', 'Kamera', '2026-05-28', '10:00:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Ada kegiatan kampus', 'accepted', NULL, '2026-05-12 18:35:28', '2026-05-12 18:37:23', '2026-05-12 18:37:23', NULL, NULL),
+(4, '21', '53', 'besar', 'swap', 134, 15, 165, 'Misa Besar', 'Tes Misa Besar Cancel Notif', 'Kamera', '2026-05-28', '10:00:00', 128, 6, 139, 'Misa Besar', 'Misa Pentahbisan', 'Fotografer', '2026-05-31', '14:56:00', 'Tes Tukeran misa besar aura tukar ke daflo misa pentahbisan', 'accepted', NULL, '2026-05-12 18:38:38', '2026-05-12 18:39:14', '2026-05-12 18:39:14', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1623,7 +1641,7 @@ ALTER TABLE `task_cancellations`
 -- AUTO_INCREMENT untuk tabel `task_exchange_requests`
 --
 ALTER TABLE `task_exchange_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `tentang_crembo_config`
