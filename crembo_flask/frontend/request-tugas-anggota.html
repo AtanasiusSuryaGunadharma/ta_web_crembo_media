@@ -14,6 +14,171 @@
     .content{display:grid;gap:14px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.panel-head h2{margin:0;font-size:1.05rem}.panel-body{padding:12px}.helper{margin:0 0 10px;color:var(--muted);font-size:.84rem}.badge,.status{display:inline-flex;align-items:center;width:max-content;border-radius:999px;padding:3px 9px;font-size:.73rem;font-weight:800;border:1px solid #d3dae6;background:#f8fafc;color:#475569}.status.ok{color:var(--green);border-color:#8bdb9f;background:var(--green-bg)}.status.warn{color:var(--yellow);border-color:#f0d978;background:var(--yellow-bg)}.status.closed{color:#475569;border-color:#cbd5e1;background:#f1f5f9}.tools{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:8px;margin-bottom:10px}.history-tools{display:grid;grid-template-columns:1.4fr repeat(6,minmax(120px,.7fr));gap:8px;margin-bottom:10px}label{font-size:.72rem;text-transform:uppercase;color:#64748b;font-weight:800;letter-spacing:.03em}.field{display:grid;gap:5px}input,select,button{font:inherit}input,select{border:1px solid #c8d2df;border-radius:9px;background:#fff;padding:8px 10px;font-size:.84rem;min-width:0}.btn{border:0;border-radius:10px;background:linear-gradient(180deg,var(--primary-2),var(--primary));color:#fff;font-weight:800;padding:8px 12px;font-size:.8rem;cursor:pointer}.btn:hover{filter:brightness(1.05)}.btn.ghost{border:1px solid #d8b6b6;background:#fff;color:var(--primary)}.btn:disabled,.btn.disabled{cursor:not-allowed;opacity:.62;background:#e5e7eb;color:#64748b;border:1px solid #cbd5e1}.role-select{min-width:150px;max-width:210px}.action-stack{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.table-wrap{overflow-x:auto}.table-wrap::-webkit-scrollbar{height:10px}.table-wrap::-webkit-scrollbar-thumb{background:rgba(128,0,0,.3);border-radius:999px}table{width:100%;border-collapse:collapse;font-size:.83rem;min-width:980px}th,td{text-align:left;padding:10px;border-bottom:1px solid #efe0e0;vertical-align:top}th{font-size:.72rem;color:#7d0000;text-transform:uppercase;letter-spacing:.03em;background:#fff7f7}tbody tr:hover{background:#fffafa}.assigned-row{background:#fff8e1}.mine-badge{display:inline-flex;border:1px solid rgba(212,160,23,.65);background:#fff8e1;color:#7a4d00;border-radius:999px;padding:2px 8px;font-size:.7rem;font-weight:800;margin-top:4px}.muted{color:var(--muted)}.petugas-list{margin:0;padding-left:18px;display:grid;gap:3px}.petugas-list em{color:#94a3b8}.empty{padding:22px;text-align:center;color:var(--muted)}.pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px;flex-wrap:wrap}.pagination-info{font-size:.8rem;color:var(--muted);font-weight:700}.toast{position:fixed;right:18px;bottom:18px;z-index:80;max-width:min(420px,calc(100vw - 36px));padding:12px 14px;border-radius:12px;background:#111827;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);display:none}.toast.show{display:block}.summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.summary .badge strong{margin-left:4px;color:var(--primary)}
     @media(max-width:1080px){.layout{grid-template-columns:1fr}.main{padding:14px}.sidebar{position:fixed;left:0;top:0;width:min(292px,86vw);transform:translateX(-105%);z-index:30;transition:transform .22s ease}.sidebar.show{transform:translateX(0)}.mobile-toggle{display:inline-block}.dashboard-headline-bar,.topbar{align-items:flex-start;flex-direction:column}.tools,.history-tools{grid-template-columns:1fr}.quick-filter{justify-content:flex-start}}
   </style>
+
+  <style id="crembo-theme-sync-request">
+    /* Sinkronisasi warna sidebar/header dengan page Pembatalan Tugas Anggota */
+    :root {
+      --primary: #800000;
+      --primary-dark: #5c0000;
+      --primary-deeper: #3a0000;
+      --primary-light: #a52a2a;
+      --accent-gold: #d4a017;
+      --accent-gold-light: #f0c040;
+      --bg: #f5f0ef;
+      --surface: #ffffff;
+      --line: rgba(128, 0, 0, 0.12);
+      --line-soft: rgba(128, 0, 0, 0.07);
+      --shadow: 0 10px 32px rgba(128, 0, 0, 0.14);
+    }
+
+    body { background: var(--bg); }
+
+    .sidebar {
+      background: linear-gradient(170deg, var(--primary-deeper) 0%, var(--primary) 45%, var(--primary-dark) 100%);
+      border-right: 0;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.20);
+      color: #fff;
+    }
+
+    .brand,
+    .account,
+    .menu-group {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand strong { color: #fff; }
+    .brand small,
+    .account small { color: rgba(255, 255, 255, 0.72); }
+
+    .avatar {
+      background: rgba(212, 160, 23, 0.20);
+      color: var(--accent-gold-light);
+      border: 1px solid rgba(212, 160, 23, 0.45);
+    }
+
+    .menu-toggle {
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .menu-items {
+      border-top: 1px solid rgba(255, 255, 255, 0.10);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-link {
+      color: rgba(255, 255, 255, 0.84);
+      border-color: transparent;
+      transition: 0.25s ease;
+    }
+
+    .menu-link:hover {
+      border-color: rgba(255, 255, 255, 0.30);
+      background: rgba(255, 255, 255, 0.10);
+      color: #fff;
+    }
+
+    .menu-link.active {
+      border-color: var(--accent-gold-light);
+      background: rgba(212, 160, 23, 0.18);
+      color: var(--accent-gold-light);
+      font-weight: 800;
+    }
+
+    .side-action {
+      border: 1px solid rgba(255, 255, 255, 0.30);
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.88);
+      font-weight: 700;
+    }
+
+    .side-action:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    .dashboard-headline-bar,
+    .topbar {
+      background: linear-gradient(135deg, var(--primary-deeper), var(--primary));
+      box-shadow: var(--shadow);
+      color: #fff;
+    }
+
+    .topbar .headline,
+    .dashboard-headline-bar h1 { color: #fff; }
+    .subhead { color: rgba(255, 255, 255, 0.86); }
+
+    .quick-chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    .quick-chip strong { color: var(--accent-gold-light); }
+
+    .home-globe {
+      color: var(--primary);
+      border: 1px solid rgba(128, 0, 0, 0.16);
+      box-shadow: 0 1px 3px rgba(128, 0, 0, 0.10);
+    }
+
+    .mobile-toggle {
+      border: 1px solid #e5b9b9;
+      background: #fff;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .panel {
+      border-color: var(--line);
+      box-shadow: 0 10px 26px rgba(128, 0, 0, 0.10);
+    }
+
+    .panel-head {
+      border-bottom-color: var(--line);
+      background: linear-gradient(90deg, rgba(128, 0, 0, 0.03), transparent);
+    }
+
+    input,
+    select {
+      border-color: #e5b9b9;
+    }
+
+    input:focus,
+    select:focus {
+      outline: 2px solid rgba(212, 160, 23, 0.22);
+      border-color: var(--accent-gold);
+    }
+
+    .btn {
+      background: linear-gradient(180deg, var(--primary-light), var(--primary));
+      box-shadow: 0 5px 13px rgba(128, 0, 0, 0.16);
+    }
+
+    .btn.ghost {
+      border-color: #d8b6b6;
+      background: #fff;
+      color: var(--primary);
+      box-shadow: none;
+    }
+
+    th {
+      color: var(--primary);
+      background: rgba(128, 0, 0, 0.04);
+    }
+
+    .mine-badge {
+      border-color: rgba(212, 160, 23, 0.65);
+      background: #fff8e1;
+      color: #7a4d00;
+    }
+  </style>
+
 </head>
 <body data-current-user='{{ current_user | default({}, true) | tojson | e }}'>
   <div class="layout">
