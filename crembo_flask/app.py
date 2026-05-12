@@ -7597,6 +7597,10 @@ def api_request_tugas_history():
         kind_filter = (normalize_text(request.args.get("type")) or "all").lower()
         role_filter = normalize_text(request.args.get("role")).lower()
         search_text = normalize_text(request.args.get("search")).lower()
+        month_filter = normalize_text(request.args.get("month")) or str(datetime.now().month)
+        year_filter = normalize_text(request.args.get("year")) or str(datetime.now().year)
+        period_filter = (normalize_text(request.args.get("period")) or "all").lower()
+        sort_mode = (normalize_text(request.args.get("sort")) or "date_desc").lower()
 
         rows: list[dict[str, object]] = []
         cursor.execute(
@@ -7668,6 +7672,21 @@ def api_request_tugas_history():
 
         if kind_filter in {"biasa", "besar"}:
             rows = [item for item in rows if item.get("type") == kind_filter]
+
+        if month_filter.lower() != "all":
+            month_int = min(12, max(1, parse_required_int(month_filter, datetime.now().month)))
+            rows = [item for item in rows if normalize_text(item.get("date"))[5:7] == f"{month_int:02d}"]
+
+        if year_filter.lower() != "all":
+            year_int = parse_required_int(year_filter, datetime.now().year)
+            rows = [item for item in rows if normalize_text(item.get("date"))[:4] == str(year_int)]
+
+        today_text = datetime.now().strftime("%Y-%m-%d")
+        if period_filter in {"upcoming", "akan_datang", "future"}:
+            rows = [item for item in rows if normalize_text(item.get("date")) >= today_text]
+        elif period_filter in {"past", "lewat", "passed"}:
+            rows = [item for item in rows if normalize_text(item.get("date")) < today_text]
+
         if role_filter:
             rows = [item for item in rows if role_filter in normalize_text(item.get("role")).lower()]
         if search_text:
@@ -7676,9 +7695,20 @@ def api_request_tugas_history():
                 normalize_text(item.get("dateLabel")), normalize_text(item.get("dayName")),
                 normalize_text(item.get("time")), normalize_text(item.get("role")),
                 normalize_text(item.get("source")),
+                normalize_text(item.get("sourceLabel")), normalize_text(item.get("description")),
             ]).lower()]
 
-        rows.sort(key=lambda item: (normalize_text(item.get("createdAt")), normalize_text(item.get("date")), normalize_text(item.get("time"))), reverse=True)
+        def request_history_schedule_key(item):
+            return (normalize_text(item.get("date")), normalize_text(item.get("time")), normalize_text(item.get("misaName")), normalize_text(item.get("role")))
+
+        if sort_mode == "date_asc":
+            rows.sort(key=request_history_schedule_key)
+        elif sort_mode == "created_desc":
+            rows.sort(key=lambda item: (normalize_text(item.get("createdAt")), normalize_text(item.get("date")), normalize_text(item.get("time"))), reverse=True)
+        elif sort_mode == "created_asc":
+            rows.sort(key=lambda item: (normalize_text(item.get("createdAt")), normalize_text(item.get("date")), normalize_text(item.get("time"))))
+        else:
+            rows.sort(key=request_history_schedule_key, reverse=True)
         total = len(rows)
         start = (page - 1) * page_size
         end = start + page_size
@@ -7696,6 +7726,13 @@ def api_request_tugas_history():
                 "pageSize": page_size,
                 "total": total,
                 "totalPages": max(1, (total + page_size - 1) // page_size),
+            },
+            "filters": {
+                "type": kind_filter,
+                "month": month_filter,
+                "year": year_filter,
+                "period": period_filter,
+                "sort": sort_mode,
             },
         })
     finally:

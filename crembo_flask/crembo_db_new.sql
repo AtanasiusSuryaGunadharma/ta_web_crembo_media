@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 11 Bulan Mei 2026 pada 23.56
+-- Waktu pembuatan: 12 Bulan Mei 2026 pada 00.27
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -465,7 +465,8 @@ INSERT INTO `misa_besar` (`id`, `misa_name`, `misa_date`, `misa_time`, `misa_not
 (11, 'Tes Misa Besar jadwal Streaming Anggota Draft First', '2026-05-30', '18:00:00', 'Tes Misa Besar Jdwal Misa Streaming Anggota Page Draft First', 1, 'draft', '2026-05-09 08:45:56'),
 (12, 'Tes Misa Besar di page home', '2026-05-11', '18:00:00', 'Ters Misa Besar Page Home', 1, 'published', '2026-05-09 14:02:05'),
 (13, 'Tes Notifikasi Misa Baru Publikasi  Role Kosong', '2026-05-22', '15:00:00', 'Tes Notifikasi Misa Baru Publikasi  Role Kosong', 1, 'published', '2026-05-09 15:08:21'),
-(14, 'Tes Misa Besar Notif H-1 Tanggal 13 Start 11', '2026-05-13', '21:00:00', 'Tes Misa Besar Notif H-1 Tanggal 13 Start 11', 1, 'published', '2026-05-11 16:56:48');
+(14, 'Tes Misa Besar Notif H-1 Tanggal 13 Start 11', '2026-05-13', '21:00:00', 'Tes Misa Besar Notif H-1 Tanggal 13 Start 11', 1, 'published', '2026-05-11 16:56:48'),
+(15, 'Tes Misa Besar Cancel Notif', '2026-05-28', '10:00:00', 'Tes Misa Besar Cancel Notif', 1, 'published', '2026-05-11 22:18:41');
 
 -- --------------------------------------------------------
 
@@ -514,7 +515,9 @@ INSERT INTO `misa_besar_assignments` (`id`, `role_id`, `member_id`, `created_at`
 (128, 139, 53, '2026-05-11 23:34:02', 'member_request'),
 (129, 161, 6, '2026-05-11 23:56:48', 'admin'),
 (130, 162, 21, '2026-05-11 23:56:48', 'admin'),
-(131, 162, 53, '2026-05-11 23:57:34', 'member_request');
+(131, 162, 53, '2026-05-11 23:57:34', 'member_request'),
+(133, 164, 6, '2026-05-12 05:18:41', 'admin'),
+(134, 165, 53, '2026-05-12 05:18:41', 'admin');
 
 -- --------------------------------------------------------
 
@@ -569,7 +572,10 @@ INSERT INTO `misa_besar_names` (`id`, `misa_id`, `role_name`, `required_count`) 
 (159, 13, 'Supervisor', 1),
 (160, 13, 'Fotografer', 1),
 (161, 14, 'PD', 1),
-(162, 14, 'Kamera', 2);
+(162, 14, 'Kamera', 2),
+(163, 15, 'PD', 1),
+(164, 15, 'OP', 1),
+(165, 15, 'Kamera', 1);
 
 -- --------------------------------------------------------
 
@@ -919,7 +925,18 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778518921236-50b302', 'tugas', 'Pengingat Tugas H-1: SPV', 'H-1: Anda bertugas sebagai <b>SPV</b> untuk <b>Misa Harian</b> pada hari Rabu, 13/05/2026 jam 18:00 WIB.', '/jadwal-tugas-streaming-admin.html', '{\"target_user_id\": \"6\", \"notification_kind\": \"task_reminder\", \"reminder\": \"h_1\", \"reminder_label\": \"H-1\", \"misa_type\": \"misa_biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"SPV\", \"misa_date\": \"2026-05-13\", \"misa_time\": \"18:00\", \"dedupe_key\": \"task-reminder:biasa:2026-05-13:18:00:SPV:6:h_1\"}', '2026-05-12 00:02:01', NULL),
 ('notif-1778518921237-05a90d', 'tugas', 'Pengingat Tugas H-1: PD', 'H-1: Anda bertugas sebagai <b>PD</b> untuk <b>Tes Misa Besar Notif H-1 Tanggal 13 Start 11</b> pada hari Rabu, 13/05/2026 jam 21:00 WIB.', '/jadwal-tugas-streaming-admin.html', '{\"target_user_id\": \"6\", \"notification_kind\": \"task_reminder\", \"reminder\": \"h_1\", \"reminder_label\": \"H-1\", \"misa_type\": \"misa_besar\", \"misa_besar_id\": 14, \"misa_name\": \"Tes Misa Besar Notif H-1 Tanggal 13 Start 11\", \"role\": \"PD\", \"misa_date\": \"2026-05-13\", \"misa_time\": \"21:00\", \"dedupe_key\": \"task-reminder:besar:14:161:6:h_1\"}', '2026-05-12 00:02:01', NULL),
 ('notif-1778518921238-300311', 'tugas', 'Pengingat Tugas H-1: Kamera', 'H-1: Anda bertugas sebagai <b>Kamera</b> untuk <b>Tes Misa Besar Notif H-1 Tanggal 13 Start 11</b> pada hari Rabu, 13/05/2026 jam 21:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"21\", \"notification_kind\": \"task_reminder\", \"reminder\": \"h_1\", \"reminder_label\": \"H-1\", \"misa_type\": \"misa_besar\", \"misa_besar_id\": 14, \"misa_name\": \"Tes Misa Besar Notif H-1 Tanggal 13 Start 11\", \"role\": \"Kamera\", \"misa_date\": \"2026-05-13\", \"misa_time\": \"21:00\", \"dedupe_key\": \"task-reminder:besar:14:162:21:h_1\"}', '2026-05-12 00:02:01', NULL),
-('notif-1778518921239-be6afe', 'tugas', 'Pengingat Tugas H-1: Kamera', 'H-1: Anda bertugas sebagai <b>Kamera</b> untuk <b>Tes Misa Besar Notif H-1 Tanggal 13 Start 11</b> pada hari Rabu, 13/05/2026 jam 21:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\", \"notification_kind\": \"task_reminder\", \"reminder\": \"h_1\", \"reminder_label\": \"H-1\", \"misa_type\": \"misa_besar\", \"misa_besar_id\": 14, \"misa_name\": \"Tes Misa Besar Notif H-1 Tanggal 13 Start 11\", \"role\": \"Kamera\", \"misa_date\": \"2026-05-13\", \"misa_time\": \"21:00\", \"dedupe_key\": \"task-reminder:besar:14:162:53:h_1\"}', '2026-05-12 00:02:01', NULL);
+('notif-1778518921239-be6afe', 'tugas', 'Pengingat Tugas H-1: Kamera', 'H-1: Anda bertugas sebagai <b>Kamera</b> untuk <b>Tes Misa Besar Notif H-1 Tanggal 13 Start 11</b> pada hari Rabu, 13/05/2026 jam 21:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\", \"notification_kind\": \"task_reminder\", \"reminder\": \"h_1\", \"reminder_label\": \"H-1\", \"misa_type\": \"misa_besar\", \"misa_besar_id\": 14, \"misa_name\": \"Tes Misa Besar Notif H-1 Tanggal 13 Start 11\", \"role\": \"Kamera\", \"misa_date\": \"2026-05-13\", \"misa_time\": \"21:00\", \"dedupe_key\": \"task-reminder:besar:14:162:53:h_1\"}', '2026-05-12 00:02:01', NULL),
+('notif-1778537628194-02130c', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 17/05/2026 jam 16:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\"}', '2026-05-12 05:13:48', NULL),
+('notif-1778537628194-2a25e4', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 17/05/2026 jam 16:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"21\"}', '2026-05-12 05:13:48', NULL),
+('notif-1778537628198-42723d', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Harian</b> pada hari Rabu, 20/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"21\"}', '2026-05-12 05:13:48', NULL),
+('notif-1778537628199-305d54', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa Harian</b> pada hari Rabu, 20/05/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\"}', '2026-05-12 05:13:48', NULL),
+('notif-1778537690844-4fae9f', 'tugas', 'Pembatalan Tugas: Aura', '<b>Aura</b> membatalkan tugas sebagai <b>Operator</b> pada <b>Misa Biasa - Misa Harian</b>, hari Rabu, 20/05/2026 jam 18:00 WIB.', '/dashboard.html', '{\"notification_kind\": \"task_cancelled_by_member\", \"member_id\": \"21\", \"member_name\": \"Aura\", \"misa_type\": \"biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"Operator\", \"misa_date\": \"2026-05-20\", \"misa_time\": \"18:00\"}', '2026-05-12 05:14:50', 'admin'),
+('notif-1778537690847-3daf41', 'tugas', 'Tugas Dibatalkan: Operator', 'Tugas Anda sebagai <b>Operator</b> untuk <b>Misa Biasa - Misa Harian</b> pada hari Rabu, 20/05/2026 jam 18:00 WIB telah berhasil dibatalkan.', '/pembatalan-tugas-anggota.html', '{\"target_user_id\": \"21\", \"notification_kind\": \"task_cancelled_success\", \"misa_type\": \"biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"Operator\", \"misa_date\": \"2026-05-20\", \"misa_time\": \"18:00\"}', '2026-05-12 05:14:50', 'user'),
+('notif-1778537921853-5f7017', 'tugas', 'Tugas Baru: OP', 'Anda ditugaskan sebagai <b>OP</b> untuk <b>Tes Misa Besar Cancel Notif</b> pada hari Kamis, 28/05/2026 jam 10:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"6\", \"misa_besar_id\": 15, \"misa_type\": \"misa_besar\", \"role\": \"OP\", \"misa_name\": \"Tes Misa Besar Cancel Notif\", \"misa_date\": \"2026-05-28\", \"misa_time\": \"10:00\"}', '2026-05-12 05:18:41', NULL),
+('notif-1778537921853-d421a6', 'tugas', 'Tugas Baru: PD', 'Anda ditugaskan sebagai <b>PD</b> untuk <b>Tes Misa Besar Cancel Notif</b> pada hari Kamis, 28/05/2026 jam 10:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"21\", \"misa_besar_id\": 15, \"misa_type\": \"misa_besar\", \"role\": \"PD\", \"misa_name\": \"Tes Misa Besar Cancel Notif\", \"misa_date\": \"2026-05-28\", \"misa_time\": \"10:00\"}', '2026-05-12 05:18:41', NULL),
+('notif-1778537921854-090384', 'tugas', 'Tugas Baru: Kamera', 'Anda ditugaskan sebagai <b>Kamera</b> untuk <b>Tes Misa Besar Cancel Notif</b> pada hari Kamis, 28/05/2026 jam 10:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"53\", \"misa_besar_id\": 15, \"misa_type\": \"misa_besar\", \"role\": \"Kamera\", \"misa_name\": \"Tes Misa Besar Cancel Notif\", \"misa_date\": \"2026-05-28\", \"misa_time\": \"10:00\"}', '2026-05-12 05:18:41', NULL),
+('notif-1778537947163-381adc', 'tugas', 'Pembatalan Tugas: Aura', '<b>Aura</b> membatalkan tugas sebagai <b>PD</b> pada <b>Misa Besar - Tes Misa Besar Cancel Notif</b>, hari Kamis, 28/05/2026 jam 10:00 WIB.', '/dashboard.html', '{\"notification_kind\": \"task_cancelled_by_member\", \"member_id\": \"21\", \"member_name\": \"Aura\", \"misa_type\": \"besar\", \"misa_name\": \"Tes Misa Besar Cancel Notif\", \"role\": \"PD\", \"misa_date\": \"2026-05-28\", \"misa_time\": \"10:00\"}', '2026-05-12 05:19:07', 'admin'),
+('notif-1778537947164-fc4e11', 'tugas', 'Tugas Dibatalkan: PD', 'Tugas Anda sebagai <b>PD</b> untuk <b>Misa Besar - Tes Misa Besar Cancel Notif</b> pada hari Kamis, 28/05/2026 jam 10:00 WIB telah berhasil dibatalkan.', '/pembatalan-tugas-anggota.html', '{\"target_user_id\": \"21\", \"notification_kind\": \"task_cancelled_success\", \"misa_type\": \"besar\", \"misa_name\": \"Tes Misa Besar Cancel Notif\", \"role\": \"PD\", \"misa_date\": \"2026-05-28\", \"misa_time\": \"10:00\"}', '2026-05-12 05:19:07', 'user');
 
 -- --------------------------------------------------------
 
@@ -1103,7 +1120,10 @@ INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `ro
 (161, '2026-05-29', '18:00:00', 'Operator', 53, '2026-05-11 23:34:58', 'member_request'),
 (162, '2026-05-13', '18:00:00', 'Operator', 53, '2026-05-11 23:57:25', 'member_request'),
 (171, '2026-05-13', '18:00:00', 'Kameramen', 21, '2026-05-11 23:58:05', 'admin'),
-(172, '2026-05-13', '18:00:00', 'SPV', 6, '2026-05-11 23:58:05', 'admin');
+(172, '2026-05-13', '18:00:00', 'SPV', 6, '2026-05-11 23:58:05', 'admin'),
+(186, '2026-05-17', '16:30:00', 'Operator', 21, '2026-05-12 05:13:48', 'admin'),
+(187, '2026-05-17', '16:30:00', 'Kameramen', 53, '2026-05-12 05:13:48', 'admin'),
+(189, '2026-05-20', '18:00:00', 'Kameramen', 53, '2026-05-12 05:13:48', 'admin');
 
 -- --------------------------------------------------------
 
@@ -1191,6 +1211,14 @@ CREATE TABLE `task_cancellations` (
   `status` varchar(30) NOT NULL DEFAULT 'batal',
   `note` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `task_cancellations`
+--
+
+INSERT INTO `task_cancellations` (`id`, `member_id`, `member_name`, `kind`, `type_label`, `misa_id`, `role_id`, `assignment_id`, `schedule_date`, `schedule_time`, `misa_name`, `role_name`, `request_source`, `cancelled_at`, `status`, `note`) VALUES
+(1, 21, 'Aura', 'biasa', 'Misa Biasa', NULL, NULL, 188, '2026-05-20', '18:00:00', 'Misa Harian', 'Operator', 'admin', '2026-05-12 05:14:50', 'batal', NULL),
+(2, 21, 'Aura', 'besar', 'Misa Besar', 15, 163, 132, '2026-05-28', '10:00:00', 'Tes Misa Besar Cancel Notif', 'PD', 'admin', '2026-05-12 05:19:07', 'batal', NULL);
 
 -- --------------------------------------------------------
 
@@ -1473,19 +1501,19 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `misa_besar`
 --
 ALTER TABLE `misa_besar`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_assignments`
 --
 ALTER TABLE `misa_besar_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar_names`
 --
 ALTER TABLE `misa_besar_names`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=163;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=166;
 
 --
 -- AUTO_INCREMENT untuk tabel `news_category_mapping`
@@ -1503,7 +1531,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=193;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
@@ -1527,7 +1555,7 @@ ALTER TABLE `streaming_weekly_config`
 -- AUTO_INCREMENT untuk tabel `task_cancellations`
 --
 ALTER TABLE `task_cancellations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `tentang_crembo_config`
