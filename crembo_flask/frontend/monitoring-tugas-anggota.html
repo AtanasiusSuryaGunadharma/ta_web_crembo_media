@@ -532,24 +532,20 @@
           <span id="liveDateTime">-</span>
           <div class="period-controls" aria-label="Periode monitoring">
           <select id="monthSelector" class="period-select" aria-label="Pilih bulan">
-            <option value="0">Januari</option>
-            <option value="1">Februari</option>
-            <option value="2" selected>Maret</option>
-            <option value="3">April</option>
-            <option value="4">Mei</option>
-            <option value="5">Juni</option>
-            <option value="6">Juli</option>
-            <option value="7">Agustus</option>
-            <option value="8">September</option>
-            <option value="9">Oktober</option>
-            <option value="10">November</option>
-            <option value="11">Desember</option>
+            <option value="1">Januari</option>
+            <option value="2">Februari</option>
+            <option value="3">Maret</option>
+            <option value="4">April</option>
+            <option value="5">Mei</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">Agustus</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
           </select>
-          <select id="yearSelector" class="period-select" aria-label="Pilih tahun">
-            <option value="2025">2025</option>
-            <option value="2026" selected>2026</option>
-            <option value="2027">2027</option>
-          </select>
+          <select id="yearSelector" class="period-select" aria-label="Pilih tahun"></select>
           </div>
         </div>
       </header>
@@ -587,17 +583,16 @@
             <div class="control-group">
               <label for="roleFilter">Filter Role</label>
               <select id="roleFilter">
-                <option value="">Semua Role</option>
-                <option value="Operator">Operator</option>
-                <option value="Kameramen">Kameramen</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="Editor">Editor</option>
+                <option value="all">Semua Role</option>
+                <option value="user">Anggota</option>
+                <option value="admin">Admin</option>
+                <option value="super_admin">Super Admin</option>
               </select>
             </div>
             <div class="control-group">
               <label for="statusFilter">Filter Status</label>
               <select id="statusFilter">
-                <option value="">Semua Status</option>
+                <option value="all">Semua Status</option>
                 <option value="Aman">Aman</option>
                 <option value="Perlu Tambahan">Perlu Tambahan</option>
                 <option value="Kritis">Kritis</option>
@@ -670,30 +665,6 @@
   </div>
 
   <script>
-    // Default member data
-    const DEFAULT_MEMBERS = [
-      { nama: "Rikha", role: "Operator", catatan: "Distribusi merata" },
-      { nama: "Jeni", role: "Kameramen", catatan: "" },
-      { nama: "Claire", role: "Supervisor", catatan: "Prioritaskan pekan depan" },
-      { nama: "Belinda", role: "Kameramen", catatan: "Belum masuk roster bulan ini" },
-      { nama: "Doni", role: "Editor", catatan: "" },
-      { nama: "Rudi", role: "Operator", catatan: "" },
-      { nama: "Sinta", role: "Supervisor", catatan: "" },
-      { nama: "Tejo", role: "Kameramen", catatan: "" }
-    ];
-
-    const WEEKLY_TIMES_KEY = "crembo-admin-weekly-mass-times";
-    const DEFAULT_WEEKLY_TIMES = {
-      0: ["07:30", "10:00", "16:30", "18:00"],
-      1: ["18:00"],
-      2: ["18:00"],
-      3: ["18:00"],
-      4: ["18:00"],
-      5: ["18:00"],
-      6: ["18:00"]
-    };
-
-    // DOM Elements
     const liveDateTime = document.getElementById("liveDateTime");
     const monthSelector = document.getElementById("monthSelector");
     const yearSelector = document.getElementById("yearSelector");
@@ -707,10 +678,7 @@
     const completedMembers = document.getElementById("completedMembers");
     const shortage1Members = document.getElementById("shortage1Members");
     const shortageMultiMembers = document.getElementById("shortageMultiMembers");
-
-    // Modal elements
     const scheduleModal = document.getElementById("scheduleModal");
-    const modalTitle = document.getElementById("modalTitle");
     const scheduleMemberName = document.getElementById("scheduleMemberName");
     const scheduleDate = document.getElementById("scheduleDate");
     const scheduleTime = document.getElementById("scheduleTime");
@@ -719,359 +687,248 @@
     const modalSaveBtn = document.getElementById("modalSaveBtn");
     const modalCloseBtn = document.querySelector(".modal-close");
 
-    // State variables
-    let currentMonth = 3;
-    let currentYear = 2026;
-    let targetMinimum = 2;
-    let currentSortColumn = null;
+    const MONTH_NAMES = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    let currentSortColumn = "nama";
     let sortDirection = "asc";
+    let lastItems = [];
     let currentSchedulingMember = null;
+    let currentSlots = [];
 
-    // Initialize
-    function init() {
-      updateLiveDateTime();
-      setInterval(updateLiveDateTime, 1000);
-      loadMemberTasks();
-      populateScheduleDates();
-      render();
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>'"]/g, function (char) {
+        return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char];
+      });
+    }
+
+    async function fetchJson(url, options) {
+      const res = await fetch(url, options || {});
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || data.message || "Terjadi kesalahan koneksi.");
+      }
+      return data;
     }
 
     function updateLiveDateTime() {
       const now = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-      liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
+      liveDateTime.textContent = dayNames[now.getDay()] + ", " + String(now.getDate()).padStart(2, "0") + " " + monthNames[now.getMonth()] + " " + now.getFullYear() + " " + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") + ":" + String(now.getSeconds()).padStart(2, "0");
     }
 
-    function getPeriodKey(yearValue, monthIndex) {
-      return String(yearValue) + "-" + String(monthIndex + 1).padStart(2, "0");
-    }
-
-    function getMemberTasks(memberName, yearValue, monthIndex) {
-      const key = "crembo-member-tasks-" + memberName + "-" + getPeriodKey(yearValue, monthIndex);
-      const stored = localStorage.getItem(key);
-      if (stored) {
-        return JSON.parse(stored);
+    function initPeriodControls() {
+      const now = new Date();
+      monthSelector.value = String(now.getMonth() + 1);
+      const currentYear = now.getFullYear();
+      yearSelector.innerHTML = "";
+      for (let year = currentYear - 2; year <= currentYear + 3; year += 1) {
+        const opt = document.createElement("option");
+        opt.value = String(year);
+        opt.textContent = String(year);
+        yearSelector.appendChild(opt);
       }
-
-      const legacyKey = "crembo-member-tasks-" + memberName + "-" + monthIndex;
-      const legacyStored = localStorage.getItem(legacyKey);
-      return legacyStored ? JSON.parse(legacyStored) : [];
+      yearSelector.value = String(currentYear);
     }
 
-    function saveMemberTasks(memberName, yearValue, monthIndex, tasks) {
-      const key = "crembo-member-tasks-" + memberName + "-" + getPeriodKey(yearValue, monthIndex);
-      localStorage.setItem(key, JSON.stringify(tasks));
+    function getSortParam() {
+      const map = {
+        nama: {asc: "name_asc", desc: "name_desc"},
+        total: {asc: "total_asc", desc: "total_desc"},
+        kekurangan: {asc: "shortage_asc", desc: "shortage_desc"},
+        status: {asc: "status_asc", desc: "status_desc"}
+      };
+      return (map[currentSortColumn] && map[currentSortColumn][sortDirection]) || "name_asc";
     }
 
-    function safeParse(raw, fallback) {
-      try {
-        const parsed = JSON.parse(raw);
-        return parsed == null ? fallback : parsed;
-      } catch (error) {
-        return fallback;
-      }
-    }
-
-    function normalizeTimesArray(times) {
-      const seen = {};
-      return times.filter(function (time) {
-        return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-      }).filter(function (time) {
-        if (seen[time]) {
-          return false;
-        }
-        seen[time] = true;
-        return true;
-      }).sort();
-    }
-
-    function getWeeklyTimesConfig() {
-      const stored = safeParse(localStorage.getItem(WEEKLY_TIMES_KEY), null);
-      const result = {};
-      for (let day = 0; day <= 6; day += 1) {
-        const source = stored && Array.isArray(stored[day]) ? stored[day] : DEFAULT_WEEKLY_TIMES[day];
-        result[day] = normalizeTimesArray(source || []);
-      }
-      return result;
-    }
-
-    function getMassTimesByWeekday(dayOfWeek) {
-      const config = getWeeklyTimesConfig();
-      return config[dayOfWeek] || [];
-    }
-
-    function loadMemberTasks() {
-      // Initialize with default tasks if not present
-      DEFAULT_MEMBERS.forEach(function (member) {
-        [0, 1, 2, 3, 4].forEach(function (month) {
-          const periodKey = getPeriodKey(2026, month);
-          if (!localStorage.getItem("crembo-member-tasks-" + member.nama + "-" + periodKey)) {
-            const defaultCount = member.nama === "Rikha" && month === 2 ? 3 : 
-                                 member.nama === "Jeni" && month === 2 ? 2 :
-                                 member.nama === "Claire" && month === 2 ? 1 : 0;
-            const tasks = [];
-            for (let i = 0; i < defaultCount; i++) {
-              const day = Math.min(i + 1, 28);
-              const dateStr = String(2026) + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
-              const dateObj = new Date(dateStr + "T00:00:00");
-              const availableTimes = getMassTimesByWeekday(dateObj.getDay());
-              tasks.push({ date: dateStr, time: availableTimes[0] || "18:00", role: "Operator" });
-            }
-            saveMemberTasks(member.nama, 2026, month, tasks);
-          }
-        });
+    function apiParams() {
+      const params = new URLSearchParams({
+        month: monthSelector.value,
+        year: yearSelector.value,
+        search: searchFilter.value.trim(),
+        role: roleFilter.value || "all",
+        status: statusFilter.value || "all",
+        sort: getSortParam()
       });
-    }
-
-    function getMonthName(monthIndex) {
-      const names = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-      return names[monthIndex];
-    }
-
-    function formatScheduleDateLabel(dateObj) {
-      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      return dayNames[dateObj.getDay()] + ", " +
-        String(dateObj.getDate()).padStart(2, "0") + " " +
-        getMonthName(dateObj.getMonth()) + " " +
-        dateObj.getFullYear();
-    }
-
-    function updateScheduleTimeOptions() {
-      const dateValue = scheduleDate.value;
-      scheduleTime.innerHTML = '<option value="">-- Pilih Jam --</option>';
-      if (!dateValue) {
-        return;
-      }
-
-      const dateObj = new Date(dateValue + "T00:00:00");
-      const times = getMassTimesByWeekday(dateObj.getDay());
-      if (!times.length) {
-        scheduleTime.innerHTML = '<option value="">Tidak ada jam tersedia</option>';
-        return;
-      }
-
-      scheduleTime.innerHTML += times.map(function (time) {
-        return '<option value="' + time + '">' + time + '</option>';
-      }).join("");
-      scheduleTime.value = times[0];
-    }
-
-    function populateScheduleDates() {
-      const monthIdx = parseInt(monthSelector.value || currentMonth, 10);
-      const yearValue = parseInt(yearSelector.value || currentYear, 10);
-      const totalDays = new Date(yearValue, monthIdx + 1, 0).getDate();
-      const options = [];
-
-      for (let day = 1; day <= totalDays; day += 1) {
-        const dateObj = new Date(yearValue, monthIdx, day);
-        const availableTimes = getMassTimesByWeekday(dateObj.getDay());
-        if (!availableTimes.length) {
-          continue;
-        }
-
-        const iso = String(yearValue) + "-" + String(monthIdx + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
-        options.push('<option value="' + iso + '">' + formatScheduleDateLabel(dateObj) + '</option>');
-      }
-
-      scheduleDate.innerHTML = '<option value="">-- Pilih Tanggal --</option>' + options.join("");
-      updateScheduleTimeOptions();
-    }
-
-    function calculateStatus(totalTasks) {
-      if (totalTasks >= targetMinimum) {
-        return { label: "Aman", class: "ok" };
-      } else if (totalTasks === targetMinimum - 1) {
-        return { label: "Perlu Tambahan", class: "warn" };
-      } else {
-        return { label: "Kritis", class: "danger" };
-      }
-    }
-
-    function renderTable() {
-      const monthIdx = parseInt(monthSelector.value || currentMonth, 10);
-      const yearValue = parseInt(yearSelector.value || currentYear, 10);
-      currentMonth = monthIdx;
-      currentYear = yearValue;
-
-      let data = DEFAULT_MEMBERS.map(function (member) {
-        const tasks = getMemberTasks(member.nama, yearValue, monthIdx);
-        const total = tasks.length;
-        const shortage = Math.max(0, targetMinimum - total);
-        const status = calculateStatus(total);
-        return {
-          nama: member.nama,
-          role: member.role,
-          total: total,
-          shortage: shortage,
-          status: status.label,
-          statusClass: status.class,
-          catatan: member.catatan
-        };
-      });
-
-      // Apply filters
-      const searchTerm = searchFilter.value.toLowerCase();
-      const selectedRole = roleFilter.value;
-      const selectedStatus = statusFilter.value;
-
-      data = data.filter(function (item) {
-        const matchName = searchTerm === "" || item.nama.toLowerCase().includes(searchTerm);
-        const matchRole = selectedRole === "" || item.role === selectedRole;
-        const matchStatus = selectedStatus === "" || item.status === selectedStatus;
-        return matchName && matchRole && matchStatus;
-      });
-
-      // Apply sorting
-      if (currentSortColumn) {
-        data.sort(function (a, b) {
-          let aVal = a[currentSortColumn];
-          let bVal = b[currentSortColumn];
-          if (typeof aVal === "string") {
-            aVal = aVal.toLowerCase();
-            bVal = bVal.toLowerCase();
-          }
-          if (sortDirection === "asc") {
-            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-          } else {
-            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-          }
-        });
-      }
-
-      // Render rows
-      monitoringTable.innerHTML = data.map(function (item) {
-        return '<tr>' +
-          '<td>' + item.nama + '</td>' +
-          '<td>' + item.total + '</td>' +
-          '<td>' + item.shortage + '</td>' +
-          '<td><span class="pill ' + item.statusClass + '">' + item.status + '</span></td>' +
-          '<td>' + (item.shortage > 0 ? '<button class="action-btn schedule-btn" data-member="' + item.nama + '">Jadwalkan</button>' : '-') + '</td>' +
-          '</tr>';
-      }).join("");
-
-      // Attach event listeners
-      document.querySelectorAll(".schedule-btn").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          openScheduleModal(btn.getAttribute("data-member"));
-        });
-      });
-
-      // Update summary
-      const total = DEFAULT_MEMBERS.length;
-      const completed = data.filter(function (d) { return d.shortage === 0; }).length;
-      const shortage1 = data.filter(function (d) { return d.shortage === 1; }).length;
-      const shortageMulti = data.filter(function (d) { return d.shortage > 1; }).length;
-
-      totalMembers.textContent = total;
-      completedMembers.textContent = completed;
-      shortage1Members.textContent = shortage1;
-      shortageMultiMembers.textContent = shortageMulti;
-
-      periodChip.textContent = "Periode: " + getMonthName(monthIdx) + " " + yearValue;
-    }
-
-    function render() {
-      renderTable();
-      updateSortHeaders();
+      return params.toString();
     }
 
     function updateSortHeaders() {
       document.querySelectorAll(".sortable-header").forEach(function (header) {
         const col = header.getAttribute("data-sort");
         header.classList.remove("asc", "desc");
-        if (currentSortColumn === col) {
-          header.classList.add(sortDirection);
-        }
+        if (currentSortColumn === col) header.classList.add(sortDirection);
       });
     }
 
-    function openScheduleModal(memberName) {
-      currentSchedulingMember = memberName;
+    function renderRows(items) {
+      if (!items.length) {
+        monitoringTable.innerHTML = '<tr><td colspan="5">Tidak ada anggota aktif sesuai filter.</td></tr>';
+        return;
+      }
+      monitoringTable.innerHTML = items.map(function (item) {
+        const action = item.canSchedule
+          ? '<button class="action-btn schedule-btn" data-member-id="' + escapeHtml(item.id) + '" data-member-name="' + escapeHtml(item.name) + '">Jadwalkan</button>'
+          : '-';
+        return '<tr>'
+          + '<td><strong>' + escapeHtml(item.name) + '</strong><br><small>' + escapeHtml(item.accountRoleLabel || '-') + '</small></td>'
+          + '<td>' + escapeHtml(item.totalTasks) + '</td>'
+          + '<td>' + escapeHtml(item.shortage) + '</td>'
+          + '<td><span class="pill ' + escapeHtml(item.statusClass || '') + '">' + escapeHtml(item.status) + '</span></td>'
+          + '<td>' + action + '</td>'
+          + '</tr>';
+      }).join("");
+      document.querySelectorAll(".schedule-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          openScheduleModal(btn.getAttribute("data-member-id"), btn.getAttribute("data-member-name"));
+        });
+      });
+    }
+
+    async function loadMonitoring() {
+      monitoringTable.innerHTML = '<tr><td colspan="5">Memuat data monitoring...</td></tr>';
+      try {
+        const data = await fetchJson('/api/monitoring-tugas?' + apiParams());
+        lastItems = data.items || [];
+        targetMinInput.value = String(data.summary && data.summary.targetMinimum ? data.summary.targetMinimum : 2);
+        totalMembers.textContent = String(data.summary.totalMembers || 0);
+        completedMembers.textContent = String(data.summary.completedMembers || 0);
+        shortage1Members.textContent = String(data.summary.shortage1Members || 0);
+        shortageMultiMembers.textContent = String(data.summary.shortageMultiMembers || 0);
+        periodChip.textContent = "Periode: " + MONTH_NAMES[Number(monthSelector.value)] + " " + yearSelector.value;
+        renderRows(lastItems);
+        updateSortHeaders();
+      } catch (err) {
+        monitoringTable.innerHTML = '<tr><td colspan="5">' + escapeHtml(err.message) + '</td></tr>';
+      }
+    }
+
+    async function saveTargetMinimum() {
+      const target = Math.max(1, Number(targetMinInput.value || 2));
+      try {
+        await fetchJson('/api/monitoring-tugas/target', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({targetMinimum: target})
+        });
+        await loadMonitoring();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function openScheduleModal(memberId, memberName) {
+      currentSchedulingMember = { id: memberId, name: memberName };
       scheduleMemberName.value = memberName;
-      populateScheduleDates();
-      scheduleDate.value = "";
-      scheduleTime.value = "";
-      scheduleRole.value = "";
+      scheduleDate.innerHTML = '<option value="">Memuat jadwal kosong...</option>';
+      scheduleTime.innerHTML = '<option value="">-- pilih tanggal dulu --</option>';
+      scheduleRole.innerHTML = '<option value="">-- pilih jadwal dulu --</option>';
       scheduleModal.classList.add("show");
+      try {
+        const params = new URLSearchParams({ memberId: memberId, month: monthSelector.value, year: yearSelector.value });
+        const data = await fetchJson('/api/monitoring-tugas/slots?' + params.toString());
+        currentSlots = data.slots || [];
+        if (!currentSlots.length) {
+          scheduleDate.innerHTML = '<option value="">Tidak ada slot kosong yang bisa dijadwalkan</option>';
+          return;
+        }
+        scheduleDate.innerHTML = '<option value="">-- Pilih Jadwal --</option>' + currentSlots.map(function (slot, index) {
+          return '<option value="' + index + '">' + escapeHtml(slot.dayName) + ', ' + escapeHtml(slot.dateLabel) + ' · ' + escapeHtml(slot.time) + ' WIB · ' + escapeHtml(slot.misaName) + '</option>';
+        }).join("");
+      } catch (err) {
+        scheduleDate.innerHTML = '<option value="">' + escapeHtml(err.message) + '</option>';
+      }
+    }
+
+    function updateSlotDetailOptions() {
+      const idx = Number(scheduleDate.value);
+      const slot = currentSlots[idx];
+      scheduleTime.innerHTML = '<option value="">-- Pilih Jam --</option>';
+      scheduleRole.innerHTML = '<option value="">-- Pilih Role --</option>';
+      if (!slot) return;
+      scheduleTime.innerHTML = '<option value="' + escapeHtml(slot.time) + '">' + escapeHtml(slot.time) + ' WIB</option>';
+      scheduleTime.value = slot.time;
+      scheduleRole.innerHTML += (slot.openRoles || []).map(function (role) {
+        return '<option value="' + escapeHtml(role) + '">' + escapeHtml(role) + '</option>';
+      }).join("");
     }
 
     function closeScheduleModal() {
       scheduleModal.classList.remove("show");
       currentSchedulingMember = null;
+      currentSlots = [];
     }
 
-    function saveScheduledTask() {
-      if (!currentSchedulingMember || !scheduleDate.value || !scheduleTime.value || !scheduleRole.value) {
-        alert("Harap isi semua field yang diperlukan");
+    async function saveScheduledTask() {
+      const idx = Number(scheduleDate.value);
+      const slot = currentSlots[idx];
+      if (!currentSchedulingMember || !slot || !scheduleRole.value) {
+        alert("Harap pilih jadwal dan role yang masih kosong.");
         return;
       }
-
-      const monthIdx = parseInt(monthSelector.value || currentMonth, 10);
-      const yearValue = parseInt(yearSelector.value || currentYear, 10);
-      const tasks = getMemberTasks(currentSchedulingMember, yearValue, monthIdx);
-      tasks.push({
-        date: scheduleDate.value,
-        time: scheduleTime.value,
-        role: scheduleRole.value
-      });
-      saveMemberTasks(currentSchedulingMember, yearValue, monthIdx, tasks);
-      
-      alert("Tugas berhasil dijadwalkan untuk " + currentSchedulingMember);
-      closeScheduleModal();
-      render();
+      const confirmText = "Jadwalkan " + currentSchedulingMember.name + " sebagai " + scheduleRole.value + " untuk " + slot.misaName + " pada " + slot.dayName + ", " + slot.dateLabel + " jam " + slot.time + " WIB?";
+      if (!confirm(confirmText)) return;
+      modalSaveBtn.disabled = true;
+      modalSaveBtn.textContent = "Menyimpan...";
+      try {
+        const data = await fetchJson('/api/monitoring-tugas/schedule', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            memberId: currentSchedulingMember.id,
+            date: slot.date,
+            time: slot.time,
+            role: scheduleRole.value
+          })
+        });
+        alert(data.message || "Tugas berhasil dijadwalkan.");
+        closeScheduleModal();
+        await loadMonitoring();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        modalSaveBtn.disabled = false;
+        modalSaveBtn.textContent = "Jadwalkan";
+      }
     }
 
-    // Event listeners
-    monthSelector.addEventListener("change", function () {
-      render();
-      populateScheduleDates();
-    });
-    yearSelector.addEventListener("change", function () {
-      render();
-      populateScheduleDates();
-    });
-    targetMinInput.addEventListener("change", function () {
-      targetMinimum = parseInt(this.value) || 2;
-      render();
-    });
-
-    searchFilter.addEventListener("input", render);
-    roleFilter.addEventListener("change", render);
-    statusFilter.addEventListener("change", render);
+    monthSelector.addEventListener("change", loadMonitoring);
+    yearSelector.addEventListener("change", loadMonitoring);
+    targetMinInput.addEventListener("change", saveTargetMinimum);
+    searchFilter.addEventListener("input", function () { window.clearTimeout(searchFilter._timer); searchFilter._timer = window.setTimeout(loadMonitoring, 250); });
+    roleFilter.addEventListener("change", loadMonitoring);
+    statusFilter.addEventListener("change", loadMonitoring);
+    scheduleDate.addEventListener("change", updateSlotDetailOptions);
+    modalCancelBtn.addEventListener("click", closeScheduleModal);
+    modalCloseBtn.addEventListener("click", closeScheduleModal);
+    modalSaveBtn.addEventListener("click", saveScheduledTask);
+    scheduleModal.addEventListener("click", function (e) { if (e.target === scheduleModal) closeScheduleModal(); });
 
     document.querySelectorAll(".sortable-header").forEach(function (header) {
       header.addEventListener("click", function () {
-        const col = this.getAttribute("data-sort");
+        const col = header.getAttribute("data-sort");
         if (currentSortColumn === col) {
           sortDirection = sortDirection === "asc" ? "desc" : "asc";
         } else {
           currentSortColumn = col;
           sortDirection = "asc";
         }
-        render();
+        loadMonitoring();
       });
     });
 
-    modalCancelBtn.addEventListener("click", closeScheduleModal);
-    modalCloseBtn.addEventListener("click", closeScheduleModal);
-    modalSaveBtn.addEventListener("click", saveScheduledTask);
-    scheduleDate.addEventListener("change", updateScheduleTimeOptions);
-
-    scheduleModal.addEventListener("click", function (e) {
-      if (e.target === scheduleModal) {
-        closeScheduleModal();
-      }
+    document.querySelectorAll(".group-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const group = button.closest(".menu-group");
+        group.classList.toggle("open");
+        const mark = button.querySelector("span");
+        if (mark) mark.textContent = group.classList.contains("open") ? "-" : "+";
+      });
     });
 
-    init();
+    initPeriodControls();
+    updateLiveDateTime();
+    setInterval(updateLiveDateTime, 1000);
+    loadMonitoring();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>

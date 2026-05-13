@@ -1432,6 +1432,9 @@ def normalize_role_value(value: str) -> str:
 def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
     birth_date = row.get("tgl_lahir") or ""
     status_value = row.get("status_akun") or "aktif"
+    inactive_until_value = row.get("inactive_until") or ""
+    if hasattr(inactive_until_value, "isoformat"):
+        inactive_until_value = inactive_until_value.isoformat()
     return {
         "id": row.get("id"),
         "name": row.get("nama") or "Anggota",
@@ -1449,7 +1452,7 @@ def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "registeredAt": row.get("created_at") or "",
         "createdAt": row.get("created_at") or "",
         "updatedAt": row.get("updated_at") or "",
-        "inactiveUntil": "",
+        "inactiveUntil": inactive_until_value or "",
     }
 
 def read_member_rows() -> list[dict[str, object]]:
@@ -1458,7 +1461,7 @@ def read_member_rows() -> list[dict[str, object]]:
     cursor = conn.cursor(dictionary=True)
     cursor.execute(
         """
-        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun
+        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until
         , created_at, updated_at
         FROM anggota
         ORDER BY id ASC
@@ -2769,6 +2772,10 @@ def get_notifications():
         create_due_task_reminder_notifications()
     except Exception as exc:
         print(f"[WARN] Gagal membuat notifikasi pengingat tugas: {exc}")
+    try:
+        create_monthly_requirement_notifications()
+    except Exception as exc:
+        print(f"[WARN] Gagal membuat notifikasi target bulanan: {exc}")
     viewer = current_user_context()
     client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
     user_key = None
@@ -3311,6 +3318,7 @@ def ensure_auth_schema() -> None:
 
     ensure_column(cursor, "anggota", "alamat", "`alamat` text DEFAULT NULL")
     ensure_column(cursor, "anggota", "status_akun", "`status_akun` varchar(20) NOT NULL DEFAULT 'aktif'")
+    ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
     ensure_column(cursor, "anggota", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
     ensure_column(cursor, "anggota", "updated_at", "`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
@@ -3486,7 +3494,7 @@ def fetch_member(identifier: str):
     cursor = conn.cursor(dictionary=True)
     cursor.execute(
         """
-        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun
+        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until
         , created_at, updated_at
         FROM anggota
         ORDER BY id ASC
@@ -3771,6 +3779,7 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     try:
         cursor.execute("START TRANSACTION")
 
+        ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
         cursor.execute("SELECT id, password FROM anggota")
         existing_rows = cursor.fetchall() or []
         existing_passwords: dict[int, str] = {}
@@ -3787,6 +3796,7 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
         for index, item in enumerate(payload, start=1):
             birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
             status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
+            inactive_until = parse_optional_date(item.get("inactiveUntil") or item.get("inactive_until"))
             
             try:
                 member_id = int(item.get("id"))
@@ -3804,8 +3814,8 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
             cursor.execute(
                 """
                 INSERT INTO anggota
-                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 ON DUPLICATE KEY UPDATE
                   updated_at = IF(
                     NOT (
@@ -3817,7 +3827,8 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                       COALESCE(tgl_lahir, '') = COALESCE(VALUES(tgl_lahir), '') AND
                       COALESCE(email, '') = COALESCE(VALUES(email), '') AND
                       COALESCE(alamat, '') = COALESCE(VALUES(alamat), '') AND
-                      COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), '')
+                      COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), '') AND
+                      COALESCE(inactive_until, '') = COALESCE(VALUES(inactive_until), '')
                     ),
                     CURRENT_TIMESTAMP,
                     updated_at
@@ -3830,7 +3841,8 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                   tgl_lahir = IF(COALESCE(tgl_lahir, '') = COALESCE(VALUES(tgl_lahir), ''), tgl_lahir, VALUES(tgl_lahir)),
                   email = IF(COALESCE(email, '') = COALESCE(VALUES(email), ''), email, VALUES(email)),
                   alamat = IF(COALESCE(alamat, '') = COALESCE(VALUES(alamat), ''), alamat, VALUES(alamat)),
-                  status_akun = IF(COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), ''), status_akun, VALUES(status_akun))
+                  status_akun = IF(COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), ''), status_akun, VALUES(status_akun)),
+                  inactive_until = IF(COALESCE(inactive_until, '') = COALESCE(VALUES(inactive_until), ''), inactive_until, VALUES(inactive_until))
                 """,
                 (
                     member_id,
@@ -3843,6 +3855,7 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                     item.get("email") or "",
                     item.get("address") or "",
                     status_value,
+                    inactive_until,
                 ),
             )
 
@@ -9601,6 +9614,569 @@ def api_task_exchanges_cancel(request_id):
     finally:
         cursor.close()
         conn.close()
+
+# ---------------------------------------------------------------------------
+# Monitoring Tugas Anggota - kewajiban bulanan Misa Biasa saja
+# ---------------------------------------------------------------------------
+
+def ensure_monthly_monitoring_schema(cursor) -> None:
+    """Schema kecil untuk menyimpan target minimum tugas bulanan."""
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `monthly_task_settings` (
+          `id` varchar(50) NOT NULL,
+          `target_minimum` int NOT NULL DEFAULT 2,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+    cursor.execute(
+        """
+        INSERT IGNORE INTO `monthly_task_settings` (`id`, `target_minimum`)
+        VALUES ('default', 2)
+        """
+    )
+    try:
+        ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
+    except Exception:
+        pass
+
+
+def monitoring_require_admin():
+    if not session.get("logged_in"):
+        return jsonify({"success": False, "error": "Anda harus login terlebih dahulu."}), 401
+    if normalize_role_value(session.get("role") or "user") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses hanya untuk admin/super admin."}), 403
+    return None
+
+
+def monitoring_get_target_minimum(cursor) -> int:
+    ensure_monthly_monitoring_schema(cursor)
+    cursor.execute("SELECT target_minimum FROM monthly_task_settings WHERE id = 'default' LIMIT 1")
+    row = cursor.fetchone()
+    value = fetch_scalar_value(row, 2)
+    return max(1, min(99, parse_required_int(value, 2)))
+
+
+def monitoring_account_role_label(role_value: str) -> str:
+    role = normalize_role_value(role_value or "user")
+    if role == "super_admin":
+        return "Super Admin"
+    if role == "admin":
+        return "Admin"
+    return "Anggota"
+
+
+def monitoring_is_member_active_for_period(row: dict[str, object], year: int, month: int) -> bool:
+    # Saat ini status aktif/nonaktif di database menjadi sumber utama.
+    # Jika kolom inactive_until tersedia dan tanggalnya sudah lewat sebelum periode, anggota dianggap aktif lagi.
+    status = normalize_status(row.get("status_akun") or "aktif")
+    if status == "aktif":
+        return True
+    inactive_until = row.get("inactive_until")
+    if not inactive_until:
+        return False
+    try:
+        if hasattr(inactive_until, "year"):
+            until_date = inactive_until
+        else:
+            until_date = datetime.strptime(str(inactive_until)[:10], "%Y-%m-%d").date()
+        period_start = datetime(year, month, 1).date()
+        return until_date <= period_start
+    except Exception:
+        return False
+
+
+def monitoring_status(total_tasks: int, target_minimum: int) -> tuple[str, str, int]:
+    shortage = max(0, int(target_minimum) - int(total_tasks or 0))
+    if shortage <= 0:
+        return "Aman", "ok", shortage
+    if shortage == 1:
+        return "Perlu Tambahan", "warn", shortage
+    return "Kritis", "danger", shortage
+
+
+def monitoring_count_regular_assignments(cursor, year: int, month: int) -> dict[int, int]:
+    cursor.execute(
+        """
+        SELECT member_id, COUNT(*) AS total
+        FROM streaming_assignments
+        WHERE YEAR(schedule_date) = %s AND MONTH(schedule_date) = %s
+        GROUP BY member_id
+        """,
+        (year, month),
+    )
+    result: dict[int, int] = {}
+    for row in cursor.fetchall() or []:
+        try:
+            result[int(row.get("member_id") if isinstance(row, dict) else row[0])] = int(row.get("total") if isinstance(row, dict) else row[1])
+        except Exception:
+            continue
+    return result
+
+
+def monitoring_fetch_members(cursor, year: int, month: int) -> list[dict[str, object]]:
+    try:
+        ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
+    except Exception:
+        pass
+    cursor.execute(
+        """
+        SELECT id, nama, username, role, status_akun, inactive_until
+        FROM anggota
+        ORDER BY nama ASC, id ASC
+        """
+    )
+    rows = cursor.fetchall() or []
+    active_members: list[dict[str, object]] = []
+    for row in rows:
+        if not monitoring_is_member_active_for_period(row, year, month):
+            continue
+        role = normalize_role_value(row.get("role") or "user")
+        active_members.append({
+            "id": row.get("id"),
+            "name": normalize_text(row.get("nama") or row.get("username")) or f"Anggota {row.get('id')}",
+            "accountRole": role,
+            "accountRoleLabel": monitoring_account_role_label(role),
+        })
+    return active_members
+
+
+def monitoring_month_range(year: int, month: int) -> tuple[str, str]:
+    last_day = calendar.monthrange(year, month)[1]
+    return f"{year}-{month:02d}-01", f"{year}-{month:02d}-{last_day:02d}"
+
+
+def monitoring_regular_slot_conflict(cursor, date_text: str, time_text: str) -> bool:
+    time_clean = format_time_hhmm(time_text)
+    cursor.execute(
+        """
+        SELECT 1 FROM streaming_cancelled
+        WHERE mass_date = %s AND DATE_FORMAT(mass_time, '%H:%i') = %s
+        LIMIT 1
+        """,
+        (date_text, time_clean),
+    )
+    if cursor.fetchone():
+        return True
+    cursor.execute(
+        """
+        SELECT 1 FROM misa_besar
+        WHERE status = 'published' AND misa_date = %s AND DATE_FORMAT(misa_time, '%H:%i') = %s
+        LIMIT 1
+        """,
+        (date_text, time_clean),
+    )
+    return cursor.fetchone() is not None
+
+
+def monitoring_open_regular_slots(cursor, year: int, month: int, member_id: object | None = None) -> list[dict[str, object]]:
+    """Ambil slot misa biasa yang masih punya role kosong, hanya tanggal setelah hari ini."""
+    roles = request_task_fetch_roles(cursor)
+    if not roles:
+        return []
+    cursor.execute(
+        """
+        SELECT day_name, mass_name, DATE_FORMAT(start_time, '%H:%i') AS start_time
+        FROM streaming_weekly_config
+        ORDER BY FIELD(day_name, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'), start_time ASC, id ASC
+        """
+    )
+    configs = cursor.fetchall() or []
+    cursor.execute(
+        """
+        SELECT DATE_FORMAT(schedule_date, '%Y-%m-%d') AS schedule_date,
+               DATE_FORMAT(schedule_time, '%H:%i') AS schedule_time,
+               role_name, member_id
+        FROM streaming_assignments
+        WHERE YEAR(schedule_date) = %s AND MONTH(schedule_date) = %s
+        """,
+        (year, month),
+    )
+    assignment_map: dict[tuple[str, str], dict[str, str]] = {}
+    assigned_members_by_slot: dict[tuple[str, str], set[str]] = {}
+    for row in cursor.fetchall() or []:
+        key = (normalize_text(row.get("schedule_date")), format_time_hhmm(row.get("schedule_time")))
+        assignment_map.setdefault(key, {})[normalize_text(row.get("role_name"))] = str(row.get("member_id") or "")
+        assigned_members_by_slot.setdefault(key, set()).add(str(row.get("member_id") or ""))
+
+    today = datetime.now().date()
+    items: list[dict[str, object]] = []
+    for day in range(1, calendar.monthrange(year, month)[1] + 1):
+        date_obj = datetime(year, month, day).date()
+        if date_obj <= today:
+            continue
+        date_text = date_obj.strftime("%Y-%m-%d")
+        day_name = DAYS_INDO[date_obj.weekday()]
+        for cfg in configs:
+            if normalize_text(cfg.get("day_name")) != day_name:
+                continue
+            time_text = format_time_hhmm(cfg.get("start_time"))
+            if monitoring_regular_slot_conflict(cursor, date_text, time_text):
+                continue
+            key = (date_text, time_text)
+            if member_id and str(member_id) in assigned_members_by_slot.get(key, set()):
+                # 1 orang hanya boleh 1 role dalam 1 misa/sesi.
+                continue
+            filled_by_role = assignment_map.get(key, {})
+            open_roles = [role for role in roles if not filled_by_role.get(role)]
+            if not open_roles:
+                continue
+            items.append({
+                "id": request_task_schedule_key("biasa", date_text, time_text),
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": day_name,
+                "time": time_text,
+                "misaName": normalize_text(cfg.get("mass_name")) or "Misa Biasa",
+                "openRoles": open_roles,
+            })
+    items.sort(key=lambda item: (item.get("date"), item.get("time")))
+    return items
+
+
+def monitoring_has_open_future_slots(cursor, year: int, month: int) -> bool:
+    return bool(monitoring_open_regular_slots(cursor, year, month, member_id=None))
+
+
+def monitoring_notification_url_for_role(role_value: str) -> str:
+    role = normalize_role_value(role_value or "user")
+    if role == "admin":
+        return "/jadwal-tugas-streaming-admin.html"
+    return "/request-tugas-anggota.html"
+
+
+def create_monthly_requirement_notifications() -> int:
+    """Buat notifikasi target bulanan untuk user/admin biasa, bukan super_admin.
+
+    - H-7 dan H-1 sebelum bulan berikutnya.
+    - Harian pada bulan berjalan jika masih kurang dan masih ada slot masa depan yang kosong.
+    """
+    ensure_auth_schema()
+    ensure_streaming_schema()
+    ensure_notifications_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    sent = 0
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        target = monitoring_get_target_minimum(cursor)
+        today = datetime.now().date()
+
+        periods: list[tuple[int, int, str, str]] = []
+        # Notifikasi harian bulan berjalan.
+        periods.append((today.year, today.month, "daily_current", "Pengingat target tugas bulan ini"))
+        # H-7 / H-1 untuk bulan berikutnya.
+        first_next_month = (datetime(today.year, today.month, 28).date() + timedelta(days=4)).replace(day=1)
+        h7_date = first_next_month - timedelta(days=7)
+        h1_date = first_next_month - timedelta(days=1)
+        if today == h7_date:
+            periods.append((first_next_month.year, first_next_month.month, "h7_next_month", "Pengingat H-7 target tugas bulan depan"))
+        if today == h1_date:
+            periods.append((first_next_month.year, first_next_month.month, "h1_next_month", "Pengingat H-1 target tugas bulan depan"))
+
+        for year, month, code, title in periods:
+            if not monitoring_has_open_future_slots(cursor, year, month):
+                continue
+            counts = monitoring_count_regular_assignments(cursor, year, month)
+            members = monitoring_fetch_members(cursor, year, month)
+            for member in members:
+                role_value = normalize_role_value(member.get("accountRole") or "user")
+                if role_value == "super_admin":
+                    continue
+                total = counts.get(int(member.get("id") or 0), 0)
+                shortage = max(0, target - total)
+                if shortage <= 0:
+                    continue
+                month_name = calendar.month_name[month]
+                month_label = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][month]
+                body = (
+                    f"Target tugas Misa Biasa bulan <b>{html.escape(month_label)} {year}</b> belum terpenuhi. "
+                    f"Saat ini Anda memiliki <b>{total}</b> tugas dari target minimum <b>{target}</b>; "
+                    f"masih kurang <b>{shortage}</b> tugas. Silakan mengambil/request jadwal yang masih kosong."
+                )
+                dedupe_day = today.strftime("%Y-%m-%d") if code == "daily_current" else code
+                dedupe_key = f"monthly-monitoring:{year}-{month:02d}:{member.get('id')}:{code}:{dedupe_day}:target{target}"
+                create_notification_once(
+                    cursor,
+                    "tugas",
+                    title,
+                    body,
+                    monitoring_notification_url_for_role(role_value),
+                    {
+                        "target_user_id": str(member.get("id")),
+                        "notification_kind": "monthly_task_requirement",
+                        "period_year": year,
+                        "period_month": month,
+                        "target_minimum": target,
+                        "current_total": total,
+                        "shortage": shortage,
+                    },
+                    target_role="admin" if role_value == "admin" else "user",
+                    dedupe_key=dedupe_key,
+                )
+                sent += 1
+        conn.commit()
+        return sent
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-tugas", methods=["GET"])
+def api_monitoring_tugas():
+    auth_error = monitoring_require_admin()
+    if auth_error:
+        return auth_error
+    ensure_auth_schema()
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        now = datetime.now()
+        month = max(1, min(12, parse_required_int(request.args.get("month"), now.month)))
+        year = parse_required_int(request.args.get("year"), now.year)
+        search_text = normalize_text(request.args.get("search")).lower()
+        role_filter = normalize_text(request.args.get("role") or "all")
+        status_filter = normalize_text(request.args.get("status") or "all")
+        sort_mode = normalize_text(request.args.get("sort") or "name_asc")
+        target = monitoring_get_target_minimum(cursor)
+        counts = monitoring_count_regular_assignments(cursor, year, month)
+        members = monitoring_fetch_members(cursor, year, month)
+
+        items: list[dict[str, object]] = []
+        for member in members:
+            total = counts.get(int(member.get("id") or 0), 0)
+            label, class_name, shortage = monitoring_status(total, target)
+            item = {
+                "id": member.get("id"),
+                "name": member.get("name"),
+                "accountRole": member.get("accountRole"),
+                "accountRoleLabel": member.get("accountRoleLabel"),
+                "totalTasks": total,
+                "shortage": shortage,
+                "status": label,
+                "statusClass": class_name,
+                "canSchedule": shortage > 0,
+            }
+            items.append(item)
+
+        if role_filter != "all":
+            items = [i for i in items if normalize_text(i.get("accountRole")) == role_filter]
+        if status_filter != "all":
+            items = [i for i in items if normalize_text(i.get("status")) == status_filter]
+        if search_text:
+            items = [i for i in items if search_text in (normalize_text(i.get("name")) + " " + normalize_text(i.get("accountRoleLabel"))).lower()]
+
+        if sort_mode == "name_desc":
+            items.sort(key=lambda i: normalize_text(i.get("name")).lower(), reverse=True)
+        elif sort_mode == "total_asc":
+            items.sort(key=lambda i: (i.get("totalTasks") or 0, normalize_text(i.get("name")).lower()))
+        elif sort_mode == "total_desc":
+            items.sort(key=lambda i: (i.get("totalTasks") or 0, normalize_text(i.get("name")).lower()), reverse=True)
+        elif sort_mode == "shortage_asc":
+            items.sort(key=lambda i: (i.get("shortage") or 0, normalize_text(i.get("name")).lower()))
+        elif sort_mode == "shortage_desc":
+            items.sort(key=lambda i: (i.get("shortage") or 0, normalize_text(i.get("name")).lower()), reverse=True)
+        elif sort_mode == "status_asc":
+            order = {"Aman": 0, "Perlu Tambahan": 1, "Kritis": 2}
+            items.sort(key=lambda i: (order.get(normalize_text(i.get("status")), 9), normalize_text(i.get("name")).lower()))
+        elif sort_mode == "status_desc":
+            order = {"Aman": 0, "Perlu Tambahan": 1, "Kritis": 2}
+            items.sort(key=lambda i: (order.get(normalize_text(i.get("status")), 9), normalize_text(i.get("name")).lower()), reverse=True)
+        else:
+            items.sort(key=lambda i: normalize_text(i.get("name")).lower())
+
+        # Ringkasan dihitung dari seluruh anggota aktif pada periode tersebut, bukan hanya hasil search.
+        all_statuses = []
+        for member in members:
+            total = counts.get(int(member.get("id") or 0), 0)
+            label, class_name, shortage = monitoring_status(total, target)
+            all_statuses.append((label, shortage))
+        summary = {
+            "totalMembers": len(members),
+            "completedMembers": sum(1 for label, shortage in all_statuses if shortage == 0),
+            "shortage1Members": sum(1 for label, shortage in all_statuses if shortage == 1),
+            "shortageMultiMembers": sum(1 for label, shortage in all_statuses if shortage > 1),
+            "targetMinimum": target,
+        }
+        return jsonify({
+            "success": True,
+            "items": items,
+            "summary": summary,
+            "period": {"month": month, "year": year},
+            "roles": [
+                {"value": "user", "label": "Anggota"},
+                {"value": "admin", "label": "Admin"},
+                {"value": "super_admin", "label": "Super Admin"},
+            ],
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-tugas/target", methods=["POST"])
+def api_monitoring_tugas_target():
+    auth_error = monitoring_require_admin()
+    if auth_error:
+        return auth_error
+    payload = request.get_json(silent=True) or {}
+    target = max(1, min(99, parse_required_int(payload.get("targetMinimum"), 2)))
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        cursor.execute(
+            """
+            INSERT INTO monthly_task_settings (`id`, `target_minimum`)
+            VALUES ('default', %s)
+            ON DUPLICATE KEY UPDATE target_minimum = VALUES(target_minimum), updated_at = CURRENT_TIMESTAMP
+            """,
+            (target,),
+        )
+        conn.commit()
+        return jsonify({"success": True, "targetMinimum": target})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-tugas/slots", methods=["GET"])
+def api_monitoring_tugas_slots():
+    auth_error = monitoring_require_admin()
+    if auth_error:
+        return auth_error
+    ensure_auth_schema()
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        now = datetime.now()
+        month = max(1, min(12, parse_required_int(request.args.get("month"), now.month)))
+        year = parse_required_int(request.args.get("year"), now.year)
+        member_id = request.args.get("memberId")
+        if not member_id:
+            return jsonify({"success": False, "error": "Member wajib dipilih."}), 400
+        cursor.execute("SELECT id, nama, role, status_akun FROM anggota WHERE id = %s LIMIT 1", (member_id,))
+        member = cursor.fetchone()
+        if not member:
+            return jsonify({"success": False, "error": "Anggota tidak ditemukan."}), 404
+        if normalize_status(member.get("status_akun") or "aktif") != "aktif":
+            return jsonify({"success": False, "error": "Anggota sedang nonaktif."}), 400
+        slots = monitoring_open_regular_slots(cursor, year, month, member_id=member_id)
+        return jsonify({"success": True, "slots": slots, "member": {"id": member.get("id"), "name": member.get("nama")}})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-tugas/schedule", methods=["POST"])
+def api_monitoring_tugas_schedule():
+    auth_error = monitoring_require_admin()
+    if auth_error:
+        return auth_error
+    payload = request.get_json(silent=True) or {}
+    member_id = normalize_text(payload.get("memberId"))
+    date_text = normalize_text(payload.get("date"))
+    time_text = format_time_hhmm(payload.get("time"))
+    role_name = normalize_text(payload.get("role"))
+    if not member_id or not date_text or not time_text or not role_name:
+        return jsonify({"success": False, "error": "Anggota, tanggal, jam, dan role wajib dipilih."}), 400
+    try:
+        date_obj = datetime.strptime(date_text, "%Y-%m-%d").date()
+    except Exception:
+        return jsonify({"success": False, "error": "Tanggal tidak valid."}), 400
+    if date_obj <= datetime.now().date():
+        return jsonify({"success": False, "error": "Hanya jadwal mulai besok dan seterusnya yang bisa dipilih."}), 400
+
+    ensure_auth_schema()
+    ensure_streaming_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        cursor.execute("SELECT id, nama, role, status_akun FROM anggota WHERE id = %s LIMIT 1", (member_id,))
+        member = cursor.fetchone()
+        if not member:
+            return jsonify({"success": False, "error": "Anggota tidak ditemukan."}), 404
+        if normalize_status(member.get("status_akun") or "aktif") != "aktif":
+            return jsonify({"success": False, "error": "Anggota sedang nonaktif."}), 400
+        cursor.execute("SELECT role_name FROM streaming_roles WHERE role_name = %s LIMIT 1", (role_name,))
+        if not cursor.fetchone():
+            return jsonify({"success": False, "error": "Role tidak valid."}), 400
+        cfg = request_task_get_regular_cfg(cursor, date_text, time_text)
+        if not cfg:
+            return jsonify({"success": False, "error": "Jadwal Misa Biasa tidak ditemukan pada tanggal/jam tersebut."}), 400
+        if monitoring_regular_slot_conflict(cursor, date_text, time_text):
+            return jsonify({"success": False, "error": "Jadwal diblokir/ditiadakan atau bentrok Misa Besar."}), 400
+        cursor.execute(
+            """
+            SELECT role_name FROM streaming_assignments
+            WHERE schedule_date = %s AND DATE_FORMAT(schedule_time, '%H:%i') = %s AND member_id = %s
+            LIMIT 1
+            """,
+            (date_text, time_text, member_id),
+        )
+        if cursor.fetchone():
+            return jsonify({"success": False, "error": "Anggota ini sudah bertugas di sesi yang sama."}), 400
+        cursor.execute(
+            """
+            SELECT member_id FROM streaming_assignments
+            WHERE schedule_date = %s AND DATE_FORMAT(schedule_time, '%H:%i') = %s AND role_name = %s
+            LIMIT 1
+            """,
+            (date_text, time_text, role_name),
+        )
+        if cursor.fetchone():
+            return jsonify({"success": False, "error": "Role ini sudah terisi."}), 409
+        cursor.execute(
+            """
+            INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id, request_source, created_at)
+            VALUES (%s, %s, %s, %s, 'admin', CURRENT_TIMESTAMP)
+            """,
+            (date_text, time_text, role_name, member_id),
+        )
+        ensure_notifications_schema()
+        day_name = request_task_day_name(date_text)
+        date_label = request_task_format_date(date_text)
+        misa_name = normalize_text(cfg.get("mass_name")) or "Misa Biasa"
+        title = f"Tugas Baru: {role_name}"
+        body = (
+            f"Anda dijadwalkan sebagai <b>{html.escape(role_name)}</b> untuk <b>{html.escape(misa_name)}</b> "
+            f"pada hari {html.escape(day_name)}, {html.escape(date_label)} jam {html.escape(time_text)} WIB."
+        )
+        create_notification(
+            cursor,
+            "tugas",
+            title,
+            body,
+            notification_target_url_for_member_role(member.get("role"), default_user_url="/jadwal-tugas-misa-anggota.html"),
+            {
+                "target_user_id": str(member_id),
+                "notification_kind": "monitoring_admin_schedule",
+                "misa_type": "misa_biasa",
+                "misa_name": misa_name,
+                "misa_date": date_text,
+                "misa_time": time_text,
+                "role": role_name,
+            },
+            target_role=None,
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": f"{member.get('nama')} berhasil dijadwalkan sebagai {role_name}."})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
 
 
 if __name__ == "__main__":
