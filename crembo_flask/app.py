@@ -11520,10 +11520,8 @@ def eval_validate_submit_payload(payload: dict[str, object]) -> tuple[bool, str]
         return False, "Kendala teknis wajib diisi."
     if not normalize_text(payload.get("nontechnicalIssue")):
         return False, "Kendala non-teknis wajib diisi."
-    checklist = payload.get("checklist") if isinstance(payload.get("checklist"), dict) else {}
-    for key in EVAL_REQUIRED_CHECKS:
-        if not checklist.get(key):
-            return False, "Checklist kondisi pelayanan wajib dicentang."
+    # Checklist kondisi pelayanan bersifat informatif/opsional.
+    # Tidak semua kondisi harus dicentang karena form juga dipakai untuk mencatat sesi yang mengalami kendala.
     if not normalize_text(payload.get("generalAssessment")):
         return False, "Penilaian umum wajib dipilih."
     return True, ""
