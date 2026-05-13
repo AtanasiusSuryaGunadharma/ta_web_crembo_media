@@ -10179,6 +10179,535 @@ def api_monitoring_tugas_schedule():
 
 
 
+# ---------------------------------------------------------------------------
+# Monitoring Kewajiban Tugas Anggota - statistik personal anggota
+# ---------------------------------------------------------------------------
+
+def member_monitoring_current_user(cursor):
+    """Ambil user login terbaru dari database untuk halaman monitoring anggota."""
+    if not session.get("logged_in"):
+        return None, (jsonify({"success": False, "error": "Anda harus login terlebih dahulu."}), 401)
+    user_id = session.get("user_id")
+    if not user_id:
+        return None, (jsonify({"success": False, "error": "Sesi login tidak valid."}), 401)
+    cursor.execute(
+        """
+        SELECT id, nama, username, role, status_akun
+        FROM anggota
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+    user = cursor.fetchone()
+    if not user:
+        return None, (jsonify({"success": False, "error": "Akun tidak ditemukan."}), 404)
+    if normalize_status(user.get("status_akun") or "aktif") != "aktif":
+        return None, (jsonify({"success": False, "error": "Akun Anda sedang nonaktif."}), 403)
+    user["id"] = str(user.get("id"))
+    user["name"] = normalize_text(user.get("nama") or user.get("username") or "Anggota")
+    user["roleNormalized"] = normalize_role_value(user.get("role") or "user")
+    user["roleLabel"] = monitoring_account_role_label(user.get("role") or "user")
+    return user, None
+
+
+def member_monitoring_month_name(month: int) -> str:
+    month_names = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+    ]
+    try:
+        return month_names[int(month) - 1]
+    except Exception:
+        return "-"
+
+
+def member_monitoring_period_label(month: str | int, year: str | int) -> str:
+    month_text = normalize_text(month)
+    year_text = normalize_text(year)
+    if month_text.lower() == "all" and year_text.lower() == "all":
+        return "Semua Bulan & Semua Tahun"
+    if month_text.lower() == "all":
+        return f"Semua Bulan {year_text}"
+    if year_text.lower() == "all":
+        return f"{member_monitoring_month_name(parse_required_int(month_text, 1))} Semua Tahun"
+    return f"{member_monitoring_month_name(parse_required_int(month_text, 1))} {year_text}"
+
+
+def member_monitoring_parse_month(value, default_month: int | None = None) -> str:
+    raw = normalize_text(value)
+    if raw.lower() == "all":
+        return "all"
+    if raw == "":
+        return str(default_month or datetime.now().month)
+    return str(min(12, max(1, parse_required_int(raw, default_month or datetime.now().month))))
+
+
+def member_monitoring_parse_year(value, default_year: int | None = None) -> str:
+    raw = normalize_text(value)
+    if raw.lower() == "all":
+        return "all"
+    if raw == "":
+        return str(default_year or datetime.now().year)
+    return str(parse_required_int(raw, default_year or datetime.now().year))
+
+
+def member_monitoring_schedule_dt(date_text: str, time_text: str) -> datetime:
+    try:
+        return datetime.strptime(f"{normalize_text(date_text)} {format_time_hhmm(time_text)}", "%Y-%m-%d %H:%M")
+    except Exception:
+        try:
+            return datetime.strptime(normalize_text(date_text), "%Y-%m-%d")
+        except Exception:
+            return datetime(1970, 1, 1)
+
+
+def member_monitoring_task_item(kind: str, type_label: str, misa_name: str, date_text: str, time_text: str, role_name: str, created_at=None) -> dict[str, object]:
+    schedule_dt = member_monitoring_schedule_dt(date_text, time_text)
+    is_completed = schedule_dt < datetime.now()
+    created_text = created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at)
+    return {
+        "type": kind,
+        "typeLabel": type_label,
+        "misaName": normalize_text(misa_name) or type_label,
+        "date": normalize_text(date_text),
+        "dateLabel": request_task_format_date(normalize_text(date_text)),
+        "dayName": request_task_day_name(normalize_text(date_text)),
+        "time": format_time_hhmm(time_text),
+        "role": normalize_text(role_name) or "-",
+        "status": "Selesai" if is_completed else "Terjadwal",
+        "completed": is_completed,
+        "createdAt": created_text,
+        "display": f"{normalize_text(misa_name) or type_label} - {request_task_day_name(normalize_text(date_text))}, {request_task_format_date(normalize_text(date_text))} jam {format_time_hhmm(time_text)} WIB",
+    }
+
+
+def member_monitoring_fetch_regular_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all") -> list[dict[str, object]]:
+    ensure_streaming_schema()
+    where = ["sa.member_id = %s"]
+    params: list[object] = [member_id]
+    if normalize_text(month).lower() != "all":
+        where.append("MONTH(sa.schedule_date) = %s")
+        params.append(parse_required_int(month, datetime.now().month))
+    if normalize_text(year).lower() != "all":
+        where.append("YEAR(sa.schedule_date) = %s")
+        params.append(parse_required_int(year, datetime.now().year))
+    where_sql = " AND ".join(where)
+    cursor.execute(
+        f"""
+        SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+               DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+               sa.role_name,
+               sa.created_at,
+               cfg.mass_name
+        FROM streaming_assignments sa
+        LEFT JOIN streaming_weekly_config cfg
+          ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+            WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+            WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+            ELSE 'Minggu' END
+          AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+        WHERE {where_sql}
+          AND NOT EXISTS (
+            SELECT 1 FROM streaming_cancelled sc
+            WHERE sc.mass_date = sa.schedule_date
+              AND DATE_FORMAT(sc.mass_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM misa_besar mb
+            WHERE mb.status = 'published'
+              AND mb.misa_date = sa.schedule_date
+              AND DATE_FORMAT(mb.misa_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+          )
+        ORDER BY sa.schedule_date ASC, sa.schedule_time ASC, sa.role_name ASC
+        """,
+        tuple(params),
+    )
+    rows = cursor.fetchall() or []
+    return [
+        member_monitoring_task_item(
+            "biasa",
+            "Misa Biasa",
+            row.get("mass_name") or "Misa Biasa",
+            row.get("date"),
+            row.get("time"),
+            row.get("role_name"),
+            row.get("created_at"),
+        )
+        for row in rows
+    ]
+
+
+def member_monitoring_fetch_big_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all") -> list[dict[str, object]]:
+    ensure_misa_besar_schema()
+    where = ["a.member_id = %s", "mb.status = 'published'"]
+    params: list[object] = [member_id]
+    if normalize_text(month).lower() != "all":
+        where.append("MONTH(mb.misa_date) = %s")
+        params.append(parse_required_int(month, datetime.now().month))
+    if normalize_text(year).lower() != "all":
+        where.append("YEAR(mb.misa_date) = %s")
+        params.append(parse_required_int(year, datetime.now().year))
+    where_sql = " AND ".join(where)
+    cursor.execute(
+        f"""
+        SELECT mb.misa_name,
+               DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+               DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+               n.role_name,
+               a.created_at
+        FROM misa_besar_assignments a
+        JOIN misa_besar_names n ON n.id = a.role_id
+        JOIN misa_besar mb ON mb.id = n.misa_id
+        WHERE {where_sql}
+        ORDER BY mb.misa_date ASC, mb.misa_time ASC, n.role_name ASC
+        """,
+        tuple(params),
+    )
+    rows = cursor.fetchall() or []
+    return [
+        member_monitoring_task_item(
+            "besar",
+            "Misa Besar",
+            row.get("misa_name") or "Misa Besar",
+            row.get("date"),
+            row.get("time"),
+            row.get("role_name"),
+            row.get("created_at"),
+        )
+        for row in rows
+    ]
+
+
+def member_monitoring_fetch_all_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all", include_big: bool = True) -> list[dict[str, object]]:
+    tasks = member_monitoring_fetch_regular_tasks(cursor, member_id, month=month, year=year)
+    if include_big:
+        tasks.extend(member_monitoring_fetch_big_tasks(cursor, member_id, month=month, year=year))
+    tasks.sort(key=lambda item: member_monitoring_schedule_dt(item.get("date"), item.get("time")))
+    return tasks
+
+
+def member_monitoring_available_years(cursor, member_id: object) -> list[int]:
+    years = {datetime.now().year}
+    try:
+        cursor.execute(
+            """
+            SELECT DISTINCT YEAR(schedule_date) AS year_value
+            FROM streaming_assignments
+            WHERE member_id = %s
+            UNION
+            SELECT DISTINCT YEAR(mb.misa_date) AS year_value
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            WHERE a.member_id = %s
+            """,
+            (member_id, member_id),
+        )
+        for row in cursor.fetchall() or []:
+            year_val = fetch_scalar_value(row, None)
+            if year_val:
+                years.add(int(year_val))
+    except Exception:
+        pass
+    current = datetime.now().year
+    years.update({current - 1, current, current + 1})
+    return sorted(years)
+
+
+def member_monitoring_period_list(cursor, member_id: object, *, month: str, year: str, default_all_months: bool = False) -> list[tuple[int, int]]:
+    month_value = normalize_text(month).lower() or "all"
+    year_value = normalize_text(year).lower() or str(datetime.now().year)
+    years = member_monitoring_available_years(cursor, member_id) if year_value == "all" else [parse_required_int(year_value, datetime.now().year)]
+    periods: list[tuple[int, int]] = []
+    if month_value == "all" or default_all_months:
+        for y in years:
+            for m in range(1, 13):
+                periods.append((y, m))
+    else:
+        m = min(12, max(1, parse_required_int(month_value, datetime.now().month)))
+        for y in years:
+            periods.append((y, m))
+    return periods
+
+
+def member_monitoring_progress_group(tasks: list[dict[str, object]]) -> list[dict[str, object]]:
+    groups: dict[str, dict[str, object]] = {}
+    for task in tasks:
+        type_key = normalize_text(task.get("type")) or "biasa"
+        if type_key not in groups:
+            groups[type_key] = {
+                "type": type_key,
+                "title": normalize_text(task.get("typeLabel")) or "Misa",
+                "count": 0,
+                "completed": 0,
+                "schedules": [],
+                "roles": [],
+            }
+        group = groups[type_key]
+        group["count"] += 1
+        if task.get("completed"):
+            group["completed"] += 1
+        group["schedules"].append(task.get("display"))
+        group["roles"].append(task.get("role"))
+    result: list[dict[str, object]] = []
+    for group in groups.values():
+        total = max(0, int(group.get("count") or 0))
+        completed = max(0, int(group.get("completed") or 0))
+        percentage = min(100, round((completed / total) * 100)) if total else 0
+        if total == 0:
+            status_label = "Belum Ada"
+        elif completed >= total:
+            status_label = "Selesai"
+        elif completed > 0:
+            status_label = "Sebagian Selesai"
+        else:
+            status_label = "Terjadwal"
+        result.append({
+            "type": group.get("type"),
+            "title": group.get("title"),
+            "count": total,
+            "completed": completed,
+            "schedules": group.get("schedules") or [],
+            "roles": sorted(set([normalize_text(role) for role in group.get("roles") or [] if normalize_text(role)])),
+            "status": status_label,
+            "percentage": percentage,
+            "progressClass": "good" if percentage >= 80 else ("warn" if percentage >= 60 else "low"),
+        })
+    result.sort(key=lambda item: 0 if item.get("type") == "biasa" else 1)
+    return result
+
+
+def member_monitoring_regular_count_for_period(cursor, member_id: object, year: int, month: int) -> int:
+    return len(member_monitoring_fetch_regular_tasks(cursor, member_id, month=str(month), year=str(year)))
+
+
+@app.route("/api/monitoring-kewajiban-tugas/profile", methods=["GET"])
+def api_member_monitoring_profile():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = member_monitoring_current_user(cursor)
+        if error:
+            return error
+        return jsonify({
+            "success": True,
+            "member": {
+                "id": member.get("id"),
+                "name": member.get("name"),
+                "role": member.get("roleNormalized"),
+                "roleLabel": member.get("roleLabel"),
+                "initial": (normalize_text(member.get("name"))[:1] or "A").upper(),
+            },
+            "years": member_monitoring_available_years(cursor, member.get("id")),
+            "current": {"month": datetime.now().month, "year": datetime.now().year},
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-kewajiban-tugas/summary", methods=["GET"])
+def api_member_monitoring_summary():
+    ensure_auth_schema()
+    ensure_monthly_monitoring_schema(mysql_connection().cursor()) if False else None
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        member, error = member_monitoring_current_user(cursor)
+        if error:
+            return error
+        member_id = member.get("id")
+        now = datetime.now()
+        target = monitoring_get_target_minimum(cursor)
+
+        progress_month = member_monitoring_parse_month(request.args.get("progressMonth"), now.month)
+        progress_year = member_monitoring_parse_year(request.args.get("progressYear"), now.year)
+        shortage_month = member_monitoring_parse_month(request.args.get("shortageMonth"), now.month)
+        shortage_year = member_monitoring_parse_year(request.args.get("shortageYear"), now.year)
+        total_month = member_monitoring_parse_month(request.args.get("totalMonth"), now.month)
+        total_year = member_monitoring_parse_year(request.args.get("totalYear"), now.year)
+
+        progress_tasks = member_monitoring_fetch_all_tasks(cursor, member_id, month=progress_month, year=progress_year, include_big=True)
+        progress_total = len(progress_tasks)
+        progress_completed = sum(1 for task in progress_tasks if task.get("completed"))
+        progress_percentage = min(100, round((progress_completed / progress_total) * 100)) if progress_total else 0
+
+        shortage_periods = member_monitoring_period_list(cursor, member_id, month=shortage_month, year=shortage_year)
+        shortage_total_value = 0
+        shortage_regular_total = 0
+        for year, month in shortage_periods:
+            total_regular = member_monitoring_regular_count_for_period(cursor, member_id, year, month)
+            shortage_regular_total += total_regular
+            shortage_total_value += max(0, target - total_regular)
+
+        total_tasks = member_monitoring_fetch_all_tasks(cursor, member_id, month=total_month, year=total_year, include_big=True)
+        total_scheduled = len(total_tasks)
+        total_completed = sum(1 for task in total_tasks if task.get("completed"))
+
+        return jsonify({
+            "success": True,
+            "targetMinimum": target,
+            "progress": {
+                "completed": progress_completed,
+                "total": progress_total,
+                "percentage": progress_percentage,
+                "periodLabel": member_monitoring_period_label(progress_month, progress_year),
+            },
+            "shortage": {
+                "shortage": shortage_total_value,
+                "regularTotal": shortage_regular_total,
+                "periodLabel": member_monitoring_period_label(shortage_month, shortage_year),
+            },
+            "total": {
+                "scheduled": total_scheduled,
+                "completed": total_completed,
+                "periodLabel": member_monitoring_period_label(total_month, total_year),
+            },
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-kewajiban-tugas/progress", methods=["GET"])
+def api_member_monitoring_progress():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = member_monitoring_current_user(cursor)
+        if error:
+            return error
+        now = datetime.now()
+        month = member_monitoring_parse_month(request.args.get("month"), now.month)
+        year = member_monitoring_parse_year(request.args.get("year"), now.year)
+        search_text = normalize_text(request.args.get("search")).lower()
+        sort_mode = normalize_text(request.args.get("sort")) or "date-desc"
+        tasks = member_monitoring_fetch_all_tasks(cursor, member.get("id"), month=month, year=year, include_big=True)
+        if search_text:
+            tasks = [task for task in tasks if search_text in " ".join([
+                normalize_text(task.get("typeLabel")),
+                normalize_text(task.get("misaName")),
+                normalize_text(task.get("role")),
+                normalize_text(task.get("date")),
+                normalize_text(task.get("time")),
+                normalize_text(task.get("status")),
+            ]).lower()]
+        if sort_mode == "date-asc":
+            tasks.sort(key=lambda task: member_monitoring_schedule_dt(task.get("date"), task.get("time")))
+        elif sort_mode == "status":
+            tasks.sort(key=lambda task: (normalize_text(task.get("status")), member_monitoring_schedule_dt(task.get("date"), task.get("time"))))
+        else:
+            tasks.sort(key=lambda task: member_monitoring_schedule_dt(task.get("date"), task.get("time")), reverse=True)
+        groups = member_monitoring_progress_group(tasks)
+        return jsonify({
+            "success": True,
+            "items": groups,
+            "tasks": tasks,
+            "period": {"month": month, "year": year, "label": member_monitoring_period_label(month, year)},
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-kewajiban-tugas/shortage", methods=["GET"])
+def api_member_monitoring_shortage():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        member, error = member_monitoring_current_user(cursor)
+        if error:
+            return error
+        now = datetime.now()
+        month = member_monitoring_parse_month(request.args.get("month"), None)
+        if not normalize_text(request.args.get("month")):
+            month = "all"
+        year = member_monitoring_parse_year(request.args.get("year"), now.year)
+        status_filter = normalize_text(request.args.get("status") or "all").lower()
+        sort_mode = normalize_text(request.args.get("sort") or "month_asc").lower()
+        target = monitoring_get_target_minimum(cursor)
+        periods = member_monitoring_period_list(cursor, member.get("id"), month=month, year=year, default_all_months=(month == "all"))
+        rows = []
+        for y, m in periods:
+            total = member_monitoring_regular_count_for_period(cursor, member.get("id"), y, m)
+            shortage = max(0, target - total)
+            fulfilled = shortage == 0
+            rows.append({
+                "month": m,
+                "year": y,
+                "period": f"{y}-{m:02d}",
+                "monthText": f"{member_monitoring_month_name(m)} {y}",
+                "targetMinimum": target,
+                "totalTasks": total,
+                "shortage": shortage,
+                "status": "Terpenuhi" if fulfilled else f"Kurang {shortage} tugas",
+                "statusClass": "ok" if fulfilled else "danger",
+            })
+        if status_filter == "fulfilled":
+            rows = [row for row in rows if row.get("shortage") == 0]
+        elif status_filter == "unfulfilled":
+            rows = [row for row in rows if row.get("shortage") > 0]
+        if sort_mode == "month_desc":
+            rows.sort(key=lambda row: (row.get("year"), row.get("month")), reverse=True)
+        elif sort_mode == "shortage_desc":
+            rows.sort(key=lambda row: (row.get("shortage"), row.get("year"), row.get("month")), reverse=True)
+        elif sort_mode == "shortage_asc":
+            rows.sort(key=lambda row: (row.get("shortage"), row.get("year"), row.get("month")))
+        else:
+            rows.sort(key=lambda row: (row.get("year"), row.get("month")))
+        return jsonify({"success": True, "items": rows, "targetMinimum": target})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/monitoring-kewajiban-tugas/stats", methods=["GET"])
+def api_member_monitoring_stats():
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        member, error = member_monitoring_current_user(cursor)
+        if error:
+            return error
+        now = datetime.now()
+        month = member_monitoring_parse_month(request.args.get("month"), now.month)
+        year = member_monitoring_parse_year(request.args.get("year"), now.year)
+        target = monitoring_get_target_minimum(cursor)
+        periods = member_monitoring_period_list(cursor, member.get("id"), month=month, year=year)
+        rows = []
+        for y, m in periods:
+            regular_tasks = member_monitoring_fetch_regular_tasks(cursor, member.get("id"), month=str(m), year=str(y))
+            total_tasks = len(regular_tasks)
+            completed = sum(1 for task in regular_tasks if task.get("completed"))
+            shortage = max(0, target - total_tasks)
+            percentage = 100 if total_tasks >= target else (round((total_tasks / target) * 100) if target else 0)
+            rows.append({
+                "month": m,
+                "year": y,
+                "period": f"{y}-{m:02d}",
+                "monthText": f"{member_monitoring_month_name(m)} {y}",
+                "targetMinimum": target,
+                "targetTasks": total_tasks,
+                "completedTasks": completed,
+                "shortage": shortage,
+                "percentage": min(100, percentage),
+                "statusClass": "ok" if shortage == 0 else ("warn" if shortage == 1 else "danger"),
+            })
+        rows.sort(key=lambda row: (row.get("year"), row.get("month")), reverse=True)
+        return jsonify({"success": True, "items": rows, "targetMinimum": target})
+    finally:
+        cursor.close()
+        conn.close()
+
+
 if __name__ == "__main__":
     try:
         ensure_auth_schema()

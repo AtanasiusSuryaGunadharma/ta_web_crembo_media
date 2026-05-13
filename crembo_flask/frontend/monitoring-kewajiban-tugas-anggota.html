@@ -365,6 +365,30 @@
       line-height: 1;
     }
 
+
+    .stat-controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .stat-controls select {
+      border: 1px solid #b8b8b8;
+      border-radius: 999px;
+      background: #fff;
+      padding: 5px 8px;
+      font-size: 0.74rem;
+      font-family: inherit;
+      color: #374151;
+      min-width: 82px;
+    }
+
+    .stat small {
+      display: block;
+      margin-top: 6px;
+    }
+
     .panel {
       border: 1px solid var(--line);
       border-radius: var(--radius);
@@ -578,7 +602,7 @@
       </div>
 
       <div class="account">
-        <div class="avatar">AG</div>
+        <div class="avatar" id="memberAvatar">AG</div>
         <div class="account-text">
           <strong id="memberName">Atanasius Surya Guna</strong>
           <small>Role: Anggota Multimedia</small>
@@ -630,48 +654,69 @@
       <div class="content">
         <section class="stats-grid" aria-label="Ringkasan kewajiban tugas">
           <article class="stat blue">
-            <p>Progress Tugas Bulan Ini</p>
-            <h2 id="progressValue">8</h2>
+            <p>Progress Tugas</p>
+            <h2 id="progressValue">0%</h2>
             <div class="progress-bar">
-              <div class="progress-fill" id="progressBar" style="width: 73%;"></div>
+              <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
             </div>
-            <small style="color: #64748b; font-size: 0.74rem;">dari 11 target tugas</small>
+            <small id="progressMeta" style="color: #64748b; font-size: 0.74rem;">0 dari 0 tugas</small>
+            <div class="stat-controls">
+              <select id="cardProgressMonthSelect"></select>
+              <select id="cardProgressYearSelect"></select>
+            </div>
           </article>
 
           <article class="stat yellow">
             <p>Kekurangan Tugas</p>
-            <h2 id="shortageValue">3</h2>
-            <small style="color: #64748b; font-size: 0.74rem;">bulan lalu belum terpenuhi</small>
+            <h2 id="shortageValue">0</h2>
+            <small id="shortageMeta" style="color: #64748b; font-size: 0.74rem;">Berdasarkan minimum tugas</small>
+            <div class="stat-controls">
+              <select id="cardShortageMonthSelect"></select>
+              <select id="cardShortageYearSelect"></select>
+            </div>
           </article>
 
           <article class="stat green">
-            <p>Target Tugas Bulan Depan</p>
-            <h2 id="nextMonthTargetValue">12</h2>
-            <small style="color: #64748b; font-size: 0.74rem;">Mei 2026</small>
+            <p>Minimum Tugas</p>
+            <h2 id="minimumTargetValue">0</h2>
+            <small style="color: #64748b; font-size: 0.74rem;">Target minimum dari admin</small>
           </article>
 
           <article class="stat">
-            <p>Total Tugas Selesai</p>
-            <h2 id="totalCompletedValue">42</h2>
-            <small style="color: #64748b; font-size: 0.74rem;">sepanjang tahun</small>
+            <p>Total Tugas</p>
+            <h2 id="totalCompletedValue">0</h2>
+            <small id="totalMeta" style="color: #64748b; font-size: 0.74rem;">0 selesai</small>
+            <div class="stat-controls">
+              <select id="cardTotalMonthSelect"></select>
+              <select id="cardTotalYearSelect"></select>
+            </div>
           </article>
         </section>
 
         <section class="panel" aria-label="Progress tugas bulan berjalan">
           <header class="panel-head">
             <h2>Progress Tugas Bulan Berjalan</h2>
+            <span class="quick-chip" id="progressPeriodLabel" style="background:#eef2ff;color:#1f2937;border-color:#d8dee9;">-</span>
           </header>
 
           <div class="filter-bar">
             <div class="filter-group">
               <label>Cari:</label>
-              <input type="text" id="progressSearchBox" class="search-box" placeholder="Cari judul tugas...">
+              <input type="text" id="progressSearchBox" class="search-box" placeholder="Cari misa, role, status...">
+            </div>
+            <div class="filter-group">
+              <label>Bulan:</label>
+              <select id="progressMonthSelect" class="select-input"></select>
+            </div>
+            <div class="filter-group">
+              <label>Tahun:</label>
+              <select id="progressYearSelect" class="select-input"></select>
             </div>
             <div class="filter-group">
               <label>Urut:</label>
               <select id="progressSortSelect" class="select-input">
                 <option value="date-desc">Tanggal Terbaru</option>
-                <option value="date-asc">Tanggal Lama</option>
+                <option value="date-asc">Tanggal Terlama</option>
                 <option value="status">Status (A-Z)</option>
               </select>
             </div>
@@ -681,7 +726,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Judul Tugas</th>
+                  <th>Jenis Tugas</th>
                   <th>Jumlah</th>
                   <th>Jadwal</th>
                   <th>Role</th>
@@ -697,35 +742,33 @@
         <section class="panel" aria-label="Kekurangan tugas">
           <header class="panel-head">
             <h2>Kekurangan Tugas</h2>
+            <span class="quick-chip" style="background:#fff7ed;color:#1f2937;border-color:#fed7aa;">Misa Biasa berdasarkan target minimum admin</span>
           </header>
 
           <div class="filter-bar">
             <div class="filter-group">
               <label>Bulan:</label>
-              <select id="shortageMonthSelect" class="select-input">
-                <option value="">Semua</option>
-                <option value="01">Januari</option>
-                <option value="02">Februari</option>
-                <option value="03">Maret</option>
-                <option value="04">April</option>
-                <option value="05">Mei</option>
-                <option value="06">Juni</option>
-                <option value="07">Juli</option>
-                <option value="08">Agustus</option>
-                <option value="09">September</option>
-                <option value="10">Oktober</option>
-                <option value="11">November</option>
-                <option value="12">Desember</option>
-              </select>
+              <select id="shortageMonthSelect" class="select-input"></select>
             </div>
             <div class="filter-group">
               <label>Tahun:</label>
-              <select id="shortageYearSelect" class="select-input">
-                <option value="">Semua</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                <option value="2026" selected>2026</option>
-                <option value="2027">2027</option>
+              <select id="shortageYearSelect" class="select-input"></select>
+            </div>
+            <div class="filter-group">
+              <label>Status:</label>
+              <select id="shortageStatusSelect" class="select-input">
+                <option value="all">Semua Status</option>
+                <option value="fulfilled">Terpenuhi</option>
+                <option value="unfulfilled">Belum Terpenuhi</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Urut:</label>
+              <select id="shortageSortSelect" class="select-input">
+                <option value="month_asc">Bulan Terlama</option>
+                <option value="month_desc">Bulan Terbaru</option>
+                <option value="shortage_desc">Kekurangan Terbanyak</option>
+                <option value="shortage_asc">Kekurangan Tersedikit</option>
               </select>
             </div>
           </div>
@@ -735,7 +778,10 @@
               <thead>
                 <tr>
                   <th>Bulan/Tahun</th>
-                  <th>Kekurangan Minimal</th>
+                  <th>Minimum Tugas</th>
+                  <th>Total Tugas Misa Biasa</th>
+                  <th>Kekurangan</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody id="shortageTableRows"></tbody>
@@ -746,36 +792,17 @@
         <section class="panel" aria-label="Statistik tugas personal">
           <header class="panel-head">
             <h2>Statistik Tugas Personal</h2>
+            <span class="quick-chip" style="background:#ecfdf5;color:#1f2937;border-color:#bbf7d0;">Perhitungan target memakai Misa Biasa</span>
           </header>
 
           <div class="filter-bar">
             <div class="filter-group">
               <label>Bulan:</label>
-              <select id="statsMonthSelect" class="select-input">
-                <option value="">Semua</option>
-                <option value="01">Januari</option>
-                <option value="02">Februari</option>
-                <option value="03">Maret</option>
-                <option value="04" selected>April</option>
-                <option value="05">Mei</option>
-                <option value="06">Juni</option>
-                <option value="07">Juli</option>
-                <option value="08">Agustus</option>
-                <option value="09">September</option>
-                <option value="10">Oktober</option>
-                <option value="11">November</option>
-                <option value="12">Desember</option>
-              </select>
+              <select id="statsMonthSelect" class="select-input"></select>
             </div>
             <div class="filter-group">
               <label>Tahun:</label>
-              <select id="statsYearSelect" class="select-input">
-                <option value="">Semua</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                <option value="2026" selected>2026</option>
-                <option value="2027">2027</option>
-              </select>
+              <select id="statsYearSelect" class="select-input"></select>
             </div>
           </div>
 
@@ -784,7 +811,8 @@
               <thead>
                 <tr>
                   <th>Bulan/Tahun</th>
-                  <th>Target Tugas</th>
+                  <th>Minimum Tugas</th>
+                  <th>Target / Tugas Terdaftar</th>
                   <th>Tugas Selesai</th>
                   <th>Kekurangan</th>
                   <th>% Hasil</th>
@@ -836,341 +864,302 @@
       });
     });
 
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    const memberName = document.getElementById("memberName");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
-        }
-      } catch (error) {
-      }
-    }
-
     const liveDateTime = document.getElementById("liveDateTime");
+    const memberName = document.getElementById("memberName");
+    const memberAvatar = document.getElementById("memberAvatar");
+
     const progressValue = document.getElementById("progressValue");
     const progressBar = document.getElementById("progressBar");
+    const progressMeta = document.getElementById("progressMeta");
     const shortageValue = document.getElementById("shortageValue");
-    const nextMonthTargetValue = document.getElementById("nextMonthTargetValue");
+    const shortageMeta = document.getElementById("shortageMeta");
+    const minimumTargetValue = document.getElementById("minimumTargetValue");
     const totalCompletedValue = document.getElementById("totalCompletedValue");
+    const totalMeta = document.getElementById("totalMeta");
+
+    const cardProgressMonthSelect = document.getElementById("cardProgressMonthSelect");
+    const cardProgressYearSelect = document.getElementById("cardProgressYearSelect");
+    const cardShortageMonthSelect = document.getElementById("cardShortageMonthSelect");
+    const cardShortageYearSelect = document.getElementById("cardShortageYearSelect");
+    const cardTotalMonthSelect = document.getElementById("cardTotalMonthSelect");
+    const cardTotalYearSelect = document.getElementById("cardTotalYearSelect");
 
     const progressSearchBox = document.getElementById("progressSearchBox");
+    const progressMonthSelect = document.getElementById("progressMonthSelect");
+    const progressYearSelect = document.getElementById("progressYearSelect");
     const progressSortSelect = document.getElementById("progressSortSelect");
     const progressTableRows = document.getElementById("progressTableRows");
+    const progressPeriodLabel = document.getElementById("progressPeriodLabel");
 
     const shortageMonthSelect = document.getElementById("shortageMonthSelect");
     const shortageYearSelect = document.getElementById("shortageYearSelect");
+    const shortageStatusSelect = document.getElementById("shortageStatusSelect");
+    const shortageSortSelect = document.getElementById("shortageSortSelect");
     const shortageTableRows = document.getElementById("shortageTableRows");
 
     const statsMonthSelect = document.getElementById("statsMonthSelect");
     const statsYearSelect = document.getElementById("statsYearSelect");
     const statsTableRows = document.getElementById("statsTableRows");
 
-    const PROGRESS_STORAGE_KEY = "crembo-monitoring-progress";
-    const SHORTAGE_STORAGE_KEY = "crembo-monitoring-shortage";
-    const STATS_STORAGE_KEY = "crembo-monitoring-stats";
-
-    let progressFilterSearch = "";
-    let progressFilterSort = "date-desc";
-    let shortageFilterMonth = "";
-    let shortageFilterYear = "2026";
-    let statsFilterMonth = "04";
-    let statsFilterYear = "2026";
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const now = new Date();
+    let currentMonth = now.getMonth() + 1;
+    let currentYear = now.getFullYear();
+    let availableYears = [currentYear - 1, currentYear, currentYear + 1];
+    let debounceTimer = null;
 
     function updateLiveDateTime() {
-      const now = new Date();
+      const n = new Date();
       const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-
-      const day = dayNames[now.getDay()];
-      const date = String(now.getDate()).padStart(2, "0");
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear();
-      const hour = String(now.getHours()).padStart(2, "0");
-      const minute = String(now.getMinutes()).padStart(2, "0");
-      const second = String(now.getSeconds()).padStart(2, "0");
-
+      const shortMonths = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const day = dayNames[n.getDay()];
+      const date = String(n.getDate()).padStart(2, "0");
+      const month = shortMonths[n.getMonth()];
+      const year = n.getFullYear();
+      const hour = String(n.getHours()).padStart(2, "0");
+      const minute = String(n.getMinutes()).padStart(2, "0");
+      const second = String(n.getSeconds()).padStart(2, "0");
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
     }
 
-    updateLiveDateTime();
-    setInterval(updateLiveDateTime, 1000);
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-    function safeParse(raw, fallback) {
+    function statusClass(name) {
+      const clean = String(name || "").toLowerCase();
+      if (clean.includes("selesai") || clean.includes("terpenuhi")) return "status-ok";
+      if (clean.includes("sebagian") || clean.includes("terjadwal")) return "status-warn";
+      return "status-danger";
+    }
+
+    function progressClass(percent) {
+      const value = Number(percent || 0);
+      if (value >= 80) return "good";
+      if (value >= 60) return "warn";
+      return "low";
+    }
+
+    function buildMonthOptions(select, defaultValue, includeAll) {
+      select.innerHTML = (includeAll ? '<option value="all">Semua Bulan</option>' : "")
+        + monthNames.map(function (name, index) {
+          const value = String(index + 1);
+          return '<option value="' + value + '">' + name + '</option>';
+        }).join("");
+      select.value = String(defaultValue);
+    }
+
+    function buildYearOptions(select, defaultValue, includeAll) {
+      const years = Array.from(new Set(availableYears.concat([currentYear - 1, currentYear, currentYear + 1]))).sort();
+      select.innerHTML = (includeAll ? '<option value="all">Semua Tahun</option>' : "")
+        + years.map(function (year) {
+          return '<option value="' + year + '">' + year + '</option>';
+        }).join("");
+      select.value = String(defaultValue);
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url, { credentials: "same-origin" });
+      const data = await response.json().catch(function () { return {}; });
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || "Gagal mengambil data.");
+      }
+      return data;
+    }
+
+    function updateProfile(profile) {
+      if (!profile || !profile.member) return;
+      memberName.textContent = profile.member.name || "Anggota";
+      memberAvatar.textContent = profile.member.initial || (profile.member.name || "A").slice(0, 1).toUpperCase();
+      availableYears = Array.isArray(profile.years) && profile.years.length ? profile.years : availableYears;
+      if (profile.current) {
+        currentMonth = Number(profile.current.month || currentMonth);
+        currentYear = Number(profile.current.year || currentYear);
+      }
+      buildAllSelects();
+    }
+
+    function buildAllSelects() {
+      buildMonthOptions(cardProgressMonthSelect, currentMonth, false);
+      buildYearOptions(cardProgressYearSelect, currentYear, false);
+      buildMonthOptions(cardShortageMonthSelect, currentMonth, false);
+      buildYearOptions(cardShortageYearSelect, currentYear, false);
+      buildMonthOptions(cardTotalMonthSelect, currentMonth, true);
+      buildYearOptions(cardTotalYearSelect, currentYear, true);
+
+      buildMonthOptions(progressMonthSelect, currentMonth, false);
+      buildYearOptions(progressYearSelect, currentYear, false);
+      buildMonthOptions(shortageMonthSelect, "all", true);
+      buildYearOptions(shortageYearSelect, currentYear, true);
+      buildMonthOptions(statsMonthSelect, currentMonth, true);
+      buildYearOptions(statsYearSelect, currentYear, true);
+    }
+
+    async function loadSummary() {
+      const params = new URLSearchParams({
+        progressMonth: cardProgressMonthSelect.value,
+        progressYear: cardProgressYearSelect.value,
+        shortageMonth: cardShortageMonthSelect.value,
+        shortageYear: cardShortageYearSelect.value,
+        totalMonth: cardTotalMonthSelect.value,
+        totalYear: cardTotalYearSelect.value
+      });
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
+        const data = await fetchJson('/api/monitoring-kewajiban-tugas/summary?' + params.toString());
+        const progress = data.progress || {};
+        const shortage = data.shortage || {};
+        const total = data.total || {};
+        const percent = Number(progress.percentage || 0);
+        progressValue.textContent = percent + "%";
+        progressBar.style.width = percent + "%";
+        progressBar.className = "progress-fill " + progressClass(percent);
+        progressMeta.textContent = (progress.completed || 0) + " dari " + (progress.total || 0) + " tugas · " + (progress.periodLabel || "-");
+        shortageValue.textContent = String(shortage.shortage || 0);
+        shortageMeta.textContent = (shortage.periodLabel || "-") + " · " + (shortage.regularTotal || 0) + " tugas Misa Biasa";
+        minimumTargetValue.textContent = String(data.targetMinimum || 0);
+        totalCompletedValue.textContent = String(total.scheduled || 0);
+        totalMeta.textContent = (total.completed || 0) + " selesai · " + (total.periodLabel || "-");
       } catch (error) {
-        return fallback;
+        progressMeta.textContent = error.message;
       }
     }
 
-    function seedProgressIfEmpty() {
-      if (localStorage.getItem(PROGRESS_STORAGE_KEY)) {
-        return;
-      }
-      const demo = [
-        { id: "prog-1", title: "Misa Mingguan", date: "2026-04-05", role: "Operator", status: "Selesai", progress: 100 },
-        { id: "prog-2", title: "Misa Mingguan", date: "2026-04-13", role: "Kameramen", status: "Selesai", progress: 100 },
-        { id: "prog-3", title: "Misa Harian", date: "2026-04-08", role: "Operator", status: "Selesai", progress: 100 },
-        { id: "prog-4", title: "Misa Harian", date: "2026-04-10", role: "Kameramen", status: "Selesai", progress: 100 },
-        { id: "prog-5", title: "Misa Harian", date: "2026-04-12", role: "Supervisor", status: "Selesai", progress: 100 },
-        { id: "prog-6", title: "Misa Besar", date: "2026-04-17", role: "Supervisor", status: "Terjadwal", progress: 0 }
-      ];
-      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(demo));
-    }
-
-    function seedShortageIfEmpty() {
-      if (localStorage.getItem(SHORTAGE_STORAGE_KEY)) {
-        return;
-      }
-      const demo = [
-        { id: "short-1", month: "2026-04", monthText: "April 2026", shortage: 3 },
-        { id: "short-2", month: "2026-03", monthText: "Maret 2026", shortage: 3 },
-        { id: "short-3", month: "2026-02", monthText: "Februari 2026", shortage: 0 },
-        { id: "short-4", month: "2026-01", monthText: "Januari 2026", shortage: 1 }
-      ];
-      localStorage.setItem(SHORTAGE_STORAGE_KEY, JSON.stringify(demo));
-    }
-
-    function seedStatsIfEmpty() {
-      if (localStorage.getItem(STATS_STORAGE_KEY)) {
-        return;
-      }
-      const demo = [
-        { month: "2026-01", target: 10, completed: 9, monthText: "Januari 2026" },
-        { month: "2026-02", target: 10, completed: 10, monthText: "Februari 2026" },
-        { month: "2026-03", target: 11, completed: 8, monthText: "Maret 2026" },
-        { month: "2026-04", target: 11, completed: 8, monthText: "April 2026" },
-        { month: "2026-05", target: 12, completed: 0, monthText: "Mei 2026" }
-      ];
-      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(demo));
-    }
-
-    function readProgress() {
-      return safeParse(localStorage.getItem(PROGRESS_STORAGE_KEY), []);
-    }
-
-    function readShortage() {
-      return safeParse(localStorage.getItem(SHORTAGE_STORAGE_KEY), []);
-    }
-
-    function readStats() {
-      return safeParse(localStorage.getItem(STATS_STORAGE_KEY), []);
-    }
-
-    function renderProgressTable() {
-      let items = readProgress().filter(function (item) {
-        return item.title === "Misa Mingguan" || item.title === "Misa Harian" || item.title === "Misa Besar";
+    async function loadProgress() {
+      const params = new URLSearchParams({
+        month: progressMonthSelect.value,
+        year: progressYearSelect.value,
+        search: progressSearchBox.value,
+        sort: progressSortSelect.value
       });
-
-      if (progressFilterSearch) {
-        items = items.filter(function (item) {
-          return item.title.toLowerCase().includes(progressFilterSearch.toLowerCase());
-        });
+      progressTableRows.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Memuat data...</td></tr>';
+      try {
+        const data = await fetchJson('/api/monitoring-kewajiban-tugas/progress?' + params.toString());
+        progressPeriodLabel.textContent = data.period && data.period.label ? data.period.label : "-";
+        const items = data.items || [];
+        if (!items.length) {
+          progressTableRows.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Tidak ada tugas pada periode ini.</td></tr>';
+          return;
+        }
+        progressTableRows.innerHTML = items.map(function (item) {
+          const schedules = (item.schedules || []).slice(0, 8).map(escapeHtml).join('<br>');
+          const more = (item.schedules || []).length > 8 ? '<br><small>+' + ((item.schedules || []).length - 8) + ' jadwal lainnya</small>' : '';
+          const roles = (item.roles || []).map(escapeHtml).join(', ') || '-';
+          const percent = Number(item.percentage || 0);
+          return '<tr>'
+            + '<td><strong>' + escapeHtml(item.title) + '</strong></td>'
+            + '<td>' + escapeHtml(item.count) + ' tugas<br><small>' + escapeHtml(item.completed) + ' selesai</small></td>'
+            + '<td>' + schedules + more + '</td>'
+            + '<td>' + roles + '</td>'
+            + '<td><span class="' + statusClass(item.status) + '">' + escapeHtml(item.status) + '</span></td>'
+            + '<td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar" style="flex:1;min-width:80px;"><div class="progress-fill ' + progressClass(percent) + '" style="width:' + percent + '%;"></div></div><strong>' + percent + '%</strong></div></td>'
+            + '</tr>';
+        }).join('');
+      } catch (error) {
+        progressTableRows.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">' + escapeHtml(error.message) + '</td></tr>';
       }
+    }
 
-      items.sort(function (a, b) {
-        if (progressFilterSort === "date-desc") {
-          return new Date(b.date) - new Date(a.date);
-        }
-        if (progressFilterSort === "date-asc") {
-          return new Date(a.date) - new Date(b.date);
-        }
-        if (progressFilterSort === "status") {
-          return a.status.localeCompare(b.status);
-        }
-        return 0;
+    async function loadShortage() {
+      const params = new URLSearchParams({
+        month: shortageMonthSelect.value,
+        year: shortageYearSelect.value,
+        status: shortageStatusSelect.value,
+        sort: shortageSortSelect.value
       });
-
-      if (!items.length) {
-        progressTableRows.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Tidak ada data tugas.</td></tr>';
-        return;
-      }
-
-      // Group items by title to handle multiple instances
-      var grouped = items.reduce(function (acc, item) {
-        var existing = acc.find(function (g) { return g.title === item.title; });
-        if (existing) {
-          existing.dates.push(item.date);
-          existing.statuses.push(item.status);
-          existing.progresses.push(item.progress);
-          existing.roles.push(item.role);
-        } else {
-          acc.push({
-            title: item.title,
-            dates: [item.date],
-            statuses: [item.status],
-            progresses: [item.progress],
-            roles: [item.role]
-          });
+      shortageTableRows.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Memuat data...</td></tr>';
+      try {
+        const data = await fetchJson('/api/monitoring-kewajiban-tugas/shortage?' + params.toString());
+        const items = data.items || [];
+        if (!items.length) {
+          shortageTableRows.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Tidak ada data sesuai filter.</td></tr>';
+          return;
         }
-        return acc;
-      }, []);
-
-      progressTableRows.innerHTML = grouped.map(function (group) {
-        const count = group.dates.length;
-        const displayDate = group.dates.join(", ");
-        const displayRole = group.roles ? group.roles.join(", ") : "-";
-        const statusHtml = group.statuses.every(function (s) { return s === "Selesai"; })
-          ? '<span class="status-ok">Selesai</span>'
-          : '<span class="status-warn">Terjadwal</span>';
-        const avgProgress = Math.round(group.progresses.reduce(function (a, b) { return a + b; }, 0) / group.progresses.length);
-        const progressClass = avgProgress >= 80 ? "good" : (avgProgress >= 60 ? "warn" : "low");
-
-        return '<tr>'
-          + '<td>' + group.title + '</td>'
-          + '<td>' + count + '</td>'
-          + '<td>' + displayDate + '</td>'
-          + '<td>' + displayRole + '</td>'
-          + '<td>' + statusHtml + '</td>'
-          + '<td>'
-          + '<div style="display: flex; align-items: center; gap: 8px;">'
-          + '<div class="progress-bar" style="flex: 1; min-width: 60px;">'
-          + '<div class="progress-fill ' + progressClass + '" style="width: ' + avgProgress + '%;"></div>'
-          + '</div>'
-          + '<span style="font-size: 0.8rem; font-weight: 700; min-width: 35px;">' + avgProgress + '%</span>'
-          + '</div>'
-          + '</td>'
-          + '</tr>';
-      }).join("");
+        shortageTableRows.innerHTML = items.map(function (item) {
+          const cls = item.shortage > 0 ? 'status-danger' : 'status-ok';
+          const shortageText = item.shortage > 0 ? item.shortage + ' tugas' : '0';
+          return '<tr>'
+            + '<td><strong>' + escapeHtml(item.monthText) + '</strong></td>'
+            + '<td>' + escapeHtml(item.targetMinimum) + '</td>'
+            + '<td>' + escapeHtml(item.totalTasks) + '</td>'
+            + '<td>' + escapeHtml(shortageText) + '</td>'
+            + '<td><span class="' + cls + '">' + escapeHtml(item.status) + '</span></td>'
+            + '</tr>';
+        }).join('');
+      } catch (error) {
+        shortageTableRows.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">' + escapeHtml(error.message) + '</td></tr>';
+      }
     }
 
-    function renderShortageTable() {
-      let items = readShortage();
-
-      if (shortageFilterMonth) {
-        items = items.filter(function (item) {
-          const itemMonth = item.month ? item.month.substring(5, 7) : "";
-          return itemMonth === shortageFilterMonth;
-        });
+    async function loadStats() {
+      const params = new URLSearchParams({
+        month: statsMonthSelect.value,
+        year: statsYearSelect.value
+      });
+      statsTableRows.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Memuat data...</td></tr>';
+      try {
+        const data = await fetchJson('/api/monitoring-kewajiban-tugas/stats?' + params.toString());
+        const items = data.items || [];
+        if (!items.length) {
+          statsTableRows.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Tidak ada data statistik.</td></tr>';
+          return;
+        }
+        statsTableRows.innerHTML = items.map(function (item) {
+          const cls = item.percentage >= 100 ? 'status-ok' : (item.percentage >= 60 ? 'status-warn' : 'status-danger');
+          return '<tr>'
+            + '<td><strong>' + escapeHtml(item.monthText) + '</strong></td>'
+            + '<td>' + escapeHtml(item.targetMinimum) + '</td>'
+            + '<td>' + escapeHtml(item.targetTasks) + '</td>'
+            + '<td>' + escapeHtml(item.completedTasks) + '</td>'
+            + '<td>' + escapeHtml(item.shortage) + '</td>'
+            + '<td><span class="' + cls + '">' + escapeHtml(item.percentage) + '%</span></td>'
+            + '</tr>';
+        }).join('');
+      } catch (error) {
+        statsTableRows.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">' + escapeHtml(error.message) + '</td></tr>';
       }
-
-      if (shortageFilterYear) {
-        items = items.filter(function (item) {
-          const itemYear = item.month ? item.month.substring(0, 4) : "";
-          return itemYear === shortageFilterYear;
-        });
-      }
-
-      if (!items.length) {
-        shortageTableRows.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 20px;">Tidak ada data.</td></tr>';
-        return;
-      }
-
-      shortageTableRows.innerHTML = items.map(function (item) {
-        const displayMonth = item.monthText || item.month || "";
-        const shortageText = item.shortage > 0
-          ? '<span class="status-danger">' + item.shortage + ' tugas</span>'
-          : '<span class="status-ok">Terpenuhi</span>';
-
-        return '<tr>'
-          + '<td>' + displayMonth + '</td>'
-          + '<td>' + shortageText + '</td>'
-          + '</tr>';
-      }).join("");
     }
 
-    function renderStatsTable() {
-      let items = readStats();
-
-      if (statsFilterMonth) {
-        items = items.filter(function (item) {
-          return item.month.substring(5, 7) === statsFilterMonth;
-        });
-      }
-
-      if (statsFilterYear) {
-        items = items.filter(function (item) {
-          return item.month.substring(0, 4) === statsFilterYear;
-        });
-      }
-
-      if (!items.length) {
-        statsTableRows.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Tidak ada data statistik.</td></tr>';
-        return;
-      }
-
-      statsTableRows.innerHTML = items.map(function (item) {
-        const shortage = Math.max(0, item.target - item.completed);
-        const percentage = item.target > 0 ? Math.round((item.completed / item.target) * 100) : 0;
-        const percentageHtml = percentage >= 80
-          ? '<span class="status-ok">' + percentage + '%</span>'
-          : percentage >= 60
-            ? '<span class="status-warn">' + percentage + '%</span>'
-            : '<span class="status-danger">' + percentage + '%</span>';
-
-        return '<tr>'
-          + '<td>' + item.monthText + '</td>'
-          + '<td>' + item.target + '</td>'
-          + '<td>' + item.completed + '</td>'
-          + '<td>' + shortage + '</td>'
-          + '<td>' + percentageHtml + '</td>'
-          + '</tr>';
-      }).join("");
+    function scheduleProgressReload() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadProgress, 250);
     }
 
-    function updateOverallStats() {
-      const progress = readProgress();
-      const completed = progress.filter(function (item) { return item.status === "Selesai"; }).length;
-      const total = progress.length;
-      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-      progressValue.textContent = String(completed);
-      progressBar.style.width = percentage + "%";
-      progressBar.className = "progress-fill " + (percentage >= 80 ? "good" : (percentage >= 60 ? "warn" : "low"));
-
-      const shortage = readShortage();
-      shortageValue.textContent = String(shortage.length);
-
-      const stats = readStats();
-      const totalCompleted = stats.reduce(function (sum, item) {
-        return sum + item.completed;
-      }, 0);
-      totalCompletedValue.textContent = String(totalCompleted);
+    async function init() {
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+      buildAllSelects();
+      try {
+        const profile = await fetchJson('/api/monitoring-kewajiban-tugas/profile');
+        updateProfile(profile);
+      } catch (error) {
+        // Tetap tampilkan UI, tapi data backend akan menampilkan pesan error di tabel.
+      }
+      await Promise.all([loadSummary(), loadProgress(), loadShortage(), loadStats()]);
     }
 
-    seedProgressIfEmpty();
-    seedShortageIfEmpty();
-    seedStatsIfEmpty();
-
-    updateOverallStats();
-    renderProgressTable();
-    renderShortageTable();
-    renderStatsTable();
-
-    progressSearchBox.addEventListener("input", function (event) {
-      progressFilterSearch = event.target.value;
-      renderProgressTable();
+    [cardProgressMonthSelect, cardProgressYearSelect, cardShortageMonthSelect, cardShortageYearSelect, cardTotalMonthSelect, cardTotalYearSelect].forEach(function (el) {
+      el.addEventListener('change', loadSummary);
     });
 
-    progressSortSelect.addEventListener("change", function (event) {
-      progressFilterSort = event.target.value;
-      renderProgressTable();
+    progressSearchBox.addEventListener('input', scheduleProgressReload);
+    [progressMonthSelect, progressYearSelect, progressSortSelect].forEach(function (el) {
+      el.addEventListener('change', loadProgress);
     });
 
-    shortageMonthSelect.addEventListener("change", function (event) {
-      shortageFilterMonth = event.target.value;
-      renderShortageTable();
+    [shortageMonthSelect, shortageYearSelect, shortageStatusSelect, shortageSortSelect].forEach(function (el) {
+      el.addEventListener('change', loadShortage);
     });
 
-    shortageYearSelect.addEventListener("change", function (event) {
-      shortageFilterYear = event.target.value;
-      renderShortageTable();
+    [statsMonthSelect, statsYearSelect].forEach(function (el) {
+      el.addEventListener('change', loadStats);
     });
 
-    statsMonthSelect.addEventListener("change", function (event) {
-      statsFilterMonth = event.target.value;
-      renderStatsTable();
-    });
-
-    statsYearSelect.addEventListener("change", function (event) {
-      statsFilterYear = event.target.value;
-      renderStatsTable();
-    });
+    init();
   </script>
 <script src="_sidebar-fix.js"></script>
 </body>
