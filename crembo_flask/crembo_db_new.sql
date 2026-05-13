@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 13 Bulan Mei 2026 pada 19.14
+-- Waktu pembuatan: 13 Bulan Mei 2026 pada 20.35
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1477,9 +1477,8 @@ INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `ro
 (227, '2026-05-01', '18:00:00', 'Operator', 6, '2026-05-13 09:48:04', 'admin'),
 (228, '2026-05-01', '18:00:00', 'Kameramen', 5, '2026-05-13 09:48:04', 'admin'),
 (229, '2026-05-01', '18:00:00', 'SPV', 53, '2026-05-13 09:48:04', 'admin'),
-(247, '2026-05-02', '18:00:00', 'Operator', 49, '2026-05-13 09:48:25', 'admin'),
-(248, '2026-05-02', '18:00:00', 'Kameramen', 6, '2026-05-13 09:48:25', 'admin'),
-(249, '2026-05-02', '18:00:00', 'SPV', 17, '2026-05-13 09:48:25', 'admin'),
+(247, '2026-05-02', '18:00:00', 'Operator', 49, '2026-05-14 01:16:39', 'evaluasi'),
+(249, '2026-05-02', '18:00:00', 'SPV', 17, '2026-05-14 01:16:39', 'evaluasi'),
 (270, '2026-05-03', '07:30:00', 'Operator', 69, '2026-05-13 09:49:12', 'admin'),
 (271, '2026-05-03', '07:30:00', 'Kameramen', 66, '2026-05-13 09:49:12', 'admin'),
 (272, '2026-05-03', '07:30:00', 'SPV', 65, '2026-05-13 09:49:12', 'admin'),
@@ -1643,6 +1642,13 @@ CREATE TABLE `streaming_evaluations` (
   `submitted_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `streaming_evaluations`
+--
+
+INSERT INTO `streaming_evaluations` (`id`, `schedule_kind`, `schedule_key`, `schedule_date`, `schedule_time`, `misa_name`, `misa_type_label`, `evaluator_id`, `evaluator_name`, `evaluator_role`, `staff_json`, `extra_staff_json`, `staff_evaluations_json`, `technical_issue`, `nontechnical_issue`, `checklist_json`, `final_note`, `dynamic_answers_json`, `general_assessment`, `submitted_at`) VALUES
+(1, 'misa_biasa', 'biasa:2026-05-02:18:00', '2026-05-02', '18:00:00', 'Misa Mingguan', 'Misa Biasa', 50, 'Atanasius Surya', 'Operator', '[{\"accountRole\": \"user\", \"assignmentId\": 247, \"attendance\": \"present\", \"memberId\": \"49\", \"memberName\": \"Tyas\", \"role\": \"Operator\", \"roleId\": \"Operator\", \"slotId\": \"biasa:2026-05-02:18:00:Operator\", \"actualMemberId\": \"49\", \"actualMemberName\": \"Tyas\"}, {\"accountRole\": \"super_admin\", \"assignmentId\": 248, \"attendance\": \"not_attend\", \"memberId\": \"6\", \"memberName\": \"Pria\", \"role\": \"Kameramen\", \"roleId\": \"Kameramen\", \"slotId\": \"biasa:2026-05-02:18:00:Kameramen\", \"actualMemberId\": \"\", \"actualMemberName\": \"Tidak datang\"}, {\"accountRole\": \"admin\", \"assignmentId\": 249, \"attendance\": \"present\", \"memberId\": \"17\", \"memberName\": \"Panji\", \"role\": \"SPV\", \"roleId\": \"SPV\", \"slotId\": \"biasa:2026-05-02:18:00:SPV\", \"actualMemberId\": \"17\", \"actualMemberName\": \"Panji\"}]', '[]', '[{\"name\": \"Tyas\", \"role\": \"Operator\", \"rating\": \"Cukup\", \"note\": \"Op Telat\"}, {\"name\": \"Panji\", \"role\": \"SPV\", \"rating\": \"Sangat Baik\", \"note\": \"-\"}]', '-', 'cam gak ada', '{\"streaming_lancar\": true, \"koordinasi_baik\": true}', '', '[]', 'Kendala Ringan', '2026-05-14 01:16:39');
+
 -- --------------------------------------------------------
 
 --
@@ -1660,14 +1666,6 @@ CREATE TABLE `streaming_evaluation_questions` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `streaming_evaluation_questions`
---
-
-INSERT INTO `streaming_evaluation_questions` (`id`, `label`, `question_type`, `required`, `help_text`, `options_json`, `order_index`, `created_at`, `updated_at`) VALUES
-('bagian-terbaik', 'Bagian mana yang sudah paling baik?', 'long_text', 0, 'Contoh: alur kamera, audio, koordinasi.', '[]', 2, '2026-05-14 00:06:16', '2026-05-14 00:06:16'),
-('kesan-umum', 'Apa kesan umum pelayanan streaming pada misa ini?', 'single_choice', 1, 'Pilih satu penilaian umum.', '[\"Sangat Baik\", \"Baik\", \"Cukup\", \"Perlu Pendampingan\"]', 1, '2026-05-14 00:06:16', '2026-05-14 00:06:16');
 
 -- --------------------------------------------------------
 
@@ -1687,7 +1685,7 @@ CREATE TABLE `streaming_evaluation_settings` (
 --
 
 INSERT INTO `streaming_evaluation_settings` (`id`, `start_month`, `start_year`, `updated_at`) VALUES
-(1, 5, 2026, '2026-05-14 00:06:16');
+(1, 5, 2026, '2026-05-14 01:33:29');
 
 -- --------------------------------------------------------
 
@@ -2168,7 +2166,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=871;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=873;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
@@ -2180,7 +2178,7 @@ ALTER TABLE `streaming_cancelled`
 -- AUTO_INCREMENT untuk tabel `streaming_evaluations`
 --
 ALTER TABLE `streaming_evaluations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_roles`

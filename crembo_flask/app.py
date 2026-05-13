@@ -10932,20 +10932,9 @@ def ensure_streaming_evaluation_schema(cursor=None) -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
             """
         )
-        cursor.execute("SELECT COUNT(*) FROM `streaming_evaluation_questions`")
-        if fetch_scalar_value(cursor.fetchone(), 0) == 0:
-            for idx, q in enumerate(EVAL_DEFAULT_QUESTIONS, start=1):
-                cursor.execute(
-                    """
-                    INSERT INTO `streaming_evaluation_questions`
-                    (`id`, `label`, `question_type`, `required`, `help_text`, `options_json`, `order_index`)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (
-                        q["id"], q["label"], q["type"], 1 if q.get("required") else 0,
-                        q.get("helpText") or "", json.dumps(q.get("options") or [], ensure_ascii=False), idx,
-                    ),
-                )
+        # Pertanyaan tambahan evaluasi bersifat opsional.
+        # Jangan auto-seed ulang ketika tabel kosong, supaya admin bisa menyimpan konfigurasi tanpa pertanyaan tambahan.
+        # Tombol "Reset ke Default" tetap tersedia untuk mengisi kembali pertanyaan default.
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS `streaming_evaluations` (
@@ -11571,8 +11560,7 @@ def api_streaming_evaluation_questions():
                 return jsonify({"success": False, "error": "Akses ditolak."}), 403
             data = request.get_json(silent=True) or {}
             questions = eval_normalize_question_payload(data.get("questions"))
-            if not questions:
-                return jsonify({"success": False, "error": "Tambahkan minimal 1 pertanyaan."}), 400
+            # Boleh kosong: pertanyaan tambahan evaluasi tidak wajib ada.
             cursor.execute("DELETE FROM streaming_evaluation_questions")
             for idx, q in enumerate(questions, start=1):
                 cursor.execute(
