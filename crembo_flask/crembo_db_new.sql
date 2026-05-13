@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 13 Bulan Mei 2026 pada 05.24
+-- Waktu pembuatan: 13 Bulan Mei 2026 pada 07.36
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1083,7 +1083,8 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778641559505-0d1273', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 16:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"45\"}', '2026-05-13 10:05:59', NULL),
 ('notif-1778641559506-fd232b', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 16:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"58\"}', '2026-05-13 10:05:59', NULL),
 ('notif-1778641559507-83b440', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 18:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"49\"}', '2026-05-13 10:05:59', NULL),
-('notif-1778641559507-ed3cbb', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 16:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"49\"}', '2026-05-13 10:05:59', NULL);
+('notif-1778641559507-ed3cbb', 'tugas', 'Tugas Baru: SPV', 'Anda ditugaskan sebagai <b>SPV</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 16:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"49\"}', '2026-05-13 10:05:59', NULL),
+('notif-1778644510671-c758c4', 'tugas', 'Tugas Baru: Kameramen', 'Anda ditugaskan sebagai <b>Kameramen</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 18:30 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"78\"}', '2026-05-13 10:55:10', NULL);
 
 -- --------------------------------------------------------
 
@@ -1852,7 +1853,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=740;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=870;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
