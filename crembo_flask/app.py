@@ -12169,82 +12169,192 @@ def api_streaming_evaluation_export_pdf():
     try:
         ensure_streaming_evaluation_schema(cursor)
         now = datetime.now()
-        start, end = eval_period_bounds(
-            normalize_text(request.args.get("scale") or "month"),
-            parse_required_int(request.args.get("year"), now.year),
-            parse_required_int(request.args.get("month"), now.month),
-            parse_required_int(request.args.get("week"), int(now.strftime("%V"))),
-        )
-        evaluations = eval_fetch_evaluations(
-            cursor,
-            start.isoformat(),
-            end.isoformat(),
-            normalize_text(request.args.get("kind") or "all"),
-            normalize_text(request.args.get("search")),
-            normalize_text(request.args.get("sort") or "date_asc"),
-        )
-        from reportlab.lib.pagesizes import A4, landscape
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+        scale = normalize_text(request.args.get("scale") or "month")
+        year = parse_required_int(request.args.get("year"), now.year)
+        month = parse_required_int(request.args.get("month"), now.month)
+        week = parse_required_int(request.args.get("week"), int(now.strftime("%V")))
+        kind = normalize_text(request.args.get("kind") or "all")
+        search = normalize_text(request.args.get("search"))
+        sort = normalize_text(request.args.get("sort") or "date_asc")
+        start, end = eval_period_bounds(scale, year, month, week)
+        evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), kind, search, sort)
+
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, KeepTogether
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.enums import TA_LEFT
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+        def esc_pdf(value) -> str:
+            return html.escape(eval_export_value(value)).replace("\n", "<br/>")
+
+        def answer_text(answer) -> str:
+            if isinstance(answer, list):
+                return ", ".join(normalize_text(v) for v in answer if normalize_text(v)) or "-"
+            return normalize_text(answer) or "-"
+
+        def staff_name_from_slot(slot: dict[str, object]) -> str:
+            if normalize_text(slot.get("attendance")) == "not_attend":
+                return "Tidak datang"
+            return normalize_text(slot.get("actualMemberName") or slot.get("actualName") or slot.get("memberName") or slot.get("name")) or "-"
+
+        def compact_period_label() -> str:
+            month_names = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+            if scale == "all":
+                return "Semua Periode"
+            if scale == "year":
+                return f"Tahun {year}"
+            if scale == "week":
+                return f"Minggu ke-{week}, {year}"
+            return f"{month_names[month] if 1 <= month <= 12 else month} {year}"
+
+        kind_label = {"all": "Misa Biasa & Misa Besar", "misa_biasa": "Misa Biasa", "misa_besar": "Misa Besar"}.get(kind, "Misa Biasa & Misa Besar")
+
         buf = BytesIO()
-        doc = SimpleDocTemplate(buf, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=22, bottomMargin=22)
+        doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=28, rightMargin=28, topMargin=26, bottomMargin=24)
         styles = getSampleStyleSheet()
-        small = ParagraphStyle("small", parent=styles["BodyText"], fontSize=7, leading=9, alignment=TA_LEFT)
-        normal = ParagraphStyle("normal-small", parent=styles["BodyText"], fontSize=8, leading=10, alignment=TA_LEFT)
-        elements = [Paragraph("Hasil Evaluasi Streaming", styles["Title"]), Spacer(1, 8)]
-        headers, rows = eval_export_rows(evaluations)
-        summary_headers = ["No", "Tanggal", "Jam", "Jenis", "Judul Misa", "Pengisi", "Penilaian", "Catatan"]
-        summary_rows = []
-        for row in rows:
-            summary_rows.append([
-                row[0], row[1], row[2], row[4], row[5], row[6], row[8], row[16],
-            ])
-        data = [[Paragraph(str(h), small) for h in summary_headers]] + [[Paragraph(str(c), small) for c in r] for r in summary_rows]
-        table = Table(data, repeatRows=1, colWidths=[25, 58, 38, 50, 120, 75, 70, 210])
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#800000")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 7),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ]))
-        elements.append(table)
-        if evaluations:
-            elements.append(PageBreak())
-            elements.append(Paragraph("Detail Lengkap Evaluasi", styles["Heading1"]))
-            elements.append(Spacer(1, 6))
-        for idx, e in enumerate(evaluations, start=1):
-            detail_rows = [
-                ["No", str(idx)],
-                ["Tanggal & Jam", f"{eval_export_value(e.get('dayName'))}, {eval_export_value(e.get('date'))} {eval_export_value(e.get('time'))} WIB"],
-                ["Jenis / Nama Misa", f"{eval_export_value(e.get('kindLabel'))} - {eval_export_value(e.get('misaName'))}"],
-                ["Pengisi", f"{eval_export_value(e.get('evaluatorName'))} ({eval_export_value(e.get('evaluatorRole'))})"],
-                ["Penilaian Umum", eval_export_value(e.get("generalAssessment"))],
-                ["Petugas Jadwal & Aktual", eval_staff_export_text(e.get("staff") or [])],
-                ["Petugas Tambahan", eval_extra_staff_export_text(e.get("extraStaff") or [])],
-                ["Evaluasi Per Petugas", eval_staff_evaluation_export_text(e.get("staffEvaluations") or [])],
-                ["Kendala Teknis", eval_export_value(e.get("technicalIssue"))],
-                ["Kendala Non-Teknis", eval_export_value(e.get("nontechnicalIssue"))],
-                ["Checklist", eval_checklist_export_text(e.get("checklist") or {})],
-                ["Pertanyaan Tambahan", eval_dynamic_answers_export_text(e.get("dynamicAnswers") or [])],
-                ["Catatan Penutup", eval_export_value(e.get("finalNote"))],
-                ["Waktu Submit", eval_export_value((e.get("submittedAt") or "").replace("T", " ")[:16])],
-            ]
-            t = Table([[Paragraph(a, normal), Paragraph(b, normal)] for a, b in detail_rows], colWidths=[130, 620])
-            t.setStyle(TableStyle([
-                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cccccc")),
-                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#fff1f2")),
-                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        title_style = ParagraphStyle("eval-title", parent=styles["Title"], fontSize=18, leading=22, alignment=TA_CENTER, spaceAfter=8)
+        subtitle_style = ParagraphStyle("eval-subtitle", parent=styles["BodyText"], fontSize=9, leading=12, alignment=TA_CENTER, textColor=colors.HexColor("#4b5563"), spaceAfter=14)
+        section_style = ParagraphStyle("eval-section", parent=styles["Heading2"], fontSize=11, leading=14, textColor=colors.HexColor("#800000"), spaceBefore=8, spaceAfter=6)
+        normal = ParagraphStyle("eval-normal", parent=styles["BodyText"], fontSize=8, leading=10, alignment=TA_LEFT)
+        small = ParagraphStyle("eval-small", parent=styles["BodyText"], fontSize=7.2, leading=9, alignment=TA_LEFT)
+        tiny = ParagraphStyle("eval-tiny", parent=styles["BodyText"], fontSize=6.6, leading=8.2, alignment=TA_LEFT)
+
+        def P(value, style=small):
+            return Paragraph(esc_pdf(value), style)
+
+        def styled_table(data, col_widths=None, header=True):
+            table = Table(data, colWidths=col_widths, repeatRows=1 if header else 0, hAlign="LEFT")
+            base_style = [
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#d9b8b8")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ]))
-            elements.append(t)
-            elements.append(Spacer(1, 8))
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+            if header:
+                base_style += [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#800000")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ]
+            table.setStyle(TableStyle(base_style))
+            return table
+
+        elements = [
+            Paragraph("Hasil Evaluasi Streaming", title_style),
+            Paragraph(f"Periode: {html.escape(compact_period_label())} &nbsp;&nbsp;|&nbsp;&nbsp; Jenis: {html.escape(kind_label)} &nbsp;&nbsp;|&nbsp;&nbsp; Total evaluasi: {len(evaluations)}", subtitle_style),
+        ]
+
+        if not evaluations:
+            elements.append(Paragraph("Tidak ada data evaluasi sesuai filter yang dipilih.", normal))
+        else:
+            for idx, e in enumerate(evaluations, start=1):
+                heading = f"{idx}. {eval_export_value(e.get('misaName'))} — {eval_export_value(e.get('kindLabel'))}"
+                header_tbl = Table(
+                    [[Paragraph(html.escape(heading), section_style), Paragraph(html.escape(eval_export_value(e.get('generalAssessment'))), section_style)]],
+                    colWidths=[380, 130],
+                    hAlign="LEFT",
+                )
+                header_tbl.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fff1f2")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#800000")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                ]))
+
+                info_rows = [
+                    [P("Tanggal"), P(f"{e.get('dayName') or '-'}, {e.get('dateText') or e.get('date') or '-'}")],
+                    [P("Jam"), P(f"{e.get('time') or '-'} WIB")],
+                    [P("Jenis Misa"), P(e.get("kindLabel"))],
+                    [P("Judul / Nama Misa"), P(e.get("misaName"))],
+                    [P("Pengisi Evaluasi"), P(f"{e.get('evaluatorName') or '-'} ({e.get('evaluatorRole') or '-'})")],
+                    [P("Waktu Submit"), P((e.get("submittedAt") or "").replace("T", " ")[:16])],
+                    [P("Penilaian Umum Streaming Keseluruhan"), P(e.get("generalAssessment"))],
+                    [P("Kendala Teknis Selama Streaming"), P(e.get("technicalIssue"))],
+                    [P("Kendala Misa Non-Teknis"), P(e.get("nontechnicalIssue"))],
+                    [P("Checklist Kondisi Pelayanan"), P(eval_checklist_export_text(e.get("checklist") or {}))],
+                    [P("Catatan Penutup / Rekomendasi"), P(e.get("finalNote"))],
+                ]
+                info_tbl = styled_table(info_rows, col_widths=[150, 360], header=False)
+                info_tbl.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#fff7f7")), ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold")]))
+
+                staff_header = [[P("Role", tiny), P("Petugas Jadwal", tiny), P("Petugas Aktual", tiny), P("Status Kehadiran", tiny)]]
+                staff_rows = []
+                for slot in e.get("staff") or []:
+                    if not isinstance(slot, dict):
+                        continue
+                    staff_rows.append([
+                        P(slot.get("role"), tiny),
+                        P(slot.get("memberName") or slot.get("name"), tiny),
+                        P(staff_name_from_slot(slot), tiny),
+                        P("Tidak datang" if normalize_text(slot.get("attendance")) == "not_attend" else "Hadir/Digantikan", tiny),
+                    ])
+                if not staff_rows:
+                    staff_rows = [[P("-", tiny), P("-", tiny), P("-", tiny), P("-", tiny)]]
+                staff_tbl = styled_table(staff_header + staff_rows, col_widths=[95, 135, 135, 145])
+
+                eval_header = [[P("Nama Petugas", tiny), P("Role", tiny), P("Penilaian Singkat", tiny), P("Catatan Performa", tiny)]]
+                eval_rows = []
+                for item in e.get("staffEvaluations") or []:
+                    if not isinstance(item, dict):
+                        continue
+                    eval_rows.append([
+                        P(item.get("memberName") or item.get("name"), tiny),
+                        P(item.get("role"), tiny),
+                        P(item.get("rating") or item.get("assessment"), tiny),
+                        P(item.get("note") or item.get("catatan") or item.get("comment"), tiny),
+                    ])
+                if not eval_rows:
+                    eval_rows = [[P("-", tiny), P("-", tiny), P("-", tiny), P("-", tiny)]]
+                staff_eval_tbl = styled_table(eval_header + eval_rows, col_widths=[125, 95, 115, 175])
+
+                extra_header = [[P("Nama Petugas Tambahan", tiny), P("Role Bantuan", tiny)]]
+                extra_rows = []
+                for item in e.get("extraStaff") or []:
+                    if not isinstance(item, dict):
+                        continue
+                    extra_rows.append([P(item.get("name") or item.get("memberName"), tiny), P(item.get("role") or item.get("helpRole"), tiny)])
+                if not extra_rows:
+                    extra_rows = [[P("-", tiny), P("-", tiny)]]
+                extra_tbl = styled_table(extra_header + extra_rows, col_widths=[255, 255])
+
+                dynamic_header = [[P("Pertanyaan Tambahan", tiny), P("Jawaban", tiny)]]
+                dynamic_rows = []
+                for item in e.get("dynamicAnswers") or []:
+                    if not isinstance(item, dict):
+                        continue
+                    dynamic_rows.append([P(item.get("question") or item.get("label") or item.get("text"), tiny), P(answer_text(item.get("answer")), tiny)])
+                if not dynamic_rows:
+                    dynamic_rows = [[P("-", tiny), P("-", tiny)]]
+                dynamic_tbl = styled_table(dynamic_header + dynamic_rows, col_widths=[255, 255])
+
+                block = [
+                    header_tbl,
+                    Spacer(1, 5),
+                    info_tbl,
+                    Spacer(1, 6),
+                    Paragraph("Petugas Bertugas: Jadwal dan Aktual", section_style),
+                    staff_tbl,
+                    Spacer(1, 6),
+                    Paragraph("Evaluasi Per Petugas", section_style),
+                    staff_eval_tbl,
+                    Spacer(1, 6),
+                    Paragraph("Petugas Tambahan", section_style),
+                    extra_tbl,
+                    Spacer(1, 6),
+                    Paragraph("Jawaban Pertanyaan Tambahan Dinamis", section_style),
+                    dynamic_tbl,
+                    Spacer(1, 12),
+                ]
+                elements.extend(block)
+                if idx < len(evaluations):
+                    elements.append(PageBreak())
+
         doc.build(elements)
         buf.seek(0)
-        # Inline preview: browser membuka PDF di tab baru, user tetap bisa download dari viewer.
         return send_file(buf, as_attachment=False, download_name="hasil-evaluasi-streaming.pdf", mimetype="application/pdf")
     finally:
         cursor.close()
