@@ -241,7 +241,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr auto;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
       gap: 8px;
       margin-bottom: 10px;
     }
@@ -502,6 +502,12 @@
                 <option value="Aktif">Aktif</option>
                 <option value="Nonaktif">Nonaktif</option>
               </select>
+              <select id="sortMemberSelect" aria-label="Urutkan anggota">
+                <option value="name-asc">Nama A-Z</option>
+                <option value="name-desc">Nama Z-A</option>
+                <option value="role-asc">Role A-Z</option>
+                <option value="role-desc">Role Z-A</option>
+              </select>
               <button id="resetFilterBtn" class="btn ghost" type="button">Reset</button>
             </div>
 
@@ -510,12 +516,10 @@
                 <strong>Import Data Massal Anggota</strong>
                 <span class="status">Mode Tampilan</span>
               </div>
-              <p class="helper">Siapkan data anggota lewat file CSV atau Excel, lalu unduh template agar format kolom tetap konsisten (nama, email, WA, alamat, tanggal lahir, role, status).</p>
+              <p class="helper">Siapkan data anggota lewat file CSV, lalu unduh template agar format kolom tetap konsisten (nama, email, WA, alamat, tanggal lahir).</p>
               <div class="bulk-actions">
                 <button id="importCsvBtn" class="btn ghost" type="button">Import CSV</button>
-                <button id="importExcelBtn" class="btn ghost" type="button">Import Excel</button>
                 <button id="downloadCsvTemplateBtn" class="btn" type="button">Download Template CSV</button>
-                <button id="downloadExcelTemplateBtn" class="btn" type="button">Download Template Excel</button>
               </div>
             </div>
 
@@ -523,6 +527,7 @@
               <table>
                 <thead>
                   <tr>
+                    <th>No</th>
                     <th>Nama</th>
                     <th>Username</th>
                     <th>Email</th>
@@ -614,7 +619,7 @@
   </div>
 
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
-  <input type="file" id="csvFileInput" accept=".csv,.xls,.xlsx" style="display:none;">
+  <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;">
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
@@ -653,6 +658,7 @@
     const searchMemberInput = document.getElementById("searchMemberInput");
     const filterRoleSelect = document.getElementById("filterRoleSelect");
     const filterStatusSelect = document.getElementById("filterStatusSelect");
+    const sortMemberSelect = document.getElementById("sortMemberSelect");
     const resetFilterBtn = document.getElementById("resetFilterBtn");
 
     const memberTableBody = document.getElementById("memberTableBody");
@@ -673,9 +679,7 @@
     const cancelEditBtn = document.getElementById("cancelEditBtn");
     const newMemberBtn = document.getElementById("newMemberBtn");
     const importCsvBtn = document.getElementById("importCsvBtn");
-    const importExcelBtn = document.getElementById("importExcelBtn");
     const downloadCsvTemplateBtn = document.getElementById("downloadCsvTemplateBtn");
-    const downloadExcelTemplateBtn = document.getElementById("downloadExcelTemplateBtn");
     const previewMemberReportBtn = document.getElementById("previewMemberReportBtn");
     const downloadMemberExcelBtn = document.getElementById("downloadMemberExcelBtn");
 
@@ -1105,12 +1109,30 @@
       const keyword = searchMemberInput.value.trim().toLowerCase();
       const roleFilter = filterRoleSelect.value;
       const statusFilter = filterStatusSelect.value;
+      const sortMode = sortMemberSelect ? sortMemberSelect.value : "name-asc";
 
-      return members.filter(function (member) {
+      const filtered = members.filter(function (member) {
         const matchKeyword = !keyword || [member.name, member.username, member.email, member.phone, member.address, member.birthDate, roleLabel(member.role)].join(" ").toLowerCase().includes(keyword);
         const matchRole = roleFilter === "all" || member.role === roleFilter;
         const matchStatus = statusFilter === "all" || member.status === statusFilter;
         return matchKeyword && matchRole && matchStatus;
+      });
+
+      return filtered.sort(function (a, b) {
+        const nameA = String(a.name || "").toLowerCase();
+        const nameB = String(b.name || "").toLowerCase();
+        const roleA = roleLabel(a.role).toLowerCase();
+        const roleB = roleLabel(b.role).toLowerCase();
+        if (sortMode === "name-desc") {
+          return nameB.localeCompare(nameA, "id") || roleA.localeCompare(roleB, "id");
+        }
+        if (sortMode === "role-asc") {
+          return roleA.localeCompare(roleB, "id") || nameA.localeCompare(nameB, "id");
+        }
+        if (sortMode === "role-desc") {
+          return roleB.localeCompare(roleA, "id") || nameA.localeCompare(nameB, "id");
+        }
+        return nameA.localeCompare(nameB, "id") || roleA.localeCompare(roleB, "id");
       });
     }
 
@@ -1155,16 +1177,17 @@
     function renderMemberTable() {
       const rows = filteredMembers();
       if (!rows.length) {
-        memberTableBody.innerHTML = '<tr><td colspan="9">Tidak ada data anggota yang cocok.</td></tr>';
+        memberTableBody.innerHTML = '<tr><td colspan="10">Tidak ada data anggota yang cocok.</td></tr>';
         return;
       }
 
-      memberTableBody.innerHTML = rows.map(function (member) {
+      memberTableBody.innerHTML = rows.map(function (member, index) {
         const statusClass = member.status === "Nonaktif" ? "status nonaktif" : "status";
         const statusText = member.status === "Nonaktif" && member.inactiveUntil
           ? (member.status + " s/d " + formatDate(member.inactiveUntil))
           : member.status;
         return '<tr>'
+          + '<td>' + (index + 1) + '</td>'
           + '<td>' + escapeHtml(member.name) + '</td>'
           + '<td>' + escapeHtml(member.username || "-") + '</td>'
           + '<td>' + escapeHtml(member.email) + '</td>'
@@ -1687,6 +1710,9 @@
     searchMemberInput.addEventListener("input", renderMemberTable);
     filterRoleSelect.addEventListener("change", renderMemberTable);
     filterStatusSelect.addEventListener("change", renderMemberTable);
+    if (sortMemberSelect) {
+      sortMemberSelect.addEventListener("change", renderMemberTable);
+    }
     requestSearchInput.addEventListener("input", renderRequests);
     requestSortSelect.addEventListener("change", renderRequests);
 
@@ -1694,35 +1720,10 @@
       searchMemberInput.value = "";
       filterRoleSelect.value = "all";
       filterStatusSelect.value = "all";
-      renderMemberTable();
-    });
-
-    
-
-    importExcelBtn.addEventListener("click", function () {
-      if (!csvFileInput) {
-        showNotify("Input file tidak tersedia.");
-        return;
+      if (sortMemberSelect) {
+        sortMemberSelect.value = "name-asc";
       }
-      csvFileInput.click();
-    });
-
-    
-
-    downloadExcelTemplateBtn.addEventListener("click", function () {
-      const tableHeader = '<tr><th>Nama</th><th>Username</th><th>Email</th><th>Telp</th><th>Alamat</th><th>Tanggal Lahir</th><th>Role</th><th>Status</th></tr>';
-      const tableBody = '<tr><td>Budi Santoso</td><td>budis</td><td>budi@example.com</td><td>081234567890</td><td>Jl. Merdeka No. 1</td><td>2000-01-01</td><td>anggota</td><td>Aktif</td></tr>';
-      const excelHtml = '<html><head><meta charset="utf-8"></head><body><table border="1">' + tableHeader + tableBody + '</table></body></html>';
-      const blob = new Blob(["\ufeff", excelHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "template-import-anggota.xls";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-      showNotify("Template Excel berhasil diunduh.");
+      renderMemberTable();
     });
 
     previewMemberReportBtn.addEventListener("click", openMemberReportPreview);
