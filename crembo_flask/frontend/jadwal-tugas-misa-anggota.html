@@ -1039,8 +1039,9 @@
     }
 
     function currentUserKeys() {
+      const idKey = normalizeKey(CURRENT_USER.userId);
+      if (idKey) return [idKey];
       return [
-        CURRENT_USER.userId,
         CURRENT_USER.username,
         CURRENT_USER.nama,
         CURRENT_USER.fullName,
@@ -1055,11 +1056,14 @@
     }
 
     function isCurrentUserAssignment(roleItem) {
-      if (!roleItem || !roleItem.assigned) return false;
-      return isCurrentUserMatch(roleItem.memberId)
-        || isCurrentUserMatch(roleItem.memberUsername)
+      if (!roleItem || !roleItem.assigned || !CURRENT_USER.loggedIn) return false;
+      const idKey = normalizeKey(CURRENT_USER.userId);
+      if (idKey) {
+        return isCurrentUserMatch(roleItem.memberId)
+          || (Array.isArray(roleItem.memberIds) && roleItem.memberIds.some(isCurrentUserMatch));
+      }
+      return isCurrentUserMatch(roleItem.memberUsername)
         || isCurrentUserMatch(roleItem.memberName)
-        || (Array.isArray(roleItem.memberIds) && roleItem.memberIds.some(isCurrentUserMatch))
         || (Array.isArray(roleItem.memberNames) && roleItem.memberNames.some(isCurrentUserMatch));
     }
 
@@ -1094,21 +1098,24 @@
     async function applyCurrentUser() {
       let sessionUser = {};
       const templateUser = safeParse(document.body.getAttribute("data-current-user") || "{}") || {};
-      const storedSession = safeParse(localStorage.getItem("crembo-login-session")) || {};
       try {
-        const sessionRes = await fetch("/api/session");
+        const sessionRes = await fetch("/api/session", { credentials: "same-origin", cache: "no-store" });
         if (sessionRes.ok) sessionUser = await sessionRes.json();
       } catch (error) {}
-      const displayName = String(sessionUser.full_name || sessionUser.fullName || sessionUser.nama || templateUser.full_name || templateUser.fullName || templateUser.nama || storedSession.fullName || storedSession.full_name || "Atanasius Surya Guna").trim();
-      const roleValue = String(sessionUser.role || templateUser.role || storedSession.role || "").trim();
-      const resolvedName = displayName || "Atanasius Surya Guna";
+
+      // /api/session adalah sumber utama agar tidak terbawa akun lama dari localStorage/browser.
+      const source = (sessionUser && (sessionUser.logged_in || sessionUser.loggedIn || sessionUser.user_id || sessionUser.id)) ? sessionUser : templateUser;
+      const displayName = String(source.full_name || source.fullName || source.nama || source.username || "").trim();
+      const roleValue = String(source.role || "user").trim();
+      const userId = String(source.user_id || source.id || "").trim();
+      const resolvedName = displayName || "Anggota";
 
       CURRENT_USER = {
-        loggedIn: Boolean(sessionUser.logged_in || sessionUser.loggedIn || templateUser.logged_in || templateUser.loggedIn || storedSession.logged_in || storedSession.loggedIn),
-        userId: String(sessionUser.user_id || sessionUser.id || templateUser.user_id || templateUser.id || storedSession.user_id || storedSession.id || "").trim(),
-        username: String(sessionUser.username || templateUser.username || storedSession.username || "").trim(),
-        nama: String(sessionUser.nama || templateUser.nama || storedSession.nama || resolvedName || "").trim(),
-        fullName: String(sessionUser.full_name || sessionUser.fullName || templateUser.full_name || templateUser.fullName || storedSession.full_name || storedSession.fullName || resolvedName || "").trim(),
+        loggedIn: Boolean(source.logged_in || source.loggedIn || userId),
+        userId: userId,
+        username: String(source.username || "").trim(),
+        nama: String(source.nama || resolvedName || "").trim(),
+        fullName: String(source.full_name || source.fullName || resolvedName || "").trim(),
         displayName: resolvedName,
         role: roleValue
       };

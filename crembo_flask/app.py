@@ -5471,7 +5471,11 @@ def get_my_registration_submissions():
 
 @app.route("/api/session", methods=["GET"])
 def get_session_context():
-    return jsonify(current_user_context())
+    response = jsonify(current_user_context())
+    # Hindari data profil/session lama terbaca ulang oleh browser saat berganti akun.
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 # --- AGENDA ENDPOINTS ---
