@@ -67,8 +67,9 @@
     .btn-login:hover,.user-dropdown-btn:hover{background:var(--primary);color:#fff}
     .user-dropdown{position:relative}
     .avatar{width:30px;height:30px;border-radius:999px;background:var(--primary-light);color:#fff;display:grid;place-items:center;font-size:.8rem;font-weight:900}
-    .user-dropdown-menu{position:absolute;right:0;top:calc(100% + 10px);width:250px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);display:none;z-index:1400;overflow:hidden}
-    .user-dropdown:hover .user-dropdown-menu{display:block}
+    .user-dropdown-menu{position:absolute;right:0;top:calc(100% - 1px);width:250px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);display:none;z-index:1400;overflow:hidden}
+    .user-dropdown::after{content:"";position:absolute;left:0;right:0;top:100%;height:10px}
+    .user-dropdown:hover .user-dropdown-menu,.user-dropdown:focus-within .user-dropdown-menu{display:block}
     .user-dropdown-header{padding:14px 16px;background:#fff7f7;border-bottom:1px solid var(--line)}
     .user-dropdown-header p{margin:0 0 4px;font-weight:800;color:var(--primary)}
     .user-dropdown-header span{display:block;font-size:.82rem;color:var(--muted)}
@@ -208,7 +209,11 @@
       .top-header .container{grid-template-columns:auto 1fr;padding:12px 0}.logo-box{width:52px;height:52px}.brand h1{font-size:1.18rem}.brand p{font-size:.78rem}
       .menu-toggle{display:inline-block}.nav-row nav{display:none;width:100%}.nav-row nav.open{display:block}.nav-row nav ul{display:grid;gap:4px}.hero{min-height:180px;padding:42px 18px}.content{padding-top:22px}
     }
-  </style>
+  
+    .nav-dropdown-enhanced{position:relative}
+    .nav-dropdown-enhanced.open>a{color:var(--primary);font-weight:800}
+    .profile-parent-link{cursor:pointer}
+</style>
 </head>
 <body>
   <header class="top-header">
@@ -507,6 +512,9 @@
       }
       statusCard.className = 'status-card show ' + (type === 'danger' ? 'danger' : 'success');
       statusCard.textContent = message;
+      if(type === 'danger'){
+        requestAnimationFrame(() => statusCard.scrollIntoView({behavior:'smooth', block:'center'}));
+      }
     }
 
     function memberLabel(member){
@@ -838,7 +846,7 @@
         <article class="staff-eval-item">
           <h4>${escapeHtml(staff.name)} <span>${escapeHtml(staff.role)}</span></h4>
           <div class="field"><label>Penilaian Singkat</label><select data-eval-index="${index}" required><option value="">Pilih penilaian</option><option>Sangat Baik</option><option>Baik</option><option>Cukup</option><option>Perlu Pendampingan</option></select></div>
-          <div class="field" style="margin-top:10px"><label>Catatan Performa</label><textarea data-note-index="${index}" required placeholder="Catatan performa ${escapeHtml(staff.name)}"></textarea></div>
+          <div class="field" style="margin-top:10px"><label>Catatan Performa <span style="color:var(--muted);font-weight:700;text-transform:none">(opsional)</span></label><textarea data-note-index="${index}" placeholder="Catatan performa ${escapeHtml(staff.name)}"></textarea></div>
         </article>`).join('') || '<div class="empty-state">Tidak ada petugas hadir untuk dievaluasi.</div>';
     }
 
@@ -947,8 +955,8 @@
         setStatus('Minimal ada satu petugas hadir untuk dievaluasi.', 'danger');
         return;
       }
-      if(staffEvaluations.some(item => !item.rating || !String(item.note || '').trim())){
-        setStatus('Penilaian dan catatan per petugas wajib diisi.', 'danger');
+      if(staffEvaluations.some(item => !item.rating)){
+        setStatus('Penilaian singkat per petugas wajib diisi.', 'danger');
         return;
       }
       const evaluator = evaluatorCombo.getSelected();
@@ -999,6 +1007,64 @@
       } catch(error){
         setStatus('Gagal menyimpan evaluasi karena server tidak merespons.', 'danger');
       }
+    }
+
+
+    function enhanceProfileHoverMenu(){
+      const navList = document.querySelector('.nav-row nav ul');
+      if(!navList) return;
+      const profileAnchor = navList.querySelector('a[href="profil.html"], a[href="/profil.html"]');
+      if(!profileAnchor || profileAnchor.dataset.enhanced === 'true') return;
+      const profileItem = profileAnchor.closest('li');
+      if(!profileItem) return;
+      const defaultItems = [
+        {id:'sejarah', label:'Sejarah'},
+        {id:'tentang-crembo', label:'Tentang Crembo'},
+        {id:'struktur', label:'Struktur'},
+        {id:'visi-misi', label:'Visi & Misi'}
+      ];
+      let items = defaultItems;
+      try{
+        const raw = localStorage.getItem('crembo-profile-menu');
+        const parsed = raw ? JSON.parse(raw) : null;
+        if(Array.isArray(parsed) && parsed.length){
+          items = parsed.map(item => typeof item === 'string' ? {id:item.toLowerCase().replace(/\s+/g,'-'), label:item} : {id:item.id || String(item.label || 'profil').toLowerCase().replace(/\s+/g,'-'), label:item.label || 'Profil'});
+        }
+      }catch(_err){}
+      profileAnchor.dataset.enhanced = 'true';
+      profileAnchor.textContent = profileAnchor.textContent.trim().replace(/\s*▾$/,'') + ' ▾';
+      profileAnchor.classList.add('profile-parent-link');
+      profileAnchor.setAttribute('aria-expanded','false');
+      profileItem.classList.add('nav-dropdown-enhanced');
+      const dropdown = document.createElement('div');
+      dropdown.className = 'profile-hover-menu';
+      dropdown.innerHTML = items.map(item => `<a href="profil.html?profil=${encodeURIComponent(item.id)}">${escapeHtml(item.label)}</a>`).join('');
+      const mobileQuery = window.matchMedia('(max-width:760px)');
+      function applyMode(){
+        const mobile = mobileQuery.matches;
+        profileItem.style.position = mobile ? 'static' : 'relative';
+        Object.assign(dropdown.style, mobile ? {
+          position:'static', display:'none', marginTop:'6px', padding:'6px', minWidth:'0', width:'100%', border:'1px solid rgba(128,0,0,.15)', borderRadius:'10px', background:'#fff', boxShadow:'none', zIndex:'1300'
+        } : {
+          position:'absolute', display:'none', top:'calc(100% - 1px)', left:'0', minWidth:'210px', width:'auto', padding:'6px', border:'1px solid rgba(128,0,0,.15)', borderRadius:'12px', background:'#fff', boxShadow:'0 10px 30px rgba(128,0,0,.12)', zIndex:'1300'
+        });
+        dropdown.querySelectorAll('a').forEach(a => Object.assign(a.style,{display:'block',padding:'9px 12px',fontSize:'.88rem',borderRadius:'8px',color:'#4a4a4a',marginBottom:'2px'}));
+      }
+      profileItem.appendChild(dropdown);
+      dropdown.addEventListener('mouseover', e => { const a=e.target.closest('a'); if(a){ a.style.background='rgba(128,0,0,.06)'; a.style.color='#800000'; }});
+      dropdown.addEventListener('mouseout', e => { const a=e.target.closest('a'); if(a){ a.style.background='transparent'; a.style.color='#4a4a4a'; }});
+      profileAnchor.addEventListener('click', e => {
+        if(!mobileQuery.matches) return;
+        e.preventDefault();
+        const open = dropdown.style.display !== 'block';
+        dropdown.style.display = open ? 'block' : 'none';
+        profileAnchor.setAttribute('aria-expanded', String(open));
+      });
+      profileItem.addEventListener('mouseenter', () => { if(!mobileQuery.matches) dropdown.style.display='block'; });
+      profileItem.addEventListener('mouseleave', () => { if(!mobileQuery.matches) dropdown.style.display='none'; });
+      dropdown.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { dropdown.style.display='none'; profileAnchor.setAttribute('aria-expanded','false'); }));
+      window.addEventListener('resize', applyMode);
+      applyMode();
     }
 
     function init(){
@@ -1076,10 +1142,18 @@
         setStatus('Pengisian evaluasi dibatalkan.', 'danger');
       });
       evaluationForm.addEventListener('submit', submitEvaluation);
+      enhanceProfileHoverMenu();
+      if(scrollTopBtn){
+        const toggleScrollTop = () => scrollTopBtn.classList.toggle('show', window.scrollY > 360);
+        window.addEventListener('scroll', toggleScrollTop, {passive:true});
+        scrollTopBtn.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+        toggleScrollTop();
+      }
       loadSchedules();
     }
 
     init();
   </script>
+<script src="_public-nav-sync.js"></script>
 </body>
 </html>

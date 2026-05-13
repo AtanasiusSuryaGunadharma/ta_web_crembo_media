@@ -11821,6 +11821,11 @@ def api_streaming_evaluation_member():
             s["evaluated"] = bool(ev)
             s["evaluationId"] = ev.get("id") if ev else None
             s["due"] = is_due
+            # Form evaluasi anggota hanya boleh tampil setelah jadwal benar-benar dimulai.
+            # Total/progress tetap menghitung semua tugas bulan itu, tetapi daftar yang bisa diisi/review
+            # tidak menampilkan jadwal masa depan agar user tidak bisa mengisi sebelum hari-H/jam mulai.
+            if not is_due:
+                continue
             if status == "filled" and not ev:
                 continue
             if status == "empty" and ev:
