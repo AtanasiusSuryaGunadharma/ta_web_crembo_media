@@ -7582,6 +7582,258 @@ def api_request_tugas_claim():
         conn.close()
 
 
+
+
+# -----------------------------------------------------------------------------
+# Riwayat Tugas Saya: histori tugas anggota dari jadwal Misa Biasa & Misa Besar
+# -----------------------------------------------------------------------------
+
+@app.route("/api/riwayat-tugas-saya", methods=["GET"])
+def api_riwayat_tugas_saya():
+    ensure_task_request_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        member, error = require_active_request_member(cursor)
+        if error:
+            return error
+        member_id = member["id"]
+
+        page = max(1, parse_required_int(request.args.get("page"), 1))
+        page_size = max(1, min(25, parse_required_int(request.args.get("pageSize"), 5)))
+        kind_filter = (normalize_text(request.args.get("type")) or "all").lower()
+        month_filter = normalize_text(request.args.get("month")) or "all"
+        year_filter = normalize_text(request.args.get("year")) or "all"
+        search_text = normalize_text(request.args.get("search")).lower()
+        sort_mode = (normalize_text(request.args.get("sort")) or "date_desc").lower().replace("-", "_")
+        stats_range = (normalize_text(request.args.get("statsRange")) or "month").lower()
+
+        def source_label(source_value: object) -> str:
+            source = normalize_text(source_value).lower()
+            if source in {"member_request", "request", "mandiri", "self"}:
+                return "Request Mandiri"
+            if source in {"exchange", "swap", "tukar", "replacement", "replace", "ganti", "pengganti"}:
+                return "Penukaran / Pengganti"
+            return "Ditugaskan Admin"
+
+        def status_for(date_text: str, time_text: str, cancelled: bool = False) -> str:
+            if cancelled:
+                return "Dibatalkan"
+            try:
+                schedule_dt = datetime.strptime(f"{date_text} {format_time_hhmm(time_text)}", "%Y-%m-%d %H:%M")
+                return "Selesai" if schedule_dt < datetime.now() else "Terdaftar"
+            except Exception:
+                return "Terdaftar"
+
+        def build_item(kind: str, type_label: str, misa_name: str, date_text: str, time_text: str, role_name: str, request_source: object, created_at: object = None, *, cancelled: bool = False, note: str = "") -> dict[str, object]:
+            time_clean = format_time_hhmm(time_text)
+            source = normalize_text(request_source) or "admin"
+            status = status_for(date_text, time_clean, cancelled)
+            day_name = request_task_day_name(date_text)
+            created_iso = created_at.isoformat() if hasattr(created_at, "isoformat") else (normalize_text(created_at) or None)
+            return {
+                "type": kind,
+                "typeLabel": type_label,
+                "misaName": normalize_text(misa_name) or type_label,
+                "date": normalize_text(date_text),
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": day_name,
+                "time": time_clean,
+                "role": normalize_text(role_name) or "-",
+                "status": status,
+                "source": source,
+                "sourceLabel": source_label(source),
+                "isExchange": source_label(source) == "Penukaran / Pengganti",
+                "createdAt": created_iso,
+                "note": normalize_text(note) or "Nama Anda tercatat pada jadwal tugas streaming.",
+                "scheduleLabel": f"{day_name}, {request_task_format_date(date_text)} jam {time_clean} WIB",
+            }
+
+        rows: list[dict[str, object]] = []
+
+        cursor.execute(
+            """
+            SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name AS role,
+                   COALESCE(sa.request_source, 'admin') AS request_source,
+                   sa.created_at,
+                   cfg.mass_name
+            FROM streaming_assignments sa
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE sa.member_id = %s
+            """,
+            (member_id,),
+        )
+        for row in cursor.fetchall() or []:
+            rows.append(build_item(
+                "biasa",
+                "Misa Biasa",
+                row.get("mass_name") or "Misa Biasa",
+                normalize_text(row.get("date")),
+                format_time_hhmm(row.get("time")),
+                row.get("role"),
+                row.get("request_source"),
+                row.get("created_at"),
+            ))
+
+        cursor.execute(
+            """
+            SELECT mb.misa_name, DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name AS role,
+                   COALESCE(a.request_source, 'admin') AS request_source,
+                   a.created_at
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            WHERE a.member_id = %s AND mb.status = 'published'
+            """,
+            (member_id,),
+        )
+        for row in cursor.fetchall() or []:
+            rows.append(build_item(
+                "besar",
+                "Misa Besar",
+                row.get("misa_name") or "Misa Besar",
+                normalize_text(row.get("date")),
+                format_time_hhmm(row.get("time")),
+                row.get("role"),
+                row.get("request_source"),
+                row.get("created_at"),
+            ))
+
+        # Riwayat pembatalan ikut ditampilkan sebagai status Dibatalkan agar histori tugas tetap lengkap.
+        try:
+            ensure_task_cancellation_schema(cursor)
+            cursor.execute(
+                """
+                SELECT kind, COALESCE(type_label, IF(kind='besar','Misa Besar','Misa Biasa')) AS type_label,
+                       DATE_FORMAT(schedule_date, '%Y-%m-%d') AS date,
+                       DATE_FORMAT(schedule_time, '%H:%i') AS time,
+                       misa_name, role_name, request_source, cancelled_at, note
+                FROM task_cancellations
+                WHERE member_id = %s
+                """,
+                (member_id,),
+            )
+            for row in cursor.fetchall() or []:
+                kind = "besar" if normalize_text(row.get("kind")).lower() == "besar" else "biasa"
+                rows.append(build_item(
+                    kind,
+                    "Misa Besar" if kind == "besar" else "Misa Biasa",
+                    row.get("misa_name") or row.get("type_label") or "Misa",
+                    normalize_text(row.get("date")),
+                    format_time_hhmm(row.get("time")),
+                    row.get("role_name"),
+                    row.get("request_source"),
+                    row.get("cancelled_at"),
+                    cancelled=True,
+                    note=row.get("note") or "Tugas ini sudah dibatalkan.",
+                ))
+        except Exception as exc:
+            print(f"[WARN] Gagal memuat riwayat pembatalan tugas: {exc}")
+
+        if kind_filter in {"biasa", "besar"}:
+            rows = [item for item in rows if item.get("type") == kind_filter]
+
+        if month_filter.lower() != "all":
+            month_int = min(12, max(1, parse_required_int(month_filter, datetime.now().month)))
+            rows = [item for item in rows if normalize_text(item.get("date"))[5:7] == f"{month_int:02d}"]
+
+        if year_filter.lower() != "all":
+            year_int = parse_required_int(year_filter, datetime.now().year)
+            rows = [item for item in rows if normalize_text(item.get("date"))[:4] == str(year_int)]
+
+        if search_text:
+            def matches(item):
+                haystack = " ".join([
+                    normalize_text(item.get("misaName")),
+                    normalize_text(item.get("typeLabel")),
+                    normalize_text(item.get("role")),
+                    normalize_text(item.get("status")),
+                    normalize_text(item.get("sourceLabel")),
+                    normalize_text(item.get("date")),
+                    normalize_text(item.get("time")),
+                    normalize_text(item.get("note")),
+                ]).lower()
+                return search_text in haystack
+            rows = [item for item in rows if matches(item)]
+
+        def schedule_dt(item):
+            try:
+                return datetime.strptime(f"{item.get('date')} {format_time_hhmm(item.get('time'))}", "%Y-%m-%d %H:%M")
+            except Exception:
+                return datetime(1970, 1, 1)
+
+        if sort_mode in {"date_asc", "tanggal_terlama"}:
+            rows.sort(key=schedule_dt)
+        elif sort_mode in {"role_asc"}:
+            rows.sort(key=lambda item: normalize_text(item.get("role")).lower())
+        elif sort_mode in {"status_asc"}:
+            rows.sort(key=lambda item: normalize_text(item.get("status")).lower())
+        elif sort_mode in {"type_asc", "jenis_asc"}:
+            rows.sort(key=lambda item: (normalize_text(item.get("typeLabel")).lower(), schedule_dt(item)))
+        else:
+            rows.sort(key=schedule_dt, reverse=True)
+
+        total = len(rows)
+        total_pages = max(1, (total + page_size - 1) // page_size)
+        page = min(page, total_pages)
+        start = (page - 1) * page_size
+        paged_rows = rows[start:start + page_size]
+
+        now = datetime.now()
+        def in_stats_range(item):
+            try:
+                item_date = datetime.strptime(normalize_text(item.get("date")), "%Y-%m-%d")
+            except Exception:
+                return False
+            if stats_range == "year":
+                return item_date.year == now.year
+            if stats_range == "week":
+                week_start = now - timedelta(days=now.weekday())
+                week_start = datetime(week_start.year, week_start.month, week_start.day)
+                week_end = week_start + timedelta(days=7)
+                return week_start <= item_date < week_end
+            return item_date.year == now.year and item_date.month == now.month
+
+        summary_rows = [item for item in rows if in_stats_range(item)]
+        summary = {
+            "total": len(summary_rows),
+            "completed": sum(1 for item in summary_rows if item.get("status") == "Selesai"),
+            "exchange": sum(1 for item in summary_rows if item.get("isExchange")),
+            "upcoming": sum(1 for item in summary_rows if item.get("status") == "Terdaftar"),
+            "cancelled": sum(1 for item in summary_rows if item.get("status") == "Dibatalkan"),
+        }
+
+        return jsonify({
+            "success": True,
+            "items": paged_rows,
+            "summary": summary,
+            "pagination": {
+                "page": page,
+                "pageSize": page_size,
+                "total": total,
+                "totalPages": total_pages,
+            },
+            "filters": {
+                "type": kind_filter,
+                "month": month_filter,
+                "year": year_filter,
+                "sort": sort_mode,
+                "search": search_text,
+            },
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route("/api/request-tugas/history", methods=["GET"])
 def api_request_tugas_history():
     ensure_task_request_schema()

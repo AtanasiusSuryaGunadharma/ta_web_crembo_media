@@ -329,8 +329,36 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr 1fr;
+      grid-template-columns: 1.35fr .85fr .8fr .8fr .9fr;
       gap: 8px;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--blue-2), var(--blue-3));
+      color: #fff;
+      font-weight: 700;
+      padding: 7px 11px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .btn[disabled] {
+      background: #d1d5db;
+      color: #6b7280;
+      cursor: not-allowed;
     }
 
     .field { display: grid; gap: 5px; }
@@ -533,24 +561,32 @@
             <div class="filters">
               <div class="field">
                 <label for="historySearch">Search</label>
-                <input id="historySearch" type="search" placeholder="Cari misa, role, atau status...">
+                <input id="historySearch" type="search" placeholder="Cari misa, role, status, atau keterangan...">
+              </div>
+              <div class="field">
+                <label for="historyType">Jenis Misa</label>
+                <select id="historyType">
+                  <option value="all">Misa Biasa & Besar</option>
+                  <option value="biasa">Misa Biasa</option>
+                  <option value="besar">Misa Besar</option>
+                </select>
               </div>
               <div class="field">
                 <label for="historyMonth">Bulan</label>
                 <select id="historyMonth">
-                  <option value="all">Semua Bulan</option>
-                  <option value="0">Januari</option>
-                  <option value="1">Februari</option>
-                  <option value="2">Maret</option>
-                  <option value="3">April</option>
-                  <option value="4">Mei</option>
-                  <option value="5">Juni</option>
-                  <option value="6">Juli</option>
-                  <option value="7">Agustus</option>
-                  <option value="8">September</option>
-                  <option value="9">Oktober</option>
-                  <option value="10">November</option>
-                  <option value="11">Desember</option>
+                  <option value="all" selected>Semua Bulan</option>
+                  <option value="1">Januari</option>
+                  <option value="2">Februari</option>
+                  <option value="3">Maret</option>
+                  <option value="4">April</option>
+                  <option value="5">Mei</option>
+                  <option value="6">Juni</option>
+                  <option value="7">Juli</option>
+                  <option value="8">Agustus</option>
+                  <option value="9">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
                 </select>
               </div>
               <div class="field">
@@ -560,10 +596,11 @@
               <div class="field">
                 <label for="historySort">Urutkan</label>
                 <select id="historySort">
-                  <option value="date-desc">Tanggal Terbaru</option>
-                  <option value="date-asc">Tanggal Terlama</option>
-                  <option value="role-asc">Role A-Z</option>
-                  <option value="status-asc">Status A-Z</option>
+                  <option value="date_desc">Tanggal Terbaru</option>
+                  <option value="date_asc">Tanggal Terlama</option>
+                  <option value="type_asc">Jenis Misa</option>
+                  <option value="role_asc">Role A-Z</option>
+                  <option value="status_asc">Status A-Z</option>
                 </select>
               </div>
             </div>
@@ -574,19 +611,27 @@
           <header class="panel-head">
             <h2>Daftar Riwayat Tugas</h2>
           </header>
-          <div class="panel-body table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tanggal</th>
-                  <th>Jam</th>
-                  <th>Jenis Misa</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="historyRows"></tbody>
-            </table>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Misa & Jadwal</th>
+                    <th>Jenis Misa</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody id="historyRows"></tbody>
+              </table>
+            </div>
+            <div class="pagination" aria-label="Navigasi halaman riwayat tugas">
+              <button id="historyPrev" class="btn" type="button">← Sebelumnya</button>
+              <span id="historyPageInfo">Halaman 1 dari 1 · 0 data</span>
+              <button id="historyNext" class="btn" type="button">Berikutnya →</button>
+            </div>
           </div>
         </section>
       </div>
@@ -594,20 +639,23 @@
   </div>
 
   <script>
-    const HISTORY_KEY = "crembo-member-task-history";
-
     const memberName = document.getElementById("memberName");
+    const avatarEl = document.querySelector(".avatar");
     const sidebar = document.getElementById("sidebar");
     const sidebarBackdrop = document.getElementById("sidebarBackdrop");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const liveDateTime = document.getElementById("liveDateTime");
 
     const historySearch = document.getElementById("historySearch");
+    const historyType = document.getElementById("historyType");
     const historyMonth = document.getElementById("historyMonth");
     const historyYear = document.getElementById("historyYear");
     const historySort = document.getElementById("historySort");
     const historyRows = document.getElementById("historyRows");
     const historyStatsRange = document.getElementById("historyStatsRange");
+    const historyPrev = document.getElementById("historyPrev");
+    const historyNext = document.getElementById("historyNext");
+    const historyPageInfo = document.getElementById("historyPageInfo");
 
     const totalCount = document.getElementById("totalCount");
     const completedCount = document.getElementById("completedCount");
@@ -616,79 +664,41 @@
     const completedLabel = document.getElementById("completedLabel");
     const swapLabel = document.getElementById("swapLabel");
 
-    function safeParse(raw, fallback) {
+    let historyPage = 1;
+    const historyPageSize = 5;
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function initials(name) {
+      const clean = String(name || "AG").trim();
+      const parts = clean.split(/\s+/).filter(Boolean);
+      if (!parts.length) return "AG";
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    async function loadSessionUser() {
       try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : fallback;
-      } catch (error) {
-        return fallback;
-      }
-    }
-
-    function seedHistoryIfEmpty() {
-      if (localStorage.getItem(HISTORY_KEY)) {
-        return;
-      }
-
-      const seed = [
-        {
-          id: "hist-1",
-          date: "2026-04-06",
-          time: "18:00",
-          misa: "Misa Harian",
-          role: "Operator Kamera",
-          status: "Selesai",
-          note: "Tugas berjalan lancar"
-        },
-        {
-          id: "hist-2",
-          date: "2026-04-03",
-          time: "17:00",
-          misa: "Misa Harian",
-          role: "Sound Engineer",
-          status: "Digantikan",
-          note: "Digantikan Tyas karena bentrok kuliah"
-        },
-        {
-          id: "hist-3",
-          date: "2026-03-29",
-          time: "08:00",
-          misa: "Misa Mingguan",
-          role: "Operator Kamera",
-          status: "Ditukar",
-          note: "Tukar jadwal dengan Jeni"
-        },
-        {
-          id: "hist-4",
-          date: "2026-03-22",
-          time: "08:00",
-          misa: "Misa Mingguan",
-          role: "Producer",
-          status: "Selesai",
-          note: "Koordinasi tim multimedia"
-        },
-        {
-          id: "hist-5",
-          date: "2026-02-14",
-          time: "18:30",
-          misa: "Misa Besar",
-          role: "Operator Kamera",
-          status: "Dibatalkan",
-          note: "Sakit, sudah lapor H-4"
-        }
-      ];
-
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(seed));
-    }
-
-    function readHistory() {
-      return safeParse(localStorage.getItem(HISTORY_KEY), []);
+        const res = await fetch("/api/session", { cache: "no-store" });
+        if (!res.ok) return;
+        const user = await res.json();
+        const name = user.nama || user.username || "Anggota";
+        memberName.textContent = name;
+        if (avatarEl) avatarEl.textContent = initials(name);
+      } catch (error) {}
     }
 
     function setYearOptions() {
       const now = new Date().getFullYear();
-      historyYear.innerHTML = '<option value="all">Semua Tahun</option>';
-      for (let year = now - 2; year <= now + 1; year += 1) {
+      historyYear.innerHTML = '<option value="all" selected>Semua Tahun</option>';
+      for (let year = now - 4; year <= now + 2; year += 1) {
         const option = document.createElement("option");
         option.value = String(year);
         option.textContent = String(year);
@@ -700,125 +710,88 @@
       if (status === "Selesai") {
         return '<span class="status-chip ok">Selesai</span>';
       }
-      if (status === "Ditukar" || status === "Digantikan") {
-        return '<span class="status-chip warn">' + status + '</span>';
+      if (status === "Penukaran / Pengganti" || status === "Ditukar" || status === "Digantikan") {
+        return '<span class="status-chip warn">' + escapeHtml(status) + '</span>';
       }
       if (status === "Dibatalkan") {
         return '<span class="status-chip danger">Dibatalkan</span>';
       }
-      return '<span class="status-chip">' + status + '</span>';
+      return '<span class="status-chip">' + escapeHtml(status || "Terdaftar") + '</span>';
     }
 
     function titleByRange(range) {
-      if (range === "week") {
-        return "Minggu Ini";
-      }
-      if (range === "month") {
-        return "Bulan Ini";
-      }
+      if (range === "week") return "Minggu Ini";
+      if (range === "month") return "Bulan Ini";
       return "Tahun Ini";
     }
 
-    function isWithinRange(dateText, range, now) {
-      const date = new Date(dateText + "T00:00:00");
-      if (Number.isNaN(date.getTime())) {
-        return false;
-      }
-
-      if (range === "year") {
-        return date.getFullYear() === now.getFullYear();
-      }
-
-      if (range === "month") {
-        return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-      }
-
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? 6 : day - 1;
-      const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-      return date >= weekStart && date < weekEnd;
+    function currentQueryParams(forStatsOnly) {
+      const params = new URLSearchParams();
+      params.set("page", forStatsOnly ? "1" : String(historyPage));
+      params.set("pageSize", forStatsOnly ? "500" : String(historyPageSize));
+      params.set("search", historySearch.value.trim());
+      params.set("type", historyType.value);
+      params.set("month", historyMonth.value);
+      params.set("year", historyYear.value);
+      params.set("sort", historySort.value);
+      return params;
     }
 
-    function filterHistory(items) {
-      const search = historySearch.value.trim().toLowerCase();
-      const selectedMonth = historyMonth.value;
-      const selectedYear = historyYear.value;
+    function applySummary(summary) {
+      const rangeTitle = titleByRange(historyStatsRange.value);
+      totalLabel.textContent = "Total Tugas " + rangeTitle;
+      completedLabel.textContent = "Tugas Selesai " + rangeTitle;
+      swapLabel.textContent = "Pertukaran / Pengganti " + rangeTitle;
+      totalCount.textContent = String(summary && typeof summary.total === "number" ? summary.total : 0);
+      completedCount.textContent = String(summary && typeof summary.completed === "number" ? summary.completed : 0);
+      swapCount.textContent = String(summary && typeof summary.exchange === "number" ? summary.exchange : 0);
+    }
 
-      return items.filter(function (item) {
-        const dateObj = new Date(item.date + "T00:00:00");
-        if (Number.isNaN(dateObj.getTime())) {
-          return false;
+    function renderRows(items, pagination) {
+      if (!items.length) {
+        historyRows.innerHTML = '<tr><td colspan="6">Tidak ada riwayat tugas yang cocok dengan filter.</td></tr>';
+      } else {
+        const page = pagination && pagination.page ? Number(pagination.page) : historyPage;
+        const pageSize = pagination && pagination.pageSize ? Number(pagination.pageSize) : historyPageSize;
+        historyRows.innerHTML = items.map(function (item, index) {
+          const no = ((page - 1) * pageSize) + index + 1;
+          const schedule = (item.dayName || "-") + ", " + (item.dateLabel || item.date || "-") + " jam " + (item.time || "-") + " WIB";
+          const source = item.sourceLabel ? '<div style="margin-top:4px">' + statusChip(item.sourceLabel) + '</div>' : "";
+          return '<tr>' +
+            '<td>' + no + '</td>' +
+            '<td><strong>' + escapeHtml(item.misaName || "Misa") + '</strong><br><span style="color:#64748b">' + escapeHtml(schedule) + '</span></td>' +
+            '<td>' + escapeHtml(item.typeLabel || "-") + '</td>' +
+            '<td><strong>' + escapeHtml(item.role || "-") + '</strong></td>' +
+            '<td>' + statusChip(item.status) + source + '</td>' +
+            '<td>' + escapeHtml(item.note || "Nama Anda tercatat pada jadwal tugas streaming.") + '</td>' +
+          '</tr>';
+        }).join("");
+      }
+
+      const total = pagination && typeof pagination.total === "number" ? pagination.total : 0;
+      const page = pagination && pagination.page ? pagination.page : 1;
+      const totalPages = pagination && pagination.totalPages ? pagination.totalPages : 1;
+      historyPage = page;
+      historyPageInfo.textContent = "Halaman " + page + " dari " + totalPages + " · " + total + " data";
+      historyPrev.disabled = page <= 1;
+      historyNext.disabled = page >= totalPages;
+    }
+
+    async function loadHistory() {
+      historyRows.innerHTML = '<tr><td colspan="6">Memuat riwayat tugas...</td></tr>';
+      try {
+        const res = await fetch("/api/riwayat-tugas-saya?" + currentQueryParams(false).toString(), { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Gagal memuat riwayat tugas.");
         }
-
-        const textPool = [item.misa, item.role, item.status, item.date, item.time].join(" ").toLowerCase();
-        const passSearch = !search || textPool.indexOf(search) !== -1;
-        const passMonth = selectedMonth === "all" || String(dateObj.getMonth()) === selectedMonth;
-        const passYear = selectedYear === "all" || String(dateObj.getFullYear()) === selectedYear;
-
-        return passSearch && passMonth && passYear;
-      });
-    }
-
-    function sortHistory(items) {
-      const mode = historySort.value;
-      const copy = items.slice();
-
-      if (mode === "date-asc") {
-        return copy.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+        applySummary(data.summary || {});
+        renderRows(data.items || [], data.pagination || {});
+      } catch (error) {
+        historyRows.innerHTML = '<tr><td colspan="6">' + escapeHtml(error.message || "Gagal memuat riwayat tugas.") + '</td></tr>';
+        applySummary({ total: 0, completed: 0, exchange: 0 });
+        renderRows([], { page: 1, totalPages: 1, total: 0, pageSize: historyPageSize });
       }
-      if (mode === "date-desc") {
-        return copy.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
-      }
-      if (mode === "role-asc") {
-        return copy.sort(function (a, b) { return a.role.localeCompare(b.role); });
-      }
-      if (mode === "status-asc") {
-        return copy.sort(function (a, b) { return a.status.localeCompare(b.status); });
-      }
-      return copy;
-    }
-
-    function renderStats(allItems) {
-      const now = new Date();
-      const range = historyStatsRange.value;
-      const filtered = allItems.filter(function (item) {
-        return isWithinRange(item.date, range, now);
-      });
-
-      totalLabel.textContent = "Total Tugas " + titleByRange(range);
-      completedLabel.textContent = "Tugas Selesai " + titleByRange(range);
-      swapLabel.textContent = "Pertukaran / Pengganti " + titleByRange(range);
-
-      totalCount.textContent = String(filtered.length);
-      completedCount.textContent = String(filtered.filter(function (item) {
-        return item.status === "Selesai";
-      }).length);
-      swapCount.textContent = String(filtered.filter(function (item) {
-        return item.status === "Ditukar" || item.status === "Digantikan";
-      }).length);
-    }
-
-    function renderHistoryTable() {
-      const source = readHistory();
-      renderStats(source);
-      const rows = sortHistory(filterHistory(source));
-
-      if (!rows.length) {
-        historyRows.innerHTML = '<tr><td colspan="5">Tidak ada riwayat tugas yang cocok dengan filter.</td></tr>';
-        return;
-      }
-
-      historyRows.innerHTML = rows.map(function (item) {
-        return '<tr>' +
-          '<td>' + item.date + '</td>' +
-          '<td>' + item.time + '</td>' +
-          '<td>' + item.misa + '</td>' +
-          '<td>' + item.role + '</td>' +
-          '<td>' + statusChip(item.status) + '</td>' +
-        '</tr>';
-      }).join("");
     }
 
     function updateLiveDateTime() {
@@ -833,19 +806,6 @@
       const minute = String(now.getMinutes()).padStart(2, "0");
       const second = String(now.getSeconds()).padStart(2, "0");
       liveDateTime.textContent = day + ", " + date + " " + month + " " + year + " " + hour + ":" + minute + ":" + second;
-    }
-
-    const sessionRaw = localStorage.getItem("crembo-login-session");
-    if (sessionRaw) {
-      try {
-        const session = JSON.parse(sessionRaw);
-        if (session.fullName) {
-          memberName.textContent = session.fullName;
-        } else if (session.identifier) {
-          memberName.textContent = session.identifier;
-        }
-      } catch (error) {
-      }
     }
 
     document.querySelectorAll(".menu-toggle").forEach(function (button) {
@@ -880,18 +840,30 @@
       });
     });
 
-    historySearch.addEventListener("input", renderHistoryTable);
-    historyMonth.addEventListener("change", renderHistoryTable);
-    historyYear.addEventListener("change", renderHistoryTable);
-    historySort.addEventListener("change", renderHistoryTable);
-    historyStatsRange.addEventListener("change", renderHistoryTable);
+    [historySearch, historyType, historyMonth, historyYear, historySort].forEach(function (el) {
+      el.addEventListener("input", function () { historyPage = 1; loadHistory(); });
+      el.addEventListener("change", function () { historyPage = 1; loadHistory(); });
+    });
 
-    seedHistoryIfEmpty();
+    historyStatsRange.addEventListener("change", function () {
+      // Label statistik mengikuti pilihan ini, datanya tetap menyesuaikan filter tabel aktif.
+      loadHistory();
+    });
+
+    historyPrev.addEventListener("click", function () {
+      if (historyPage > 1) { historyPage -= 1; loadHistory(); }
+    });
+
+    historyNext.addEventListener("click", function () {
+      historyPage += 1;
+      loadHistory();
+    });
+
     setYearOptions();
-    const now = new Date();
-    historyMonth.value = String(now.getMonth());
-    historyYear.value = String(now.getFullYear());
-    renderHistoryTable();
+    historyMonth.value = "all";
+    historyYear.value = "all";
+    loadSessionUser();
+    loadHistory();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
