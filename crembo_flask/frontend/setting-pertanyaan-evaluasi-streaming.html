@@ -28,7 +28,7 @@
       --sidebar-w:290px;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
     a{text-decoration:none;color:inherit}
     .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
 
@@ -46,14 +46,16 @@
     .side-actions a{border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:10px 12px;text-align:center;color:rgba(255,255,255,.88);font-size:.83rem;font-weight:800;background:rgba(255,255,255,.03)}
     .side-actions a:hover{background:rgba(255,255,255,.12);color:#fff}
 
-    .main{min-width:0;padding:20px}
-    .headline{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 70%,var(--primary-light));border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#fff}
-    .headline h1{margin:0;font-size:clamp(1.35rem,2.4vw,2rem);font-weight:900;letter-spacing:-.02em}
-    .head-meta{display:inline-flex;align-items:center;gap:12px;font-weight:800;color:rgba(255,255,255,.92);white-space:nowrap}
-    .globe{width:36px;height:36px;border-radius:999px;border:1.5px solid rgba(255,255,255,.34);display:grid;place-items:center;background:rgba(255,255,255,.12)}
+    .main{min-width:0;padding:20px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .headline,.dashboard-headline-bar{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 58%,var(--primary-light));border-radius:16px;box-shadow:0 12px 32px rgba(128,0,0,.16);padding:20px 22px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#fff;min-height:78px}
+    .headline h1,.dashboard-headline-bar h1{margin:0;font-size:clamp(1.55rem,2.25vw,2.05rem);font-weight:900;letter-spacing:-.025em;line-height:1.12;color:#fff}
+    .head-meta{display:inline-flex;align-items:center;gap:12px;font-weight:800;color:rgba(255,255,255,.94);white-space:nowrap;font-size:.96rem;line-height:1}
+    .world-link,.globe{width:38px;height:38px;min-width:38px;border-radius:999px;border:1.6px solid rgba(255,255,255,.45);display:grid;place-items:center;background:rgba(255,255,255,.14);color:#fff;text-decoration:none;cursor:pointer;transition:.2s ease;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+    .world-link svg,.globe svg{width:20px;height:20px;display:block;stroke:currentColor}
+    .world-link:hover,.world-link:focus-visible,.globe:hover{background:#fff;color:var(--primary);transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.18);outline:0}
     .hero-strip{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 65%,var(--primary-light));color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:16px;box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:16px;align-items:center}
-    .hero-strip h2{margin:0 0 8px;font-size:1.45rem;font-weight:900}
-    .hero-strip p{margin:0;color:rgba(255,255,255,.82);line-height:1.5}
+    .hero-strip h2{margin:0 0 8px;font-size:1.42rem;font-weight:900;letter-spacing:-.01em}
+    .hero-strip p{margin:0;color:rgba(255,255,255,.86);line-height:1.55;font-weight:500}
     .hero-strip small{color:rgba(255,255,255,.88);font-weight:600;text-align:right}
 
     .notice{padding:12px 14px;border-radius:13px;border:1px solid var(--line);border-left:4px solid var(--accent-gold);background:#fffbeb;color:#854d0e;margin-bottom:16px;box-shadow:var(--shadow-soft)}
@@ -119,7 +121,17 @@
     <main class="main">
       <header class="headline">
         <h1>Setting Pertanyaan Evaluasi</h1>
-        <div class="head-meta"><span id="clock">-</span><span class="globe">◎</span></div>
+        <div class="head-meta">
+          <span id="clock">-</span>
+          <a class="world-link" href="home.html?session=active" title="Kembali ke Home (tetap login)" aria-label="Kembali ke Home">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+              <path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path>
+            </svg>
+          </a>
+        </div>
       </header>
 
       <section class="hero-strip">

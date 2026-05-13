@@ -512,9 +512,7 @@
       }
       statusCard.className = 'status-card show ' + (type === 'danger' ? 'danger' : 'success');
       statusCard.textContent = message;
-      if(type === 'danger'){
-        requestAnimationFrame(() => statusCard.scrollIntoView({behavior:'smooth', block:'center'}));
-      }
+      requestAnimationFrame(() => statusCard.scrollIntoView({behavior:'smooth', block:'center'}));
     }
 
     function memberLabel(member){
@@ -694,16 +692,18 @@
     }
 
     function scheduledParticipants(){
-      const staff = selectedSchedule?.staff || [];
+      const sourceStaff = evaluationFormCard.classList.contains('show') ? currentFinalStaff() : (selectedSchedule?.staff || []);
       const byKey = new Map();
-      staff.forEach(slot => {
-        const memberId = String(slot.memberId || '').trim();
-        const memberName = String(slot.memberName || '').trim();
+      sourceStaff.forEach(slot => {
+        const attendance = String(slot.attendance || 'present').trim();
+        if(attendance === 'not_attend') return;
+        const memberId = String(slot.actualMemberId || slot.memberId || '').trim();
+        const memberName = String(slot.actualMemberName || slot.memberName || '').trim();
         if(!memberId && !memberName) return;
         const matched = memberId ? members.find(member => String(member.id) === memberId) : members.find(member => String(member.name || '').toLowerCase() === memberName.toLowerCase());
         const key = memberId || `name:${memberName.toLowerCase()}`;
-        const existing = byKey.get(key);
         const role = String(slot.role || '').trim();
+        const existing = byKey.get(key);
         if(existing){
           if(role && !existing.scheduleRoles.includes(role)) existing.scheduleRoles.push(role);
           existing.scheduleRole = existing.scheduleRoles.join(', ');
@@ -722,6 +722,36 @@
       return Array.from(byKey.values());
     }
 
+    function syncEvaluatorOptions(){
+      if(!evaluatorCombo) return;
+      const participants = scheduledParticipants();
+      const roleSelect = $('#evaluatorRole');
+      const selectedBefore = evaluatorCombo.getSelected();
+      const selectedRoleBefore = roleSelect.value;
+      evaluatorCombo.setItems(participants);
+      let selectedAfter = null;
+      if(selectedBefore){
+        selectedAfter = participants.find(item => String(item.id) === String(selectedBefore.id) || evaluatorLabel(item).toLowerCase() === evaluatorLabel(selectedBefore).toLowerCase()) || null;
+      }
+      if(!selectedAfter && selectedBefore){
+        evaluatorCombo.clear();
+      } else if(selectedAfter){
+        evaluatorCombo.setSelected(selectedAfter);
+      }
+      const roles = [...new Set(participants.flatMap(item => item.scheduleRoles || (item.scheduleRole ? [item.scheduleRole] : [])).filter(Boolean))];
+      roleSelect.innerHTML = '<option value="">Pilih role pengisi</option>' + roles.map(role => `<option>${escapeHtml(role)}</option>`).join('');
+      if(selectedAfter){
+        const selectedRoles = selectedAfter.scheduleRoles || (selectedAfter.scheduleRole ? [selectedAfter.scheduleRole] : []);
+        if(selectedRoles.length === 1){
+          roleSelect.value = selectedRoles[0];
+        } else if(selectedRoleBefore && roles.includes(selectedRoleBefore)){
+          roleSelect.value = selectedRoleBefore;
+        }
+      } else if(selectedRoleBefore && roles.includes(selectedRoleBefore)){
+        roleSelect.value = selectedRoleBefore;
+      }
+    }
+
     function evaluatorLabel(member){
       return member?.name || member?.memberName || member?.username || '';
     }
@@ -733,22 +763,11 @@
     }
 
     function refreshEvaluatorOptions(){
-      if(!evaluatorCombo) return;
-      const participants = scheduledParticipants();
-      const current = evaluatorCombo.getSelected();
-      evaluatorCombo.setItems(participants);
-      if(current){
-        const stillAvailable = participants.find(item => String(item.id) === String(current.id) || evaluatorLabel(item).toLowerCase() === evaluatorLabel(current).toLowerCase());
-        if(!stillAvailable){
-          evaluatorCombo.clear();
-          $('#evaluatorRole').value = '';
-        }
-      }
+      syncEvaluatorOptions();
     }
 
     function renderRoleOptions(){
-      const roles = [...new Set((selectedSchedule?.staff || []).map(slot => slot.role).filter(Boolean))];
-      $('#evaluatorRole').innerHTML = '<option value="">Pilih role pengisi</option>' + roles.map(role => `<option>${escapeHtml(role)}</option>`).join('');
+      syncEvaluatorOptions();
     }
 
     function renderStaffSlots(){
@@ -782,7 +801,7 @@
           label: memberLabel,
           desc: member => member.accountRole ? `Role akun: ${member.accountRole}` : '',
           value: member => String(member.id),
-          onSelect: () => renderStaffEvaluations()
+          onSelect: () => { renderStaffEvaluations(); syncEvaluatorOptions(); }
         });
         const selectedMember = members.find(member => String(member.id) === String(slot.memberId));
         if(selectedMember) combo.setSelected(selectedMember);
@@ -799,6 +818,7 @@
             if(defaultMember) combo.setSelected(defaultMember);
           }
           renderStaffEvaluations();
+          syncEvaluatorOptions();
         });
       });
     }
@@ -886,8 +906,8 @@
       $('#misaDate').value = selectedSchedule.dateText || selectedSchedule.date || '';
       $('#misaTime').value = `${selectedSchedule.time || ''} WIB`;
       $('#misaType').value = selectedSchedule.kindLabel || '';
-      renderRoleOptions();
       renderStaffSlots();
+      renderRoleOptions();
       renderExtraList();
       renderStaffEvaluations();
       renderDynamicQuestions();
@@ -997,13 +1017,13 @@
           setStatus(data.error || 'Gagal menyimpan evaluasi.', 'danger');
           return;
         }
-        setStatus('Evaluasi berhasil disimpan. Jadwal ini tidak akan muncul lagi di daftar evaluasi publik.', 'success');
         evaluationForm.reset();
         evaluationFormCard.classList.remove('show');
         selectedSchedule = null;
         scheduleCombo.clear();
         extraStaff = [];
         await loadSchedules();
+        setStatus('Evaluasi berhasil disimpan. Jadwal ini tidak akan muncul lagi di daftar evaluasi publik.', 'success');
       } catch(error){
         setStatus('Gagal menyimpan evaluasi karena server tidak merespons.', 'danger');
       }
