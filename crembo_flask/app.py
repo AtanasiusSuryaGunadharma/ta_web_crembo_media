@@ -3773,43 +3773,137 @@ def read_members_for_admin() -> list[dict[str, object]]:
     return read_member_rows()
 
 
+
+def _session_actor_id() -> int | None:
+    try:
+        return int(session.get("user_id"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _member_action_allowed(actor_role: str, actor_id: int | None, target_role: str, target_id: int | None, action: str, requested_role: str | None = None) -> tuple[bool, str]:
+    actor_role = normalize_role_value(actor_role)
+    target_role = normalize_role_value(target_role)
+    requested_role = normalize_role_value(requested_role or target_role)
+    is_self = actor_id is not None and target_id is not None and int(actor_id) == int(target_id)
+
+    if actor_role == "super_admin":
+        if action == "delete" and is_self:
+            return False, "Super Admin tidak dapat menghapus akunnya sendiri. Gunakan Super Admin lain jika akun ini perlu dihapus."
+        return True, ""
+
+    if actor_role == "admin":
+        if action == "create":
+            if requested_role == "super_admin":
+                return False, "Admin biasa tidak dapat membuat akun Super Admin."
+            return True, ""
+
+        if action == "delete":
+            if is_self:
+                return False, "Admin tidak dapat menghapus akunnya sendiri."
+            if target_role != "user":
+                return False, "Admin biasa hanya dapat menghapus akun anggota biasa."
+            return True, ""
+
+        if action == "reset":
+            if is_self:
+                return True, ""
+            if target_role != "user":
+                return False, "Admin biasa tidak dapat reset password akun Admin atau Super Admin lain."
+            return True, ""
+
+        if action == "edit":
+            if requested_role == "super_admin":
+                return False, "Admin biasa tidak dapat menetapkan role Super Admin."
+            if is_self:
+                if requested_role != target_role:
+                    return False, "Admin biasa tidak dapat mengubah role akunnya sendiri dari halaman ini."
+                return True, ""
+            if target_role != "user":
+                return False, "Admin biasa tidak dapat mengedit akun Admin atau Super Admin lain."
+            return True, ""
+
+    return False, "Akses ditolak."
+
+
+def _password_hash_from_payload(incoming_password: str, existing_hash: str | None, birth_date: str) -> str:
+    incoming = normalize_text(incoming_password)
+    current_hash = normalize_text(existing_hash)
+    if current_hash and (not incoming or incoming == current_hash or incoming.startswith(("scrypt:", "pbkdf2:", "sha256$"))):
+        return current_hash
+    return hash_member_password(incoming, birth_date)
+
+
 def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
+    actor_role = normalize_role_value(session.get("role") or "")
+    actor_id = _session_actor_id()
+    if actor_role not in {"admin", "super_admin"}:
+        raise PermissionError("Akses ditolak.")
+
     conn = mysql_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute("START TRANSACTION")
 
         ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
-        cursor.execute("SELECT id, password FROM anggota")
+        cursor.execute(
+            """
+            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, created_at, updated_at
+            FROM anggota
+            """
+        )
         existing_rows = cursor.fetchall() or []
-        existing_passwords: dict[int, str] = {}
+        existing_by_id: dict[int, dict[str, object]] = {}
         existing_ids: set[int] = set()
         for row in existing_rows:
-            if isinstance(row, (list, tuple)) and row and str(row[0]).isdigit():
-                row_id = int(row[0])
-                existing_ids.add(row_id)
-                existing_passwords[row_id] = str(row[1] or "") if len(row) > 1 else ""
+            try:
+                row_id = int(row.get("id"))
+            except (TypeError, ValueError):
+                continue
+            existing_ids.add(row_id)
+            existing_by_id[row_id] = row
 
         next_id = max(existing_ids) + 1 if existing_ids else 1
         kept_ids: set[int] = set()
 
         for index, item in enumerate(payload, start=1):
-            birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
+            if not isinstance(item, dict):
+                continue
+            birth_date = normalize_text(item.get("birthDate") or item.get("tanggalLahir"))
             status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
             inactive_until = parse_optional_date(item.get("inactiveUntil") or item.get("inactive_until"))
-            
-            try:
-                member_id = int(item.get("id"))
-            except (TypeError, ValueError):
-                member_id = next_id
-                next_id += 1
-            kept_ids.add(member_id)
+            requested_role = normalize_role_value(item.get("role") or "user")
 
-            password_value = str(item.get("password") or "").strip()
-            if not password_value and member_id in existing_passwords:
-                hashed_password = existing_passwords[member_id]
+            raw_id = item.get("id")
+            try:
+                parsed_id = int(raw_id)
+            except (TypeError, ValueError):
+                parsed_id = None
+
+            is_existing = parsed_id is not None and parsed_id in existing_by_id
+            if is_existing:
+                member_id = int(parsed_id)
+                existing = existing_by_id[member_id]
+                target_role = normalize_role_value(existing.get("role") or "user")
+                allowed, message = _member_action_allowed(actor_role, actor_id, target_role, member_id, "edit", requested_role)
+                if not allowed:
+                    raise PermissionError(message)
+                hashed_password = _password_hash_from_payload(
+                    normalize_text(item.get("password")),
+                    normalize_text(existing.get("password")),
+                    birth_date,
+                )
             else:
-                hashed_password = hash_member_password(password_value, birth_date)
+                member_id = parsed_id if parsed_id is not None and parsed_id > 0 else next_id
+                while member_id in existing_ids or member_id in kept_ids:
+                    member_id = next_id
+                    next_id += 1
+                allowed, message = _member_action_allowed(actor_role, actor_id, "user", member_id, "create", requested_role)
+                if not allowed:
+                    raise PermissionError(message)
+                hashed_password = hash_member_password(normalize_text(item.get("password")), birth_date)
+
+            kept_ids.add(member_id)
 
             cursor.execute(
                 """
@@ -3833,33 +3927,40 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                     CURRENT_TIMESTAMP,
                     updated_at
                   ),
-                  nama = IF(COALESCE(nama, '') = COALESCE(VALUES(nama), ''), nama, VALUES(nama)),
-                  username = IF(COALESCE(username, '') = COALESCE(VALUES(username), ''), username, VALUES(username)),
-                  telp = IF(COALESCE(telp, '') = COALESCE(VALUES(telp), ''), telp, VALUES(telp)),
-                  password = IF(COALESCE(password, '') = COALESCE(VALUES(password), ''), password, VALUES(password)),
-                  role = IF(COALESCE(role, '') = COALESCE(VALUES(role), ''), role, VALUES(role)),
-                  tgl_lahir = IF(COALESCE(tgl_lahir, '') = COALESCE(VALUES(tgl_lahir), ''), tgl_lahir, VALUES(tgl_lahir)),
-                  email = IF(COALESCE(email, '') = COALESCE(VALUES(email), ''), email, VALUES(email)),
-                  alamat = IF(COALESCE(alamat, '') = COALESCE(VALUES(alamat), ''), alamat, VALUES(alamat)),
-                  status_akun = IF(COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), ''), status_akun, VALUES(status_akun)),
-                  inactive_until = IF(COALESCE(inactive_until, '') = COALESCE(VALUES(inactive_until), ''), inactive_until, VALUES(inactive_until))
+                  nama = VALUES(nama),
+                  username = VALUES(username),
+                  telp = VALUES(telp),
+                  password = VALUES(password),
+                  role = VALUES(role),
+                  tgl_lahir = VALUES(tgl_lahir),
+                  email = VALUES(email),
+                  alamat = VALUES(alamat),
+                  status_akun = VALUES(status_akun),
+                  inactive_until = VALUES(inactive_until)
                 """,
                 (
                     member_id,
-                    item.get("name") or item.get("fullName") or "Anggota",
-                    item.get("username") or item.get("email") or item.get("phone") or f"anggota-{index}",
-                    item.get("phone") or "",
+                    normalize_text(item.get("name") or item.get("fullName") or "Anggota"),
+                    normalize_text(item.get("username") or item.get("email") or item.get("phone") or f"anggota-{index}"),
+                    normalize_text(item.get("phone")),
                     hashed_password,
-                    normalize_role_value(item.get("role") or "user"),
+                    requested_role,
                     birth_date,
-                    item.get("email") or "",
-                    item.get("address") or "",
+                    normalize_text(item.get("email")),
+                    normalize_text(item.get("address")),
                     status_value,
                     inactive_until,
                 ),
             )
 
         ids_to_delete = sorted(existing_ids - kept_ids)
+        for delete_id in ids_to_delete:
+            existing = existing_by_id.get(delete_id) or {}
+            target_role = normalize_role_value(existing.get("role") or "user")
+            allowed, message = _member_action_allowed(actor_role, actor_id, target_role, delete_id, "delete")
+            if not allowed:
+                raise PermissionError(message)
+
         if ids_to_delete:
             placeholders = ",".join(["%s"] * len(ids_to_delete))
             cursor.execute(f"DELETE FROM anggota WHERE id IN ({placeholders})", tuple(ids_to_delete))
@@ -3871,7 +3972,6 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     finally:
         cursor.close()
         conn.close()
-
 
 def login_target_for_role(role: str) -> str:
     if role == "user":
@@ -4220,7 +4320,12 @@ def api_anggota_sync():
     if not isinstance(members, list):
         return jsonify({"ok": False, "message": "Payload members harus array."}), 400
 
-    sync_members_from_payload(members)
+    try:
+        sync_members_from_payload(members)
+    except PermissionError as exc:
+        return jsonify({"ok": False, "message": str(exc)}), 403
+    except Exception as exc:
+        return jsonify({"ok": False, "message": str(exc)}), 400
     return jsonify({"ok": True, "members": read_members_for_admin()})
 
 

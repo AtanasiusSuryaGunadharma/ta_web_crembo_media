@@ -719,6 +719,68 @@
       return value === "super_admin" ? "Super Admin" : "Admin";
     }
 
+    function currentRoleKey() {
+      return normalizeRole(role);
+    }
+
+    function currentUserId() {
+      return String(serverUser.user_id || serverUser.id || "");
+    }
+
+    function isSelfMember(member) {
+      return String(member && member.id ? member.id : "") === currentUserId();
+    }
+
+    function canEditMember(member) {
+      const viewerRole = currentRoleKey();
+      const targetRole = normalizeRole(member && member.role);
+      if (viewerRole === "super_admin") return true;
+      if (viewerRole === "admin") {
+        if (targetRole === "super_admin") return false;
+        if (targetRole === "admin" && !isSelfMember(member)) return false;
+        return true;
+      }
+      return false;
+    }
+
+    function canResetMember(member) {
+      const viewerRole = currentRoleKey();
+      const targetRole = normalizeRole(member && member.role);
+      if (viewerRole === "super_admin") return true;
+      if (viewerRole === "admin") {
+        return targetRole === "anggota" || isSelfMember(member);
+      }
+      return false;
+    }
+
+    function canDeleteMember(member) {
+      const viewerRole = currentRoleKey();
+      const targetRole = normalizeRole(member && member.role);
+      if (isSelfMember(member)) return false;
+      if (viewerRole === "super_admin") return true;
+      if (viewerRole === "admin") return targetRole === "anggota";
+      return false;
+    }
+
+    function refreshRoleOptions(editMember) {
+      const viewerRole = currentRoleKey();
+      const targetRole = editMember ? normalizeRole(editMember.role) : "";
+      const editingSelf = editMember ? isSelfMember(editMember) : false;
+      let options = [
+        { value: "anggota", label: "Anggota" },
+        { value: "admin", label: "Admin" }
+      ];
+      if (viewerRole === "super_admin") {
+        options.push({ value: "super_admin", label: "Super Admin" });
+      }
+      if (viewerRole === "admin" && editingSelf && targetRole === "admin") {
+        options = [{ value: "admin", label: "Admin" }];
+      }
+      memberRoleInput.innerHTML = options.map(function (item) {
+        return '<option value="' + item.value + '">' + item.label + '</option>';
+      }).join("");
+    }
+
     function renderSidebarMenu(currentRole) {
       const list = [
         { label: "Data Anggota", href: "manajemen-anggota.html", active: true },
@@ -984,10 +1046,12 @@
             renderAll();
             return;
           }
-          showNotify("Gagal menyimpan data anggota ke server.");
+          showNotify(data && data.message ? data.message : "Gagal menyimpan data anggota ke server.");
+          loadMembers().finally(renderAll);
         })
         .catch(function() {
           showNotify("Server tidak merespons saat menyimpan data anggota.");
+          loadMembers().finally(renderAll);
         });
     }
 
@@ -1070,6 +1134,24 @@
         .replace(/'/g, "&#39;");
     }
 
+
+    function memberActionButtons(member) {
+      const buttons = [];
+      if (canEditMember(member)) {
+        buttons.push('<button class="btn ghost" type="button" data-action="edit" data-id="' + member.id + '">Edit</button>');
+      }
+      if (canResetMember(member)) {
+        buttons.push('<button class="btn ghost" type="button" data-action="reset-password" data-id="' + member.id + '">Reset Password</button>');
+      }
+      if (canDeleteMember(member)) {
+        buttons.push('<button class="btn warn" type="button" data-action="delete" data-id="' + member.id + '">Hapus</button>');
+      }
+      if (!buttons.length) {
+        return '<span class="helper">Tidak ada aksi</span>';
+      }
+      return '<div class="inline-actions">' + buttons.join("") + '</div>';
+    }
+
     function renderMemberTable() {
       const rows = filteredMembers();
       if (!rows.length) {
@@ -1091,11 +1173,7 @@
           + '<td>' + escapeHtml(formatDate(member.birthDate)) + '</td>'
           + '<td>' + escapeHtml(roleLabel(member.role)) + '</td>'
           + '<td><span class="' + statusClass + '">' + escapeHtml(statusText) + '</span></td>'
-          + '<td><div class="inline-actions">'
-          + '<button class="btn ghost" type="button" data-action="edit" data-id="' + member.id + '">Edit</button>'
-          + '<button class="btn ghost" type="button" data-action="reset-password" data-id="' + member.id + '">Reset Password</button>'
-          + '<button class="btn warn" type="button" data-action="delete" data-id="' + member.id + '">Hapus</button>'
-          + '</div></td>'
+          + '<td>' + memberActionButtons(member) + '</td>'
           + '</tr>';
       }).join("");
     }
@@ -1306,6 +1384,7 @@
     function resetForm() {
       editingId = "";
       formTitle.textContent = "Tambah Anggota Baru";
+      refreshRoleOptions(null);
       memberForm.reset();
       memberRoleInput.value = "anggota";
       memberStatusInput.value = "Aktif";
@@ -1317,15 +1396,20 @@
       if (!member) {
         return;
       }
+      if (!canEditMember(member)) {
+        showNotify("Anda tidak memiliki izin untuk mengedit akun ini.");
+        return;
+      }
       editingId = id;
       formTitle.textContent = "Update Data Anggota";
+      refreshRoleOptions(member);
       memberNameInput.value = member.name;
       memberUsernameInput.value = member.username || "";
       memberEmailInput.value = member.email;
       memberPhoneInput.value = member.phone;
       memberAddressInput.value = member.address;
       memberBirthDateInput.value = member.birthDate || "";
-      memberRoleInput.value = member.role;
+      memberRoleInput.value = normalizeRole(member.role);
       memberStatusInput.value = member.status;
       memberNameInput.focus();
     }
@@ -1333,6 +1417,10 @@
     function resetMemberPassword(id) {
       const target = members.find(function (item) { return item.id === id; });
       if (!target) {
+        return;
+      }
+      if (!canResetMember(target)) {
+        showNotify("Anda tidak memiliki izin untuk reset password akun ini.");
         return;
       }
       if (!target.birthDate) {
@@ -1347,6 +1435,10 @@
     function deleteMember(id) {
       const target = members.find(function (item) { return item.id === id; });
       if (!target) {
+        return;
+      }
+      if (!canDeleteMember(target)) {
+        showNotify("Anda tidak memiliki izin untuk menghapus akun ini.");
         return;
       }
       const ok = window.confirm("Hapus anggota \"" + target.name + "\"?");
@@ -1398,15 +1490,19 @@
 
       payload.password = defaultPasswordFromBirthDate(payload.birthDate);
 
-      if (role !== "super_admin" && payload.role === "super_admin") {
+      if (currentRoleKey() !== "super_admin" && payload.role === "super_admin") {
         showNotify("Hanya super admin yang dapat menetapkan role Super Admin.");
         return;
       }
 
       const editIndex = members.findIndex(function (member) { return member.id === payload.id; });
       if (editIndex >= 0) {
-        if (role !== "super_admin" && members[editIndex].role === "super_admin") {
-          showNotify("Admin tidak dapat mengubah data akun Super Admin.");
+        if (!canEditMember(members[editIndex])) {
+          showNotify("Anda tidak memiliki izin untuk mengubah akun ini.");
+          return;
+        }
+        if (currentRoleKey() === "admin" && isSelfMember(members[editIndex]) && payload.role !== normalizeRole(members[editIndex].role)) {
+          showNotify("Admin tidak dapat mengubah role akunnya sendiri dari halaman ini.");
           return;
         }
         payload.password = members[editIndex].password || defaultPasswordFromBirthDate(payload.birthDate);
@@ -1574,12 +1670,7 @@
     roleBadge.textContent = "Role: " + formatRole(role);
     renderSidebarMenu(role);
 
-    if (role !== "super_admin") {
-      const superOption = memberRoleInput.querySelector('option[value="super_admin"]');
-      if (superOption) {
-        superOption.remove();
-      }
-    }
+    refreshRoleOptions(null);
 
     loadRequests();
     saveRequests();
