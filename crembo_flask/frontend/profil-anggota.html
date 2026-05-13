@@ -929,6 +929,26 @@
     let editingRequestId = "";
     let draftEvidence = { name: "", type: "", dataUrl: "" };
 
+    function hasServerUser() {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      return !!(serverUser && (serverUser.user_id || serverUser.nama || serverUser.username || serverUser.email));
+    }
+
+    function syncServerUserFromPayload(payload) {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (!payload || typeof payload !== "object") return;
+      if (payload.user_id !== undefined) serverUser.user_id = payload.user_id;
+      if (payload.nama !== undefined) serverUser.nama = payload.nama;
+      if (payload.username !== undefined) serverUser.username = payload.username;
+      if (payload.email !== undefined) serverUser.email = payload.email;
+      if (payload.telp !== undefined) serverUser.telp = payload.telp;
+      if (payload.alamat !== undefined) serverUser.alamat = payload.alamat;
+      if (payload.tgl_lahir !== undefined) serverUser.tgl_lahir = payload.tgl_lahir;
+      if (payload.role !== undefined) serverUser.role = payload.role;
+      if (payload.status_akun !== undefined) serverUser.status_akun = payload.status_akun;
+      window.CREMBO_CURRENT_USER = serverUser;
+    }
+
     function showNotify(message) {
       notify.textContent = message;
       notify.classList.add("show");
@@ -1188,6 +1208,9 @@
 
     function readProfile() {
       const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (hasServerUser()) {
+        return defaultProfile();
+      }
       const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
       if (!raw) {
         return defaultProfile();
@@ -1250,7 +1273,22 @@
           showNotify("Gagal: " + result.message);
           return;
         }
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
+        if (result.user) {
+          syncServerUserFromPayload(result.user);
+        } else {
+          syncServerUserFromPayload({
+            nama: payload.fullName,
+            username: payload.username,
+            email: payload.email,
+            telp: payload.phone,
+            alamat: payload.address,
+            tgl_lahir: payload.birthDate,
+            role: (window.CREMBO_CURRENT_USER || {}).role || "user"
+          });
+        }
+        if (!hasServerUser()) {
+          localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
+        }
         renderProfile();
         showNotify("Profil anggota berhasil diperbarui.");
       } catch (e) {

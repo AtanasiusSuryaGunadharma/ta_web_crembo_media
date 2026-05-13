@@ -1346,7 +1346,56 @@ def export_inventory_pdf():
         cursor.close()
         conn.close()
 
+def _date_to_iso(value) -> str:
+    if not value:
+        return ""
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+def refresh_session_user_from_db() -> dict[str, object] | None:
+    """Ambil ulang user login dari database agar halaman profil tidak memakai data lama/browser cache."""
+    if not session.get("logged_in") or not session.get("user_id"):
+        return None
+
+    conn = None
+    cursor = None
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, created_at, updated_at
+            FROM anggota
+            WHERE id = %s
+            LIMIT 1
+            """,
+            (session.get("user_id"),),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        session["user_id"] = row.get("id")
+        session["username"] = row.get("username") or ""
+        session["nama"] = row.get("nama") or ""
+        session["role"] = normalize_role_value(row.get("role") or "user")
+        session["telp"] = row.get("telp") or ""
+        session["email"] = row.get("email") or ""
+        session["alamat"] = row.get("alamat") or ""
+        session["tgl_lahir"] = _date_to_iso(row.get("tgl_lahir"))
+        session["status_akun"] = row.get("status_akun") or "aktif"
+        return row
+    except Exception:
+        return None
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 def current_user_context() -> dict[str, str]:
+    row = refresh_session_user_from_db()
     return {
         "logged_in": bool(session.get("logged_in")),
         "user_id": session.get("user_id"),
@@ -1356,7 +1405,7 @@ def current_user_context() -> dict[str, str]:
         "telp": session.get("telp") or "",
         "email": session.get("email") or "",
         "alamat": session.get("alamat") or "",
-        "tgl_lahir": session.get("tgl_lahir") or "",
+        "tgl_lahir": _date_to_iso(session.get("tgl_lahir") or (row.get("tgl_lahir") if row else "")),
         "status_akun": session.get("status_akun") or "",
     }
 
@@ -3722,21 +3771,22 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     try:
         cursor.execute("START TRANSACTION")
 
-        cursor.execute("SELECT id FROM anggota")
+        cursor.execute("SELECT id, password FROM anggota")
         existing_rows = cursor.fetchall() or []
-        existing_ids = {
-            int(row[0])
-            for row in existing_rows
-            if isinstance(row, (list, tuple)) and row and str(row[0]).isdigit()
-        }
+        existing_passwords: dict[int, str] = {}
+        existing_ids: set[int] = set()
+        for row in existing_rows:
+            if isinstance(row, (list, tuple)) and row and str(row[0]).isdigit():
+                row_id = int(row[0])
+                existing_ids.add(row_id)
+                existing_passwords[row_id] = str(row[1] or "") if len(row) > 1 else ""
+
         next_id = max(existing_ids) + 1 if existing_ids else 1
         kept_ids: set[int] = set()
 
         for index, item in enumerate(payload, start=1):
             birth_date = str(item.get("birthDate") or item.get("tanggalLahir") or "").strip()
             status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
-            password_value = item.get("password") or ""
-            hashed_password = hash_member_password(str(password_value), birth_date)
             
             try:
                 member_id = int(item.get("id"))
@@ -3745,21 +3795,42 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                 next_id += 1
             kept_ids.add(member_id)
 
+            password_value = str(item.get("password") or "").strip()
+            if not password_value and member_id in existing_passwords:
+                hashed_password = existing_passwords[member_id]
+            else:
+                hashed_password = hash_member_password(password_value, birth_date)
+
             cursor.execute(
                 """
                 INSERT INTO anggota
-                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 ON DUPLICATE KEY UPDATE
-                  nama = VALUES(nama),
-                  username = VALUES(username),
-                  telp = VALUES(telp),
-                  password = VALUES(password),
-                  role = VALUES(role),
-                  tgl_lahir = VALUES(tgl_lahir),
-                  email = VALUES(email),
-                  alamat = VALUES(alamat),
-                  status_akun = VALUES(status_akun)
+                  updated_at = IF(
+                    NOT (
+                      COALESCE(nama, '') = COALESCE(VALUES(nama), '') AND
+                      COALESCE(username, '') = COALESCE(VALUES(username), '') AND
+                      COALESCE(telp, '') = COALESCE(VALUES(telp), '') AND
+                      COALESCE(password, '') = COALESCE(VALUES(password), '') AND
+                      COALESCE(role, '') = COALESCE(VALUES(role), '') AND
+                      COALESCE(tgl_lahir, '') = COALESCE(VALUES(tgl_lahir), '') AND
+                      COALESCE(email, '') = COALESCE(VALUES(email), '') AND
+                      COALESCE(alamat, '') = COALESCE(VALUES(alamat), '') AND
+                      COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), '')
+                    ),
+                    CURRENT_TIMESTAMP,
+                    updated_at
+                  ),
+                  nama = IF(COALESCE(nama, '') = COALESCE(VALUES(nama), ''), nama, VALUES(nama)),
+                  username = IF(COALESCE(username, '') = COALESCE(VALUES(username), ''), username, VALUES(username)),
+                  telp = IF(COALESCE(telp, '') = COALESCE(VALUES(telp), ''), telp, VALUES(telp)),
+                  password = IF(COALESCE(password, '') = COALESCE(VALUES(password), ''), password, VALUES(password)),
+                  role = IF(COALESCE(role, '') = COALESCE(VALUES(role), ''), role, VALUES(role)),
+                  tgl_lahir = IF(COALESCE(tgl_lahir, '') = COALESCE(VALUES(tgl_lahir), ''), tgl_lahir, VALUES(tgl_lahir)),
+                  email = IF(COALESCE(email, '') = COALESCE(VALUES(email), ''), email, VALUES(email)),
+                  alamat = IF(COALESCE(alamat, '') = COALESCE(VALUES(alamat), ''), alamat, VALUES(alamat)),
+                  status_akun = IF(COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), ''), status_akun, VALUES(status_akun))
                 """,
                 (
                     member_id,
@@ -4177,14 +4248,15 @@ def api_profile_update():
         )
         conn.commit()
         
-        # Update session
+        # Update session dan kirim ulang user terbaru supaya frontend tidak perlu memakai localStorage lama.
         session["username"] = username
         session["email"] = email
         session["telp"] = telp
         session["alamat"] = alamat
         session["tgl_lahir"] = tgl_lahir
+        refreshed_user = current_user_context()
         
-        return jsonify({"ok": True, "message": "Profil berhasil diperbarui."})
+        return jsonify({"ok": True, "message": "Profil berhasil diperbarui.", "user": refreshed_user})
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "message": str(e)}), 500

@@ -490,6 +490,34 @@
     const params = new URLSearchParams(window.location.search);
     const serverUser = window.CREMBO_CURRENT_USER || {};
 
+    function hasServerUser() {
+      return !!(serverUser && (serverUser.user_id || serverUser.nama || serverUser.username || serverUser.email));
+    }
+
+    function syncServerUserFromPayload(payload) {
+      if (!payload || typeof payload !== "object") return;
+      if (payload.user_id !== undefined) serverUser.user_id = payload.user_id;
+      if (payload.nama !== undefined) serverUser.nama = payload.nama;
+      if (payload.username !== undefined) serverUser.username = payload.username;
+      if (payload.email !== undefined) serverUser.email = payload.email;
+      if (payload.telp !== undefined) serverUser.telp = payload.telp;
+      if (payload.alamat !== undefined) serverUser.alamat = payload.alamat;
+      if (payload.tgl_lahir !== undefined) serverUser.tgl_lahir = payload.tgl_lahir;
+      if (payload.role !== undefined) serverUser.role = payload.role;
+      if (payload.status_akun !== undefined) serverUser.status_akun = payload.status_akun;
+    }
+
+    function serverProfile() {
+      return {
+        fullName: String(serverUser.nama || serverUser.username || serverUser.email || "Admin"),
+        username: String(serverUser.username || ""),
+        email: String(serverUser.email || ""),
+        phone: String(serverUser.telp || ""),
+        address: String(serverUser.alamat || "Alamat belum diisi"),
+        birthDate: normalizeDateOnly(serverUser.tgl_lahir || "")
+      };
+    }
+
     function safeParse(raw) {
       try {
         return JSON.parse(raw);
@@ -648,7 +676,7 @@
         address: String(serverUser.alamat || "Alamat belum diisi"),
         birthDate: serverUser.tgl_lahir ? normalizeDateOnly(serverUser.tgl_lahir) : ""
       };
-      if (!parsed || typeof parsed !== "object") {
+      if (hasServerUser() || !parsed || typeof parsed !== "object") {
         return fallbackProfile;
       }
       return {
@@ -692,6 +720,21 @@
     function renderProfile() {
       roleBadge.textContent = "Role: " + formatRole(role);
       roleInput.value = formatRole(role);
+
+      if (hasServerUser()) {
+        const profile = serverProfile();
+        fullNameInput.value = profile.fullName;
+        usernameInput.value = profile.username;
+        emailInput.value = profile.email;
+        phoneInput.value = profile.phone;
+        addressInput.value = profile.address;
+        birthDateInput.value = profile.birthDate;
+        activePermissions = role === "super_admin"
+          ? defaultPermissions()
+          : normalizePermissions(session.adminPermissions || defaultPermissions());
+        renderPermissionPanel();
+        return;
+      }
 
       if (role === "super_admin") {
         const profile = readSuperAdminProfile();
@@ -758,6 +801,16 @@
         const result = await response.json();
         if (!result.ok) {
           showNotify("Gagal: " + result.message);
+          return;
+        }
+
+        if (result.user) {
+          syncServerUserFromPayload(result.user);
+        }
+
+        if (hasServerUser()) {
+          renderProfile();
+          showNotify("Profil berhasil diperbarui.");
           return;
         }
 
