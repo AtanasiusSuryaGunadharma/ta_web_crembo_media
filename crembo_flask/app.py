@@ -11880,6 +11880,8 @@ def api_streaming_evaluation_admin_results():
         evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), kind, search, sort)
         eval_keys = {(e.get("kind"), e.get("scheduleKey")) for e in evaluations}
         all_eval_map = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+        viewer = current_user_context()
+        viewer_id = normalize_text(viewer.get("user_id"))
         pending = []
         kw = search.lower()
         for s in schedule_due:
@@ -11887,7 +11889,12 @@ def api_streaming_evaluation_admin_results():
                 continue
             if kw and kw not in " ".join([normalize_text(s.get("misaName")), normalize_text(s.get("kindLabel")), normalize_text(s.get("displayDateTime"))]).lower():
                 continue
-            pending.append(s)
+            pending_item = dict(s)
+            pending_item["canFillByCurrentUser"] = bool(
+                viewer_id and any(normalize_text(staff.get("memberId")) == viewer_id for staff in (s.get("staff") or []))
+            )
+            pending_item["currentUserRole"] = normalize_role_value(viewer.get("role") or "")
+            pending.append(pending_item)
         pending.sort(key=lambda r: (r.get("date") or "", r.get("time") or ""))
         urgent_count = sum(1 for e in evaluations if ("urgent" in normalize_text(e.get("generalAssessment")).lower() or "serius" in normalize_text(e.get("generalAssessment")).lower()))
         total_misa = len([s for s in schedules if eval_datetime_from_parts(s.get("date"), s.get("time")) and eval_datetime_from_parts(s.get("date"), s.get("time")) <= now])
@@ -11899,7 +11906,7 @@ def api_streaming_evaluation_admin_results():
             "summary": summary,
             "evaluations": evaluations,
             "pending": pending,
-            "currentUser": current_user_context(),
+            "currentUser": viewer,
         })
     finally:
         cursor.close()
@@ -11988,20 +11995,114 @@ def api_streaming_evaluation_delete(evaluation_id):
         conn.close()
 
 
+
+def eval_export_value(value) -> str:
+    if value is None:
+        return "-"
+    text = normalize_text(value)
+    return text if text else "-"
+
+
+def eval_checklist_export_text(checklist: dict[str, object]) -> str:
+    checklist = checklist if isinstance(checklist, dict) else {}
+    labels = {
+        "streaming_lancar": "Streaming berjalan lancar sampai akhir",
+        "koordinasi_baik": "Koordinasi tim berjalan baik",
+        "rekaman_tersimpan": "Rekaman tersimpan dengan benar",
+    }
+    parts = []
+    for key, label in labels.items():
+        if key in checklist:
+            parts.append(f"{label}: {'Ya' if checklist.get(key) else 'Tidak'}")
+    for key, value in checklist.items():
+        if key not in labels:
+            parts.append(f"{key}: {'Ya' if value else 'Tidak'}")
+    return "; ".join(parts) or "-"
+
+
+def eval_staff_export_text(staff: list[dict[str, object]]) -> str:
+    parts = []
+    for slot in staff or []:
+        if not isinstance(slot, dict):
+            continue
+        role = eval_export_value(slot.get("role"))
+        scheduled = eval_export_value(slot.get("memberName"))
+        actual = eval_export_value(slot.get("actualMemberName") or slot.get("memberName"))
+        attendance = normalize_text(slot.get("attendance"))
+        attendance_label = "Tidak datang" if attendance == "not_attend" else "Hadir/Digantikan"
+        if actual == "Tidak datang":
+            attendance_label = "Tidak datang"
+        parts.append(f"{role}: jadwal {scheduled}; aktual {actual}; status {attendance_label}")
+    return "; ".join(parts) or "-"
+
+
+def eval_extra_staff_export_text(extra_staff: list[dict[str, object]]) -> str:
+    parts = []
+    for staff in extra_staff or []:
+        if not isinstance(staff, dict):
+            continue
+        name = eval_export_value(staff.get("name") or staff.get("memberName"))
+        role = eval_export_value(staff.get("role") or staff.get("helpRole"))
+        parts.append(f"{name} ({role})")
+    return "; ".join(parts) or "-"
+
+
+def eval_staff_evaluation_export_text(staff_evals: list[dict[str, object]]) -> str:
+    parts = []
+    for item in staff_evals or []:
+        if not isinstance(item, dict):
+            continue
+        name = eval_export_value(item.get("memberName") or item.get("name"))
+        role = eval_export_value(item.get("role"))
+        rating = eval_export_value(item.get("rating") or item.get("assessment"))
+        note = eval_export_value(item.get("note") or item.get("catatan") or item.get("comment"))
+        parts.append(f"{name} ({role}) - {rating}; catatan: {note}")
+    return "; ".join(parts) or "-"
+
+
+def eval_dynamic_answers_export_text(dynamic_answers: list[dict[str, object]]) -> str:
+    parts = []
+    for item in dynamic_answers or []:
+        if not isinstance(item, dict):
+            continue
+        question = eval_export_value(item.get("question") or item.get("label") or item.get("text"))
+        answer = item.get("answer")
+        if isinstance(answer, list):
+            answer_text = ", ".join(normalize_text(v) for v in answer if normalize_text(v))
+        else:
+            answer_text = normalize_text(answer)
+        parts.append(f"{question}: {answer_text or '-'}")
+    return "; ".join(parts) or "-"
+
+
 def eval_export_rows(evaluations: list[dict[str, object]]) -> tuple[list[str], list[list[str]]]:
-    headers = ["No", "Tanggal", "Jam", "Jenis Misa", "Nama Misa", "Pengisi", "Role Pengisi", "Penilaian Umum", "Petugas", "Kendala Teknis", "Kendala Non-Teknis", "Checklist", "Catatan Penutup", "Waktu Submit"]
-    rows = []
+    headers = [
+        "No", "Tanggal", "Jam", "Hari", "Jenis Misa", "Nama Misa", "Pengisi", "Role Pengisi",
+        "Penilaian Umum", "Petugas Jadwal & Aktual", "Petugas Tambahan", "Evaluasi Per Petugas",
+        "Kendala Teknis", "Kendala Non-Teknis", "Checklist Kondisi Pelayanan", "Pertanyaan Tambahan",
+        "Catatan Penutup", "Waktu Submit",
+    ]
+    rows: list[list[str]] = []
     for idx, e in enumerate(evaluations, start=1):
-        staff_names = []
-        for s in e.get("staff") or []:
-            if isinstance(s, dict):
-                staff_names.append(f"{s.get('role')}: {s.get('actualMemberName') or s.get('memberName') or '-'}")
-        checklist = e.get("checklist") or {}
         rows.append([
-            str(idx), e.get("date") or "", e.get("time") or "", e.get("kindLabel") or "", e.get("misaName") or "",
-            e.get("evaluatorName") or "", e.get("evaluatorRole") or "", e.get("generalAssessment") or "",
-            "; ".join(staff_names), e.get("technicalIssue") or "", e.get("nontechnicalIssue") or "",
-            "; ".join([k for k, v in checklist.items() if v]), e.get("finalNote") or "", e.get("submittedAt") or "",
+            str(idx),
+            eval_export_value(e.get("date")),
+            eval_export_value(e.get("time")),
+            eval_export_value(e.get("dayName")),
+            eval_export_value(e.get("kindLabel")),
+            eval_export_value(e.get("misaName")),
+            eval_export_value(e.get("evaluatorName")),
+            eval_export_value(e.get("evaluatorRole")),
+            eval_export_value(e.get("generalAssessment")),
+            eval_staff_export_text(e.get("staff") or []),
+            eval_extra_staff_export_text(e.get("extraStaff") or []),
+            eval_staff_evaluation_export_text(e.get("staffEvaluations") or []),
+            eval_export_value(e.get("technicalIssue")),
+            eval_export_value(e.get("nontechnicalIssue")),
+            eval_checklist_export_text(e.get("checklist") or {}),
+            eval_dynamic_answers_export_text(e.get("dynamicAnswers") or []),
+            eval_export_value(e.get("finalNote")),
+            eval_export_value((e.get("submittedAt") or "").replace("T", " ")[:16]),
         ])
     return headers, rows
 
@@ -12015,8 +12116,20 @@ def api_streaming_evaluation_export_xlsx():
     try:
         ensure_streaming_evaluation_schema(cursor)
         now = datetime.now()
-        start, end = eval_period_bounds(normalize_text(request.args.get("scale") or "month"), parse_required_int(request.args.get("year"), now.year), parse_required_int(request.args.get("month"), now.month), parse_required_int(request.args.get("week"), int(now.strftime("%V"))))
-        evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), normalize_text(request.args.get("kind") or "all"), normalize_text(request.args.get("search")), normalize_text(request.args.get("sort") or "date_asc"))
+        start, end = eval_period_bounds(
+            normalize_text(request.args.get("scale") or "month"),
+            parse_required_int(request.args.get("year"), now.year),
+            parse_required_int(request.args.get("month"), now.month),
+            parse_required_int(request.args.get("week"), int(now.strftime("%V"))),
+        )
+        evaluations = eval_fetch_evaluations(
+            cursor,
+            start.isoformat(),
+            end.isoformat(),
+            normalize_text(request.args.get("kind") or "all"),
+            normalize_text(request.args.get("search")),
+            normalize_text(request.args.get("sort") or "date_asc"),
+        )
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Font, PatternFill
         wb = Workbook()
@@ -12031,10 +12144,13 @@ def api_streaming_evaluation_export_xlsx():
         for cell in ws[1]:
             cell.fill = fill
             cell.font = font
-            cell.alignment = Alignment(horizontal="center")
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        for row in ws.iter_rows(min_row=2):
+            for cell in row:
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
         for col in ws.columns:
             max_len = max(len(str(cell.value or "")) for cell in col)
-            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 45)
+            ws.column_dimensions[col[0].column_letter].width = min(max(max_len + 2, 12), 65)
         buf = BytesIO()
         wb.save(buf)
         buf.seek(0)
@@ -12053,33 +12169,83 @@ def api_streaming_evaluation_export_pdf():
     try:
         ensure_streaming_evaluation_schema(cursor)
         now = datetime.now()
-        start, end = eval_period_bounds(normalize_text(request.args.get("scale") or "month"), parse_required_int(request.args.get("year"), now.year), parse_required_int(request.args.get("month"), now.month), parse_required_int(request.args.get("week"), int(now.strftime("%V"))))
-        evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), normalize_text(request.args.get("kind") or "all"), normalize_text(request.args.get("search")), normalize_text(request.args.get("sort") or "date_asc"))
+        start, end = eval_period_bounds(
+            normalize_text(request.args.get("scale") or "month"),
+            parse_required_int(request.args.get("year"), now.year),
+            parse_required_int(request.args.get("month"), now.month),
+            parse_required_int(request.args.get("week"), int(now.strftime("%V"))),
+        )
+        evaluations = eval_fetch_evaluations(
+            cursor,
+            start.isoformat(),
+            end.isoformat(),
+            normalize_text(request.args.get("kind") or "all"),
+            normalize_text(request.args.get("search")),
+            normalize_text(request.args.get("sort") or "date_asc"),
+        )
         from reportlab.lib.pagesizes import A4, landscape
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
         from reportlab.lib import colors
-        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_LEFT
         buf = BytesIO()
-        doc = SimpleDocTemplate(buf, pagesize=landscape(A4), leftMargin=22, rightMargin=22, topMargin=24, bottomMargin=24)
+        doc = SimpleDocTemplate(buf, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=22, bottomMargin=22)
         styles = getSampleStyleSheet()
-        elements = [Paragraph("Hasil Evaluasi Streaming", styles["Title"]), Spacer(1, 10)]
+        small = ParagraphStyle("small", parent=styles["BodyText"], fontSize=7, leading=9, alignment=TA_LEFT)
+        normal = ParagraphStyle("normal-small", parent=styles["BodyText"], fontSize=8, leading=10, alignment=TA_LEFT)
+        elements = [Paragraph("Hasil Evaluasi Streaming", styles["Title"]), Spacer(1, 8)]
         headers, rows = eval_export_rows(evaluations)
-        small_headers = headers[:8]
-        small_rows = [row[:8] for row in rows]
-        data = [small_headers] + small_rows
-        table = Table(data, repeatRows=1)
+        summary_headers = ["No", "Tanggal", "Jam", "Jenis", "Judul Misa", "Pengisi", "Penilaian", "Catatan"]
+        summary_rows = []
+        for row in rows:
+            summary_rows.append([
+                row[0], row[1], row[2], row[4], row[5], row[6], row[8], row[16],
+            ])
+        data = [[Paragraph(str(h), small) for h in summary_headers]] + [[Paragraph(str(c), small) for c in r] for r in summary_rows]
+        table = Table(data, repeatRows=1, colWidths=[25, 58, 38, 50, 120, 75, 70, 210])
         table.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#800000")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-            ("GRID", (0,0), (-1,-1), 0.25, colors.grey),
-            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-            ("FONTSIZE", (0,0), (-1,-1), 7),
-            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#800000")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ]))
         elements.append(table)
+        if evaluations:
+            elements.append(PageBreak())
+            elements.append(Paragraph("Detail Lengkap Evaluasi", styles["Heading1"]))
+            elements.append(Spacer(1, 6))
+        for idx, e in enumerate(evaluations, start=1):
+            detail_rows = [
+                ["No", str(idx)],
+                ["Tanggal & Jam", f"{eval_export_value(e.get('dayName'))}, {eval_export_value(e.get('date'))} {eval_export_value(e.get('time'))} WIB"],
+                ["Jenis / Nama Misa", f"{eval_export_value(e.get('kindLabel'))} - {eval_export_value(e.get('misaName'))}"],
+                ["Pengisi", f"{eval_export_value(e.get('evaluatorName'))} ({eval_export_value(e.get('evaluatorRole'))})"],
+                ["Penilaian Umum", eval_export_value(e.get("generalAssessment"))],
+                ["Petugas Jadwal & Aktual", eval_staff_export_text(e.get("staff") or [])],
+                ["Petugas Tambahan", eval_extra_staff_export_text(e.get("extraStaff") or [])],
+                ["Evaluasi Per Petugas", eval_staff_evaluation_export_text(e.get("staffEvaluations") or [])],
+                ["Kendala Teknis", eval_export_value(e.get("technicalIssue"))],
+                ["Kendala Non-Teknis", eval_export_value(e.get("nontechnicalIssue"))],
+                ["Checklist", eval_checklist_export_text(e.get("checklist") or {})],
+                ["Pertanyaan Tambahan", eval_dynamic_answers_export_text(e.get("dynamicAnswers") or [])],
+                ["Catatan Penutup", eval_export_value(e.get("finalNote"))],
+                ["Waktu Submit", eval_export_value((e.get("submittedAt") or "").replace("T", " ")[:16])],
+            ]
+            t = Table([[Paragraph(a, normal), Paragraph(b, normal)] for a, b in detail_rows], colWidths=[130, 620])
+            t.setStyle(TableStyle([
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cccccc")),
+                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#fff1f2")),
+                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            elements.append(t)
+            elements.append(Spacer(1, 8))
         doc.build(elements)
         buf.seek(0)
-        return send_file(buf, as_attachment=True, download_name="hasil-evaluasi-streaming.pdf", mimetype="application/pdf")
+        # Inline preview: browser membuka PDF di tab baru, user tetap bisa download dari viewer.
+        return send_file(buf, as_attachment=False, download_name="hasil-evaluasi-streaming.pdf", mimetype="application/pdf")
     finally:
         cursor.close()
         conn.close()

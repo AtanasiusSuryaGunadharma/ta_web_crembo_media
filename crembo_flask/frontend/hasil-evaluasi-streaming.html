@@ -1,3 +1,341 @@
-﻿<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hasil Evaluasi Streaming</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"><style>
-:root{--primary:#800000;--dark:#3a0000;--light:#a52a2a;--gold:#d4a017;--bg:#f5f0ef;--line:rgba(128,0,0,.14);--shadow:0 10px 30px rgba(128,0,0,.12);--radius:16px}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:#111}.layout{display:grid;grid-template-columns:290px 1fr;min-height:100vh}.sidebar{background:linear-gradient(170deg,#3a0000,#800000 55%,#5c0000);color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}.brand,.menu{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);border-radius:14px;padding:13px;margin-bottom:12px}.brand b{text-transform:uppercase}.menu a{display:block;color:#fff;text-decoration:none;padding:9px 10px;border-radius:10px;margin:4px 0}.menu a.active{background:rgba(212,160,23,.22);color:#fcd34d;border:1px solid rgba(212,160,23,.55);font-weight:800}.side-btn{display:block;text-align:center;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:10px;margin-top:8px}.main{padding:20px;min-width:0}.head{background:linear-gradient(135deg,#5c0000,#a51d24);color:#fff;border-radius:16px;padding:18px 22px;margin-bottom:16px;box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:12px;align-items:center}.head h1{margin:0}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}.panel-head{padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.panel-body{padding:16px}.toolbar{display:grid;grid-template-columns:repeat(5,1fr) auto auto;gap:10px;align-items:end}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.stat{border:1px solid var(--line);border-left:5px solid var(--primary);border-radius:12px;padding:12px;background:#fff}.stat p{margin:0;color:#6b7280}.stat h3{margin:6px 0 0;font-size:1.6rem}@media(max-width:1100px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.toolbar,.summary{grid-template-columns:1fr 1fr}}@media(max-width:700px){.toolbar,.summary{grid-template-columns:1fr}}input,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit}.btn{border:0;background:linear-gradient(135deg,var(--primary),var(--light));color:#fff;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;justify-content:center}.btn.ghost{background:#fff;color:var(--primary);border:1px solid var(--line)}.btn.warn{background:#fff;color:#991b1b;border:1px solid #fecaca}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:980px}th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:#fff1f2;color:#7f1d1d;text-transform:uppercase;font-size:.75rem}.badge{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:800;background:#fff}.ok{color:#15803d;background:#ecfdf5;border-color:#bbf7d0}.warnb{color:#92400e;background:#fffbeb;border-color:#fde68a}.red{color:#991b1b;background:#fef2f2;border-color:#fecaca}.muted{color:#6b7280}.small{font-size:.84rem}.notice{padding:12px 14px;background:#fffbeb;border-left:4px solid var(--gold);border-radius:12px;margin-bottom:12px}.ai-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.bar{height:10px;border-radius:999px;background:#e5e7eb;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,#800000,#d4a017)}.hide{display:none!important}.detail{white-space:pre-wrap}.pagination{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:12px}</style></head><body><div class="layout"><aside class="sidebar"><div class="brand"><b>CREMBO MEDIA PANEL</b><p>Laporan evaluasi streaming admin.</p></div><nav class="menu"><a href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a><a href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a><a href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a><a href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a><a class="active" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a><a href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a></nav><a class="side-btn" href="dashboard.html">Kembali ke Dashboard</a><a class="side-btn" href="/logout">Keluar / Logout</a></aside><main class="main"><header class="head"><h1>Hasil Evaluasi Streaming</h1><span id="clock">-</span></header><div id="message"></div><section class="panel"><div class="panel-body"><div class="toolbar"><label>Jenis Misa<select id="kind"><option value="all">Semua Jenis</option><option value="misa_biasa">Misa Biasa</option><option value="misa_besar">Misa Besar</option></select></label><label>Skala Periode<select id="scale"><option value="month">Per Bulan</option><option value="week">Per Minggu</option><option value="year">Per Tahun</option><option value="all">Semua Periode</option></select></label><label>Bulan<select id="month"></select></label><label>Tahun<select id="year"></select></label><label>Minggu Ke<input id="week" type="number" min="1" max="53" value="1"></label><button id="loadBtn" class="btn ghost">Tampilkan</button><div style="display:flex;gap:8px"><a id="xlsxBtn" class="btn" href="#">Excel</a><a id="pdfBtn" class="btn" href="#">PDF</a></div></div><div class="summary"><div class="stat"><p>Evaluasi Masuk</p><h3 id="mIn">0</h3></div><div class="stat"><p>Misa Terlewat Belum Diisi</p><h3 id="mMiss">0</h3></div><div class="stat"><p>Total Misa</p><h3 id="mTotal">0</h3></div><div class="stat"><p>Urgent</p><h3 id="mUrgent">0</h3></div></div></div></section><section class="panel"><header class="panel-head"><h3>Ringkasan Otomatis Hasil Evaluasi</h3><button id="toggleAi" class="btn ghost">Tampilkan Ringkasan</button></header><div id="aiBody" class="panel-body hide"><div class="ai-grid"><div class="stat"><p>Rata-rata Penilaian Petugas</p><h3 id="avgScore">0/4</h3></div><div class="stat"><p>Kepatuhan Checklist</p><h3 id="checkRate">0%</h3></div><div class="stat"><p>General Aman</p><h3 id="safeRate">0%</h3></div><div class="stat"><p>General Urgent</p><h3 id="urgentCount">0</h3></div></div><h4>Insight Utama</h4><p id="insight" class="notice"></p><h4>Rekomendasi Tindak Lanjut</h4><p id="recommendation" class="notice"></p><div class="ai-grid"><div><h4>Distribusi Penilaian Per Petugas</h4><div id="ratingBars"></div></div><div><h4>Ringkasan Atribut Evaluasi</h4><div id="attributeBars"></div></div></div></div></section><section class="panel"><header class="panel-head"><h3>Evaluasi Sudah Masuk</h3><input id="searchEval" placeholder="Cari nama misa, pengisi, catatan..." style="max-width:320px"><select id="sort"><option value="date_asc">Tanggal Terlama</option><option value="date_desc">Tanggal Terbaru</option><option value="submitted_desc">Submit Terbaru</option><option value="submitted_asc">Submit Terlama</option></select></header><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>No</th><th>Tanggal</th><th>Jam</th><th>Jenis</th><th>Penilaian</th><th>Judul Misa</th><th>Petugas Bertugas</th><th>Pengisi</th><th>Waktu Submit</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody id="evalRows"></tbody></table></div><div id="evalPager" class="pagination"></div></div></section><section class="panel"><header class="panel-head"><h3>Misa Terlewat yang Belum Diisi</h3><input id="searchPending" placeholder="Cari misa terlewat..." style="max-width:320px"></header><div class="panel-body"><div id="pendingRows"></div></div></section></main></div><script>
-const $=s=>document.querySelector(s);let data={evaluations:[],pending:[],summary:{},user:null},page=1,per=10;function esc(x){return String(x??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}function init(){const now=new Date(),months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];month.innerHTML=months.map((m,i)=>`<option value="${i+1}" ${i===now.getMonth()?'selected':''}>${m}</option>`).join('');let y=now.getFullYear();year.innerHTML=Array.from({length:9},(_,i)=>y-4+i).map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('');week.value=getWeek(now);load()}function getWeek(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));let day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);let ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7)}function query(){return new URLSearchParams({kind:kind.value,scale:scale.value,month:month.value,year:year.value,week:week.value,search:searchEval.value,sort:sort.value}).toString()}async function load(){let r=await fetch('/api/evaluasi-streaming/admin/results?'+query()),j=await r.json();if(!j.success){message.innerHTML=`<div class="notice red">${esc(j.error||'Gagal memuat data')}</div>`;return}data=j;page=1;render();xlsxBtn.href='/api/evaluasi-streaming/admin/export.xlsx?'+query();pdfBtn.href='/api/evaluasi-streaming/admin/export.pdf?'+query()}function render(){mIn.textContent=data.metrics.evaluationsIn;mMiss.textContent=data.metrics.missed;mTotal.textContent=data.metrics.totalMisa;mUrgent.textContent=data.metrics.urgent;let s=data.summary||{};avgScore.textContent=(s.averageStaffScore||0)+'/4';checkRate.textContent=(s.checklistRate||0)+'%';safeRate.textContent=(s.generalSafeRate||0)+'%';urgentCount.textContent=s.generalUrgentCount||0;insight.textContent=s.insight||'-';recommendation.textContent=s.recommendation||'-';ratingBars.innerHTML=Object.entries(s.ratingCounts||{}).map(([k,v])=>bar(k,v,Math.max(1,...Object.values(s.ratingCounts||{})))).join('');attributeBars.innerHTML=[['Checklist',s.checklistRate||0],['General Aman',s.generalSafeRate||0],['Kendala Teknis Minim',s.technicalMinRate||0],['Kendala Non-Teknis Minim',s.nontechnicalMinRate||0]].map(([k,v])=>bar(k,v,100,'%')).join('');renderEval();renderPending()}function bar(k,v,max,suf=''){return `<p class="small">${esc(k)} <b>${v}${suf}</b></p><div class="bar"><span style="width:${Math.min(100,(v/max)*100)}%"></span></div>`}function renderEval(){let rows=data.evaluations||[];let total=rows.length,start=(page-1)*per,part=rows.slice(start,start+per);evalRows.innerHTML=part.map((e,i)=>`<tr><td>${start+i+1}</td><td>${esc(e.dateText||e.date)}</td><td>${esc(e.time)}</td><td>${esc(e.kindLabel)}</td><td><span class="badge ${/urgent|serius/i.test(e.generalAssessment)?'red':'ok'}">${esc(e.generalAssessment)}</span></td><td><b>${esc(e.misaName)}</b></td><td>${(e.staff||[]).map(p=>`${esc(p.role)}: ${esc(p.actualMemberName||p.memberName||'-')}`).join('<br>')}</td><td>${esc(e.evaluatorName)}<br><span class="muted small">${esc(e.evaluatorRole||'')}</span></td><td>${esc((e.submittedAt||'').replace('T',' ').slice(0,16))}</td><td>${esc(e.finalNote||e.technicalIssue||'-')}</td><td><button class="btn ghost" onclick='detail(${JSON.stringify(e.id)})'>Detail</button> <button class="btn warn" onclick="delEval(${e.id})">Hapus</button></td></tr>`).join('')||'<tr><td colspan="11">Belum ada evaluasi.</td></tr>';evalPager.innerHTML=`<button class="btn ghost" ${page<=1?'disabled':''} onclick="page--;renderEval()">← Sebelumnya</button><span>Halaman ${page} dari ${Math.max(1,Math.ceil(total/per))} · ${total} data</span><button class="btn ghost" ${page>=Math.ceil(total/per)?'disabled':''} onclick="page++;renderEval()">Berikutnya →</button>`}function renderPending(){let q=searchPending.value.toLowerCase();let rows=(data.pending||[]).filter(p=>!q||[p.misaName,p.kindLabel,p.displayDateTime].join(' ').toLowerCase().includes(q));pendingRows.innerHTML=rows.map(p=>{let mine=(p.staff||[]).some(s=>String(s.memberId)===String(data.currentUser&&data.currentUser.user_id));return `<div class="notice ${mine?'danger':''}"><span class="badge warnb">Belum Diisi</span> ${mine?'<span class="badge red">Anda Bertugas</span>':''}<h3>${esc(p.misaName)}</h3><p>${esc(p.kindLabel)} · ${esc(p.displayDateTime)}</p><p>Petugas: ${(p.staff||[]).filter(s=>s.memberId).map(s=>esc(s.memberName)).join(', ')||'-'}</p><a class="btn" href="form-evaluasi-streaming.html?scheduleId=${encodeURIComponent(p.id)}">Isi Evaluasi</a></div>`}).join('')||'<div class="notice">Tidak ada misa terlewat yang belum diisi.</div>'}function detail(id){let e=(data.evaluations||[]).find(x=>x.id===id);if(!e)return;alert(`Detail Evaluasi\n\nMisa: ${e.misaName}\nTanggal: ${e.displayDateTime}\nPengisi: ${e.evaluatorName}\nPenilaian: ${e.generalAssessment}\n\nKendala Teknis:\n${e.technicalIssue}\n\nKendala Non-Teknis:\n${e.nontechnicalIssue}\n\nCatatan:\n${e.finalNote||'-'}`)}async function delEval(id){if(!confirm('Yakin ingin menghapus evaluasi ini? Jadwal akan bisa diisi evaluasi ulang.'))return;let r=await fetch('/api/evaluasi-streaming/admin/results/'+id,{method:'DELETE'}),j=await r.json();if(!j.success)alert(j.error||'Gagal hapus');else load()}loadBtn.onclick=load;[kind,scale,month,year,week,sort].forEach(x=>x.onchange=load);searchEval.oninput=()=>{page=1;load()};searchPending.oninput=renderPending;toggleAi.onclick=()=>{aiBody.classList.toggle('hide');toggleAi.textContent=aiBody.classList.contains('hide')?'Tampilkan Ringkasan':'Sembunyikan Ringkasan'};function tick(){clock.textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\./g,':')}setInterval(tick,1000);tick();init();</script></body></html>
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hasil Evaluasi Streaming - Crembo Media</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#800000;--primary-dark:#5c0000;--primary-deep:#3a0000;--primary-light:#a52a2a;
+      --gold:#d4a017;--gold-soft:#fff7dc;--bg:#f5f0ef;--surface:#fff;--ink:#141414;--muted:#6b7280;
+      --line:rgba(128,0,0,.14);--line-strong:rgba(128,0,0,.28);--shadow:0 10px 30px rgba(128,0,0,.12);
+      --radius:16px;--radius-sm:10px;--ok:#15803d;--danger:#991b1b;--warn:#92400e;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55}
+    button,input,select,textarea{font:inherit}
+    .layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+    .sidebar{background:linear-gradient(170deg,var(--primary-deep),var(--primary) 55%,var(--primary-dark));color:#fff;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto;box-shadow:10px 0 30px rgba(128,0,0,.14)}
+    .brand,.menu-group{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);border-radius:14px;margin-bottom:14px;overflow:hidden}
+    .brand{padding:16px}.brand h1{margin:0;font-size:1.02rem;font-weight:900;text-transform:uppercase;letter-spacing:.01em}.brand p{margin:8px 0 0;color:rgba(255,255,255,.78);font-size:.85rem}
+    .group-toggle{width:100%;border:0;background:rgba(68,0,0,.25);color:#fff;text-align:left;padding:13px 14px;font-weight:800;display:flex;justify-content:space-between;cursor:pointer}.group-items{border-top:1px solid rgba(255,255,255,.10);padding:8px}
+    .menu-link{display:block;color:#fff;text-decoration:none;padding:10px 12px;border-radius:10px;margin:4px 0;font-size:.88rem}.menu-link:hover{background:rgba(255,255,255,.08)}.menu-link.active{background:rgba(212,160,23,.24);color:#fcd34d;border:1px solid rgba(212,160,23,.62);font-weight:900}
+    .side-actions{display:grid;gap:9px;margin-top:16px}.side-actions a{color:#fff;text-align:center;text-decoration:none;border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:11px 12px;font-weight:700;font-size:.88rem;background:rgba(255,255,255,.03)}.side-actions a:hover{background:rgba(255,255,255,.10)}
+    .main{padding:20px 24px 36px;min-width:0}.dashboard-headline-bar{background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));color:#fff;border-radius:16px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:18px}.dashboard-headline-bar h1{margin:0;font-size:clamp(1.5rem,2.6vw,2.25rem);font-weight:900;letter-spacing:-.02em}.head-meta{display:inline-flex;gap:12px;align-items:center;font-weight:800;color:#fff}.world-link{width:38px;height:38px;border-radius:999px;border:1px solid rgba(255,255,255,.42);background:rgba(255,255,255,.14);display:inline-flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;transition:.18s}.world-link:hover{background:#fff;color:var(--primary)}.world-link svg{width:20px;height:20px}
+    .info-bar{border:1px solid var(--line);background:rgba(255,255,255,.74);border-radius:12px;padding:12px 14px;color:#4b5563;margin-bottom:14px}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.panel-head h2,.panel-head h3{margin:0;font-size:1.08rem}.panel-body{padding:16px 18px}
+    .filter-grid{display:grid;grid-template-columns:minmax(140px,1fr) minmax(140px,1fr) minmax(180px,1.1fr) minmax(170px,1fr) auto auto auto;gap:10px;align-items:end}.field{display:grid;gap:6px}.field label{font-size:.78rem;text-transform:uppercase;color:#7f1d1d;font-weight:900;letter-spacing:.04em}.field input,.field select,.search-inline input,.select-inline{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:#111;outline:none}.field input:focus,.field select:focus,.search-inline input:focus,.select-inline:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,.08)}
+    .btn{border:0;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;font-weight:900;padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;box-shadow:0 5px 12px rgba(128,0,0,.15)}.btn:hover{filter:brightness(.97)}.btn.ghost{background:#fff;color:var(--primary);border:1px solid var(--line);box-shadow:none}.btn.warn{background:#fff;color:#b91c1c;border:1px solid #fecaca;box-shadow:none}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.sm{padding:7px 10px;font-size:.82rem}
+    .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin-top:14px}.stat{border:1px solid var(--line);border-left:5px solid var(--primary);border-radius:12px;background:#fff;padding:12px}.stat p{margin:0;color:#6b7280;font-size:.86rem}.stat h3{margin:4px 0 0;font-size:1.65rem;line-height:1}.table-tools{display:grid;grid-template-columns:minmax(220px,1fr) 170px 180px;gap:10px;align-items:end}.pending-tools{display:grid;grid-template-columns:minmax(220px,1fr) 170px 180px;gap:10px;align-items:end}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}table{width:100%;border-collapse:collapse;min-width:1120px}th,td{border:1px solid rgba(128,0,0,.10);padding:10px 11px;text-align:left;vertical-align:top}th{background:#fff1f2;color:#7f1d1d;text-transform:uppercase;font-size:.74rem;letter-spacing:.02em}td{font-size:.86rem}.cell-title{font-weight:900}.small{font-size:.78rem;color:#6b7280}.badge{display:inline-flex;align-items:center;width:max-content;border-radius:999px;border:1px solid var(--line);padding:3px 8px;font-size:.72rem;font-weight:900;background:#fff}.badge.ok{color:#15803d;background:#ecfdf5;border-color:#bbf7d0}.badge.warn{color:#92400e;background:#fffbeb;border-color:#fde68a}.badge.red{color:#991b1b;background:#fef2f2;border-color:#fecaca}.badge.blue{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}.muted{color:#6b7280}.stack{display:grid;gap:5px}.pagination{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}.notice{border:1px solid #fde68a;border-left:5px solid var(--gold);background:#fffbeb;border-radius:12px;padding:12px 14px;color:#6b4f00;margin:0}.notice.red{border-color:#fecaca;border-left-color:#dc2626;background:#fef2f2;color:#991b1b}
+    .ai-body{display:none;padding:16px 18px;border-top:1px solid var(--line)}.ai-body.show{display:grid;gap:14px}.ai-kpis{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px}.ai-text-block{border:1px solid var(--line);border-radius:12px;background:#fffdf7;padding:12px}.ai-text-block h4{margin:0 0 6px}.ai-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bar-row{display:grid;grid-template-columns:160px 1fr 48px;gap:8px;align-items:center;margin:8px 0;font-size:.82rem}.bar-track{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--gold));border-radius:999px}
+    .pending-list{display:grid;gap:12px}.pending-item{border:1px solid #fde68a;border-left:5px solid var(--gold);background:#fff9df;border-radius:14px;padding:14px}.pending-item.mine{border-color:#fecaca;border-left-color:#dc2626;background:#fff5f5}.pending-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.pending-item h4{margin:0 0 4px;font-size:1.02rem}.pending-item p{margin:4px 0;color:#374151}.pending-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.empty{border:1px dashed #e2c7c7;background:#fffafa;border-radius:12px;padding:18px;text-align:center;color:#6b7280}
+    .detail-modal{position:fixed;inset:0;background:rgba(0,0,0,.46);z-index:3000;display:none;align-items:center;justify-content:center;padding:18px}.detail-modal.show{display:flex}.detail-dialog{width:min(1060px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:0 24px 70px rgba(0,0,0,.30)}.detail-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);background:#fff7f7;position:sticky;top:0;z-index:2}.detail-head h3{margin:0;color:#7f1d1d}.detail-body{padding:16px 18px;display:grid;gap:12px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.detail-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.detail-card h4{margin:0 0 8px;color:#7f1d1d}.detail-card p{margin:4px 0}.mini-table{width:100%;min-width:0}.mini-table th,.mini-table td{font-size:.82rem;padding:8px}.check-pill{display:inline-flex;margin:3px 4px 3px 0;border-radius:999px;border:1px solid #d1d5db;padding:4px 8px;font-size:.76rem;font-weight:800;background:#f9fafb}.check-pill.ok{color:#15803d;background:#ecfdf5;border-color:#bbf7d0}.check-pill.no{color:#991b1b;background:#fef2f2;border-color:#fecaca}
+    @media(max-width:1180px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.filter-grid{grid-template-columns:1fr 1fr}.summary-grid,.ai-kpis{grid-template-columns:1fr 1fr}.ai-charts,.detail-grid{grid-template-columns:1fr}.table-tools,.pending-tools{grid-template-columns:1fr}.dashboard-headline-bar{align-items:flex-start;flex-direction:column}.main{padding:16px}}
+    @media(max-width:720px){.filter-grid,.summary-grid,.ai-kpis{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar hasil evaluasi">
+      <div class="brand"><h1>CREMBO MEDIA PANEL</h1><p>Laporan evaluasi streaming admin.</p></div>
+      <div class="menu-group open"><button class="group-toggle" type="button">Tugas Streaming <span>-</span></button><div class="group-items">
+        <a class="menu-link" href="jadwal-tugas-streaming-admin.html">Jadwal Streaming</a>
+        <a class="menu-link" href="registrasi-tugas-misa-besar.html">Registrasi Tugas Misa Besar</a>
+        <a class="menu-link" href="penugasan-petugas-misa.html">Penugasan Petugas Misa</a>
+        <a class="menu-link" href="monitoring-tugas-anggota.html">Monitoring Tugas Anggota</a>
+        <a class="menu-link active" href="hasil-evaluasi-streaming.html">Hasil Evaluasi Streaming</a>
+        <a class="menu-link" href="setting-pertanyaan-evaluasi-streaming.html">Setting Pertanyaan Evaluasi</a>
+      </div></div>
+      <div class="side-actions"><a href="dashboard.html">Kembali ke Dashboard</a><a href="/logout">Keluar / Logout</a></div>
+    </aside>
+    <main class="main">
+      <header class="dashboard-headline-bar" aria-label="Header hasil evaluasi">
+        <h1>Hasil Evaluasi Streaming</h1>
+        <div class="head-meta"><span id="liveDateTime">-</span><a class="world-link" href="home.html?session=active" title="Kembali ke Home"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle><path d="M3 12H21" stroke="currentColor" stroke-width="1.8"></path><path d="M12 3C14.3 5.5 15.6 8.7 15.6 12C15.6 15.3 14.3 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path><path d="M12 3C9.7 5.5 8.4 8.7 8.4 12C8.4 15.3 9.7 18.5 12 21" stroke="currentColor" stroke-width="1.8"></path></svg></a></div>
+      </header>
+
+      <div class="info-bar">Hanya untuk admin panel: atur filter jenis misa, skala periode, ekspor, dan monitoring misa terlewat yang belum diisi.</div>
+      <div id="message"></div>
+
+      <section class="panel" aria-label="Filter periode evaluasi">
+        <div class="panel-body">
+          <div class="filter-grid">
+            <div class="field"><label for="periodKind">Filter Jenis Misa</label><select id="periodKind"><option value="all">Semua Jenis</option><option value="misa_biasa">Misa Biasa</option><option value="misa_besar">Misa Besar</option></select></div>
+            <div class="field"><label for="scale">Skala Periode</label><select id="scale"><option value="month">Per Bulan</option><option value="week">Per Minggu</option><option value="year">Per Tahun</option><option value="all">Semua Periode</option></select></div>
+            <div id="periodFields" style="display:contents"></div>
+            <div class="field"><label for="loadBtn">Aksi</label><button id="loadBtn" class="btn ghost" type="button">Tampilkan</button></div>
+            <div class="field"><label>Export</label><a id="xlsxBtn" class="btn" href="#">Download Excel</a></div>
+            <div class="field"><label>&nbsp;</label><a id="pdfBtn" class="btn" href="#" target="_blank" rel="noopener">Download PDF</a></div>
+          </div>
+          <div class="summary-grid">
+            <div class="stat"><p>Evaluasi Masuk</p><h3 id="mIn">0</h3></div>
+            <div class="stat"><p>Misa Terlewat Belum Diisi</p><h3 id="mMiss">0</h3></div>
+            <div class="stat"><p>Total Misa Sesuai Filter</p><h3 id="mTotal">0</h3></div>
+            <div class="stat"><p>General Urgent</p><h3 id="mUrgent">0</h3></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Ringkasan otomatis hasil evaluasi">
+        <div class="panel-head"><h2>Ringkasan Otomatis Hasil Evaluasi</h2><div style="display:flex;gap:8px;align-items:center"><span class="badge blue">Auto Insight</span><button id="toggleAi" class="btn ghost sm" type="button">Tampilkan Ringkasan</button></div></div>
+        <div id="aiBody" class="ai-body">
+          <div class="ai-kpis">
+            <div class="stat"><p>Rata-rata Penilaian Petugas</p><h3 id="avgScore">0/4</h3></div>
+            <div class="stat"><p>Kepatuhan Checklist</p><h3 id="checkRate">0%</h3></div>
+            <div class="stat"><p>General Aman</p><h3 id="safeRate">0%</h3></div>
+            <div class="stat"><p>General Urgent</p><h3 id="urgentCount">0</h3></div>
+          </div>
+          <div class="ai-text-block"><h4>Insight Utama</h4><p id="insight">-</p></div>
+          <div class="ai-text-block"><h4>Rekomendasi Tindak Lanjut</h4><p id="recommendation">-</p></div>
+          <div class="ai-charts"><div class="detail-card"><h4>Distribusi Penilaian Per Petugas</h4><div id="ratingBars"></div></div><div class="detail-card"><h4>Ringkasan Atribut Evaluasi</h4><div id="attributeBars"></div></div></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Evaluasi sudah masuk">
+        <div class="panel-head"><h2>Evaluasi Sudah Masuk</h2><div class="table-tools"><div class="search-inline"><input id="searchEval" placeholder="Cari nama misa, pengisi, catatan..."></div><select id="evalKind" class="select-inline"><option value="all">Misa Biasa & Besar</option><option value="misa_biasa">Misa Biasa</option><option value="misa_besar">Misa Besar</option></select><select id="evalSort" class="select-inline"><option value="date_asc">Tanggal Terlama</option><option value="date_desc">Tanggal Terbaru</option><option value="submitted_desc">Submit Terbaru</option><option value="submitted_asc">Submit Terlama</option></select></div></div>
+        <div class="panel-body"><div class="table-wrap"><table><thead><tr><th>No</th><th>Tanggal</th><th>Jam</th><th>Jenis</th><th>Penilaian General</th><th>Judul Misa</th><th>Petugas Bertugas</th><th>Pengisi Evaluasi</th><th>Waktu Submit</th><th>Catatan Penutup</th><th>Aksi</th></tr></thead><tbody id="evalRows"></tbody></table></div><div id="evalPager" class="pagination"></div></div>
+      </section>
+
+      <section class="panel" aria-label="Misa terlewat belum diisi">
+        <div class="panel-head"><h2>Misa Terlewat Yang Belum Diisi</h2><div class="pending-tools"><div class="search-inline"><input id="searchPending" placeholder="Cari misa terlewat..."></div><select id="pendingKind" class="select-inline"><option value="all">Misa Biasa & Besar</option><option value="misa_biasa">Misa Biasa</option><option value="misa_besar">Misa Besar</option></select><select id="pendingSort" class="select-inline"><option value="date_asc">Tanggal Terlama</option><option value="date_desc">Tanggal Terbaru</option></select></div></div>
+        <div class="panel-body"><div id="pendingRows" class="pending-list"></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="detailModal" class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="detail-dialog">
+      <div class="detail-head"><h3 id="detailTitle">Detail Evaluasi Streaming</h3><button id="detailClose" class="btn ghost sm" type="button">Tutup</button></div>
+      <div id="detailBody" class="detail-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    let state = { evaluations: [], pending: [], metrics: {}, summary: {}, currentUser: null, period: {} };
+    let page = 1;
+    const perPage = 10;
+
+    function esc(value){return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+    function norm(value){return String(value ?? '').toLowerCase();}
+    function formatSubmitted(v){return v ? String(v).replace('T',' ').slice(0,16) : '-';}
+    function staffName(slot){return slot?.actualMemberName || slot?.memberName || (slot?.attendance === 'not_attend' ? 'Tidak datang' : '-');}
+    function isUrgent(value){return /urgent|serius/i.test(String(value || ''));}
+    function isSafe(value){return /aman/i.test(String(value || '')) && !isUrgent(value);}
+
+    function initPeriodFields(){
+      const now = new Date();
+      window._currentMonth = now.getMonth() + 1;
+      window._currentYear = now.getFullYear();
+      window._currentWeek = getWeek(now);
+      renderPeriodFields();
+    }
+    function getWeek(date){
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - day);
+      const yStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yStart) / 86400000) + 1) / 7);
+    }
+    function yearOptions(selected){
+      const y = window._currentYear || new Date().getFullYear();
+      return Array.from({length:11},(_,i)=> y - 5 + i).map(val => `<option value="${val}" ${Number(selected)===val?'selected':''}>${val}</option>`).join('');
+    }
+    function monthOptions(selected){return monthNames.map((m,i)=>`<option value="${i+1}" ${Number(selected)===i+1?'selected':''}>${m}</option>`).join('');}
+    function renderPeriodFields(){
+      const scale = $('scale').value;
+      const oldMonth = $('month')?.value || window._currentMonth;
+      const oldYear = $('year')?.value || window._currentYear;
+      const oldWeek = $('week')?.value || window._currentWeek;
+      let html = '';
+      if(scale === 'week'){
+        html = `<div class="field"><label for="week">Minggu Ke</label><input id="week" type="number" min="1" max="53" value="${esc(oldWeek)}"></div><div class="field"><label for="year">Tahun</label><select id="year">${yearOptions(oldYear)}</select></div>`;
+      }else if(scale === 'year'){
+        html = `<div class="field"><label for="year">Pilih Tahun</label><select id="year">${yearOptions(oldYear)}</select></div><div class="field"><label>Periode</label><input value="1 tahun penuh" disabled></div>`;
+      }else if(scale === 'all'){
+        html = `<div class="field"><label>Semua Periode</label><input value="Semua bulan dan tahun" disabled></div><div class="field"><label>Periode</label><input value="Semua data evaluasi" disabled></div>`;
+      }else{
+        html = `<div class="field"><label for="month">Pilih Bulan</label><select id="month">${monthOptions(oldMonth)}</select></div><div class="field"><label for="year">Pilih Tahun</label><select id="year">${yearOptions(oldYear)}</select></div>`;
+      }
+      $('periodFields').innerHTML = html;
+      ['month','year','week'].forEach(id => { const el=$(id); if(el) el.onchange = loadData; });
+    }
+    function apiQuery({forExport=false}={}){
+      const params = new URLSearchParams();
+      const scale = $('scale').value;
+      params.set('kind', $('periodKind').value);
+      params.set('scale', scale);
+      if($('month')) params.set('month', $('month').value);
+      if($('year')) params.set('year', $('year').value);
+      if($('week')) params.set('week', $('week').value);
+      if(forExport){
+        const exportKind = $('evalKind').value !== 'all' ? $('evalKind').value : $('periodKind').value;
+        params.set('kind', exportKind);
+        params.set('search', $('searchEval').value.trim());
+        params.set('sort', $('evalSort').value);
+      }
+      return params.toString();
+    }
+    async function loadData(){
+      $('message').innerHTML = '';
+      try{
+        const res = await fetch('/api/evaluasi-streaming/admin/results?' + apiQuery());
+        const json = await res.json();
+        if(!json.success) throw new Error(json.error || 'Gagal memuat data evaluasi.');
+        state = json;
+        page = 1;
+        updateExportLinks();
+        renderAll();
+      }catch(err){
+        $('message').innerHTML = `<div class="notice red">${esc(err.message)}</div>`;
+      }
+    }
+    function updateExportLinks(){
+      $('xlsxBtn').href = '/api/evaluasi-streaming/admin/export.xlsx?' + apiQuery({forExport:true});
+      $('pdfBtn').href = '/api/evaluasi-streaming/admin/export.pdf?' + apiQuery({forExport:true});
+      $('pdfBtn').target = '_blank';
+    }
+    function renderAll(){
+      const m = state.metrics || {};
+      $('mIn').textContent = m.evaluationsIn || 0;
+      $('mMiss').textContent = m.missed || 0;
+      $('mTotal').textContent = m.totalMisa || 0;
+      $('mUrgent').textContent = m.urgent || 0;
+      renderSummary();renderEvalTable();renderPending();
+    }
+    function renderSummary(){
+      const s = state.summary || {};
+      $('avgScore').textContent = `${s.averageStaffScore || 0}/4`;
+      $('checkRate').textContent = `${s.checklistRate || 0}%`;
+      $('safeRate').textContent = `${s.generalSafeRate || 0}%`;
+      $('urgentCount').textContent = s.generalUrgentCount || 0;
+      $('insight').textContent = s.insight || '-';
+      $('recommendation').textContent = s.recommendation || '-';
+      const ratingCounts = s.ratingCounts || {};
+      const maxRating = Math.max(1, ...Object.values(ratingCounts).map(Number));
+      $('ratingBars').innerHTML = Object.entries(ratingCounts).map(([k,v]) => barRow(k, Number(v), maxRating, '')).join('') || '<p class="muted">Belum ada data.</p>';
+      const attrs = [['Checklist', s.checklistRate || 0], ['General Aman', s.generalSafeRate || 0], ['Kendala Teknis Minim', s.technicalMinRate || 0], ['Kendala Non-Teknis Minim', s.nontechnicalMinRate || 0]];
+      $('attributeBars').innerHTML = attrs.map(([k,v]) => barRow(k, Number(v), 100, '%')).join('');
+    }
+    function barRow(label, value, max, suffix){
+      const pct = Math.max(0, Math.min(100, max ? (value / max) * 100 : 0));
+      return `<div class="bar-row"><span>${esc(label)}</span><div class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></div><b>${esc(value)}${suffix}</b></div>`;
+    }
+    function filteredEvaluations(){
+      const q = norm($('searchEval').value);
+      const kind = $('evalKind').value;
+      let rows = [...(state.evaluations || [])];
+      if(kind !== 'all') rows = rows.filter(e => e.kind === kind);
+      if(q){
+        rows = rows.filter(e => norm([e.misaName,e.kindLabel,e.evaluatorName,e.generalAssessment,e.finalNote,e.technicalIssue,e.nontechnicalIssue, ...(e.staff||[]).map(staffName)].join(' ')).includes(q));
+      }
+      const sort = $('evalSort').value;
+      rows.sort((a,b)=>{
+        const ad = `${a.date || ''} ${a.time || ''}`, bd = `${b.date || ''} ${b.time || ''}`;
+        const as = a.submittedAt || '', bs = b.submittedAt || '';
+        if(sort === 'date_desc') return bd.localeCompare(ad);
+        if(sort === 'submitted_desc') return bs.localeCompare(as);
+        if(sort === 'submitted_asc') return as.localeCompare(bs);
+        return ad.localeCompare(bd);
+      });
+      return rows;
+    }
+    function renderEvalTable(){
+      updateExportLinks();
+      const rows = filteredEvaluations();
+      const total = rows.length;
+      const maxPage = Math.max(1, Math.ceil(total / perPage));
+      if(page > maxPage) page = maxPage;
+      const start = (page - 1) * perPage;
+      const part = rows.slice(start, start + perPage);
+      $('evalRows').innerHTML = part.map((e,i)=>{
+        const staffText = (e.staff || []).map(p => `<div><b>${esc(p.role || '-')}:</b> ${esc(staffName(p))}</div>`).join('') || '-';
+        const badgeClass = isUrgent(e.generalAssessment) ? 'red' : (isSafe(e.generalAssessment) ? 'ok' : 'warn');
+        return `<tr><td>${start+i+1}</td><td>${esc(e.dateText || e.date || '-')}</td><td>${esc(e.time || '-')}</td><td>${esc(e.kindLabel || '-')}</td><td><span class="badge ${badgeClass}">${esc(e.generalAssessment || '-')}</span></td><td><span class="cell-title">${esc(e.misaName || '-')}</span></td><td>${staffText}</td><td><b>${esc(e.evaluatorName || '-')}</b><br><span class="small">${esc(e.evaluatorRole || '-')}</span></td><td>${esc(formatSubmitted(e.submittedAt))}</td><td>${esc(e.finalNote || '-')}</td><td><div class="stack"><button class="btn ghost sm" data-detail-id="${esc(e.id)}" type="button">Detail</button><button class="btn warn sm" data-delete-id="${esc(e.id)}" type="button">Hapus</button></div></td></tr>`;
+      }).join('') || `<tr><td colspan="11" class="muted">Belum ada evaluasi sesuai filter.</td></tr>`;
+      $('evalPager').innerHTML = `<button class="btn ghost sm" ${page<=1?'disabled':''} type="button" id="prevEval">← Sebelumnya</button><span class="muted">Halaman ${page} dari ${maxPage} · ${total} data</span><button class="btn ghost sm" ${page>=maxPage?'disabled':''} type="button" id="nextEval">Berikutnya →</button>`;
+      $('prevEval')?.addEventListener('click',()=>{ if(page>1){page--; renderEvalTable();} });
+      $('nextEval')?.addEventListener('click',()=>{ if(page<maxPage){page++; renderEvalTable();} });
+      document.querySelectorAll('[data-detail-id]').forEach(btn => btn.addEventListener('click', () => openDetail(btn.dataset.detailId)));
+      document.querySelectorAll('[data-delete-id]').forEach(btn => btn.addEventListener('click', () => deleteEvaluation(btn.dataset.deleteId)));
+    }
+    function filteredPending(){
+      const q = norm($('searchPending').value);
+      const kind = $('pendingKind').value;
+      let rows = [...(state.pending || [])];
+      if(kind !== 'all') rows = rows.filter(p => p.kind === kind);
+      if(q){rows = rows.filter(p => norm([p.misaName,p.kindLabel,p.displayDateTime, ...(p.staff||[]).map(s=>s.memberName)].join(' ')).includes(q));}
+      rows.sort((a,b)=>{
+        const ad = `${a.date || ''} ${a.time || ''}`, bd = `${b.date || ''} ${b.time || ''}`;
+        return $('pendingSort').value === 'date_desc' ? bd.localeCompare(ad) : ad.localeCompare(bd);
+      });
+      return rows;
+    }
+    function renderPending(){
+      const rows = filteredPending();
+      $('pendingRows').innerHTML = rows.map(p=>{
+        const currentId = String(state.currentUser?.user_id || '');
+        const mine = Boolean(p.canFillByCurrentUser) || (currentId && (p.staff||[]).some(s => String(s.memberId || '') === currentId));
+        const staff = (p.staff || []).filter(s => s.memberId || s.memberName).map(s => esc(s.memberName || '-')).join(', ') || '-';
+        const fillButton = mine ? `<a class="btn sm" href="form-evaluasi-streaming.html?scheduleId=${encodeURIComponent(p.id)}">Isi Evaluasi</a>` : '';
+        return `<article class="pending-item ${mine?'mine':''}"><div class="pending-top"><span class="badge warn">Belum Diisi</span>${mine?'<span class="badge red">Anda Bertugas</span>':''}</div><h4>${esc(p.misaName || '-')}</h4><p><b>${esc(p.kindLabel || '-')}</b> · ${esc(p.displayDateTime || '-')}</p><p><b>Petugas:</b> ${staff}</p><div class="pending-actions">${fillButton}</div></article>`;
+      }).join('') || '<div class="empty">Tidak ada misa terlewat yang belum diisi sesuai filter.</div>';
+    }
+    function checklistPills(checklist){
+      const labels = {streaming_lancar:'Streaming berjalan lancar sampai akhir', koordinasi_baik:'Koordinasi tim berjalan baik', rekaman_tersimpan:'Rekaman tersimpan dengan benar'};
+      const keys = Object.keys(checklist || {});
+      if(!keys.length) return '<span class="muted">Tidak ada checklist tersimpan.</span>';
+      return keys.map(k => `<span class="check-pill ${(checklist||{})[k]?'ok':'no'}">${esc(labels[k] || k)}: ${(checklist||{})[k]?'Ya':'Tidak'}</span>`).join('');
+    }
+    function openDetail(id){
+      const e = (state.evaluations || []).find(item => String(item.id) === String(id));
+      if(!e) return;
+      const staffRows = (e.staff || []).map(slot => `<tr><td>${esc(slot.role || '-')}</td><td>${esc(slot.memberName || '-')}</td><td>${esc(staffName(slot))}</td><td>${esc(slot.attendance === 'not_attend' || staffName(slot)==='Tidak datang' ? 'Tidak datang' : 'Hadir/Digantikan')}</td></tr>`).join('') || '<tr><td colspan="4">Tidak ada data petugas.</td></tr>';
+      const evalRows = (e.staffEvaluations || []).map(item => `<tr><td>${esc(item.memberName || item.name || '-')}</td><td>${esc(item.role || '-')}</td><td>${esc(item.rating || item.assessment || '-')}</td><td>${esc(item.note || item.comment || '-')}</td></tr>`).join('') || '<tr><td colspan="4">Tidak ada evaluasi per petugas.</td></tr>';
+      const extraRows = (e.extraStaff || []).map(item => `<tr><td>${esc(item.name || item.memberName || '-')}</td><td>${esc(item.role || item.helpRole || '-')}</td></tr>`).join('') || '<tr><td colspan="2">Tidak ada petugas tambahan.</td></tr>';
+      const dyn = (e.dynamicAnswers || []).length ? `<ul>${(e.dynamicAnswers || []).map(item => { const ans = Array.isArray(item.answer) ? item.answer.join(', ') : (item.answer || '-'); return `<li><b>${esc(item.question || item.label || '-')}:</b> ${esc(ans)}</li>`; }).join('')}</ul>` : '<span class="muted">Tidak ada pertanyaan tambahan.</span>';
+      $('detailTitle').textContent = `Detail Evaluasi: ${e.misaName || '-'}`;
+      $('detailBody').innerHTML = `
+        <div class="detail-grid"><section class="detail-card"><h4>Informasi Jadwal</h4><p><b>Tanggal:</b> ${esc(e.dayName || '')}, ${esc(e.dateText || e.date || '-')}</p><p><b>Jam:</b> ${esc(e.time || '-')} WIB</p><p><b>Jenis:</b> ${esc(e.kindLabel || '-')}</p><p><b>Penilaian Umum:</b> ${esc(e.generalAssessment || '-')}</p><p><b>Judul:</b> ${esc(e.misaName || '-')}</p></section><section class="detail-card"><h4>Pengisi & Waktu Submit</h4><p><b>Pengisi:</b> ${esc(e.evaluatorName || '-')}</p><p><b>Role Pengisi:</b> ${esc(e.evaluatorRole || '-')}</p><p><b>Waktu Submit:</b> ${esc(formatSubmitted(e.submittedAt))}</p></section></div>
+        <section class="detail-card"><h4>Petugas Jadwal & Aktual</h4><table class="mini-table"><thead><tr><th>Role</th><th>Petugas Jadwal</th><th>Petugas Aktual</th><th>Status Kehadiran</th></tr></thead><tbody>${staffRows}</tbody></table></section>
+        <section class="detail-card"><h4>Evaluasi Per Petugas</h4><table class="mini-table"><thead><tr><th>Nama Petugas</th><th>Role</th><th>Penilaian Singkat</th><th>Catatan Performa</th></tr></thead><tbody>${evalRows}</tbody></table></section>
+        <div class="detail-grid"><section class="detail-card"><h4>Kendala Teknis Selama Streaming</h4><p>${esc(e.technicalIssue || '-')}</p></section><section class="detail-card"><h4>Kendala Misa Non-Teknis</h4><p>${esc(e.nontechnicalIssue || '-')}</p></section></div>
+        <section class="detail-card"><h4>Checklist Kondisi Pelayanan</h4>${checklistPills(e.checklist || {})}</section>
+        <section class="detail-card"><h4>Petugas Tambahan</h4><table class="mini-table"><thead><tr><th>Nama Petugas</th><th>Role Bantuan</th></tr></thead><tbody>${extraRows}</tbody></table></section>
+        <section class="detail-card"><h4>Jawaban Pertanyaan Tambahan</h4>${dyn}</section>
+        <section class="detail-card"><h4>Catatan Penutup / Rekomendasi</h4><p>${esc(e.finalNote || '-')}</p></section>`;
+      $('detailModal').classList.add('show');
+    }
+    async function deleteEvaluation(id){
+      if(!confirm('Yakin ingin menghapus evaluasi ini? Jadwal akan bisa diisi evaluasi ulang.')) return;
+      const res = await fetch('/api/evaluasi-streaming/admin/results/' + encodeURIComponent(id), {method:'DELETE'});
+      const json = await res.json();
+      if(!json.success){ alert(json.error || 'Gagal menghapus evaluasi.'); return; }
+      await loadData();
+    }
+    function tick(){
+      $('liveDateTime').textContent = new Date().toLocaleString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\./g,':');
+    }
+    $('scale').addEventListener('change', () => { renderPeriodFields(); loadData(); });
+    $('periodKind').addEventListener('change', loadData);
+    $('loadBtn').addEventListener('click', loadData);
+    $('searchEval').addEventListener('input', () => { page=1; renderEvalTable(); updateExportLinks(); });
+    $('evalKind').addEventListener('change', () => { page=1; renderEvalTable(); updateExportLinks(); });
+    $('evalSort').addEventListener('change', () => { page=1; renderEvalTable(); updateExportLinks(); });
+    $('searchPending').addEventListener('input', renderPending);
+    $('pendingKind').addEventListener('change', renderPending);
+    $('pendingSort').addEventListener('change', renderPending);
+    $('toggleAi').addEventListener('click', () => { $('aiBody').classList.toggle('show'); $('toggleAi').textContent = $('aiBody').classList.contains('show') ? 'Sembunyikan Ringkasan' : 'Tampilkan Ringkasan'; });
+    $('detailClose').addEventListener('click', () => $('detailModal').classList.remove('show'));
+    $('detailModal').addEventListener('click', ev => { if(ev.target === $('detailModal')) $('detailModal').classList.remove('show'); });
+    document.addEventListener('keydown', ev => { if(ev.key === 'Escape') $('detailModal').classList.remove('show'); });
+    setInterval(tick, 1000); tick(); initPeriodFields(); loadData();
+  </script>
+</body>
+</html>
