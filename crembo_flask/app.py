@@ -2776,6 +2776,10 @@ def get_notifications():
         create_monthly_requirement_notifications()
     except Exception as exc:
         print(f"[WARN] Gagal membuat notifikasi target bulanan: {exc}")
+    try:
+        create_streaming_evaluation_reminder_notifications()
+    except Exception as exc:
+        print(f"[WARN] Gagal membuat notifikasi pengingat evaluasi streaming: {exc}")
     viewer = current_user_context()
     client_key = str(request.args.get("clientKey") or request.headers.get("X-Registration-Client-Key") or "").strip()
     user_key = None
@@ -10808,6 +10812,1335 @@ def api_member_monitoring_stats():
             })
         rows.sort(key=lambda row: (row.get("year"), row.get("month")), reverse=True)
         return jsonify({"success": True, "items": rows, "targetMinimum": target})
+    finally:
+        cursor.close()
+        conn.close()
+
+# -----------------------------------------------------------------------------
+# Evaluasi Streaming: Misa Biasa & Misa Besar
+# -----------------------------------------------------------------------------
+
+EVAL_DEFAULT_QUESTIONS = [
+    {
+        "id": "kesan-umum",
+        "label": "Apa kesan umum pelayanan streaming pada misa ini?",
+        "type": "single_choice",
+        "required": True,
+        "helpText": "Pilih satu penilaian umum.",
+        "options": ["Sangat Baik", "Baik", "Cukup", "Perlu Pendampingan"],
+    },
+    {
+        "id": "bagian-terbaik",
+        "label": "Bagian mana yang sudah paling baik?",
+        "type": "long_text",
+        "required": False,
+        "helpText": "Contoh: alur kamera, audio, koordinasi.",
+        "options": [],
+    },
+]
+
+EVAL_GENERAL_OPTIONS = {"aman", "kendala ringan", "kendala serius", "urgent", "kendala serius (urgent)"}
+EVAL_REQUIRED_CHECKS = ["streaming_lancar", "koordinasi_baik"]
+
+
+def eval_safe_json(value, fallback=None):
+    if fallback is None:
+        fallback = []
+    return safe_json_loads(value, fallback)
+
+
+def eval_date_to_iso(value) -> str:
+    if not value:
+        return ""
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m-%d")
+    raw = normalize_text(value)
+    return raw[:10]
+
+
+def eval_time_to_hhmm(value) -> str:
+    return format_time_hhmm(value)
+
+
+def eval_datetime_from_parts(date_text: str, time_text: str) -> datetime | None:
+    try:
+        return datetime.strptime(f"{date_text} {eval_time_to_hhmm(time_text)}", "%Y-%m-%d %H:%M")
+    except Exception:
+        return None
+
+
+def eval_day_name(date_text: str) -> str:
+    try:
+        return DAYS_INDO[datetime.strptime(date_text, "%Y-%m-%d").weekday()]
+    except Exception:
+        return "-"
+
+
+def eval_format_date_id(date_text: str) -> str:
+    try:
+        return datetime.strptime(date_text, "%Y-%m-%d").strftime("%d/%m/%Y")
+    except Exception:
+        return normalize_text(date_text) or "-"
+
+
+def eval_format_period_id(date_text: str, time_text: str = "") -> str:
+    time_label = eval_time_to_hhmm(time_text) if time_text else ""
+    base = f"{eval_day_name(date_text)}, {eval_format_date_id(date_text)}"
+    return f"{base} jam {time_label} WIB" if time_label else base
+
+
+def ensure_streaming_evaluation_schema(cursor=None) -> None:
+    ensure_streaming_schema()
+    ensure_misa_besar_schema()
+    ensure_notifications_schema()
+    owns_connection = cursor is None
+    conn = None
+    if owns_connection:
+        conn = mysql_connection()
+        cursor = conn.cursor(buffered=True)
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `streaming_evaluation_settings` (
+              `id` int NOT NULL DEFAULT 1,
+              `start_month` int NOT NULL DEFAULT 5,
+              `start_year` int NOT NULL DEFAULT 2026,
+              `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        cursor.execute(
+            """
+            INSERT IGNORE INTO `streaming_evaluation_settings` (`id`, `start_month`, `start_year`)
+            VALUES (1, 5, 2026)
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `streaming_evaluation_questions` (
+              `id` varchar(100) NOT NULL,
+              `label` varchar(500) NOT NULL,
+              `question_type` varchar(40) NOT NULL DEFAULT 'short_text',
+              `required` tinyint(1) NOT NULL DEFAULT 0,
+              `help_text` text DEFAULT NULL,
+              `options_json` longtext DEFAULT NULL,
+              `order_index` int NOT NULL DEFAULT 0,
+              `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        cursor.execute("SELECT COUNT(*) FROM `streaming_evaluation_questions`")
+        if fetch_scalar_value(cursor.fetchone(), 0) == 0:
+            for idx, q in enumerate(EVAL_DEFAULT_QUESTIONS, start=1):
+                cursor.execute(
+                    """
+                    INSERT INTO `streaming_evaluation_questions`
+                    (`id`, `label`, `question_type`, `required`, `help_text`, `options_json`, `order_index`)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        q["id"], q["label"], q["type"], 1 if q.get("required") else 0,
+                        q.get("helpText") or "", json.dumps(q.get("options") or [], ensure_ascii=False), idx,
+                    ),
+                )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `streaming_evaluations` (
+              `id` int NOT NULL AUTO_INCREMENT,
+              `schedule_kind` varchar(30) NOT NULL,
+              `schedule_key` varchar(120) NOT NULL,
+              `schedule_date` date NOT NULL,
+              `schedule_time` time NOT NULL,
+              `misa_name` varchar(255) NOT NULL,
+              `misa_type_label` varchar(50) NOT NULL,
+              `evaluator_id` int DEFAULT NULL,
+              `evaluator_name` varchar(255) NOT NULL,
+              `evaluator_role` varchar(100) DEFAULT NULL,
+              `staff_json` longtext DEFAULT NULL,
+              `extra_staff_json` longtext DEFAULT NULL,
+              `staff_evaluations_json` longtext DEFAULT NULL,
+              `technical_issue` longtext DEFAULT NULL,
+              `nontechnical_issue` longtext DEFAULT NULL,
+              `checklist_json` longtext DEFAULT NULL,
+              `final_note` longtext DEFAULT NULL,
+              `dynamic_answers_json` longtext DEFAULT NULL,
+              `general_assessment` varchar(100) NOT NULL,
+              `submitted_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `uniq_streaming_evaluation_schedule` (`schedule_kind`, `schedule_key`),
+              KEY `idx_streaming_eval_date` (`schedule_date`, `schedule_time`),
+              KEY `idx_streaming_eval_kind` (`schedule_kind`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        if owns_connection:
+            conn.commit()
+    finally:
+        if owns_connection:
+            cursor.close()
+            conn.close()
+
+
+def eval_get_settings(cursor) -> dict[str, int]:
+    ensure_streaming_evaluation_schema(cursor)
+    cursor.execute("SELECT `start_month`, `start_year` FROM `streaming_evaluation_settings` WHERE `id` = 1 LIMIT 1")
+    row = cursor.fetchone() or {}
+    if not isinstance(row, dict):
+        return {"startMonth": 5, "startYear": 2026}
+    return {"startMonth": parse_required_int(row.get("start_month"), 5), "startYear": parse_required_int(row.get("start_year"), 2026)}
+
+
+def eval_start_date_from_settings(settings: dict[str, int]) -> datetime.date:
+    month = max(1, min(12, parse_required_int(settings.get("startMonth"), 5)))
+    year = parse_required_int(settings.get("startYear"), 2026)
+    return datetime(year, month, 1).date()
+
+
+def eval_question_row_to_dict(row) -> dict[str, object]:
+    if not isinstance(row, dict):
+        return {}
+    return {
+        "id": normalize_text(row.get("id")),
+        "label": normalize_text(row.get("label")),
+        "type": normalize_text(row.get("question_type")) or "short_text",
+        "required": bool(row.get("required")),
+        "helpText": normalize_text(row.get("help_text")),
+        "options": eval_safe_json(row.get("options_json"), []),
+        "orderIndex": parse_required_int(row.get("order_index"), 0),
+    }
+
+
+def eval_fetch_questions(cursor) -> list[dict[str, object]]:
+    ensure_streaming_evaluation_schema(cursor)
+    cursor.execute(
+        """
+        SELECT `id`, `label`, `question_type`, `required`, `help_text`, `options_json`, `order_index`
+        FROM `streaming_evaluation_questions`
+        ORDER BY `order_index` ASC, `created_at` ASC
+        """
+    )
+    rows = [eval_question_row_to_dict(row) for row in cursor.fetchall() or []]
+    return [row for row in rows if row.get("id") and row.get("label")]
+
+
+def eval_normalize_question_payload(items) -> list[dict[str, object]]:
+    normalized = []
+    if not isinstance(items, list):
+        items = []
+    allowed_types = {"short_text", "long_text", "single_choice", "multi_choice"}
+    seen = set()
+    for idx, item in enumerate(items, start=1):
+        if not isinstance(item, dict):
+            continue
+        label = normalize_text(item.get("label"))
+        if not label:
+            continue
+        raw_id = normalize_text(item.get("id")) or re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-") or f"q-{idx}"
+        qid = raw_id[:90]
+        if qid in seen:
+            qid = f"{qid[:75]}-{idx}"
+        seen.add(qid)
+        qtype = normalize_text(item.get("type") or item.get("question_type")) or "short_text"
+        if qtype not in allowed_types:
+            qtype = "short_text"
+        options = item.get("options") if isinstance(item.get("options"), list) else []
+        clean_options = []
+        for opt in options:
+            opt_text = normalize_text(opt)
+            if opt_text and opt_text not in clean_options:
+                clean_options.append(opt_text)
+        if qtype in {"single_choice", "multi_choice"} and not clean_options:
+            clean_options = ["Ya", "Tidak"]
+        normalized.append({
+            "id": qid,
+            "label": label,
+            "type": qtype,
+            "required": bool(item.get("required")),
+            "helpText": normalize_text(item.get("helpText") or item.get("help_text")),
+            "options": clean_options,
+            "orderIndex": idx,
+        })
+    return normalized
+
+
+def eval_evaluation_map(cursor, start_date: str | None = None, end_date: str | None = None) -> dict[tuple[str, str], dict[str, object]]:
+    params = []
+    where = []
+    if start_date:
+        where.append("schedule_date >= %s")
+        params.append(start_date)
+    if end_date:
+        where.append("schedule_date <= %s")
+        params.append(end_date)
+    sql = "SELECT * FROM streaming_evaluations"
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    cursor.execute(sql, tuple(params))
+    result = {}
+    for row in cursor.fetchall() or []:
+        if isinstance(row, dict):
+            result[(normalize_text(row.get("schedule_kind")), normalize_text(row.get("schedule_key")))] = row
+    return result
+
+
+def eval_fetch_active_members(cursor) -> list[dict[str, object]]:
+    cursor.execute(
+        """
+        SELECT id, nama, username, role, status_akun
+        FROM anggota
+        WHERE LOWER(COALESCE(status_akun, 'aktif')) IN ('', 'aktif', 'active')
+        ORDER BY nama ASC, username ASC
+        """
+    )
+    members = []
+    for row in cursor.fetchall() or []:
+        if not isinstance(row, dict):
+            continue
+        members.append({
+            "id": str(row.get("id")),
+            "name": normalize_text(row.get("nama") or row.get("username")),
+            "username": normalize_text(row.get("username")),
+            "accountRole": normalize_role_value(row.get("role") or "user"),
+        })
+    return members
+
+
+def eval_fetch_regular_roles(cursor) -> list[str]:
+    cursor.execute("SELECT role_name FROM streaming_roles ORDER BY order_index ASC, id ASC")
+    roles = [normalize_text(row.get("role_name") if isinstance(row, dict) else row[0]) for row in cursor.fetchall() or []]
+    return [r for r in roles if r]
+
+
+def eval_fetch_regular_config(cursor) -> list[dict[str, object]]:
+    cursor.execute(
+        """
+        SELECT day_name, mass_name, DATE_FORMAT(start_time, '%H:%i') AS start_time
+        FROM streaming_weekly_config
+        ORDER BY FIELD(day_name, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'), start_time ASC
+        """
+    )
+    return cursor.fetchall() or []
+
+
+def eval_fetch_regular_assignments(cursor, start_date: str, end_date: str) -> dict[tuple[str, str], dict[str, dict[str, object]]]:
+    cursor.execute(
+        """
+        SELECT sa.id AS assignment_id, DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS schedule_date,
+               DATE_FORMAT(sa.schedule_time, '%H:%i') AS schedule_time, sa.role_name, sa.member_id,
+               COALESCE(a.nama, CONCAT('ID ', sa.member_id)) AS member_name,
+               COALESCE(a.role, 'user') AS account_role
+        FROM streaming_assignments sa
+        LEFT JOIN anggota a ON a.id = sa.member_id
+        WHERE sa.schedule_date BETWEEN %s AND %s
+        """,
+        (start_date, end_date),
+    )
+    result: dict[tuple[str, str], dict[str, dict[str, object]]] = {}
+    for row in cursor.fetchall() or []:
+        date_text = normalize_text(row.get("schedule_date"))
+        time_text = eval_time_to_hhmm(row.get("schedule_time"))
+        key = (date_text, time_text)
+        result.setdefault(key, {})[normalize_text(row.get("role_name"))] = {
+            "assignmentId": row.get("assignment_id"),
+            "role": normalize_text(row.get("role_name")),
+            "memberId": str(row.get("member_id")),
+            "memberName": normalize_text(row.get("member_name")),
+            "accountRole": normalize_role_value(row.get("account_role") or "user"),
+        }
+    return result
+
+
+def eval_fetch_regular_blocked(cursor, start_date: str, end_date: str) -> set[tuple[str, str]]:
+    blocked = set()
+    cursor.execute(
+        """
+        SELECT DATE_FORMAT(mass_date, '%Y-%m-%d') AS mass_date, DATE_FORMAT(mass_time, '%H:%i') AS mass_time
+        FROM streaming_cancelled
+        WHERE mass_date BETWEEN %s AND %s
+        """,
+        (start_date, end_date),
+    )
+    for row in cursor.fetchall() or []:
+        blocked.add((normalize_text(row.get("mass_date")), eval_time_to_hhmm(row.get("mass_time"))))
+    cursor.execute(
+        """
+        SELECT DATE_FORMAT(misa_date, '%Y-%m-%d') AS misa_date, DATE_FORMAT(misa_time, '%H:%i') AS misa_time
+        FROM misa_besar
+        WHERE status = 'published' AND misa_date BETWEEN %s AND %s
+        """,
+        (start_date, end_date),
+    )
+    for row in cursor.fetchall() or []:
+        blocked.add((normalize_text(row.get("misa_date")), eval_time_to_hhmm(row.get("misa_time"))))
+    return blocked
+
+
+def eval_schedule_member_ids(schedule: dict[str, object]) -> set[str]:
+    result = set()
+    for staff in schedule.get("staff") or []:
+        mid = normalize_text(staff.get("memberId") if isinstance(staff, dict) else "")
+        if mid:
+            result.add(mid)
+    return result
+
+
+def eval_schedule_has_staff(schedule: dict[str, object]) -> bool:
+    return any(normalize_text(s.get("memberId")) for s in (schedule.get("staff") or []) if isinstance(s, dict))
+
+
+def eval_build_regular_schedules(cursor, start_date: datetime.date, end_date: datetime.date) -> list[dict[str, object]]:
+    roles = eval_fetch_regular_roles(cursor)
+    cfg_rows = eval_fetch_regular_config(cursor)
+    assignments = eval_fetch_regular_assignments(cursor, start_date.isoformat(), end_date.isoformat())
+    blocked = eval_fetch_regular_blocked(cursor, start_date.isoformat(), end_date.isoformat())
+    schedules = []
+    current = start_date
+    while current <= end_date:
+        day_name = DAYS_INDO[current.weekday()]
+        for cfg in cfg_rows:
+            if normalize_text(cfg.get("day_name")) != day_name:
+                continue
+            date_text = current.isoformat()
+            time_text = eval_time_to_hhmm(cfg.get("start_time"))
+            if (date_text, time_text) in blocked:
+                continue
+            staff = []
+            assigned_by_role = assignments.get((date_text, time_text), {})
+            for role in roles:
+                assigned = assigned_by_role.get(role) or {}
+                staff.append({
+                    "slotId": f"biasa:{date_text}:{time_text}:{role}",
+                    "assignmentId": assigned.get("assignmentId"),
+                    "role": role,
+                    "roleId": role,
+                    "memberId": assigned.get("memberId") or "",
+                    "memberName": assigned.get("memberName") or "Belum terisi",
+                    "accountRole": assigned.get("accountRole") or "",
+                    "attendance": "present" if assigned.get("memberId") else "empty",
+                })
+            schedules.append({
+                "kind": "misa_biasa",
+                "kindLabel": "Misa Biasa",
+                "scheduleKey": f"biasa:{date_text}:{time_text}",
+                "id": f"misa_biasa|biasa:{date_text}:{time_text}",
+                "misaId": None,
+                "misaName": normalize_text(cfg.get("mass_name")) or "Misa Biasa",
+                "date": date_text,
+                "time": time_text,
+                "dayName": day_name,
+                "dateText": eval_format_date_id(date_text),
+                "displayDateTime": eval_format_period_id(date_text, time_text),
+                "staff": staff,
+            })
+        current += timedelta(days=1)
+    return schedules
+
+
+def eval_build_misa_besar_schedules(cursor, start_date: datetime.date, end_date: datetime.date) -> list[dict[str, object]]:
+    cursor.execute(
+        """
+        SELECT id, misa_name, DATE_FORMAT(misa_date, '%Y-%m-%d') AS misa_date,
+               DATE_FORMAT(misa_time, '%H:%i') AS misa_time, misa_note, allow_member_request, status
+        FROM misa_besar
+        WHERE status = 'published' AND misa_date BETWEEN %s AND %s
+        ORDER BY misa_date ASC, misa_time ASC, id ASC
+        """,
+        (start_date.isoformat(), end_date.isoformat()),
+    )
+    events = cursor.fetchall() or []
+    schedules = []
+    for ev in events:
+        misa_id = ev.get("id")
+        cursor.execute(
+            """
+            SELECT n.id AS role_id, n.role_name, n.required_count,
+                   a.id AS assignment_id, a.member_id,
+                   COALESCE(ag.nama, CONCAT('ID ', a.member_id)) AS member_name,
+                   COALESCE(ag.role, 'user') AS account_role
+            FROM misa_besar_names n
+            LEFT JOIN misa_besar_assignments a ON a.role_id = n.id
+            LEFT JOIN anggota ag ON ag.id = a.member_id
+            WHERE n.misa_id = %s
+            ORDER BY n.id ASC, a.id ASC
+            """,
+            (misa_id,),
+        )
+        grouped: dict[str, dict[str, object]] = {}
+        for row in cursor.fetchall() or []:
+            role_id = str(row.get("role_id"))
+            if role_id not in grouped:
+                grouped[role_id] = {
+                    "roleId": role_id,
+                    "role": normalize_text(row.get("role_name")) or "Role",
+                    "requiredCount": max(1, parse_required_int(row.get("required_count"), 1)),
+                    "assignments": [],
+                }
+            if row.get("assignment_id"):
+                grouped[role_id]["assignments"].append({
+                    "assignmentId": row.get("assignment_id"),
+                    "memberId": str(row.get("member_id")),
+                    "memberName": normalize_text(row.get("member_name")),
+                    "accountRole": normalize_role_value(row.get("account_role") or "user"),
+                })
+        staff = []
+        for role_data in grouped.values():
+            assignments = role_data.get("assignments") or []
+            required = max(len(assignments), parse_required_int(role_data.get("requiredCount"), 1))
+            for idx in range(required):
+                assigned = assignments[idx] if idx < len(assignments) else {}
+                staff.append({
+                    "slotId": f"besar:{misa_id}:{role_data.get('roleId')}:{idx}",
+                    "assignmentId": assigned.get("assignmentId"),
+                    "role": role_data.get("role"),
+                    "roleId": role_data.get("roleId"),
+                    "memberId": assigned.get("memberId") or "",
+                    "memberName": assigned.get("memberName") or "Belum terisi",
+                    "accountRole": assigned.get("accountRole") or "",
+                    "attendance": "present" if assigned.get("memberId") else "empty",
+                })
+        date_text = normalize_text(ev.get("misa_date"))
+        time_text = eval_time_to_hhmm(ev.get("misa_time"))
+        schedules.append({
+            "kind": "misa_besar",
+            "kindLabel": "Misa Besar",
+            "scheduleKey": f"besar:{misa_id}",
+            "id": f"misa_besar|besar:{misa_id}",
+            "misaId": misa_id,
+            "misaName": normalize_text(ev.get("misa_name")) or "Misa Besar",
+            "note": normalize_text(ev.get("misa_note")),
+            "allowMemberRequest": bool(ev.get("allow_member_request")),
+            "date": date_text,
+            "time": time_text,
+            "dayName": eval_day_name(date_text),
+            "dateText": eval_format_date_id(date_text),
+            "displayDateTime": eval_format_period_id(date_text, time_text),
+            "staff": staff,
+        })
+    return schedules
+
+
+def eval_period_bounds(scale: str, year: int | None = None, month: int | None = None, week: int | None = None) -> tuple[datetime.date, datetime.date]:
+    now = datetime.now()
+    scale = normalize_text(scale) or "month"
+    if scale == "all":
+        return datetime(1900, 1, 1).date(), datetime(2999, 12, 31).date()
+    if scale == "year":
+        y = year or now.year
+        return datetime(y, 1, 1).date(), datetime(y, 12, 31).date()
+    if scale == "week":
+        y = year or now.year
+        w = max(1, min(53, parse_required_int(week, int(now.strftime('%V')))))
+        start = datetime.strptime(f"{y}-W{w:02d}-1", "%G-W%V-%u").date()
+        return start, start + timedelta(days=6)
+    y = year or now.year
+    m = month or now.month
+    m = max(1, min(12, m))
+    start = datetime(y, m, 1).date()
+    end = datetime(y, m, calendar.monthrange(y, m)[1]).date()
+    return start, end
+
+
+def eval_all_schedules(cursor, start_date: datetime.date, end_date: datetime.date, kind: str = "all") -> list[dict[str, object]]:
+    settings = eval_get_settings(cursor)
+    min_start = eval_start_date_from_settings(settings)
+    if start_date < min_start:
+        start_date = min_start
+    if end_date < start_date:
+        return []
+    schedules = []
+    if kind in {"all", "misa_biasa", "biasa"}:
+        schedules.extend(eval_build_regular_schedules(cursor, start_date, end_date))
+    if kind in {"all", "misa_besar", "besar"}:
+        schedules.extend(eval_build_misa_besar_schedules(cursor, start_date, end_date))
+    schedules.sort(key=lambda item: (item.get("date") or "", item.get("time") or "", item.get("kindLabel") or ""))
+    return schedules
+
+
+def eval_find_schedule(cursor, schedule_id: str) -> dict[str, object] | None:
+    raw = normalize_text(schedule_id)
+    if "|" not in raw:
+        return None
+    kind, key = raw.split("|", 1)
+    # Build a narrow period where possible.
+    if kind == "misa_besar" and key.startswith("besar:"):
+        misa_id = key.split(":", 1)[1]
+        cursor.execute("SELECT DATE_FORMAT(misa_date, '%Y-%m-%d') AS d FROM misa_besar WHERE id = %s LIMIT 1", (misa_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = datetime.strptime(row.get("d"), "%Y-%m-%d").date()
+        schedules = eval_all_schedules(cursor, d, d, "misa_besar")
+    elif kind == "misa_biasa" and key.startswith("biasa:"):
+        parts = key.split(":")
+        if len(parts) < 3:
+            return None
+        d = datetime.strptime(parts[1], "%Y-%m-%d").date()
+        schedules = eval_all_schedules(cursor, d, d, "misa_biasa")
+    else:
+        return None
+    for schedule in schedules:
+        if schedule.get("id") == raw:
+            return schedule
+    return None
+
+
+def eval_row_to_dict(row: dict[str, object]) -> dict[str, object]:
+    date_text = eval_date_to_iso(row.get("schedule_date"))
+    time_text = eval_time_to_hhmm(row.get("schedule_time"))
+    return {
+        "id": row.get("id"),
+        "kind": normalize_text(row.get("schedule_kind")),
+        "kindLabel": normalize_text(row.get("misa_type_label")) or ("Misa Besar" if normalize_text(row.get("schedule_kind")) == "misa_besar" else "Misa Biasa"),
+        "scheduleKey": normalize_text(row.get("schedule_key")),
+        "scheduleId": f"{normalize_text(row.get('schedule_kind'))}|{normalize_text(row.get('schedule_key'))}",
+        "date": date_text,
+        "time": time_text,
+        "dayName": eval_day_name(date_text),
+        "displayDateTime": eval_format_period_id(date_text, time_text),
+        "misaName": normalize_text(row.get("misa_name")),
+        "evaluatorId": row.get("evaluator_id"),
+        "evaluatorName": normalize_text(row.get("evaluator_name")),
+        "evaluatorRole": normalize_text(row.get("evaluator_role")),
+        "staff": eval_safe_json(row.get("staff_json"), []),
+        "extraStaff": eval_safe_json(row.get("extra_staff_json"), []),
+        "staffEvaluations": eval_safe_json(row.get("staff_evaluations_json"), []),
+        "technicalIssue": normalize_text(row.get("technical_issue")),
+        "nontechnicalIssue": normalize_text(row.get("nontechnical_issue")),
+        "checklist": eval_safe_json(row.get("checklist_json"), {}),
+        "finalNote": normalize_text(row.get("final_note")),
+        "dynamicAnswers": eval_safe_json(row.get("dynamic_answers_json"), []),
+        "generalAssessment": normalize_text(row.get("general_assessment")),
+        "submittedAt": row.get("submitted_at").isoformat() if row.get("submitted_at") else None,
+    }
+
+
+def eval_fetch_evaluations(cursor, start_date: str | None = None, end_date: str | None = None, kind: str = "all", search: str = "", sort: str = "date_asc") -> list[dict[str, object]]:
+    params = []
+    where = []
+    if start_date:
+        where.append("schedule_date >= %s")
+        params.append(start_date)
+    if end_date:
+        where.append("schedule_date <= %s")
+        params.append(end_date)
+    if kind in {"misa_biasa", "misa_besar"}:
+        where.append("schedule_kind = %s")
+        params.append(kind)
+    sql = "SELECT * FROM streaming_evaluations"
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    cursor.execute(sql, tuple(params))
+    rows = [eval_row_to_dict(row) for row in cursor.fetchall() or []]
+    kw = normalize_text(search).lower()
+    if kw:
+        rows = [r for r in rows if kw in " ".join([normalize_text(r.get("misaName")), normalize_text(r.get("kindLabel")), normalize_text(r.get("evaluatorName")), normalize_text(r.get("generalAssessment")), normalize_text(r.get("finalNote"))]).lower()]
+    if sort == "date_desc":
+        rows.sort(key=lambda r: (r.get("date") or "", r.get("time") or ""), reverse=True)
+    elif sort == "submitted_desc":
+        rows.sort(key=lambda r: r.get("submittedAt") or "", reverse=True)
+    elif sort == "submitted_asc":
+        rows.sort(key=lambda r: r.get("submittedAt") or "")
+    else:
+        rows.sort(key=lambda r: (r.get("date") or "", r.get("time") or ""))
+    return rows
+
+
+def eval_upsert_regular_assignment(cursor, schedule, staff_slot):
+    date_text = schedule.get("date")
+    time_text = schedule.get("time")
+    role = normalize_text(staff_slot.get("role"))
+    attendance = normalize_text(staff_slot.get("attendance"))
+    actual_member_id = normalize_text(staff_slot.get("actualMemberId") or staff_slot.get("memberId"))
+    if not role:
+        return
+    if attendance == "not_attend" or not actual_member_id:
+        cursor.execute(
+            "DELETE FROM streaming_assignments WHERE schedule_date = %s AND DATE_FORMAT(schedule_time, '%H:%i') = %s AND role_name = %s",
+            (date_text, time_text, role),
+        )
+        return
+    cursor.execute(
+        """
+        INSERT INTO streaming_assignments (schedule_date, schedule_time, role_name, member_id, request_source, created_at)
+        VALUES (%s, %s, %s, %s, 'evaluasi', NOW())
+        ON DUPLICATE KEY UPDATE member_id = VALUES(member_id), request_source = 'evaluasi', created_at = NOW()
+        """,
+        (date_text, time_text, role, actual_member_id),
+    )
+
+
+def eval_upsert_misa_besar_assignment(cursor, schedule, staff_slot):
+    role_id = normalize_text(staff_slot.get("roleId"))
+    assignment_id = normalize_text(staff_slot.get("assignmentId"))
+    attendance = normalize_text(staff_slot.get("attendance"))
+    actual_member_id = normalize_text(staff_slot.get("actualMemberId") or staff_slot.get("memberId"))
+    if not role_id:
+        return
+    if attendance == "not_attend" or not actual_member_id:
+        if assignment_id:
+            cursor.execute("DELETE FROM misa_besar_assignments WHERE id = %s", (assignment_id,))
+        return
+    if assignment_id:
+        cursor.execute("UPDATE misa_besar_assignments SET member_id = %s, request_source = 'evaluasi', created_at = NOW() WHERE id = %s", (actual_member_id, assignment_id))
+    else:
+        cursor.execute("INSERT IGNORE INTO misa_besar_assignments (role_id, member_id, request_source, created_at) VALUES (%s, %s, 'evaluasi', NOW())", (role_id, actual_member_id))
+
+
+def eval_create_urgent_notifications(cursor, evaluation: dict[str, object]) -> int:
+    general = normalize_text(evaluation.get("generalAssessment")).lower()
+    if "urgent" not in general and "serius" not in general:
+        return 0
+    title = f"Evaluasi Urgent: {evaluation.get('misaName') or 'Jadwal Streaming'}"
+    body = (
+        f"Ada evaluasi streaming berstatus <b>{html.escape(evaluation.get('generalAssessment') or 'Urgent')}</b> "
+        f"untuk <b>{html.escape(evaluation.get('misaName') or '-')}</b> pada {html.escape(evaluation.get('displayDateTime') or '-')}. "
+        f"Pengisi: <b>{html.escape(evaluation.get('evaluatorName') or '-')}</b>."
+    )
+    create_notification_once(
+        cursor,
+        "evaluasi",
+        title,
+        body,
+        "/hasil-evaluasi-streaming.html",
+        {"notification_kind": "streaming_evaluation_urgent", "evaluation_id": evaluation.get("id")},
+        target_role="admin",
+        dedupe_key=f"eval-urgent:admin:{evaluation.get('id')}",
+    )
+    create_notification_once(
+        cursor,
+        "evaluasi",
+        title,
+        body,
+        "/hasil-evaluasi-streaming.html",
+        {"notification_kind": "streaming_evaluation_urgent", "evaluation_id": evaluation.get("id")},
+        target_role="super_admin",
+        dedupe_key=f"eval-urgent:super:{evaluation.get('id')}",
+    )
+    return 2
+
+
+def eval_validate_submit_payload(payload: dict[str, object]) -> tuple[bool, str]:
+    if not normalize_text(payload.get("scheduleId")):
+        return False, "Jadwal evaluasi wajib dipilih."
+    if not normalize_text(payload.get("evaluatorName")) and not current_user_context().get("logged_in"):
+        return False, "Nama pengisi evaluasi wajib dipilih."
+    if not normalize_text(payload.get("technicalIssue")):
+        return False, "Kendala teknis wajib diisi."
+    if not normalize_text(payload.get("nontechnicalIssue")):
+        return False, "Kendala non-teknis wajib diisi."
+    checklist = payload.get("checklist") if isinstance(payload.get("checklist"), dict) else {}
+    for key in EVAL_REQUIRED_CHECKS:
+        if not checklist.get(key):
+            return False, "Checklist kondisi pelayanan wajib dicentang."
+    if not normalize_text(payload.get("generalAssessment")):
+        return False, "Penilaian umum wajib dipilih."
+    return True, ""
+
+
+@app.route("/api/evaluasi-streaming/settings", methods=["GET", "POST"])
+def api_streaming_evaluation_settings():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        if request.method == "POST":
+            if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+                return jsonify({"success": False, "error": "Akses ditolak."}), 403
+            data = request.get_json(silent=True) or {}
+            month = max(1, min(12, parse_required_int(data.get("startMonth"), 5)))
+            year = max(2000, parse_required_int(data.get("startYear"), 2026))
+            cursor.execute("UPDATE streaming_evaluation_settings SET start_month = %s, start_year = %s WHERE id = 1", (month, year))
+            conn.commit()
+        return jsonify({"success": True, "settings": eval_get_settings(cursor)})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/questions", methods=["GET", "POST"])
+def api_streaming_evaluation_questions():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        if request.method == "POST":
+            if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+                return jsonify({"success": False, "error": "Akses ditolak."}), 403
+            data = request.get_json(silent=True) or {}
+            questions = eval_normalize_question_payload(data.get("questions"))
+            if not questions:
+                return jsonify({"success": False, "error": "Tambahkan minimal 1 pertanyaan."}), 400
+            cursor.execute("DELETE FROM streaming_evaluation_questions")
+            for idx, q in enumerate(questions, start=1):
+                cursor.execute(
+                    """
+                    INSERT INTO streaming_evaluation_questions
+                    (id, label, question_type, required, help_text, options_json, order_index)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (q["id"], q["label"], q["type"], 1 if q.get("required") else 0, q.get("helpText") or "", json.dumps(q.get("options") or [], ensure_ascii=False), idx),
+                )
+            conn.commit()
+        return jsonify({"success": True, "questions": eval_fetch_questions(cursor)})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/questions/reset", methods=["POST"])
+def api_streaming_evaluation_questions_reset():
+    if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        cursor.execute("DELETE FROM streaming_evaluation_questions")
+        for idx, q in enumerate(EVAL_DEFAULT_QUESTIONS, start=1):
+            cursor.execute(
+                """
+                INSERT INTO streaming_evaluation_questions
+                (id, label, question_type, required, help_text, options_json, order_index)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (q["id"], q["label"], q["type"], 1 if q.get("required") else 0, q.get("helpText") or "", json.dumps(q.get("options") or [], ensure_ascii=False), idx),
+            )
+        conn.commit()
+        return jsonify({"success": True, "questions": eval_fetch_questions(cursor)})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/members", methods=["GET"])
+def api_streaming_evaluation_members():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_auth_schema()
+        return jsonify({"success": True, "members": eval_fetch_active_members(cursor), "currentUser": current_user_context()})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/schedules", methods=["GET"])
+def api_streaming_evaluation_schedules():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        now = datetime.now()
+        settings = eval_get_settings(cursor)
+        start_setting = eval_start_date_from_settings(settings)
+        kind = normalize_text(request.args.get("kind") or "all")
+        mode = normalize_text(request.args.get("mode") or "form")
+        include_evaluated = normalize_text(request.args.get("includeEvaluated") or "0") in {"1", "true", "yes"}
+        # Search a useful window: from configured start until now for public form; current year for member/admin if requested.
+        start_date = parse_optional_date(request.args.get("startDate"))
+        end_date = parse_optional_date(request.args.get("endDate"))
+        if start_date:
+            start = datetime.strptime(start_date, "%Y-%m-%d").date()
+        else:
+            start = start_setting
+        if end_date:
+            end = datetime.strptime(end_date, "%Y-%m-%d").date()
+        else:
+            end = now.date()
+        schedules = eval_all_schedules(cursor, start, end, kind)
+        evals = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+        rows = []
+        for schedule in schedules:
+            dt = eval_datetime_from_parts(schedule.get("date"), schedule.get("time"))
+            is_due = bool(dt and dt <= now)
+            has_staff = eval_schedule_has_staff(schedule)
+            ev = evals.get((schedule.get("kind"), schedule.get("scheduleKey")))
+            schedule["evaluated"] = bool(ev)
+            schedule["evaluationId"] = ev.get("id") if ev else None
+            schedule["due"] = is_due
+            schedule["hasStaff"] = has_staff
+            if mode == "form" and (not is_due or not has_staff or (ev and not include_evaluated)):
+                continue
+            rows.append(schedule)
+        return jsonify({"success": True, "schedules": rows, "questions": eval_fetch_questions(cursor), "settings": settings, "currentUser": current_user_context()})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/schedule-detail", methods=["GET"])
+def api_streaming_evaluation_schedule_detail():
+    schedule_id = normalize_text(request.args.get("scheduleId"))
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        schedule = eval_find_schedule(cursor, schedule_id)
+        if not schedule:
+            return jsonify({"success": False, "error": "Jadwal tidak ditemukan."}), 404
+        ev_map = eval_evaluation_map(cursor, schedule.get("date"), schedule.get("date"))
+        ev = ev_map.get((schedule.get("kind"), schedule.get("scheduleKey")))
+        return jsonify({"success": True, "schedule": schedule, "evaluation": eval_row_to_dict(ev) if ev else None, "questions": eval_fetch_questions(cursor), "members": eval_fetch_active_members(cursor), "currentUser": current_user_context()})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/submit", methods=["POST"])
+def api_streaming_evaluation_submit():
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        payload = request.get_json(silent=True) or {}
+        valid, message = eval_validate_submit_payload(payload)
+        if not valid:
+            return jsonify({"success": False, "error": message}), 400
+        schedule = eval_find_schedule(cursor, normalize_text(payload.get("scheduleId")))
+        if not schedule:
+            return jsonify({"success": False, "error": "Jadwal tidak ditemukan."}), 404
+        dt = eval_datetime_from_parts(schedule.get("date"), schedule.get("time"))
+        if not dt or dt > datetime.now():
+            return jsonify({"success": False, "error": "Evaluasi baru bisa diisi setelah jadwal misa dimulai."}), 400
+        if not eval_schedule_has_staff(schedule):
+            return jsonify({"success": False, "error": "Jadwal ini belum memiliki petugas."}), 400
+        cursor.execute("SELECT id FROM streaming_evaluations WHERE schedule_kind = %s AND schedule_key = %s LIMIT 1", (schedule.get("kind"), schedule.get("scheduleKey")))
+        if cursor.fetchone():
+            return jsonify({"success": False, "error": "Evaluasi untuk jadwal ini sudah pernah diisi."}), 409
+
+        viewer = current_user_context()
+        evaluator_id = viewer.get("user_id") if viewer.get("logged_in") else payload.get("evaluatorId")
+        evaluator_name = normalize_text(viewer.get("nama") if viewer.get("logged_in") else payload.get("evaluatorName"))
+        evaluator_role = normalize_text(payload.get("evaluatorRole"))
+        if viewer.get("logged_in") and not evaluator_role:
+            # Find role for this user in selected schedule.
+            for staff in schedule.get("staff") or []:
+                if normalize_text(staff.get("memberId")) == normalize_text(viewer.get("user_id")):
+                    evaluator_role = normalize_text(staff.get("role"))
+                    break
+        if not evaluator_name:
+            return jsonify({"success": False, "error": "Nama pengisi evaluasi wajib diisi."}), 400
+
+        submitted_staff = payload.get("staff") if isinstance(payload.get("staff"), list) else schedule.get("staff") or []
+        final_staff = []
+        active_members_map = {str(m.get("id")): m for m in eval_fetch_active_members(cursor)}
+        for raw_slot in submitted_staff:
+            if not isinstance(raw_slot, dict):
+                continue
+            slot = dict(raw_slot)
+            slot.setdefault("role", raw_slot.get("role"))
+            slot.setdefault("roleId", raw_slot.get("roleId"))
+            slot.setdefault("assignmentId", raw_slot.get("assignmentId"))
+            attendance = normalize_text(raw_slot.get("attendance") or "present")
+            actual_id = normalize_text(raw_slot.get("actualMemberId") or raw_slot.get("memberId"))
+            if attendance == "not_attend":
+                slot["actualMemberId"] = ""
+                slot["actualMemberName"] = "Tidak datang"
+                slot["attendance"] = "not_attend"
+            else:
+                member_info = active_members_map.get(actual_id)
+                slot["actualMemberId"] = actual_id
+                slot["actualMemberName"] = normalize_text(member_info.get("name") if member_info else raw_slot.get("actualMemberName") or raw_slot.get("memberName"))
+                slot["attendance"] = "present"
+            final_staff.append(slot)
+            if schedule.get("kind") == "misa_biasa":
+                eval_upsert_regular_assignment(cursor, schedule, slot)
+            else:
+                eval_upsert_misa_besar_assignment(cursor, schedule, slot)
+
+        extra_staff = payload.get("extraStaff") if isinstance(payload.get("extraStaff"), list) else []
+        staff_evals = payload.get("staffEvaluations") if isinstance(payload.get("staffEvaluations"), list) else []
+        dynamic_answers = payload.get("dynamicAnswers") if isinstance(payload.get("dynamicAnswers"), list) else []
+        checklist = payload.get("checklist") if isinstance(payload.get("checklist"), dict) else {}
+        general = normalize_text(payload.get("generalAssessment"))
+
+        cursor.execute(
+            """
+            INSERT INTO streaming_evaluations
+            (schedule_kind, schedule_key, schedule_date, schedule_time, misa_name, misa_type_label,
+             evaluator_id, evaluator_name, evaluator_role, staff_json, extra_staff_json, staff_evaluations_json,
+             technical_issue, nontechnical_issue, checklist_json, final_note, dynamic_answers_json, general_assessment, submitted_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            """,
+            (
+                schedule.get("kind"), schedule.get("scheduleKey"), schedule.get("date"), schedule.get("time"),
+                schedule.get("misaName"), schedule.get("kindLabel"), evaluator_id, evaluator_name, evaluator_role,
+                json.dumps(final_staff, ensure_ascii=False), json.dumps(extra_staff, ensure_ascii=False), json.dumps(staff_evals, ensure_ascii=False),
+                normalize_text(payload.get("technicalIssue")), normalize_text(payload.get("nontechnicalIssue")), json.dumps(checklist, ensure_ascii=False),
+                normalize_text(payload.get("finalNote")), json.dumps(dynamic_answers, ensure_ascii=False), general,
+            ),
+        )
+        evaluation_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM streaming_evaluations WHERE id = %s", (evaluation_id,))
+        evaluation = eval_row_to_dict(cursor.fetchone())
+        eval_create_urgent_notifications(cursor, evaluation)
+        conn.commit()
+        return jsonify({"success": True, "evaluation": evaluation})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/member", methods=["GET"])
+def api_streaming_evaluation_member():
+    if not session.get("logged_in"):
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        viewer = current_user_context()
+        member_id = normalize_text(viewer.get("user_id"))
+        now = datetime.now()
+        month = request.args.get("month")
+        year = request.args.get("year")
+        selected_month = parse_required_int(month, now.month) if normalize_text(month) not in {"all", ""} else now.month
+        selected_year = parse_required_int(year, now.year) if normalize_text(year) not in {"all", ""} else now.year
+        start, end = eval_period_bounds("month", selected_year, selected_month)
+        kind = normalize_text(request.args.get("kind") or "all")
+        status = normalize_text(request.args.get("status") or "all")
+        schedules = eval_all_schedules(cursor, start, end, kind)
+        evals = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+        items = []
+        total_all = 0
+        displayed = 0
+        completed = 0
+        not_filled = 0
+        progress_by_kind: dict[str, dict[str, object]] = {}
+        for s in schedules:
+            if member_id not in eval_schedule_member_ids(s):
+                continue
+            total_all += 1
+            dt = eval_datetime_from_parts(s.get("date"), s.get("time"))
+            is_due = bool(dt and dt <= now)
+            ev = evals.get((s.get("kind"), s.get("scheduleKey")))
+            if is_due:
+                displayed += 1
+                if ev:
+                    completed += 1
+                else:
+                    not_filled += 1
+            p = progress_by_kind.setdefault(s.get("kind"), {"kind": s.get("kind"), "kindLabel": s.get("kindLabel"), "total": 0, "done": 0})
+            p["total"] += 1
+            if is_due:
+                p["done"] += 1
+            s["evaluated"] = bool(ev)
+            s["evaluationId"] = ev.get("id") if ev else None
+            s["due"] = is_due
+            if status == "filled" and not ev:
+                continue
+            if status == "empty" and ev:
+                continue
+            items.append(s)
+        progress = []
+        for row in progress_by_kind.values():
+            total = row.get("total") or 0
+            done = row.get("done") or 0
+            row["percentage"] = round((done / total) * 100) if total else 0
+            progress.append(row)
+        progress.sort(key=lambda r: r.get("kindLabel") or "")
+        items.sort(key=lambda r: (r.get("date") or "", r.get("time") or ""), reverse=normalize_text(request.args.get("sort")) == "date_desc")
+        return jsonify({
+            "success": True,
+            "currentUser": viewer,
+            "stats": {"totalSessions": total_all, "displayed": displayed, "filled": completed, "empty": not_filled},
+            "progress": progress,
+            "items": items,
+            "questions": eval_fetch_questions(cursor),
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/admin/results", methods=["GET"])
+def api_streaming_evaluation_admin_results():
+    if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        now = datetime.now()
+        scale = normalize_text(request.args.get("scale") or "month")
+        year = parse_required_int(request.args.get("year"), now.year)
+        month = parse_required_int(request.args.get("month"), now.month)
+        week = parse_required_int(request.args.get("week"), int(now.strftime("%V")))
+        kind = normalize_text(request.args.get("kind") or "all")
+        search = normalize_text(request.args.get("search"))
+        sort = normalize_text(request.args.get("sort") or "date_asc")
+        start, end = eval_period_bounds(scale, year, month, week)
+        schedules = eval_all_schedules(cursor, start, end, kind)
+        schedule_due = []
+        for s in schedules:
+            dt = eval_datetime_from_parts(s.get("date"), s.get("time"))
+            if dt and dt <= now and eval_schedule_has_staff(s):
+                schedule_due.append(s)
+        evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), kind, search, sort)
+        eval_keys = {(e.get("kind"), e.get("scheduleKey")) for e in evaluations}
+        all_eval_map = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+        pending = []
+        kw = search.lower()
+        for s in schedule_due:
+            if (s.get("kind"), s.get("scheduleKey")) in all_eval_map:
+                continue
+            if kw and kw not in " ".join([normalize_text(s.get("misaName")), normalize_text(s.get("kindLabel")), normalize_text(s.get("displayDateTime"))]).lower():
+                continue
+            pending.append(s)
+        pending.sort(key=lambda r: (r.get("date") or "", r.get("time") or ""))
+        urgent_count = sum(1 for e in evaluations if ("urgent" in normalize_text(e.get("generalAssessment")).lower() or "serius" in normalize_text(e.get("generalAssessment")).lower()))
+        total_misa = len([s for s in schedules if eval_datetime_from_parts(s.get("date"), s.get("time")) and eval_datetime_from_parts(s.get("date"), s.get("time")) <= now])
+        summary = eval_build_admin_summary(evaluations, pending)
+        return jsonify({
+            "success": True,
+            "period": {"start": start.isoformat(), "end": end.isoformat(), "scale": scale, "month": month, "year": year, "week": week},
+            "metrics": {"evaluationsIn": len(evaluations), "missed": len(pending), "totalMisa": total_misa, "urgent": urgent_count},
+            "summary": summary,
+            "evaluations": evaluations,
+            "pending": pending,
+            "currentUser": current_user_context(),
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def eval_build_admin_summary(evaluations: list[dict[str, object]], pending: list[dict[str, object]]) -> dict[str, object]:
+    count = len(evaluations)
+    rating_scores = {"Sangat Baik": 4, "Baik": 3, "Cukup": 2, "Perlu Pendampingan": 1}
+    rating_counts: dict[str, int] = {"Sangat Baik": 0, "Baik": 0, "Cukup": 0, "Perlu Pendampingan": 0}
+    general_counts: dict[str, int] = {"Aman": 0, "Kendala Ringan": 0, "Kendala Serius (Urgent)": 0}
+    checklist_stream = 0
+    checklist_coord = 0
+    technical_min = 0
+    nontechnical_min = 0
+    total_staff_score = 0
+    total_staff = 0
+    dynamic_answer_count = 0
+    for e in evaluations:
+        general = normalize_text(e.get("generalAssessment")) or "Aman"
+        general_counts[general] = general_counts.get(general, 0) + 1
+        tech = normalize_text(e.get("technicalIssue")).lower()
+        nontech = normalize_text(e.get("nontechnicalIssue")).lower()
+        if tech in {"-", "tidak ada", "aman", "none"} or len(tech) < 5:
+            technical_min += 1
+        if nontech in {"-", "tidak ada", "aman", "none"} or len(nontech) < 5:
+            nontechnical_min += 1
+        checklist = e.get("checklist") or {}
+        if checklist.get("streaming_lancar"):
+            checklist_stream += 1
+        if checklist.get("koordinasi_baik"):
+            checklist_coord += 1
+        for staff_eval in e.get("staffEvaluations") or []:
+            rating = normalize_text(staff_eval.get("rating") if isinstance(staff_eval, dict) else "")
+            if rating in rating_counts:
+                rating_counts[rating] += 1
+            if rating in rating_scores:
+                total_staff_score += rating_scores[rating]
+                total_staff += 1
+        for ans in e.get("dynamicAnswers") or []:
+            if isinstance(ans, dict):
+                val = ans.get("answer")
+                if (isinstance(val, list) and val) or normalize_text(val):
+                    dynamic_answer_count += 1
+    avg_staff = round(total_staff_score / total_staff, 2) if total_staff else 0
+    checklist_rate = round(((checklist_stream + checklist_coord) / (count * 2)) * 100) if count else 0
+    safe_count = general_counts.get("Aman", 0)
+    urgent_count = sum(v for k, v in general_counts.items() if "Urgent" in k or "Serius" in k)
+    insight = "Belum ada evaluasi pada periode ini."
+    if count:
+        insight = f"Dalam periode ini terdapat {count} evaluasi masuk. Rata-rata penilaian petugas {avg_staff}/4, kepatuhan checklist {checklist_rate}%, dan {urgent_count} sesi masuk kategori urgent."
+    recommendation = "Prioritaskan pengisian evaluasi untuk misa yang sudah lewat dan belum diisi."
+    if urgent_count:
+        recommendation = "Segera cek evaluasi urgent dan tindak lanjuti kendala teknis/non-teknis yang tercatat."
+    elif count and checklist_rate >= 80:
+        recommendation = "Pertahankan pola koordinasi dan dokumentasikan praktik yang sudah berjalan baik."
+    return {
+        "averageStaffScore": avg_staff,
+        "checklistRate": checklist_rate,
+        "generalSafeRate": round((safe_count / count) * 100) if count else 0,
+        "generalUrgentCount": urgent_count,
+        "dynamicAnswerCount": dynamic_answer_count,
+        "ratingCounts": rating_counts,
+        "generalCounts": general_counts,
+        "technicalMinRate": round((technical_min / count) * 100) if count else 0,
+        "nontechnicalMinRate": round((nontechnical_min / count) * 100) if count else 0,
+        "pendingCount": len(pending),
+        "insight": insight,
+        "recommendation": recommendation,
+    }
+
+
+@app.route("/api/evaluasi-streaming/admin/results/<int:evaluation_id>", methods=["DELETE"])
+def api_streaming_evaluation_delete(evaluation_id):
+    if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        cursor.execute("DELETE FROM streaming_evaluations WHERE id = %s", (evaluation_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def eval_export_rows(evaluations: list[dict[str, object]]) -> tuple[list[str], list[list[str]]]:
+    headers = ["No", "Tanggal", "Jam", "Jenis Misa", "Nama Misa", "Pengisi", "Role Pengisi", "Penilaian Umum", "Petugas", "Kendala Teknis", "Kendala Non-Teknis", "Checklist", "Catatan Penutup", "Waktu Submit"]
+    rows = []
+    for idx, e in enumerate(evaluations, start=1):
+        staff_names = []
+        for s in e.get("staff") or []:
+            if isinstance(s, dict):
+                staff_names.append(f"{s.get('role')}: {s.get('actualMemberName') or s.get('memberName') or '-'}")
+        checklist = e.get("checklist") or {}
+        rows.append([
+            str(idx), e.get("date") or "", e.get("time") or "", e.get("kindLabel") or "", e.get("misaName") or "",
+            e.get("evaluatorName") or "", e.get("evaluatorRole") or "", e.get("generalAssessment") or "",
+            "; ".join(staff_names), e.get("technicalIssue") or "", e.get("nontechnicalIssue") or "",
+            "; ".join([k for k, v in checklist.items() if v]), e.get("finalNote") or "", e.get("submittedAt") or "",
+        ])
+    return headers, rows
+
+
+@app.route("/api/evaluasi-streaming/admin/export.xlsx", methods=["GET"])
+def api_streaming_evaluation_export_xlsx():
+    if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        now = datetime.now()
+        start, end = eval_period_bounds(normalize_text(request.args.get("scale") or "month"), parse_required_int(request.args.get("year"), now.year), parse_required_int(request.args.get("month"), now.month), parse_required_int(request.args.get("week"), int(now.strftime("%V"))))
+        evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), normalize_text(request.args.get("kind") or "all"), normalize_text(request.args.get("search")), normalize_text(request.args.get("sort") or "date_asc"))
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Evaluasi Streaming"
+        headers, rows = eval_export_rows(evaluations)
+        ws.append(headers)
+        for row in rows:
+            ws.append(row)
+        fill = PatternFill("solid", fgColor="7F0000")
+        font = Font(color="FFFFFF", bold=True)
+        for cell in ws[1]:
+            cell.fill = fill
+            cell.font = font
+            cell.alignment = Alignment(horizontal="center")
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 45)
+        buf = BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name="hasil-evaluasi-streaming.xlsx", mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/evaluasi-streaming/admin/export.pdf", methods=["GET"])
+def api_streaming_evaluation_export_pdf():
+    if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_streaming_evaluation_schema(cursor)
+        now = datetime.now()
+        start, end = eval_period_bounds(normalize_text(request.args.get("scale") or "month"), parse_required_int(request.args.get("year"), now.year), parse_required_int(request.args.get("month"), now.month), parse_required_int(request.args.get("week"), int(now.strftime("%V"))))
+        evaluations = eval_fetch_evaluations(cursor, start.isoformat(), end.isoformat(), normalize_text(request.args.get("kind") or "all"), normalize_text(request.args.get("search")), normalize_text(request.args.get("sort") or "date_asc"))
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+        buf = BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=landscape(A4), leftMargin=22, rightMargin=22, topMargin=24, bottomMargin=24)
+        styles = getSampleStyleSheet()
+        elements = [Paragraph("Hasil Evaluasi Streaming", styles["Title"]), Spacer(1, 10)]
+        headers, rows = eval_export_rows(evaluations)
+        small_headers = headers[:8]
+        small_rows = [row[:8] for row in rows]
+        data = [small_headers] + small_rows
+        table = Table(data, repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#800000")),
+            ("TEXTCOLOR", (0,0), (-1,0), colors.white),
+            ("GRID", (0,0), (-1,-1), 0.25, colors.grey),
+            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE", (0,0), (-1,-1), 7),
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+        ]))
+        elements.append(table)
+        doc.build(elements)
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name="hasil-evaluasi-streaming.pdf", mimetype="application/pdf")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def create_streaming_evaluation_reminder_notifications() -> int:
+    ensure_streaming_evaluation_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    sent = 0
+    try:
+        today = datetime.now().date()
+        settings = eval_get_settings(cursor)
+        start = eval_start_date_from_settings(settings)
+        end = today - timedelta(days=1)
+        if end < start:
+            return 0
+        schedules = eval_all_schedules(cursor, start, end, "all")
+        evals = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+        today_key = today.isoformat()
+        for schedule in schedules:
+            dt = eval_datetime_from_parts(schedule.get("date"), schedule.get("time"))
+            if not dt or dt.date() >= today:
+                continue
+            if not eval_schedule_has_staff(schedule):
+                continue
+            if evals.get((schedule.get("kind"), schedule.get("scheduleKey"))):
+                continue
+            for staff in schedule.get("staff") or []:
+                member_id = normalize_text(staff.get("memberId"))
+                if not member_id:
+                    continue
+                member_role = normalize_text(staff.get("accountRole")) or "user"
+                title = f"Pengingat Evaluasi Streaming: {schedule.get('misaName')}"
+                body = (
+                    f"Form evaluasi untuk <b>{html.escape(schedule.get('misaName') or '-')}</b> pada "
+                    f"{html.escape(schedule.get('displayDateTime') or '-')} belum diisi. "
+                    f"Silakan isi evaluasi streaming untuk sesi tersebut."
+                )
+                url = "/form-evaluasi-streaming.html" if member_role in {"admin", "super_admin"} else "/evaluasi-streaming-anggota.html"
+                create_notification_once(
+                    cursor,
+                    "evaluasi",
+                    title,
+                    body,
+                    url,
+                    {"target_user_id": member_id, "notification_kind": "streaming_evaluation_reminder", "schedule_id": schedule.get("id"), "misa_name": schedule.get("misaName")},
+                    target_role=None,
+                    dedupe_key=f"eval-reminder:{today_key}:{schedule.get('id')}:{member_id}",
+                )
+                sent += 1
+        conn.commit()
+        return sent
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         cursor.close()
         conn.close()

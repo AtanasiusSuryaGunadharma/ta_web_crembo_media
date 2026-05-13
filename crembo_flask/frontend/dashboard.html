@@ -460,6 +460,7 @@
             <button class="notification-tab" type="button" data-admin-notif-tab="form">Form Pendaftaran</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="news">Pengumuman</button>
             <button class="notification-tab" type="button" data-admin-notif-tab="keanggotaan">Status Keanggotaan</button>
+            <button class="notification-tab" type="button" data-admin-notif-tab="evaluasi">Evaluasi</button>
           </div>
         </header>
         <div class="notification-tools">
@@ -474,6 +475,8 @@
             <option value="form">Notifikasi Form Pendaftaran</option>
             <option value="news">Notifikasi Pengumuman</option>
             <option value="keanggotaan">Notifikasi Status Keanggotaan</option>
+              <option value="evaluasi">Notifikasi Evaluasi Streaming</option>
+            <option value="evaluasi">Notifikasi Evaluasi Streaming</option>
           </select>
           <select id="notificationStatusFilter" aria-label="Filter status notifikasi">
             <option value="all">Semua Status</option>
@@ -776,6 +779,7 @@
       if (type === "form") return "Notifikasi Form Pendaftaran";
       if (type === "news") return "Notifikasi Pengumuman";
       if (type === "keanggotaan") return "Notifikasi Status Keanggotaan";
+      if (type === "evaluasi") return "Notifikasi Evaluasi Streaming";
       return "Notifikasi";
     }
 

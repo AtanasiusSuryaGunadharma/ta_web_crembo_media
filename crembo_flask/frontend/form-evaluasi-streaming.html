@@ -9,331 +9,212 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary:#800000;--primary-dark:#5c0000;--primary-deeper:#3a0000;--primary-light:#a52a2a;
-      --accent-gold:#d4a017;--accent-gold-light:#f0c040;
-      --bg:#faf8f6;--surface:#ffffff;--ink:#1a1a1a;--ink-secondary:#4a4a4a;--muted:#7a7a7a;
-      --line:rgba(128,0,0,0.15);--line-soft:rgba(128,0,0,0.08);--hover:rgba(128,0,0,0.04);
-      --ok-bg:rgba(34,197,94,0.07);--ok-line:rgba(34,197,94,0.3);
-      --warn-bg:rgba(212,160,23,0.09);--warn-line:rgba(212,160,23,0.35);
-      --shadow-sm:0 1px 3px rgba(128,0,0,0.06);--shadow-md:0 4px 14px rgba(128,0,0,0.08);--shadow-lg:0 10px 30px rgba(128,0,0,0.12);
-      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
-      --transition:0.3s cubic-bezier(0.4,0,0.2,1);--header-h:104px;
+    :root{
+      --primary:#800000;
+      --primary-dark:#5c0000;
+      --primary-deeper:#3a0000;
+      --primary-light:#a52a2a;
+      --accent-gold:#d4a017;
+      --accent-gold-light:#f0c040;
+      --bg:#faf8f6;
+      --surface:#ffffff;
+      --ink:#1a1a1a;
+      --ink-secondary:#4a4a4a;
+      --muted:#7a7a7a;
+      --line:rgba(128,0,0,0.15);
+      --line-soft:rgba(128,0,0,0.08);
+      --hover:rgba(128,0,0,0.04);
+      --ok-bg:rgba(34,197,94,0.07);
+      --ok-line:rgba(34,197,94,0.3);
+      --warn-bg:rgba(212,160,23,0.09);
+      --warn-line:rgba(212,160,23,0.35);
+      --danger-bg:#fef2f2;
+      --danger-line:#fecaca;
+      --shadow-sm:0 1px 3px rgba(128,0,0,0.06);
+      --shadow-md:0 4px 14px rgba(128,0,0,0.08);
+      --shadow-lg:0 10px 30px rgba(128,0,0,0.12);
+      --radius-sm:8px;
+      --radius-md:12px;
+      --radius-lg:16px;
+      --transition:0.25s cubic-bezier(0.4,0,0.2,1);
+      --header-h:104px;
     }
-    *{box-sizing:border-box;}
-    body{margin:0;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;}
-    a{color:inherit;text-decoration:none;transition:var(--transition);}
-    .container{width:min(1200px,92vw);margin:0 auto;}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none;transition:var(--transition)}
+    .container{width:min(1200px,92vw);margin:0 auto}
 
-    /* HEADER */
-    .top-header{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 40%,var(--primary-light));position:sticky;top:0;z-index:1200;box-shadow:0 4px 20px rgba(128,0,0,0.3);}
-    .top-header .container{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding:16px 0;}
-    .logo-box{width:72px;height:72px;display:grid;place-items:center;padding:4px;background:rgba(255,255,255,0.1);border-radius:var(--radius-md);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);transition:var(--transition);}
-    .logo-box:hover{background:rgba(255,255,255,0.18);}
-    .logo-box img{max-width:100%;max-height:100%;object-fit:contain;}
-    .brand h1{margin:0;font-size:clamp(1.4rem,2.8vw,2rem);text-transform:uppercase;letter-spacing:.5px;color:#fff;font-weight:800;}
-    .brand p{margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:.88rem;}
-    .nav-wrap{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:var(--header-h);z-index:1150;box-shadow:var(--shadow-sm);}
-    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;flex-wrap:wrap;}
-    .menu-toggle{display:none;border:1px solid var(--line);background:var(--surface);padding:10px 16px;font-size:.9rem;cursor:pointer;border-radius:var(--radius-sm);font-family:inherit;font-weight:500;color:var(--primary);transition:var(--transition);}
-    .menu-toggle:hover{background:var(--hover);}
-    nav ul{margin:0;padding:0;list-style:none;display:flex;gap:4px;flex-wrap:wrap;}
-    nav a{display:inline-block;padding:8px 14px;font-size:.9rem;font-weight:500;border-radius:var(--radius-sm);color:var(--ink-secondary);transition:var(--transition);position:relative;}
-    nav a:hover{color:var(--primary);background:var(--hover);}
-    nav a.active{color:var(--primary);font-weight:700;}
-    nav a.active::after{content:"";position:absolute;bottom:2px;left:14px;right:14px;height:2px;background:var(--primary);border-radius:999px;}
-    .right-tools{display:flex;align-items:center;gap:10px;}
-    .search{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden;transition:var(--transition);}
-    .search:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,0.1);}
-    .search input{border:0;outline:none;padding:8px 16px;width:clamp(130px,16vw,180px);font-size:.88rem;background:transparent;font-family:inherit;}
-    .search button{border:0;background:var(--primary);color:#fff;padding:8px 16px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);}
-    .search button:hover{background:var(--primary-dark);}
-    .btn-login{border:1.5px solid var(--primary);background:transparent;color:var(--primary);padding:8px 18px;font-size:.88rem;font-weight:600;border-radius:999px;cursor:pointer;font-family:inherit;transition:var(--transition);}
-    .btn-login:hover{background:var(--primary);color:#fff;}
+    .top-header{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 42%,var(--primary-light));position:sticky;top:0;z-index:1200;box-shadow:0 4px 20px rgba(128,0,0,.28)}
+    .top-header .container{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding:16px 0}
+    .logo-box{width:72px;height:72px;display:grid;place-items:center;padding:4px;background:rgba(255,255,255,.1);border-radius:var(--radius-md);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);font-weight:900;color:#fff;letter-spacing:.05em;overflow:hidden}
+    .logo-box img{max-width:100%;max-height:100%;object-fit:contain}
+    .brand h1{margin:0;font-size:clamp(1.4rem,2.8vw,2rem);text-transform:uppercase;letter-spacing:.5px;color:#fff;font-weight:800}
+    .brand p{margin:4px 0 0;color:rgba(255,255,255,.75);font-size:.88rem}
+    .nav-wrap{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:var(--header-h);z-index:1150;box-shadow:var(--shadow-sm)}
+    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;flex-wrap:wrap}
+    .menu-toggle{display:none;border:1px solid var(--line);background:var(--surface);padding:10px 16px;font-size:.9rem;cursor:pointer;border-radius:var(--radius-sm);font-family:inherit;font-weight:600;color:var(--primary)}
+    nav ul{margin:0;padding:0;list-style:none;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+    nav a{display:inline-block;padding:8px 14px;font-size:.9rem;font-weight:500;border-radius:var(--radius-sm);color:var(--ink-secondary);position:relative}
+    nav a:hover{color:var(--primary);background:var(--hover)}
+    nav a.active{color:var(--primary);font-weight:800}
+    nav a.active::after{content:"";position:absolute;bottom:2px;left:14px;right:14px;height:2px;background:var(--primary);border-radius:999px}
+    .right-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .search{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--bg);overflow:hidden;transition:var(--transition)}
+    .search:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,.1)}
+    .search input{border:0;outline:none;padding:8px 16px;width:clamp(130px,16vw,180px);font-size:.88rem;background:transparent;font-family:inherit}
+    .search button{border:0;background:var(--primary);color:#fff;padding:8px 16px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit}
+    .btn-login,.user-dropdown-btn{border:1.5px solid var(--primary);background:transparent;color:var(--primary);padding:8px 16px;font-size:.88rem;font-weight:700;border-radius:999px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+    .btn-login:hover,.user-dropdown-btn:hover{background:var(--primary);color:#fff}
+    .user-dropdown{position:relative}
+    .avatar{width:30px;height:30px;border-radius:999px;background:var(--primary-light);color:#fff;display:grid;place-items:center;font-size:.8rem;font-weight:900}
+    .user-dropdown-menu{position:absolute;right:0;top:calc(100% + 10px);width:250px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);display:none;z-index:1400;overflow:hidden}
+    .user-dropdown:hover .user-dropdown-menu{display:block}
+    .user-dropdown-header{padding:14px 16px;background:#fff7f7;border-bottom:1px solid var(--line)}
+    .user-dropdown-header p{margin:0 0 4px;font-weight:800;color:var(--primary)}
+    .user-dropdown-header span{display:block;font-size:.82rem;color:var(--muted)}
+    .user-dropdown-links a{display:block;padding:11px 16px;color:#374151;border-bottom:1px solid var(--line-soft)}
+    .user-dropdown-links a:hover{background:var(--hover);color:var(--primary)}
 
-    /* HERO */
-    .hero{min-height:220px;display:grid;place-items:center;text-align:center;padding:60px 20px;position:relative;overflow:hidden;isolation:isolate;background:linear-gradient(135deg,var(--primary-deeper) 0%,var(--primary) 50%,var(--primary-light) 100%);}
-    .hero::before{content:"";position:absolute;inset:0;background-image:url("IMG_1970.JPG");background-size:cover;background-position:center;opacity:.15;z-index:-1;}
-    .hero h2{margin:0;font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:800;color:#fff;text-transform:uppercase;text-shadow:0 4px 16px rgba(0,0,0,.4);}
-    .hero p{margin:10px 0 0;color:rgba(255,255,255,.8);font-size:.95rem;}
+    .hero{min-height:220px;display:grid;place-items:center;text-align:center;padding:60px 20px;position:relative;overflow:hidden;isolation:isolate;background:linear-gradient(135deg,var(--primary-deeper) 0%,var(--primary) 50%,var(--primary-light) 100%)}
+    .hero::before{content:"";position:absolute;inset:0;background-image:url("IMG_1970.JPG");background-size:cover;background-position:center;opacity:.16;z-index:-1}
+    .hero h2{margin:0;font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:900;color:#fff;text-transform:uppercase;text-shadow:0 4px 16px rgba(0,0,0,.35)}
+    .hero p{margin:10px 0 0;color:rgba(255,255,255,.82);font-size:.95rem}
+    .breadcrumb-wrap{background:var(--surface);border-bottom:1px solid var(--line-soft)}
+    .breadcrumb{margin:0;padding:12px 0;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+    .breadcrumb li+li::before{content:"/";margin-right:8px;color:var(--line)}
+    .breadcrumb [aria-current]{color:var(--primary);font-weight:700}
+    .content{padding:32px 0 56px}
 
-    /* BREADCRUMB */
-    .breadcrumb-wrap{background:var(--surface);border-bottom:1px solid var(--line-soft);}
-    .breadcrumb{margin:0;padding:12px 0;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--muted);}
-    .breadcrumb li+li::before{content:"/";margin-right:8px;color:var(--line);}
-    .breadcrumb a:hover{color:var(--primary);}
-    .breadcrumb [aria-current]{color:var(--primary);font-weight:600;}
+    .notice-card,.status-card{border:1px solid var(--warn-line);border-left:4px solid var(--accent-gold);background:#fffbeb;border-radius:var(--radius-md);padding:13px 16px;margin:0 0 18px;color:#6b4f00;font-size:.9rem;box-shadow:var(--shadow-sm)}
+    .status-card{display:none}
+    .status-card.show{display:block}
+    .status-card.success{border-color:var(--ok-line);border-left-color:#16a34a;background:#ecfdf5;color:#166534}
+    .status-card.danger{border-color:var(--danger-line);border-left-color:#dc2626;background:var(--danger-bg);color:#991b1b}
 
-    /* PAGE */
-    .content{padding:32px 0 48px;}
+    .eval-card{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent-gold);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:visible;margin-bottom:22px}
+    .eval-card-head{padding:16px 20px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;background:linear-gradient(180deg,#fff,#fff8f8)}
+    .eval-card-head h2{margin:0;color:var(--primary);font-size:1.15rem;font-weight:900}
+    .eval-card-head p{margin:4px 0 0;color:var(--muted);font-size:.88rem}
+    .eval-card-body{padding:18px 20px}
+    .badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.74rem;font-weight:900;background:#fff;color:#7f1d1d;white-space:nowrap}
+    .badge.blue{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+    .badge.gold{background:#fffbeb;color:#92400e;border-color:#fde68a}
+    .badge.green{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+    .badge.red{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+    .badge.gray{background:#f3f4f6;color:#4b5563;border-color:#d1d5db}
 
-    /* NOTICE */
-    .notice-card{background:rgba(212,160,23,0.07);border:1px solid rgba(212,160,23,0.35);border-radius:var(--radius-md);padding:14px 18px;font-size:.87rem;color:#7c5c0a;margin-bottom:24px;line-height:1.65;}
-    .notice-card a{color:var(--primary);font-weight:700;}
-    .notice-card a:hover{text-decoration:underline;}
+    .select-grid{display:grid;grid-template-columns:200px 1fr auto;gap:12px;align-items:end}
+    .field{display:grid;gap:6px;min-width:0}
+    label,.label{font-size:.79rem;font-weight:900;color:#7f1d1d;text-transform:uppercase;letter-spacing:.025em}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--ink);transition:var(--transition)}
+    input:focus,select:focus,textarea:focus{outline:0;border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,.08)}
+    input[readonly]{background:#fffafa;color:#4b5563}
+    textarea{min-height:96px;resize:vertical}
+    .btn-primary,.btn-secondary{border:0;border-radius:10px;padding:10px 15px;font-weight:900;cursor:pointer;font-family:inherit;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;box-shadow:0 8px 18px rgba(128,0,0,.18)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(128,0,0,.22)}
+    .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--line)}
+    .btn-secondary:hover{background:var(--hover)}
+    .btn-primary:disabled,.btn-secondary:disabled{background:#e5e7eb;color:#6b7280;border-color:#d1d5db;cursor:not-allowed;box-shadow:none;transform:none}
 
-    /* STATUS CARD */
-    .status-card{background:var(--ok-bg);border:1px solid var(--ok-line);color:#166534;font-size:.92rem;padding:14px 18px;border-radius:var(--radius-md);margin-bottom:20px;display:none;animation:fadeInUp .4s ease;}
-    .status-card.show{display:block;}
+    .combo{position:relative;width:100%;min-width:0}
+    .combo-trigger{width:100%;min-height:42px;text-align:left;border:1px solid var(--line);border-radius:10px;padding:10px 40px 10px 12px;background:#fff;cursor:pointer;font:inherit;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative}
+    .combo-trigger::after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#7a2c2c;font-size:.78rem}
+    .combo-trigger.placeholder{color:#8a8a8a}
+    .combo-panel{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border:1px solid rgba(128,0,0,.25);border-radius:12px;box-shadow:0 18px 42px rgba(62,0,0,.18);z-index:1600;display:none;overflow:hidden}
+    .combo.open .combo-panel{display:block}
+    .combo-search-box{padding:10px;border-bottom:1px solid var(--line-soft);background:#fff8f8}
+    .combo-search{border-radius:9px;padding:9px 10px}
+    .combo-options{max-height:280px;overflow:auto}
+    .combo-option{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:#fff;text-align:left;padding:10px 12px;cursor:pointer;font:inherit;color:#111;display:grid;gap:2px}
+    .combo-option:hover,.combo-option.active{background:#fff7ed}
+    .combo-option strong{font-size:.9rem;color:#111}
+    .combo-option small{color:var(--muted);font-size:.78rem}
+    .combo-empty{padding:12px;color:var(--muted);font-size:.86rem;font-style:italic}
 
-    /* CARD PANEL */
-    .eval-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);margin-bottom:24px;overflow:hidden;position:relative;}
-    .eval-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--accent-gold),var(--primary-light));}
-    .eval-card-head{padding:18px 24px;border-bottom:1px solid var(--line-soft);background:var(--bg);}
-    .eval-card-head h2{margin:0;font-size:1.05rem;font-weight:700;color:var(--primary);}
-    .eval-card-head p{margin:4px 0 0;font-size:.84rem;color:var(--muted);}
-    .eval-card-body{padding:24px;}
+    .schedule-list{display:grid;gap:10px;max-height:300px;overflow:auto;padding-right:6px;margin-top:12px}
+    .session-item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:12px;padding:12px;background:#fff;cursor:pointer;transition:var(--transition)}
+    .session-item:hover,.session-item.active{border-color:var(--accent-gold);border-left-color:var(--accent-gold);background:#fffaf0;transform:translateY(-1px)}
+    .session-title{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .session-title strong{font-size:.95rem;color:#111}
+    .session-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:.82rem;margin-top:3px}
+    .result-count{font-size:.82rem;color:var(--muted)}
 
-    /* SESSION LIST */
-    .session-list{margin-top:14px;display:grid;gap:10px;max-height:240px;overflow:auto;padding-right:4px;}
-    .session-item{background:var(--bg);border:1px solid var(--line-soft);border-radius:var(--radius-sm);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-    .session-item strong{font-size:.9rem;color:var(--ink);}
-    .session-item small{color:var(--muted);font-size:.8rem;}
-    .tag{display:inline-block;border-radius:999px;padding:3px 11px;font-size:.75rem;font-weight:600;}
-    .tag.raya{background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);color:#7c5c0a;}
-    .tag.biasa{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#166534;}
+    .form-card{display:none}
+    .form-card.show{display:block}
+    .form-grid{display:grid;gap:18px}
+    .data-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .two-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .three-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .section-title{margin:0 0 10px;font-size:1.02rem;color:#111;font-weight:900}
+    .helper{font-size:.8rem;color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0;margin-top:3px}
+    .staff-slot{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fffafa;display:grid;gap:12px}
+    .staff-slot-head{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end}
+    .staff-slot .combo-panel{z-index:1500}
+    .extra-row{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+    .chip-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:.85rem}
+    .chip-remove{border:0;background:transparent;color:#991b1b;font-weight:900;cursor:pointer;margin-left:4px}
+    .staff-eval-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .staff-eval-item{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;box-shadow:var(--shadow-sm)}
+    .staff-eval-item h4{margin:0 0 10px;color:var(--primary);font-size:.95rem}
+    .staff-eval-item h4 span{color:var(--muted);font-weight:600;font-size:.78rem;margin-left:4px}
+    .check-box{border:1px solid var(--line);border-radius:12px;background:#fffafa;padding:12px;display:grid;gap:10px}
+    .inline-check{display:flex;gap:10px;align-items:flex-start;color:#111;font-weight:800;text-transform:none;letter-spacing:0;font-size:.9rem}
+    .inline-check input{width:auto;margin-top:4px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .empty-state{border:1px dashed var(--line);border-radius:12px;padding:14px;color:var(--muted);background:#fffafa}
 
-    /* SELECT GRID */
-    .select-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;}
-    .btn-primary{border:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:11px 20px;font-size:.9rem;font-weight:700;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);box-shadow:0 2px 8px rgba(128,0,0,0.2);}
-    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(128,0,0,0.3);}
-    .btn-primary:disabled{background:#c0c0c0;cursor:not-allowed;box-shadow:none;transform:none;}
-    .btn{border:1.5px solid var(--line);background:transparent;color:var(--ink-secondary);padding:11px 18px;font-size:.88rem;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition);}
-    .btn:hover{border-color:var(--primary);color:var(--primary);background:var(--hover);}
+    .scroll-top-btn{
+      position:fixed;right:22px;bottom:22px;width:58px;height:58px;border:1px solid rgba(255,255,255,.22);
+      border-radius:999px;background:linear-gradient(135deg,var(--primary-deeper) 0%,var(--primary) 50%,var(--primary-light) 100%);
+      color:#fff;box-shadow:0 14px 30px rgba(128,0,0,.28),0 0 0 0 rgba(128,0,0,.2);cursor:pointer;display:grid;place-items:center;
+      z-index:1400;opacity:0;transform:translateY(16px) scale(.92);pointer-events:none;
+      transition:opacity .25s ease,transform .25s ease,box-shadow .25s ease,filter .25s ease;backdrop-filter:blur(8px)
+    }
+    .scroll-top-btn::before{content:"";position:absolute;inset:-6px;border-radius:inherit;border:1px solid rgba(212,160,23,.28);opacity:.75;animation:scrollTopPulse 2.4s ease-out infinite}
+    .scroll-top-btn::after{content:"";position:absolute;inset:6px;border-radius:inherit;background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.25) 0%,transparent 42%);pointer-events:none}
+    .scroll-top-btn svg{position:relative;z-index:1;width:24px;height:24px;transition:transform .25s ease}
+    .scroll-top-btn:hover{transform:translateY(-2px) scale(1);box-shadow:0 16px 34px rgba(128,0,0,.34),0 0 0 6px rgba(128,0,0,.08);filter:brightness(1.06)}
+    .scroll-top-btn:hover svg{transform:translateY(-2px)}
+    .scroll-top-btn.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+    .scroll-top-btn:focus-visible{outline:3px solid rgba(212,160,23,.55);outline-offset:3px}
+    @keyframes scrollTopPulse{0%{transform:scale(1);opacity:.7}70%{transform:scale(1.24);opacity:0}100%{transform:scale(1.24);opacity:0}}
 
-    /* FIELD */
-    .field{display:grid;gap:6px;}
-    .field label{font-size:.8rem;font-weight:700;color:var(--ink-secondary);text-transform:uppercase;letter-spacing:.4px;}
-    .field input[type=text],.field input[type=date],.field input[type=time],.field textarea,.field select,.field input[type=search]{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 14px;font-size:.9rem;font-family:inherit;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
-    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 3px rgba(128,0,0,0.08);}
-    .field textarea{min-height:90px;resize:vertical;}
-    .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23800000'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+    .footer{margin-top:40px;background:linear-gradient(160deg,var(--primary-deeper) 0%,var(--primary) 60%,var(--primary-dark) 100%);padding:0;color:#fff;position:relative;overflow:hidden}
+    .footer::before{content:"";position:absolute;top:-30%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(212,160,23,.06) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+    .footer-main{padding:52px 0 40px;position:relative;z-index:1}
+    .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;margin-bottom:0}
+    .footer-col{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-lg);padding:26px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(0,0,0,.08)}
+    .footer-brand{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+    .footer-logo{width:58px;height:58px;object-fit:contain;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:4px}
+    .footer-title{margin:0;color:#fff;font-size:1.05rem;font-weight:900}
+    .footer-sub{margin:4px 0 0;color:rgba(255,255,255,.72);font-size:.88rem;line-height:1.7}
+    .contact-list,.social-list{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;color:rgba(255,255,255,.83);font-size:.9rem}
+    .contact-list strong{color:var(--accent-gold-light);display:inline-block;min-width:76px}
+    .social-item{display:flex;align-items:center;gap:12px}
+    .social-dot{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;background:rgba(212,160,23,.18);border:1px solid rgba(212,160,23,.32);color:var(--accent-gold-light);font-size:.72rem;font-weight:900}
+    .footer-bottom{position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.09);padding:18px 0;text-align:center;color:rgba(255,255,255,.68);font-size:.84rem}
+    .footer-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:20px}
+    .copyright{text-align:center;color:rgba(255,255,255,.65);font-size:.82rem;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
 
-    /* ROWS */
-    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;}
-    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:14px;}
-
-    /* COMBO */
-    .combo{position:relative;}
-    .combo-trigger{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 14px;font-size:.9rem;font-family:inherit;text-align:left;cursor:pointer;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
-    .combo-trigger::after{content:"▾";float:right;color:var(--primary);font-size:.8rem;margin-top:2px;}
-    .combo-trigger:focus,.combo-trigger:hover{border-color:var(--primary);}
-    .combo-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;border:1.5px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);z-index:200;display:none;border-radius:var(--radius-sm);overflow:hidden;}
-    .combo-panel.show{display:block;}
-    .combo-search-box{border-bottom:1px solid var(--line-soft);padding:8px;}
-    .combo-search-input{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:7px 10px;font-size:.88rem;font-family:inherit;border-radius:var(--radius-sm);outline:none;transition:var(--transition);}
-    .combo-search-input:focus{border-color:var(--primary);}
-    .combo-options{max-height:200px;overflow-y:auto;}
-    .combo-option{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:var(--surface);text-align:left;padding:9px 14px;font-size:.88rem;cursor:pointer;font-family:inherit;color:var(--ink-secondary);transition:var(--transition);}
-    .combo-option:hover,.combo-option.active{background:var(--hover);color:var(--primary);}
-    .combo-empty{margin:0;padding:10px 14px;font-size:.84rem;color:var(--muted);font-style:italic;}
-
-    /* CHECK WRAP */
-    .check-wrap{border:1.5px solid var(--line-soft);background:var(--bg);padding:14px;display:grid;gap:10px;border-radius:var(--radius-sm);}
-    .check-wrap label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem;color:var(--ink-secondary);padding:4px 0;}
-    .check-wrap input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex-shrink:0;}
-
-    /* ROLES NOTE */
-    .roles-note{background:rgba(212,160,23,0.07);border:1px solid rgba(212,160,23,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:.84rem;color:#7c5c0a;margin-top:14px;margin-bottom:14px;}
-
-    /* STAFF EVAL */
-    .staff-eval-wrap{border:1.5px solid var(--line-soft);background:var(--bg);padding:16px;border-radius:var(--radius-sm);margin-top:6px;}
-    .staff-eval-head{margin:0 0 12px;font-size:.84rem;color:var(--muted);}
-    .staff-eval-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
-    .staff-eval-item{border:1.5px solid var(--line);background:var(--surface);padding:14px;border-radius:var(--radius-md);display:grid;gap:10px;transition:var(--transition);}
-    .staff-eval-item:hover{border-color:var(--primary);}
-    .staff-eval-item h4{margin:0;font-size:.88rem;font-weight:700;color:var(--primary);}
-    .staff-eval-empty{margin:0;font-size:.85rem;color:var(--muted);font-style:italic;}
-
-    /* EXTRA STAFF */
-    .extra-staff-picker{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;}
-    .extra-staff-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-    .extra-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);padding:5px 12px;font-size:.82rem;border-radius:999px;color:var(--ink-secondary);}
-    .extra-chip button{border:1px solid var(--line);background:#fff;width:18px;height:18px;padding:0;border-radius:50%;line-height:1;cursor:pointer;font-size:.78rem;color:var(--primary);transition:var(--transition);}
-    .extra-chip button:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
-    .extra-staff-empty{margin:8px 0 0;font-size:.84rem;color:var(--muted);font-style:italic;}
-
-    /* DYNAMIC QUESTIONS */
-    .dynamic-question-list{border:1.5px solid var(--line-soft);background:var(--bg);padding:14px;display:grid;gap:14px;border-radius:var(--radius-sm);}
-    .dynamic-question-item{border:1.5px solid var(--line);background:var(--surface);padding:16px;border-radius:var(--radius-md);display:grid;gap:10px;}
-    .dynamic-question-item h4{margin:0;font-size:.9rem;font-weight:700;color:var(--ink);}
-    .dynamic-help{margin:0;font-size:.82rem;color:var(--muted);}
-    .dynamic-options{display:grid;gap:8px;}
-    .dynamic-options label{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--ink-secondary);cursor:pointer;}
-    .dynamic-options input[type=checkbox],.dynamic-options input[type=radio]{accent-color:var(--primary);width:15px;height:15px;}
-    .dynamic-empty{margin:0;border:1px dashed var(--line);border-radius:var(--radius-sm);padding:12px;font-size:.85rem;color:var(--muted);font-style:italic;background:var(--surface);}
-
-    /* ACTION ROW */
-    .action-row{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;padding-top:20px;border-top:1px solid var(--line-soft);}
-
-    /* FORM CARD HIDDEN/SHOWN */
-    .form-card{display:none;}
-    .form-card.show{display:block;}
-
-    /* SECTION LABELS */
-    .form-section-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--primary);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line-soft);}
-
-    /* FOOTER */
-    .footer{background:linear-gradient(135deg,var(--primary-deeper),var(--primary) 60%,var(--primary-dark));margin-top:48px;color:rgba(255,255,255,.85);position:relative;overflow:hidden;}
-    .footer::before{content:"";position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none;}
-    .footer-main{padding:40px 0 28px;position:relative;z-index:1;}
-    .footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:30px;}
-    .footer-col{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);backdrop-filter:blur(10px);padding:24px;border-radius:var(--radius-md);transition:var(--transition);}
-    .footer-col:hover{background:rgba(255,255,255,.1);transform:translateY(-2px);}
-    .footer-brand{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
-    .footer-logo{width:56px;height:56px;object-fit:contain;border:1px solid rgba(255,255,255,.2);padding:6px;background:rgba(255,255,255,.08);border-radius:var(--radius-sm);}
-    .footer-title{margin:0;font-size:1.05rem;font-weight:700;color:#fff;}
-    .footer-sub{margin:3px 0 0;font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.6;}
-    .contact-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:.9rem;}
-    .contact-list li{color:rgba(255,255,255,.8);display:flex;gap:8px;}
-    .contact-list strong{display:inline-block;min-width:70px;color:var(--accent-gold-light);font-weight:600;}
-    .social-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:.9rem;}
-    .social-item{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);transition:var(--transition);padding:4px 0;}
-    .social-item:hover{color:#fff;}
-    .social-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;border:1px solid rgba(212,160,23,.4);background:rgba(212,160,23,.15);color:var(--accent-gold-light);transition:var(--transition);}
-    .social-item:hover .social-dot{background:rgba(212,160,23,.3);transform:scale(1.1);}
-    .footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding:16px 0 20px;text-align:center;font-size:.84rem;color:rgba(255,255,255,.5);position:relative;z-index:1;}
-
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-
-    @media(max-width:980px){.row-3{grid-template-columns:1fr 1fr;}.footer-grid{grid-template-columns:1fr;}}
-    @media(max-width:700px){.row-3,.row-2,.select-grid,.extra-staff-picker{grid-template-columns:1fr;}.staff-eval-grid{grid-template-columns:1fr;}}
+    @media(max-width:900px){
+      .select-grid,.data-grid,.two-grid,.three-grid,.staff-slot-head,.extra-row,.staff-eval-grid{grid-template-columns:1fr}
+      .footer-grid{grid-template-columns:1fr}
+      .right-tools{width:100%;justify-content:flex-start}
+      .search{flex:1;min-width:220px}
+    }
     @media(max-width:760px){
-      .top-header .container{grid-template-columns:auto 1fr;align-items:center;gap:10px;padding:10px 0;text-align:left;}
-      .menu-toggle{display:inline-block;}
-      nav{width:100%;display:none;}
-      nav.open{display:block;animation:fadeSlideDown .3s ease;}
-      @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-      nav ul{flex-direction:column;align-items:stretch;}
-      nav a{display:block;border:1px solid var(--line);border-bottom-width:3px;text-align:center;}
-      .logo-box{width:52px;height:52px;padding:3px;margin:0;}
-      .brand h1{font-size:clamp(1.02rem,5vw,1.35rem);line-height:1.2;letter-spacing:.4px;}
-      .brand p{margin-top:3px;font-size:.76rem;line-height:1.35;}
-      .nav-row{align-items:stretch;}
-      .right-tools{width:100%;justify-content:stretch;flex-wrap:wrap;}
-      .search{flex:1 1 230px;}
-      .btn-login{flex:1 1 auto;justify-content:center;}
+      :root{--header-h:84px}
+      .top-header .container{grid-template-columns:auto 1fr;padding:12px 0}.logo-box{width:52px;height:52px}.brand h1{font-size:1.18rem}.brand p{font-size:.78rem}
+      .menu-toggle{display:inline-block}.nav-row nav{display:none;width:100%}.nav-row nav.open{display:block}.nav-row nav ul{display:grid;gap:4px}.hero{min-height:180px;padding:42px 18px}.content{padding-top:22px}
     }
-    @media(max-width:520px){
-      .top-header .container{padding:8px 0;}
-      .logo-box{width:46px;height:46px;}
-      .brand h1{font-size:.96rem;}
-      .brand p{font-size:.72rem;}
-    }
-  
-		/* ═══════════════════════════════════════════
-		   USER DROPDOWN
-		   ═══════════════════════════════════════════ */
-		.user-dropdown {
-			position: relative;
-			display: inline-block;
-		}
-
-		.user-dropdown-btn {
-			display: inline-flex;
-			align-items: center;
-			gap: 8px;
-			background: var(--surface);
-			border: 1.5px solid var(--line);
-			padding: 6px 14px;
-			border-radius: 999px;
-			cursor: pointer;
-			font-size: 0.88rem;
-			font-family: inherit;
-			font-weight: 600;
-			color: var(--ink);
-			transition: var(--transition);
-		}
-
-		.user-dropdown-btn:hover {
-			border-color: var(--primary);
-			box-shadow: var(--shadow-sm);
-		}
-
-		.user-dropdown-btn .avatar {
-			width: 28px;
-			height: 28px;
-			border-radius: 50%;
-			background: var(--primary-light);
-			color: #fff;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 0.8rem;
-			font-weight: 700;
-		}
-
-		.user-dropdown-menu {
-			position: absolute;
-      top: calc(100% - 1px);
-			right: 0;
-			background: var(--surface);
-			border: 1px solid var(--line);
-			border-radius: var(--radius-md);
-			box-shadow: var(--shadow-md);
-			min-width: 220px;
-			opacity: 0;
-			visibility: hidden;
-			transform: translateY(-10px);
-			transition: var(--transition);
-			z-index: 1200;
-			overflow: hidden;
-		}
-
-		.user-dropdown:hover .user-dropdown-menu,
-		.user-dropdown:focus-within .user-dropdown-menu {
-			opacity: 1;
-			visibility: visible;
-			transform: translateY(0);
-		}
-
-		.user-dropdown-header {
-			padding: 12px 16px;
-			background: var(--bg-warm);
-			border-bottom: 1px solid var(--line-soft);
-		}
-
-		.user-dropdown-header p {
-			margin: 0;
-			font-size: 0.9rem;
-			font-weight: 700;
-			color: var(--primary);
-		}
-
-		.user-dropdown-header span {
-			display: block;
-			font-size: 0.75rem;
-			color: var(--muted);
-			margin-top: 2px;
-		}
-
-		.user-dropdown-links {
-			display: flex;
-			flex-direction: column;
-			padding: 8px 0;
-		}
-
-		.user-dropdown-links a {
-			padding: 10px 16px;
-			font-size: 0.88rem;
-			color: var(--ink-secondary);
-			display: flex;
-			align-items: center;
-			gap: 10px;
-			transition: var(--transition);
-		}
-
-		.user-dropdown-links a:hover {
-			background: var(--hover);
-			color: var(--primary);
-		}
-	</style>
+  </style>
 </head>
 <body>
-  <header class="top-header" id="topHeader">
+  <header class="top-header">
     <div class="container">
       <a href="home.html" class="logo-box" aria-label="Halaman utama Crembo Media">
-        <img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
+        <img src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media" onerror="this.style.display='none';this.parentElement.textContent='C';">
       </a>
       <div class="brand">
         <h1>Crew Multimedia Baciro</h1>
@@ -344,7 +225,7 @@
 
   <div class="nav-wrap">
     <div class="container nav-row">
-      <button id="menuToggle" class="menu-toggle" type="button" aria-controls="mainNav" aria-expanded="false">☰ Menu</button>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false">Menu</button>
       <nav id="mainNav" aria-label="Navigasi utama">
         <ul>
           <li><a href="home.html">Home</a></li>
@@ -360,28 +241,28 @@
           <input id="searchInput" type="search" placeholder="Cari informasi..." aria-label="Cari informasi">
           <button type="submit">Cari</button>
         </form>
-        				{% if current_user.logged_in %}
-				<div class="user-dropdown">
-					<button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
-						<span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
-						<span>{{ current_user.nama.split()[0] if current_user.nama else current_user.username }}</span>
-					</button>
-					<div class="user-dropdown-menu">
-						<div class="user-dropdown-header">
-							<p>{{ current_user.nama }}</p>
-							<span>{{ current_user.email }}</span>
-							<span style="text-transform: capitalize; font-weight: 600; color: var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
-						</div>
-						<div class="user-dropdown-links">
-							<a href="dashboard.html">Dashboard</a>
-							<a href="/profil">Pengaturan Profil</a>
-							<a href="/logout" style="color: var(--accent);">Keluar</a>
-						</div>
-					</div>
-				</div>
-				{% else %}
-				<a class="btn-login" href="login.html">Login</a>
-				{% endif %}
+        {% if current_user.logged_in %}
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" type="button" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar">{{ (current_user.nama[0] | upper) if current_user.nama else "U" }}</span>
+            <span>{{ current_user.nama.split()[0] if current_user.nama else current_user.username }}</span>
+          </button>
+          <div class="user-dropdown-menu">
+            <div class="user-dropdown-header">
+              <p>{{ current_user.nama }}</p>
+              <span>{{ current_user.email }}</span>
+              <span style="text-transform:capitalize;font-weight:700;color:var(--accent-gold);">{{ "Super Admin" if current_user.role == "super_admin" else current_user.role }}</span>
+            </div>
+            <div class="user-dropdown-links">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="/profil">Pengaturan Profil</a>
+              <a href="/logout" style="color:var(--primary);">Keluar</a>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <a class="btn-login" href="login.html">Login</a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -403,211 +284,170 @@
   </div>
 
   <main class="container content">
-    <p class="notice-card">Halaman ini tidak ditampilkan di menu utama. Akses melalui URL manual: <strong>form-evaluasi-streaming.html</strong>.</a>.</p>
-
-    <!-- STATUS -->
+    <p class="notice-card">Halaman ini tidak ditampilkan di menu utama. Akses melalui URL manual: <strong>form-evaluasi-streaming.html</strong>.</p>
     <section id="statusCard" class="status-card" aria-live="polite"></section>
 
-    <!-- STEP 1: PILIH JADWAL -->
-    <div class="eval-card">
+    <section class="eval-card">
       <div class="eval-card-head">
-        <h2>1 — Pilih Jadwal Yang Belum Diisi</h2>
-        <p>Hanya jadwal yang belum dievaluasi yang ditampilkan.</p>
+        <div>
+          <h2>1 — Pilih Jadwal Yang Belum Diisi</h2>
+          <p>Hanya jadwal yang sudah dimulai, memiliki petugas, dan belum dievaluasi yang ditampilkan.</p>
+        </div>
+        <span class="badge">Misa Biasa & Misa Besar</span>
       </div>
       <div class="eval-card-body">
         <div class="select-grid">
           <div class="field">
-            <label for="scheduleSelect">Tanggal - Jam Misa</label>
-            <select id="scheduleSelect"></select>
+            <label for="kindFilter">Filter Jenis Misa</label>
+            <select id="kindFilter">
+              <option value="all">Semua Jenis</option>
+              <option value="misa_biasa">Misa Biasa</option>
+              <option value="misa_besar">Misa Besar</option>
+            </select>
+          </div>
+          <div class="field">
+            <span class="label">Tanggal - Jam Misa</span>
+            <div id="scheduleCombo" class="combo" data-placeholder="Ketik nama misa, tanggal, jam, atau petugas..."></div>
           </div>
           <button id="openFormBtn" class="btn-primary" type="button">Isi Evaluasi</button>
         </div>
-        <div id="sessionList" class="session-list"></div>
+        <div class="actions" style="margin-top:12px;justify-content:space-between">
+          <span id="scheduleCount" class="result-count">Memuat jadwal...</span>
+          <button id="reloadBtn" class="btn-secondary" type="button">Muat Ulang</button>
+        </div>
+        <div id="scheduleList" class="schedule-list"></div>
       </div>
-    </div>
+    </section>
 
-    <!-- STEP 2: FORM EVALUASI -->
-    <div id="evaluationFormCard" class="form-card eval-card">
+    <section id="evaluationFormCard" class="form-card eval-card">
       <div class="eval-card-head">
-        <h2 id="formTitle">2 — Form Evaluasi</h2>
-        <p id="formSub"></p>
+        <div>
+          <h2 id="formTitle">2 — Form Evaluasi</h2>
+          <p id="formSub">Pilih jadwal terlebih dahulu.</p>
+        </div>
+        <span id="formStatus" class="badge red">Belum Diisi</span>
       </div>
-      <div class="eval-card-body">
-        <form id="evaluationForm" novalidate>
+      <form id="evaluationForm" class="eval-card-body form-grid" novalidate>
+        <div class="notice-card" style="margin:0">Data misa dan daftar petugas otomatis diambil dari jadwal. Jika petugas hari-H berbeda, ubah nama petugas di bawah; saat disimpan, jadwal akan diperbarui. Pilih <strong>Tidak datang</strong> untuk mengosongkan slot jadwal.</div>
 
-          <div class="form-section-label">Data Misa</div>
-          <div class="row-3">
+        <section>
+          <h3 class="section-title">Data Misa</h3>
+          <div class="data-grid">
+            <div class="field"><label for="misaDate">Tanggal Misa</label><input id="misaDate" readonly></div>
+            <div class="field"><label for="misaTime">Jam Misa</label><input id="misaTime" readonly></div>
+            <div class="field"><label for="misaType">Jenis Misa</label><input id="misaType" readonly></div>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="section-title">Petugas Bertugas</h3>
+          <div id="staffSlots" class="form-grid"></div>
+        </section>
+
+        <section>
+          <h3 class="section-title">Pengisi Evaluasi</h3>
+          <div class="two-grid">
             <div class="field">
-              <label for="misaDate">Tanggal Misa</label>
-              <input id="misaDate" type="date" required>
+              <span class="label">Nama Petugas Pengisi Evaluasi</span>
+              <div id="evaluatorCombo" class="combo" data-placeholder="Ketik nama pengisi..."></div>
             </div>
             <div class="field">
-              <label for="misaTime">Jam Misa</label>
-              <input id="misaTime" type="time" required>
-            </div>
-            <div class="field">
-              <label for="misaType">Jenis Misa</label>
-              <select id="misaType" required>
-                <option value="Biasa">Misa Biasa</option>
-                <option value="Hari Raya">Misa Hari Raya</option>
-              </select>
+              <label for="evaluatorRole">Role Pengisi Evaluasi</label>
+              <select id="evaluatorRole" required></select>
             </div>
           </div>
+        </section>
 
-          <div class="roles-note">Daftar petugas diambil dari jadwal tugas dan tetap bisa diganti jika ada tukeran petugas.</div>
-
-          <div class="form-section-label">Petugas Bertugas</div>
-          <div class="row-3">
+        <section>
+          <h3 class="section-title">Petugas Tambahan <span class="helper">(opsional, tidak mengubah jadwal)</span></h3>
+          <div class="extra-row">
             <div class="field">
-              <label>Operator Bertugas</label>
-              <div class="combo" data-combo="operator">
-                <button class="combo-trigger" type="button" data-combo-trigger="operator" aria-expanded="false">Pilih operator...</button>
-                <div class="combo-panel" data-combo-panel="operator">
-                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="operator"></div>
-                  <div class="combo-options" data-combo-options="operator"></div>
-                </div>
-              </div>
-              <input id="operatorName" type="hidden">
+              <span class="label">Nama Petugas Tambahan</span>
+              <div id="extraMemberCombo" class="combo" data-placeholder="Cari nama petugas tambahan..."></div>
             </div>
             <div class="field">
-              <label>Kameramen Bertugas</label>
-              <div class="combo" data-combo="camera">
-                <button class="combo-trigger" type="button" data-combo-trigger="camera" aria-expanded="false">Pilih kameramen...</button>
-                <div class="combo-panel" data-combo-panel="camera">
-                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="camera"></div>
-                  <div class="combo-options" data-combo-options="camera"></div>
-                </div>
-              </div>
-              <input id="cameraName" type="hidden">
+              <label for="extraRole">Role Bantuan</label>
+              <input id="extraRole" placeholder="Contoh: Audio, Runner, Dokumentasi">
             </div>
-            <div class="field">
-              <label>Supervisor Bertugas</label>
-              <div class="combo" data-combo="supervisor">
-                <button class="combo-trigger" type="button" data-combo-trigger="supervisor" aria-expanded="false">Pilih supervisor...</button>
-                <div class="combo-panel" data-combo-panel="supervisor">
-                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="supervisor"></div>
-                  <div class="combo-options" data-combo-options="supervisor"></div>
-                </div>
-              </div>
-              <input id="supervisorName" type="hidden">
-            </div>
+            <button id="addExtraBtn" class="btn-secondary" type="button">+ Tambah</button>
           </div>
+          <div id="extraList" class="chip-list">Belum ada petugas tambahan.</div>
+        </section>
 
-          <div class="form-section-label">Pengisi Evaluasi</div>
-          <div class="row-2">
-            <div class="field">
-              <label>Nama Petugas Pengisi Evaluasi</label>
-              <div class="combo" data-combo="eval">
-                <button class="combo-trigger" type="button" data-combo-trigger="eval" aria-expanded="false">Pilih pengisi evaluasi...</button>
-                <div class="combo-panel" data-combo-panel="eval">
-                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="eval"></div>
-                  <div class="combo-options" data-combo-options="eval"></div>
-                </div>
-              </div>
-              <input id="evalName" type="hidden">
-            </div>
-            <div class="field">
-              <label for="evalRole">Role Pengisi Evaluasi</label>
-              <select id="evalRole" required>
-                <option value="Operator">Operator</option>
-                <option value="Kameramen">Kameramen</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="Petugas Tambahan">Petugas Tambahan</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
-            </div>
+        <section>
+          <h3 class="section-title">Evaluasi Per Petugas</h3>
+          <div id="staffEvalGrid" class="staff-eval-grid"></div>
+        </section>
+
+        <section>
+          <h3 class="section-title">Catatan Kendala</h3>
+          <div class="two-grid">
+            <div class="field"><label for="technicalIssue">Kendala Teknis Selama Streaming</label><textarea id="technicalIssue" placeholder="Audio, kamera, koneksi, software, dll." required></textarea></div>
+            <div class="field"><label for="nontechnicalIssue">Kendala Misa Non-Teknis</label><textarea id="nontechnicalIssue" placeholder="Alur misa, koordinasi, perubahan petugas mendadak, dll." required></textarea></div>
           </div>
+        </section>
 
-          <div class="form-section-label">Petugas Tambahan</div>
+        <section>
+          <h3 class="section-title">Checklist Kondisi Pelayanan</h3>
+          <div class="check-box">
+            <label class="inline-check"><input id="checkStream" type="checkbox" required> Streaming berjalan lancar sampai akhir</label>
+            <label class="inline-check"><input id="checkCoord" type="checkbox" required> Koordinasi tim berjalan baik</label>
+          </div>
+        </section>
+
+        <section>
+          <div class="field"><label for="finalNote">Catatan Penutup / Rekomendasi <span class="helper">(opsional)</span></label><textarea id="finalNote" placeholder="Catatan untuk perbaikan misa berikutnya"></textarea></div>
+        </section>
+
+        <section>
+          <h3 class="section-title">Pertanyaan Tambahan Dinamis</h3>
+          <div id="dynamicQuestions" class="form-grid"></div>
+        </section>
+
+        <section>
+          <h3 class="section-title">Penilaian Umum</h3>
           <div class="field">
-            <label for="extraStaffInput">Petugas Tambahan (jika ada)</label>
-            <div class="extra-staff-picker">
-              <div class="combo" data-combo="extra">
-                <button class="combo-trigger" type="button" data-combo-trigger="extra" aria-expanded="false">Pilih anggota tambahan...</button>
-                <div class="combo-panel" data-combo-panel="extra">
-                  <div class="combo-search-box"><input class="combo-search-input" type="search" placeholder="Cari anggota..." data-combo-search="extra"></div>
-                  <div class="combo-options" data-combo-options="extra"></div>
-                </div>
-              </div>
-              <input id="extraStaffInput" type="hidden">
-              <button id="addExtraStaffBtn" class="btn" type="button">+ Tambah</button>
-            </div>
-            <input id="extraStaff" type="hidden">
-            <div id="extraStaffChips" class="extra-staff-chips" aria-live="polite"></div>
-            <p id="extraStaffEmpty" class="extra-staff-empty">Belum ada petugas tambahan dipilih.</p>
-          </div>
-
-          <div class="form-section-label">Evaluasi Per Petugas</div>
-          <div class="field">
-            <div class="staff-eval-wrap">
-              <p class="staff-eval-head">Evaluasi per petugas akan terisi otomatis sesuai nama petugas yang dipilih di atas.</p>
-              <div id="staffEvalGrid" class="staff-eval-grid"></div>
-            </div>
-          </div>
-
-          <div class="form-section-label">Penilaian Umum</div>
-          <div class="field">
-            <label for="generalStreamAssessment">Penilaian General Streaming (Keseluruhan Misa)</label>
-            <select id="generalStreamAssessment" required>
-              <option value="Aman">Aman</option>
-              <option value="Kendala Ringan">Kendala Ringan</option>
-              <option value="Kendala Serius (Urgent)">Kendala Serius (Urgent)</option>
+            <label for="generalAssessment">Penilaian Umum Streaming Keseluruhan</label>
+            <select id="generalAssessment" required>
+              <option value="">Pilih penilaian</option>
+              <option>Aman</option>
+              <option>Kendala Ringan</option>
+              <option>Kendala Serius (Urgent)</option>
             </select>
           </div>
+        </section>
 
-          <div class="form-section-label">Catatan Kendala</div>
-          <div class="field">
-            <label for="technicalIssue">Kendala Teknis Selama Streaming</label>
-            <textarea id="technicalIssue" placeholder="Tulis kendala teknis: audio, kamera, koneksi, software, dll."></textarea>
-          </div>
-          <div class="field" style="margin-top:14px;">
-            <label for="liturgyIssue">Kendala Misa Non-Teknis (di luar teknis)</label>
-            <textarea id="liturgyIssue" placeholder="Tulis kendala non-teknis: alur misa, koordinasi, perubahan petugas mendadak, dll."></textarea>
-          </div>
-
-          <div class="form-section-label">Checklist Kondisi Pelayanan</div>
-          <div class="field">
-            <div class="check-wrap">
-              <label><input type="checkbox" id="checkStream"> Siaran berjalan sampai akhir</label>
-              <label><input type="checkbox" id="checkCoord"> Koordinasi tim berjalan baik</label>
-              <label><input type="checkbox" id="checkArchive"> Rekaman tersimpan dengan benar</label>
-            </div>
-          </div>
-
-          <div class="form-section-label">Catatan Penutup</div>
-          <div class="field">
-            <label for="finalNote">Catatan Penutup / Rekomendasi</label>
-            <textarea id="finalNote" placeholder="Catatan untuk perbaikan misa berikutnya"></textarea>
-          </div>
-
-          <div class="form-section-label">Pertanyaan Tambahan (Dinamis)</div>
-          <div class="field">
-            <div id="dynamicQuestionList" class="dynamic-question-list"></div>
-            <p id="dynamicQuestionEmpty" class="dynamic-empty" hidden>Belum ada pertanyaan tambahan. Silakan atur di halaman setting pertanyaan evaluasi.</p>
-          </div>
-
-          <div class="action-row">
-            <button class="btn-primary" type="submit">Simpan Evaluasi</button>
-            <button id="cancelBtn" class="btn" type="button">Batal</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div class="actions">
+          <button class="btn-primary" type="submit">Simpan Evaluasi</button>
+          <button id="cancelBtn" class="btn-secondary" type="button">Batal</button>
+        </div>
+      </form>
+    </section>
   </main>
+
+  <button id="scrollTopBtn" class="scroll-top-btn" type="button" aria-label="Scroll ke atas" title="Scroll ke atas">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 19V5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M6.5 10.5L12 5l5.5 5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </button>
 
   <footer class="footer">
     <div class="footer-main">
       <div class="container footer-grid">
         <section class="footer-col" aria-label="Identitas Crembo">
           <div class="footer-brand">
-            <img class="footer-logo" src="LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media">
-            <div><h4 class="footer-title">Crew Multimedia Baciro</h4><p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p></div>
+            <img class="footer-logo" src="/LOGO CREMBO PUTIH yg bagus.png" alt="Logo Crembo Media" onerror="this.style.display='none'">
+            <div>
+              <h4 class="footer-title">Crew Multimedia Baciro</h4>
+              <p class="footer-sub">Paroki Kristus Raja Baciro - Yogyakarta</p>
+            </div>
           </div>
-          <p class="footer-sub">Platform informasi, jadwal streaming, agenda, pengumuman, dan form pendaftaran komunitas.</p>
+          <p class="footer-sub">Platform informasi, jadwal streaming, agenda, dan pengumuman internal komunitas.</p>
         </section>
         <section class="footer-col" aria-label="Kontak">
           <h4 class="footer-title">Kontak</h4>
-          <ul class="contact-list" style="margin-top:14px;">
+          <ul class="contact-list">
             <li><strong>Email</strong> : crembomedia@example.com</li>
             <li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li>
             <li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
@@ -615,7 +455,7 @@
         </section>
         <section class="footer-col" aria-label="Media sosial">
           <h4 class="footer-title">Media Sosial</h4>
-          <ul class="social-list" style="margin-top:14px;">
+          <ul class="social-list">
             <li class="social-item"><span class="social-dot">IG</span><span>@crembomedia</span></li>
             <li class="social-item"><span class="social-dot">YT</span><span>Crembo Media Official</span></li>
             <li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li>
@@ -623,186 +463,623 @@
         </section>
       </div>
     </div>
-    <div class="footer-bottom"><div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div></div>
+    <div class="footer-bottom">
+      <div class="container">&copy; 2026 Crew Multimedia Baciro &mdash; Mockup High-Fidelity</div>
+    </div>
   </footer>
 
   <script>
-    // ─── ORIGINAL JS LOGIC (fully preserved) ─────────────────────────────────────
-    const STORAGE_KEY = "crembo-evaluasi-streaming";
-    const ACTIVE_MEMBER_STORAGE_KEY = "crembo-active-members";
-    const QUESTION_CONFIG_KEY = "crembo-evaluasi-question-config";
-    const NOTIFICATION_STORAGE_KEY = "crembo-admin-notifications";
-    const DEFAULT_QUESTION_CONFIG = [
-      { id:"kesan-pelayanan", label:"Apa kesan umum pelayanan streaming pada misa ini?", type:"single_choice", required:true, helpText:"Pilih satu penilaian umum.", options:["Sangat Baik","Baik","Cukup","Perlu Pendampingan"] },
-      { id:"hal-terbaik", label:"Bagian mana yang sudah paling baik?", type:"long_text", required:false, helpText:"Contoh: alur kamera, audio, koordinasi.", options:[] }
-    ];
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const menuToggle = $('#menuToggle');
+    const mainNav = $('#mainNav');
+    const searchForm = $('#searchForm');
+    const statusCard = $('#statusCard');
+    const scrollTopBtn = $('#scrollTopBtn');
+    const kindFilter = $('#kindFilter');
+    const scheduleList = $('#scheduleList');
+    const scheduleCount = $('#scheduleCount');
+    const openFormBtn = $('#openFormBtn');
+    const reloadBtn = $('#reloadBtn');
+    const evaluationFormCard = $('#evaluationFormCard');
+    const evaluationForm = $('#evaluationForm');
+    const params = new URLSearchParams(location.search);
 
-    const schedules = [
-      { id:"normal-2026-03-27-1800", date:"2026-03-27", time:"18:00", type:"Biasa",    title:"Misa Jumat Biasa",           team:{ operator:"Rikha",  camera:"Jeni",  supervisor:"Tyas" } },
-      { id:"normal-2026-03-28-1800", date:"2026-03-28", time:"18:00", type:"Biasa",    title:"Misa Sabtu Sore",            team:{ operator:"Lisa",  camera:"Evan",  supervisor:"Jose" } },
-      { id:"raya-2026-03-29-0800",   date:"2026-03-29", time:"08:00", type:"Hari Raya",title:"Minggu Palma - Sesi Pagi",   team:{ operator:"Rossa", camera:"Aurel", supervisor:"Asha" } },
-      { id:"raya-2026-03-29-1700",   date:"2026-03-29", time:"17:00", type:"Hari Raya",title:"Minggu Palma - Sesi Sore",   team:{ operator:"Rikha",  camera:"Jeni",  supervisor:"Tyas" } },
-      { id:"normal-2026-03-30-1800", date:"2026-03-30", time:"18:00", type:"Biasa",    title:"Misa Senin Biasa",           team:{ operator:"Lisa",  camera:"Evan",  supervisor:"Jose" } }
-    ];
+    let schedules = [];
+    let members = [];
+    let questions = [];
+    let selectedSchedule = null;
+    let extraStaff = [];
+    let scheduleCombo;
+    let evaluatorCombo;
+    let extraMemberCombo;
+    let staffCombos = [];
 
-    const fallbackActiveMembers = ["Rikha","Jeni","Tyas","Lisa","Evan","Jose","Rossa","Aurel","Asha","Andre","Bima","Chandra","Dian","Elin","Ferry","Gita","Hana"];
+    function escapeHtml(value){
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    }
 
-    const topHeader        = document.getElementById("topHeader");
-    const menuToggle       = document.getElementById("menuToggle");
-    const mainNav          = document.getElementById("mainNav");
-    const searchForm       = document.getElementById("searchForm");
-    const searchInput      = document.getElementById("searchInput");
-    const scheduleSelect   = document.getElementById("scheduleSelect");
-    const openFormBtn      = document.getElementById("openFormBtn");
-    const sessionList      = document.getElementById("sessionList");
-    const statusCard       = document.getElementById("statusCard");
-    const evaluationFormCard = document.getElementById("evaluationFormCard");
-    const formTitle        = document.getElementById("formTitle");
-    const formSub          = document.getElementById("formSub");
-    const evaluationForm   = document.getElementById("evaluationForm");
-    const cancelBtn        = document.getElementById("cancelBtn");
-    const misaDate         = document.getElementById("misaDate");
-    const misaTime         = document.getElementById("misaTime");
-    const misaType         = document.getElementById("misaType");
-    const operatorName     = document.getElementById("operatorName");
-    const cameraName       = document.getElementById("cameraName");
-    const supervisorName   = document.getElementById("supervisorName");
-    const evalName         = document.getElementById("evalName");
-    const evalRole         = document.getElementById("evalRole");
-    const extraStaffInput  = document.getElementById("extraStaffInput");
-    const addExtraStaffBtn = document.getElementById("addExtraStaffBtn");
-    const extraStaff       = document.getElementById("extraStaff");
-    const extraStaffChips  = document.getElementById("extraStaffChips");
-    const extraStaffEmpty  = document.getElementById("extraStaffEmpty");
-    const staffEvalGrid    = document.getElementById("staffEvalGrid");
-    const technicalIssue   = document.getElementById("technicalIssue");
-    const liturgyIssue     = document.getElementById("liturgyIssue");
-    const generalStreamAssessment = document.getElementById("generalStreamAssessment");
-    const finalNote        = document.getElementById("finalNote");
-    const dynamicQuestionList  = document.getElementById("dynamicQuestionList");
-    const dynamicQuestionEmpty = document.getElementById("dynamicQuestionEmpty");
-    const checkStream      = document.getElementById("checkStream");
-    const checkCoord       = document.getElementById("checkCoord");
-    const checkArchive     = document.getElementById("checkArchive");
+    function setStatus(message = '', type = 'success'){
+      if(!message){
+        statusCard.className = 'status-card';
+        statusCard.textContent = '';
+        return;
+      }
+      statusCard.className = 'status-card show ' + (type === 'danger' ? 'danger' : 'success');
+      statusCard.textContent = message;
+    }
 
-    let selectedScheduleId = "";
-    let activeMembers = [];
-    let selectedExtraStaff = [];
-    let dynamicQuestions = [];
+    function memberLabel(member){
+      if(!member) return '';
+      const name = member.name || member.nama || member.username || '';
+      return member.id ? `${name} (#${member.id})` : name;
+    }
 
-    const comboConfig = {
-      operator:   { hiddenInput: operatorName,   placeholder:"Pilih operator...",          allowEmpty:false },
-      camera:     { hiddenInput: cameraName,      placeholder:"Pilih kameramen...",         allowEmpty:false },
-      supervisor: { hiddenInput: supervisorName,  placeholder:"Pilih supervisor...",        allowEmpty:false },
-      eval:       { hiddenInput: evalName,        placeholder:"Pilih pengisi evaluasi...",  allowEmpty:false },
-      extra:      { hiddenInput: extraStaffInput, placeholder:"Pilih anggota tambahan...", allowEmpty:true }
-    };
+    function memberIdFromLabel(label){
+      const raw = String(label || '').trim();
+      const match = raw.match(/#(\d+)/);
+      if(match) return match[1];
+      const clean = raw.replace(/\s*\(#\d+\)\s*$/, '').toLowerCase();
+      const found = members.find(member => String(member.name || '').toLowerCase() === clean || String(member.username || '').toLowerCase() === clean);
+      return found ? String(found.id) : '';
+    }
 
-    function syncStickyOffset() { const h = topHeader ? topHeader.offsetHeight : 104; document.documentElement.style.setProperty("--header-h", h + "px"); }
-    function readStoredEvaluations() { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : {}; } catch(e) { return {}; } }
-    function writeStoredEvaluations(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
-    function slugifyText(t) { return String(t||"").toLowerCase().replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").slice(0,40); }
-    function normalizeQuestionType(t) { const a=["short_text","long_text","single_choice","multi_choice"]; return a.indexOf(t)!==-1?t:"short_text"; }
-    function normalizeOptions(o) { if(!Array.isArray(o)) return []; const u=[]; o.forEach(function(i){const c=String(i||"").trim(); if(c&&u.indexOf(c)===-1)u.push(c);}); return u; }
-    function sanitizeQuestionConfig(items) { if(!Array.isArray(items)) return []; return items.map(function(item,index){ const label=String(item&&item.label?item.label:"").trim(); const id=slugifyText(item&&item.id?item.id:label)||("q-"+(index+1)); const type=normalizeQuestionType(item&&item.type); const options=(type==="single_choice"||type==="multi_choice")?normalizeOptions(item&&item.options):[]; return {id:id,label:label||(("Pertanyaan "+(index+1))),type:type,required:!!(item&&item.required),helpText:String(item&&item.helpText?item.helpText:"").trim(),options:options}; }).filter(function(i){return!!i.label;}); }
-    function readQuestionConfig() { try { const r=localStorage.getItem(QUESTION_CONFIG_KEY); if(!r) return sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG); const p=JSON.parse(r); const s=sanitizeQuestionConfig(p); return s.length?s:sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG); } catch(e) { return sanitizeQuestionConfig(DEFAULT_QUESTION_CONFIG); } }
+    function memberNameFromId(id){
+      const found = members.find(member => String(member.id) === String(id));
+      return found ? found.name : '';
+    }
 
-    function renderDynamicQuestions() {
-      dynamicQuestionList.innerHTML = "";
-      if (!dynamicQuestions.length) { dynamicQuestionEmpty.hidden=false; return; }
-      dynamicQuestionEmpty.hidden = true;
-      dynamicQuestions.forEach(function(question,index) {
-        const block = document.createElement("article");
-        block.className = "dynamic-question-item";
-        const title = document.createElement("h4");
-        title.textContent = (index+1)+". "+question.label+(question.required?" *":"");
-        block.appendChild(title);
-        if (question.helpText) { const h=document.createElement("p"); h.className="dynamic-help"; h.textContent=question.helpText; block.appendChild(h); }
-        const name = "dynamic-question-"+question.id;
-        if (question.type==="short_text"||question.type==="long_text") {
-          const input = question.type==="long_text"?document.createElement("textarea"):document.createElement("input");
-          if(question.type==="short_text") input.type="text";
-          input.name=name; input.dataset.questionId=question.id; input.dataset.questionType=question.type;
-          input.placeholder=question.type==="long_text"?"Tulis jawaban...":"Isi jawaban...";
-          input.required=!!question.required; block.appendChild(input);
+    function scheduleLabel(schedule){
+      if(!schedule) return '';
+      return `${schedule.kindLabel} · ${schedule.misaName} · ${schedule.displayDateTime}`;
+    }
+
+    function scheduleDescription(schedule){
+      const filled = (schedule.staff || []).filter(staff => staff.memberId).length;
+      const total = (schedule.staff || []).length;
+      const staffNames = (schedule.staff || []).filter(staff => staff.memberId).map(staff => `${staff.role}: ${staff.memberName}`).join(' · ');
+      return `${schedule.displayDateTime} · Petugas: ${filled}/${total}${staffNames ? ' · ' + staffNames : ''}`;
+    }
+
+    function makeCombo(root, options = {}){
+      const placeholder = options.placeholder || root.dataset.placeholder || 'Pilih...';
+      root.innerHTML = `
+        <button class="combo-trigger placeholder" type="button" aria-expanded="false">${escapeHtml(placeholder)}</button>
+        <div class="combo-panel">
+          <div class="combo-search-box"><input class="combo-search" type="search" placeholder="Cari..."></div>
+          <div class="combo-options"></div>
+        </div>`;
+      const trigger = $('.combo-trigger', root);
+      const panel = $('.combo-panel', root);
+      const search = $('.combo-search', root);
+      const list = $('.combo-options', root);
+      let items = options.items || [];
+      let selected = null;
+      let query = '';
+
+      function labelOf(item){ return options.label ? options.label(item) : String(item?.label ?? item ?? ''); }
+      function descOf(item){ return options.desc ? options.desc(item) : ''; }
+      function valueOf(item){ return options.value ? options.value(item) : labelOf(item); }
+
+      function render(){
+        const normalized = query.trim().toLowerCase();
+        const filtered = items.filter(item => {
+          if(options.filter) return options.filter(item, normalized);
+          const haystack = `${labelOf(item)} ${descOf(item)}`.toLowerCase();
+          return !normalized || haystack.includes(normalized);
+        });
+        if(!filtered.length){
+          list.innerHTML = '<p class="combo-empty">Tidak ada pilihan yang cocok.</p>';
+          return;
         }
-        if (question.type==="single_choice") {
-          const sel=document.createElement("select"); sel.name=name; sel.dataset.questionId=question.id; sel.dataset.questionType=question.type; sel.required=!!question.required;
-          const empty=document.createElement("option"); empty.value=""; empty.textContent="Pilih jawaban"; sel.appendChild(empty);
-          question.options.forEach(function(o){ const opt=document.createElement("option"); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
-          block.appendChild(sel);
+        list.innerHTML = filtered.map((item, index) => `
+          <button class="combo-option${selected && valueOf(selected) === valueOf(item) ? ' active' : ''}" type="button" data-index="${index}">
+            <strong>${escapeHtml(labelOf(item))}</strong>
+            ${descOf(item) ? `<small>${escapeHtml(descOf(item))}</small>` : ''}
+          </button>`).join('');
+        $$('.combo-option', list).forEach((button, index) => {
+          button.addEventListener('click', () => {
+            selected = filtered[index];
+            trigger.textContent = labelOf(selected) || placeholder;
+            trigger.classList.toggle('placeholder', !selected);
+            close();
+            if(options.onSelect) options.onSelect(selected);
+          });
+        });
+      }
+
+      function open(){
+        document.querySelectorAll('.combo.open').forEach(combo => { if(combo !== root) combo.classList.remove('open'); });
+        root.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        query = '';
+        search.value = '';
+        render();
+        setTimeout(() => search.focus(), 20);
+      }
+      function close(){
+        root.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+      trigger.addEventListener('click', () => root.classList.contains('open') ? close() : open());
+      search.addEventListener('input', () => { query = search.value; render(); });
+      document.addEventListener('click', event => { if(!root.contains(event.target)) close(); });
+
+      return {
+        setItems(newItems){ items = Array.isArray(newItems) ? newItems : []; render(); },
+        setSelected(item){
+          selected = item || null;
+          trigger.textContent = selected ? labelOf(selected) : placeholder;
+          trigger.classList.toggle('placeholder', !selected);
+          render();
+        },
+        getSelected(){ return selected; },
+        clear(){ this.setSelected(null); },
+        open
+      };
+    }
+
+    function filterSchedules(){
+      return schedules;
+    }
+
+    function renderScheduleList(){
+      const list = filterSchedules();
+      scheduleCount.textContent = `${list.length} jadwal tersedia`;
+      if(scheduleCombo){
+        scheduleCombo.setItems(list);
+      }
+      scheduleList.innerHTML = list.map(schedule => {
+        const active = selectedSchedule && selectedSchedule.id === schedule.id ? ' active' : '';
+        const badgeClass = schedule.kind === 'misa_besar' ? 'gold' : 'blue';
+        const filled = (schedule.staff || []).filter(staff => staff.memberId).length;
+        const total = (schedule.staff || []).length;
+        return `<article class="session-item${active}" data-id="${escapeHtml(schedule.id)}">
+          <div>
+            <div class="session-title"><strong>${escapeHtml(schedule.misaName)}</strong><span class="badge ${badgeClass}">${escapeHtml(schedule.kindLabel)}</span></div>
+            <div class="session-meta"><span>${escapeHtml(schedule.displayDateTime)}</span><span>Petugas: ${filled}/${total}</span></div>
+          </div>
+          <span class="badge ${schedule.evaluated ? 'green' : 'red'}">${schedule.evaluated ? 'Sudah Diisi' : 'Belum Diisi'}</span>
+        </article>`;
+      }).join('') || '<div class="empty-state">Belum ada jadwal yang dapat dievaluasi.</div>';
+    }
+
+    async function loadMembers(seed){
+      if(seed && Array.isArray(seed.members)){
+        members = seed.members;
+      } else {
+        const response = await fetch('/api/evaluasi-streaming/members');
+        const data = await response.json();
+        members = data.members || [];
+      }
+      if(evaluatorCombo){ evaluatorCombo.setItems(selectedSchedule ? scheduledParticipants() : []); }
+      if(extraMemberCombo){ extraMemberCombo.setItems(members); }
+    }
+
+    async function loadSchedules(){
+      setStatus('');
+      scheduleCount.textContent = 'Memuat jadwal...';
+      openFormBtn.disabled = true;
+      try{
+        const response = await fetch(`/api/evaluasi-streaming/schedules?mode=form&kind=${encodeURIComponent(kindFilter.value)}`);
+        const data = await response.json();
+        if(!data.success){
+          setStatus(data.error || 'Gagal memuat jadwal evaluasi.', 'danger');
+          return;
         }
-        if (question.type==="multi_choice") {
-          const wrap=document.createElement("div"); wrap.className="dynamic-options";
-          question.options.forEach(function(o,oi){ const lbl=document.createElement("label"); const cb=document.createElement("input"); cb.type="checkbox"; cb.name=name; cb.value=o; cb.dataset.questionId=question.id; cb.dataset.questionType=question.type; cb.dataset.required=question.required?"1":"0"; cb.id=name+"-"+oi; lbl.appendChild(cb); lbl.appendChild(document.createTextNode(o)); wrap.appendChild(lbl); });
-          block.appendChild(wrap);
+        schedules = data.schedules || [];
+        questions = data.questions || [];
+        await loadMembers(data);
+        openFormBtn.disabled = schedules.length === 0;
+        const preselectedId = params.get('scheduleId');
+        if(preselectedId){
+          selectedSchedule = schedules.find(schedule => schedule.id === preselectedId) || null;
+          if(selectedSchedule){
+            scheduleCombo.setSelected(selectedSchedule);
+            openFormForSelected();
+          }
         }
-        dynamicQuestionList.appendChild(block);
+        renderScheduleList();
+      } catch(error){
+        setStatus('Gagal menghubungi server evaluasi. Pastikan backend Flask sedang berjalan.', 'danger');
+      }
+    }
+
+    function scheduledParticipants(){
+      const staff = selectedSchedule?.staff || [];
+      const byKey = new Map();
+      staff.forEach(slot => {
+        const memberId = String(slot.memberId || '').trim();
+        const memberName = String(slot.memberName || '').trim();
+        if(!memberId && !memberName) return;
+        const matched = memberId ? members.find(member => String(member.id) === memberId) : members.find(member => String(member.name || '').toLowerCase() === memberName.toLowerCase());
+        const key = memberId || `name:${memberName.toLowerCase()}`;
+        const existing = byKey.get(key);
+        const role = String(slot.role || '').trim();
+        if(existing){
+          if(role && !existing.scheduleRoles.includes(role)) existing.scheduleRoles.push(role);
+          existing.scheduleRole = existing.scheduleRoles.join(', ');
+          return;
+        }
+        byKey.set(key, {
+          ...(matched || {}),
+          id: memberId || (matched?.id || key),
+          name: matched?.name || memberName,
+          username: matched?.username || '',
+          accountRole: matched?.accountRole || '',
+          scheduleRoles: role ? [role] : [],
+          scheduleRole: role || ''
+        });
+      });
+      return Array.from(byKey.values());
+    }
+
+    function evaluatorLabel(member){
+      return member?.name || member?.memberName || member?.username || '';
+    }
+
+    function evaluatorDescription(member){
+      const roleText = member?.scheduleRole ? `Role jadwal: ${member.scheduleRole}` : '';
+      const accountText = member?.accountRole ? `Role akun: ${member.accountRole}` : '';
+      return [roleText, accountText].filter(Boolean).join(' · ');
+    }
+
+    function refreshEvaluatorOptions(){
+      if(!evaluatorCombo) return;
+      const participants = scheduledParticipants();
+      const current = evaluatorCombo.getSelected();
+      evaluatorCombo.setItems(participants);
+      if(current){
+        const stillAvailable = participants.find(item => String(item.id) === String(current.id) || evaluatorLabel(item).toLowerCase() === evaluatorLabel(current).toLowerCase());
+        if(!stillAvailable){
+          evaluatorCombo.clear();
+          $('#evaluatorRole').value = '';
+        }
+      }
+    }
+
+    function renderRoleOptions(){
+      const roles = [...new Set((selectedSchedule?.staff || []).map(slot => slot.role).filter(Boolean))];
+      $('#evaluatorRole').innerHTML = '<option value="">Pilih role pengisi</option>' + roles.map(role => `<option>${escapeHtml(role)}</option>`).join('');
+    }
+
+    function renderStaffSlots(){
+      const wrap = $('#staffSlots');
+      staffCombos = [];
+      const staff = selectedSchedule?.staff || [];
+      if(!staff.length){
+        wrap.innerHTML = '<div class="empty-state">Belum ada petugas pada jadwal ini.</div>';
+        return;
+      }
+      wrap.innerHTML = staff.map((slot, index) => `
+        <article class="staff-slot" data-index="${index}">
+          <div class="staff-slot-head">
+            <div class="field"><label>Role</label><input value="${escapeHtml(slot.role)}" readonly></div>
+            <div class="field"><label>Petugas Jadwal</label><input value="${escapeHtml(slot.memberName || 'Belum terisi')}" readonly></div>
+            <div class="field"><label>Status Kehadiran</label><select class="attendance"><option value="present">Hadir / Digantikan</option><option value="not_attend">Tidak datang</option></select></div>
+          </div>
+          <div class="field">
+            <span class="label">Petugas Aktual</span>
+            <div class="combo actual-combo" data-index="${index}" data-placeholder="Cari petugas aktif..."></div>
+          </div>
+        </article>`).join('');
+
+      $$('.staff-slot').forEach(row => {
+        const index = Number(row.dataset.index);
+        const slot = staff[index];
+        const comboRoot = $('.actual-combo', row);
+        const combo = makeCombo(comboRoot, {
+          items: members,
+          placeholder: 'Cari petugas aktif...',
+          label: memberLabel,
+          desc: member => member.accountRole ? `Role akun: ${member.accountRole}` : '',
+          value: member => String(member.id),
+          onSelect: () => renderStaffEvaluations()
+        });
+        const selectedMember = members.find(member => String(member.id) === String(slot.memberId));
+        if(selectedMember) combo.setSelected(selectedMember);
+        staffCombos[index] = combo;
+        $('.attendance', row).addEventListener('change', event => {
+          if(event.target.value === 'not_attend'){
+            comboRoot.style.opacity = '.5';
+            comboRoot.style.pointerEvents = 'none';
+            combo.clear();
+          } else {
+            comboRoot.style.opacity = '1';
+            comboRoot.style.pointerEvents = 'auto';
+            const defaultMember = members.find(member => String(member.id) === String(slot.memberId));
+            if(defaultMember) combo.setSelected(defaultMember);
+          }
+          renderStaffEvaluations();
+        });
       });
     }
 
-    function collectDynamicAnswers() { return dynamicQuestions.map(function(q){ const name="dynamic-question-"+q.id; let answer=""; if(q.type==="multi_choice"){answer=Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(n){return n.value;});}else{const i=document.querySelector('[name="'+name+'"]'); answer=i?String(i.value||"").trim():"";} return {id:q.id,label:q.label,type:q.type,required:!!q.required,answer:answer,options:q.options.slice()}; }); }
-    function validateDynamicAnswers(answers) { for(let i=0;i<answers.length;i++){const item=answers[i]; if(!item.required)continue; if(Array.isArray(item.answer)&&item.answer.length===0)return'Pertanyaan wajib belum dijawab: "'+item.label+'".'; if(!Array.isArray(item.answer)&&!String(item.answer||"").trim())return'Pertanyaan wajib belum dijawab: "'+item.label+'".';}return""; }
-    function readAdminNotifications() { try{const r=localStorage.getItem(NOTIFICATION_STORAGE_KEY); const p=r?JSON.parse(r):[]; return Array.isArray(p)?p:[];}catch(e){return[];} }
-    function saveAdminNotifications(i) { localStorage.setItem(NOTIFICATION_STORAGE_KEY,JSON.stringify(i)); }
-    function pushAdminNotification(item) { const n=readAdminNotifications(); if(n.some(function(e){return String(e&&e.id?e.id:"")=== String(item.id||"");})) return; n.unshift(item); saveAdminNotifications(n); }
-    function normalizeName(v) { return String(v||"").trim(); }
-    function readActiveMembers() { try{const r=localStorage.getItem(ACTIVE_MEMBER_STORAGE_KEY); if(!r)return []; const p=JSON.parse(r); if(!Array.isArray(p))return []; return p.map(function(i){if(typeof i==="string")return{name:i,isActive:true}; return{name:i&&i.name?String(i.name):"",isActive:i&&i.status?String(i.status).toLowerCase()==="aktif":i&&i.isActive!==false}; });}catch(e){return[];} }
-    function initActiveMembers() { const fromStorage=readActiveMembers().filter(function(i){return i.isActive;}).map(function(i){return normalizeName(i.name);}).filter(function(n){return n.length>0;}); const fromSchedules=[]; schedules.forEach(function(i){fromSchedules.push(i.team.operator,i.team.camera,i.team.supervisor);}); const merged=fromStorage.concat(fromSchedules,fallbackActiveMembers).filter(function(n){return normalizeName(n).length>0;}); const unique=[]; merged.forEach(function(n){const c=normalizeName(n); if(!unique.some(function(m){return m.toLowerCase()===c.toLowerCase();}))unique.push(c);}); unique.sort(function(a,b){return a.localeCompare(b,"id",{sensitivity:"base"});}); activeMembers=unique; }
-    function comboEl(part,key) { return document.querySelector('[data-combo-'+part+'="'+key+'"]'); }
-    function setComboValue(key,value) { const c=comboConfig[key]; const clean=normalizeName(value); const trigger=comboEl("trigger",key); c.hiddenInput.value=clean; trigger.textContent=clean||c.placeholder; }
-    function renderComboOptions(key,query) { const c=comboConfig[key]; const ow=comboEl("options",key); const cq=normalizeName(query).toLowerCase(); const sel=normalizeName(c.hiddenInput.value); const filtered=activeMembers.filter(function(n){return !cq||n.toLowerCase().indexOf(cq)!==-1;}); let html=""; if(c.allowEmpty){html+='<button class="combo-option'+(sel?"":"  active")+'" type="button" data-combo-value="" data-combo-key="'+key+'">-- kosong --</button>';} filtered.forEach(function(n){const ac=n.toLowerCase()===sel.toLowerCase()?" active":""; html+='<button class="combo-option'+ac+'" type="button" data-combo-value="'+escapeHtml(n)+'" data-combo-key="'+key+'">'+escapeHtml(n)+'</button>';}); if(!filtered.length){html+='<p class="combo-empty">Nama anggota tidak ditemukan.</p>';} ow.innerHTML=html; }
-    function closeCombo(key) { const p=comboEl("panel",key); const t=comboEl("trigger",key); p.classList.remove("show"); t.setAttribute("aria-expanded","false"); }
-    function closeAllCombos(exceptKey) { Object.keys(comboConfig).forEach(function(k){if(exceptKey&&k===exceptKey)return; closeCombo(k);}); }
-    function openCombo(key) { closeAllCombos(key); const p=comboEl("panel",key); const t=comboEl("trigger",key); const si=comboEl("search",key); p.classList.add("show"); t.setAttribute("aria-expanded","true"); renderComboOptions(key,si.value); si.focus(); }
-    function refreshComboSelections() { Object.keys(comboConfig).forEach(function(k){setComboValue(k,comboConfig[k].hiddenInput.value);}); }
-    function isActiveMemberName(n) { const c=normalizeName(n); return activeMembers.some(function(m){return m.toLowerCase()===c.toLowerCase();}); }
-    function syncExtraStaffHiddenInput() { extraStaff.value=selectedExtraStaff.join(", "); }
-    function renderExtraStaffChips() { extraStaffChips.innerHTML=""; if(selectedExtraStaff.length===0){extraStaffEmpty.style.display="block"; syncExtraStaffHiddenInput(); return;} extraStaffEmpty.style.display="none"; selectedExtraStaff.forEach(function(n){const chip=document.createElement("span"); chip.className="extra-chip"; chip.innerHTML='<span>'+escapeHtml(n)+'</span><button type="button" data-remove-name="'+escapeHtml(n)+'" aria-label="Hapus petugas tambahan '+escapeHtml(n)+'">×</button>'; extraStaffChips.appendChild(chip);}); syncExtraStaffHiddenInput(); }
-    function addExtraStaff() { const pn=normalizeName(extraStaffInput.value); if(!pn){setStatus("Pilih petugas tambahan dulu dari dropdown.",false);return;} if(!isActiveMemberName(pn)){setStatus("Nama petugas tambahan harus dipilih dari daftar anggota aktif.",false);return;} if(selectedExtraStaff.some(function(n){return n.toLowerCase()===pn.toLowerCase();})){setStatus("Petugas tambahan tersebut sudah dipilih.",false);return;} selectedExtraStaff.push(pn); setComboValue("extra",""); comboEl("search","extra").value=""; renderComboOptions("extra",""); renderExtraStaffChips(); renderStaffEvaluationFields(); }
-    function getAvailableSchedules() { const saved=readStoredEvaluations(); return schedules.filter(function(i){return !saved[i.id];}); }
-    function formatDate(d) { const dt=new Date(d+"T00:00:00"); return dt.toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"}); }
-    function setStatus(text,success) { statusCard.textContent=text; statusCard.classList.add("show"); if(success){statusCard.style.background="var(--ok-bg)"; statusCard.style.borderColor="var(--ok-line)"; statusCard.style.color="#166534";}else{statusCard.style.background="var(--warn-bg)"; statusCard.style.borderColor="var(--warn-line)"; statusCard.style.color="#6b4d18";} }
-    function resetFormState() { evaluationForm.reset(); evaluationFormCard.classList.remove("show"); selectedScheduleId=""; selectedExtraStaff=[]; staffEvalGrid.innerHTML=""; renderExtraStaffChips(); renderDynamicQuestions(); }
-    function escapeHtml(t) { return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
-    function getCurrentStaffList() { const base=[operatorName.value.trim(),cameraName.value.trim(),supervisorName.value.trim()]; const all=base.concat(selectedExtraStaff); const unique=[]; all.forEach(function(n){if(!n)return; if(unique.indexOf(n)===-1)unique.push(n);}); return unique; }
-    function renderStaffEvaluationFields() { const staffList=getCurrentStaffList(); staffEvalGrid.innerHTML=""; if(staffList.length===0){staffEvalGrid.innerHTML='<p class="staff-eval-empty">Belum ada nama petugas. Isi nama petugas untuk memunculkan kolom evaluasi.</p>'; return;} staffList.forEach(function(staffName,index){const card=document.createElement("article"); card.className="staff-eval-item"; card.innerHTML='<h4>'+escapeHtml(staffName)+'</h4><div class="field"><label for="staffRating-'+index+'">Penilaian Singkat</label><select id="staffRating-'+index+'" class="staff-rating" data-staff-name="'+escapeHtml(staffName)+'" required><option value="">Pilih penilaian</option><option value="Sangat Baik">Sangat Baik</option><option value="Baik">Baik</option><option value="Cukup">Cukup</option><option value="Perlu Pendampingan">Perlu Pendampingan</option></select></div><div class="field"><label for="staffNote-'+index+'">Catatan Per Petugas</label><textarea id="staffNote-'+index+'" class="staff-note" data-staff-name="'+escapeHtml(staffName)+'" placeholder="Catatan performa '+escapeHtml(staffName)+'"></textarea></div>'; staffEvalGrid.appendChild(card);}); }
-    function collectStaffEvaluations() { const ratings=Array.from(document.querySelectorAll(".staff-rating")); const notes=Array.from(document.querySelectorAll(".staff-note")); return ratings.map(function(r,i){const n=notes[i]; return {name:r.dataset.staffName||"",rating:r.value,note:n?n.value:""};}); }
-    function drawScheduleOptions() { const available=getAvailableSchedules(); scheduleSelect.innerHTML=""; sessionList.innerHTML=""; if(available.length===0){scheduleSelect.innerHTML='<option value="">Semua jadwal sudah dievaluasi</option>'; openFormBtn.disabled=true; sessionList.innerHTML='<div class="session-item"><strong>Tidak ada jadwal tersisa</strong><small>Semua form evaluasi sudah diisi.</small></div>'; resetFormState(); return;} openFormBtn.disabled=false; available.forEach(function(item,index){const option=document.createElement("option"); option.value=item.id; option.textContent=formatDate(item.date)+" - "+item.time+" WIB - "+item.title; scheduleSelect.appendChild(option); const tagClass=item.type==="Hari Raya"?"tag raya":"tag biasa"; const row=document.createElement("div"); row.className="session-item"; row.innerHTML="<div><strong>"+formatDate(item.date)+" - "+item.time+" WIB</strong><br><small>"+item.title+"</small></div><span class=\""+tagClass+"\">"+item.type+"</span>"; sessionList.appendChild(row); if(index===0)selectedScheduleId=item.id;}); }
-    function getScheduleById(id) { return schedules.find(function(i){return i.id===id;}); }
-    function openFormForSelected() { const id=scheduleSelect.value; const schedule=getScheduleById(id); if(!schedule){setStatus("Pilih jadwal yang tersedia terlebih dahulu.",false);return;} selectedScheduleId=id; formTitle.textContent="2 — Form Evaluasi: "+schedule.title; formSub.textContent="Jadwal: "+formatDate(schedule.date)+" | "+schedule.time+" WIB | "+schedule.type; misaDate.value=schedule.date; misaTime.value=schedule.time; misaType.value=schedule.type; operatorName.value=schedule.team.operator; cameraName.value=schedule.team.camera; supervisorName.value=schedule.team.supervisor; evalName.value=schedule.team.operator; evalRole.value="Operator"; selectedExtraStaff=[]; extraStaffInput.value=""; ["operator","camera","supervisor","eval","extra"].forEach(function(k){comboEl("search",k).value="";}); technicalIssue.value=""; liturgyIssue.value=""; finalNote.value=""; checkStream.checked=false; checkCoord.checked=false; checkArchive.checked=false; generalStreamAssessment.value="Aman"; refreshComboSelections(); renderComboOptions("extra",""); renderExtraStaffChips(); renderStaffEvaluationFields(); dynamicQuestions=readQuestionConfig(); renderDynamicQuestions(); evaluationFormCard.classList.add("show"); setStatus("Silakan isi evaluasi untuk jadwal terpilih.",true); window.scrollTo({top:evaluationFormCard.offsetTop-150,behavior:"smooth"}); }
-    function saveEvaluation(event) { event.preventDefault(); if(!operatorName.value||!cameraName.value||!supervisorName.value||!evalName.value){setStatus("Lengkapi pilihan petugas (operator, kameramen, supervisor, dan pengisi evaluasi).",false);return;} if(!selectedScheduleId){setStatus("Jadwal belum dipilih.",false);return;} const schedule=getScheduleById(selectedScheduleId); if(!schedule){setStatus("Jadwal tidak ditemukan.",false);return;} const payload={scheduleId:selectedScheduleId,date:misaDate.value,time:misaTime.value,misaType:misaType.value,operator:operatorName.value,camera:cameraName.value,supervisor:supervisorName.value,evaluatorName:evalName.value,evaluatorRole:evalRole.value,extraStaff:selectedExtraStaff.slice(),technicalIssue:technicalIssue.value,liturgyIssue:liturgyIssue.value,generalAssessment:generalStreamAssessment.value,checklist:{stream:checkStream.checked,coordination:checkCoord.checked,archive:checkArchive.checked},staffEvaluations:collectStaffEvaluations(),dynamicAnswers:collectDynamicAnswers(),finalNote:finalNote.value,submittedAt:new Date().toISOString()}; const de=validateDynamicAnswers(payload.dynamicAnswers); if(de){setStatus(de,false);return;} const saved=readStoredEvaluations(); saved[selectedScheduleId]=payload; writeStoredEvaluations(saved); if(payload.generalAssessment==="Kendala Serius (Urgent)"){pushAdminNotification({id:"urgent-eval-"+selectedScheduleId,type:"tugas",title:"Urgent: Kendala Serius pada Evaluasi Streaming",message:schedule.title+" ("+payload.date+" "+payload.time+" WIB) ditandai Kendala Serius (Urgent). Segera tindak lanjuti.",date:new Date().toISOString().slice(0,16).replace("T"," "),status:"unread"});} setStatus("Evaluasi untuk "+schedule.title+" berhasil disimpan.",true); drawScheduleOptions(); resetFormState(); }
-    function cancelForm() { resetFormState(); setStatus("Pengisian evaluasi dibatalkan.",false); }
+    function currentFinalStaff(){
+      const result = [];
+      $$('#staffSlots .staff-slot').forEach(row => {
+        const index = Number(row.dataset.index);
+        const base = selectedSchedule.staff[index] || {};
+        const attendance = $('.attendance', row).value;
+        const selectedMember = staffCombos[index]?.getSelected();
+        result.push({
+          ...base,
+          attendance,
+          actualMemberId: attendance === 'not_attend' ? '' : (selectedMember?.id || base.memberId || ''),
+          actualMemberName: attendance === 'not_attend' ? 'Tidak datang' : (selectedMember?.name || base.memberName || '')
+        });
+      });
+      return result;
+    }
 
-    syncStickyOffset(); window.addEventListener("resize",syncStickyOffset);
-    menuToggle.addEventListener("click",function(){const isOpen=mainNav.classList.toggle("open");menuToggle.setAttribute("aria-expanded",String(isOpen));});
-    mainNav.querySelectorAll("a").forEach(function(link){link.addEventListener("click",function(){if(link.classList.contains("profile-parent-link")&&window.matchMedia("(max-width: 760px)").matches){return;}if(mainNav.classList.contains("open")){mainNav.classList.remove("open");menuToggle.setAttribute("aria-expanded","false");}});});
-    initActiveMembers(); dynamicQuestions=readQuestionConfig(); refreshComboSelections();
-    Object.keys(comboConfig).forEach(function(k){renderComboOptions(k,"");});
-    drawScheduleOptions(); renderDynamicQuestions();
-    scheduleSelect.addEventListener("change",function(){selectedScheduleId=scheduleSelect.value;});
-    openFormBtn.addEventListener("click",openFormForSelected);
-    cancelBtn.addEventListener("click",cancelForm);
-    evaluationForm.addEventListener("submit",saveEvaluation);
-    addExtraStaffBtn.addEventListener("click",addExtraStaff);
-    Object.keys(comboConfig).forEach(function(key){
-      const trigger=comboEl("trigger",key); const si=comboEl("search",key); const ow=comboEl("options",key);
-      trigger.addEventListener("click",function(){const p=comboEl("panel",key); if(p.classList.contains("show")){closeCombo(key);return;} openCombo(key);});
-      si.addEventListener("input",function(){renderComboOptions(key,si.value);});
-      ow.addEventListener("click",function(event){const option=event.target.closest(".combo-option"); if(!option)return; setComboValue(key,option.getAttribute("data-combo-value")||""); closeCombo(key); if(key==="operator"){if(evalRole.value==="Operator"||!evalName.value)setComboValue("eval",operatorName.value); renderStaffEvaluationFields();} if(key==="camera"||key==="supervisor"){renderStaffEvaluationFields();}});
-    });
-    document.addEventListener("click",function(event){const cr=event.target.closest(".combo"); if(!cr)closeAllCombos();});
-    extraStaffChips.addEventListener("click",function(event){const t=event.target; if(!(t instanceof HTMLButtonElement))return; const rn=normalizeName(t.dataset.removeName||""); if(!rn)return; selectedExtraStaff=selectedExtraStaff.filter(function(n){return n.toLowerCase()!==rn.toLowerCase();}); renderExtraStaffChips(); renderStaffEvaluationFields();});
-    searchForm.addEventListener("submit",function(event){event.preventDefault(); const k=searchInput.value.trim(); window.location.href="search.html?q="+encodeURIComponent(k);});
+    function renderExtraList(){
+      const extraList = $('#extraList');
+      if(!extraStaff.length){
+        extraList.textContent = 'Belum ada petugas tambahan.';
+        return;
+      }
+      extraList.innerHTML = extraStaff.map((staff, index) => `<span class="badge gold">${escapeHtml(staff.name)} — ${escapeHtml(staff.role)} <button class="chip-remove" type="button" data-index="${index}" aria-label="Hapus">×</button></span>`).join('');
+      $$('.chip-remove', extraList).forEach(button => {
+        button.addEventListener('click', () => {
+          extraStaff.splice(Number(button.dataset.index), 1);
+          renderExtraList();
+          renderStaffEvaluations();
+        });
+      });
+    }
 
-    // Profile dropdown
-    (function(){
-      const DEFAULT_MENU=[{id:"sejarah",label:"Sejarah"},{id:"tentang-crembo",label:"Tentang Crembo"},{id:"struktur",label:"Struktur"},{id:"visi-misi",label:"Visi & Misi"}];
-      function getMenu(){try{const r=localStorage.getItem("crembo-profile-menu");if(!r)return DEFAULT_MENU;const p=JSON.parse(r);return Array.isArray(p)&&p.length?p.map(function(i){return typeof i==="string"?{id:i.toLowerCase().replace(/\s+/g,"-"),label:i}:i;}):DEFAULT_MENU;}catch(e){return DEFAULT_MENU;}}
-      function enhanceProfileHoverMenu(){const navList=document.querySelector(".nav-row nav ul");if(!navList)return;const anchor=navList.querySelector('a[href="profil.html"]');if(!anchor)return;const li=anchor.closest("li");const mobileQuery=window.matchMedia("(max-width: 760px)");li.classList.add("nav-dropdown-enhanced");if(!anchor.hasAttribute("data-profile-menu-label")){anchor.setAttribute("data-profile-menu-label","true");anchor.textContent=anchor.textContent.trim()+" ▾";}anchor.classList.add("profile-parent-link");anchor.setAttribute("aria-expanded","false");const dd=document.createElement("div");function applyDesktopDropdownStyle(){li.style.position="relative";Object.assign(dd.style,{position:"absolute",top:"calc(100% - 1px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});}function applyMobileDropdownStyle(){li.style.position="static";Object.assign(dd.style,{position:"static",top:"auto",left:"auto",minWidth:"0",width:"100%",border:"1px solid rgba(128,0,0,0.15)",background:"var(--bg)",boxShadow:"none",padding:"6px",display:"none",zIndex:"1300",borderRadius:"8px",marginTop:"6px"});}function syncDropdownMode(){if(mobileQuery.matches)applyMobileDropdownStyle();else applyDesktopDropdownStyle();anchor.setAttribute("aria-expanded","false");}dd.innerHTML=getMenu().map(function(i){return'<a href="profil.html?profil='+encodeURIComponent(i.id)+'" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">'+i.label+'</a>';}).join("");dd.addEventListener("mouseover",function(e){const l=e.target.closest("a");if(l){l.style.background="rgba(128,0,0,0.06)";l.style.color="#800000";}});dd.addEventListener("mouseout",function(e){const l=e.target.closest("a");if(l){l.style.background="transparent";l.style.color="#4a4a4a";}});li.appendChild(dd);anchor.addEventListener("click",function(event){if(!mobileQuery.matches)return;event.preventDefault();const isOpen=dd.style.display!=="block";dd.style.display=isOpen?"block":"none";anchor.setAttribute("aria-expanded",String(isOpen));});dd.querySelectorAll("a").forEach(function(link){link.addEventListener("click",function(){dd.style.display="none";anchor.setAttribute("aria-expanded","false");});});li.addEventListener("mouseenter",function(){if(!mobileQuery.matches)dd.style.display="block";});li.addEventListener("mouseleave",function(){if(!mobileQuery.matches)dd.style.display="none";});window.addEventListener("resize",syncDropdownMode);syncDropdownMode();}
-      enhanceProfileHoverMenu();
-    })();
+    function renderStaffEvaluations(){
+      if(!selectedSchedule) return;
+      const presentStaff = currentFinalStaff()
+        .filter(slot => slot.attendance !== 'not_attend' && (slot.actualMemberName || slot.memberName))
+        .map(slot => ({name: slot.actualMemberName || slot.memberName, role: slot.role}));
+      const allStaff = presentStaff.concat(extraStaff);
+      $('#staffEvalGrid').innerHTML = allStaff.map((staff, index) => `
+        <article class="staff-eval-item">
+          <h4>${escapeHtml(staff.name)} <span>${escapeHtml(staff.role)}</span></h4>
+          <div class="field"><label>Penilaian Singkat</label><select data-eval-index="${index}" required><option value="">Pilih penilaian</option><option>Sangat Baik</option><option>Baik</option><option>Cukup</option><option>Perlu Pendampingan</option></select></div>
+          <div class="field" style="margin-top:10px"><label>Catatan Performa</label><textarea data-note-index="${index}" required placeholder="Catatan performa ${escapeHtml(staff.name)}"></textarea></div>
+        </article>`).join('') || '<div class="empty-state">Tidak ada petugas hadir untuk dievaluasi.</div>';
+    }
+
+    function renderDynamicQuestions(){
+      const wrap = $('#dynamicQuestions');
+      if(!questions.length){
+        wrap.innerHTML = '<p class="empty-state">Belum ada pertanyaan tambahan.</p>';
+        return;
+      }
+      wrap.innerHTML = questions.map(question => {
+        const required = question.required ? 'required' : '';
+        const requiredLabel = question.required ? ' *' : '';
+        const help = question.helpText ? `<span class="helper">${escapeHtml(question.helpText)}</span>` : '';
+        if(question.type === 'long_text'){
+          return `<div class="field"><label>${escapeHtml(question.label)}${requiredLabel}${help}</label><textarea data-qid="${escapeHtml(question.id)}" ${required}></textarea></div>`;
+        }
+        if(question.type === 'single_choice'){
+          return `<div class="field"><label>${escapeHtml(question.label)}${requiredLabel}${help}</label><select data-qid="${escapeHtml(question.id)}" ${required}><option value="">Pilih jawaban</option>${(question.options || []).map(option => `<option>${escapeHtml(option)}</option>`).join('')}</select></div>`;
+        }
+        if(question.type === 'multi_choice'){
+          return `<div class="check-box"><strong>${escapeHtml(question.label)}${requiredLabel}</strong>${help}${(question.options || []).map(option => `<label class="inline-check"><input type="checkbox" data-qid="${escapeHtml(question.id)}" value="${escapeHtml(option)}"> ${escapeHtml(option)}</label>`).join('')}</div>`;
+        }
+        return `<div class="field"><label>${escapeHtml(question.label)}${requiredLabel}${help}</label><input data-qid="${escapeHtml(question.id)}" ${required}></div>`;
+      }).join('');
+    }
+
+    function openFormForSelected(){
+      selectedSchedule = scheduleCombo.getSelected() || selectedSchedule;
+      if(!selectedSchedule){
+        setStatus('Pilih jadwal evaluasi terlebih dahulu.', 'danger');
+        return;
+      }
+      evaluationForm.reset();
+      extraStaff = [];
+      $('#formTitle').textContent = '2 — Form Evaluasi: ' + selectedSchedule.misaName;
+      $('#formSub').textContent = `${selectedSchedule.displayDateTime} · ${selectedSchedule.kindLabel}`;
+      $('#misaDate').value = selectedSchedule.dateText || selectedSchedule.date || '';
+      $('#misaTime').value = `${selectedSchedule.time || ''} WIB`;
+      $('#misaType').value = selectedSchedule.kindLabel || '';
+      renderRoleOptions();
+      renderStaffSlots();
+      renderExtraList();
+      renderStaffEvaluations();
+      renderDynamicQuestions();
+      refreshEvaluatorOptions();
+      evaluatorCombo.clear();
+      extraMemberCombo.clear();
+      $('#extraRole').value = '';
+      evaluationFormCard.classList.add('show');
+      setStatus('Silakan isi evaluasi untuk jadwal terpilih.', 'success');
+      evaluationFormCard.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function collectDynamicAnswers(){
+      return (questions || []).map(question => {
+        let answer = '';
+        if(question.type === 'multi_choice'){
+          answer = $$(`[data-qid="${CSS.escape(question.id)}"]:checked`).map(input => input.value);
+        } else {
+          const input = $(`[data-qid="${CSS.escape(question.id)}"]`);
+          answer = input ? input.value : '';
+        }
+        return {...question, answer};
+      });
+    }
+
+    function collectStaffEvaluations(){
+      const presentStaff = currentFinalStaff()
+        .filter(slot => slot.attendance !== 'not_attend' && (slot.actualMemberName || slot.memberName))
+        .map(slot => ({name: slot.actualMemberName || slot.memberName, role: slot.role}));
+      const allStaff = presentStaff.concat(extraStaff);
+      return allStaff.map((staff, index) => ({
+        name: staff.name,
+        role: staff.role,
+        rating: ($(`[data-eval-index="${index}"]`) || {}).value || '',
+        note: ($(`[data-note-index="${index}"]`) || {}).value || ''
+      }));
+    }
+
+    function validateDynamicRequired(){
+      for(const question of questions || []){
+        if(!question.required) continue;
+        if(question.type === 'multi_choice'){
+          if(!$$(`[data-qid="${CSS.escape(question.id)}"]:checked`).length) return `Pertanyaan "${question.label}" wajib dijawab.`;
+        } else {
+          const input = $(`[data-qid="${CSS.escape(question.id)}"]`);
+          if(!input || !String(input.value || '').trim()) return `Pertanyaan "${question.label}" wajib dijawab.`;
+        }
+      }
+      return '';
+    }
+
+    async function submitEvaluation(event){
+      event.preventDefault();
+      if(!selectedSchedule){
+        setStatus('Jadwal belum dipilih.', 'danger');
+        return;
+      }
+      const dynamicError = validateDynamicRequired();
+      if(dynamicError){
+        setStatus(dynamicError, 'danger');
+        return;
+      }
+      const staffEvaluations = collectStaffEvaluations();
+      if(!staffEvaluations.length){
+        setStatus('Minimal ada satu petugas hadir untuk dievaluasi.', 'danger');
+        return;
+      }
+      if(staffEvaluations.some(item => !item.rating || !String(item.note || '').trim())){
+        setStatus('Penilaian dan catatan per petugas wajib diisi.', 'danger');
+        return;
+      }
+      const evaluator = evaluatorCombo.getSelected();
+      if(!evaluator){
+        setStatus('Pilih nama pengisi evaluasi dari daftar petugas pada jadwal ini.', 'danger');
+        return;
+      }
+      if(!$('#evaluatorRole').value){
+        setStatus('Pilih role pengisi evaluasi.', 'danger');
+        return;
+      }
+      const payload = {
+        scheduleId: selectedSchedule.id,
+        evaluatorId: evaluator?.id || '',
+        evaluatorName: evaluator?.name || '',
+        evaluatorRole: $('#evaluatorRole').value,
+        staff: currentFinalStaff(),
+        extraStaff,
+        staffEvaluations,
+        technicalIssue: $('#technicalIssue').value,
+        nontechnicalIssue: $('#nontechnicalIssue').value,
+        checklist: {
+          streaming_lancar: $('#checkStream').checked,
+          koordinasi_baik: $('#checkCoord').checked
+        },
+        finalNote: $('#finalNote').value,
+        dynamicAnswers: collectDynamicAnswers(),
+        generalAssessment: $('#generalAssessment').value
+      };
+      try{
+        const response = await fetch('/api/evaluasi-streaming/submit', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if(!data.success){
+          setStatus(data.error || 'Gagal menyimpan evaluasi.', 'danger');
+          return;
+        }
+        setStatus('Evaluasi berhasil disimpan. Jadwal ini tidak akan muncul lagi di daftar evaluasi publik.', 'success');
+        evaluationForm.reset();
+        evaluationFormCard.classList.remove('show');
+        selectedSchedule = null;
+        scheduleCombo.clear();
+        extraStaff = [];
+        await loadSchedules();
+      } catch(error){
+        setStatus('Gagal menyimpan evaluasi karena server tidak merespons.', 'danger');
+      }
+    }
+
+    function init(){
+      menuToggle?.addEventListener('click', () => {
+        const open = !mainNav.classList.contains('open');
+        mainNav.classList.toggle('open', open);
+        menuToggle.setAttribute('aria-expanded', String(open));
+      });
+      searchForm?.addEventListener('submit', event => {
+        event.preventDefault();
+        const query = $('#searchInput').value.trim();
+        if(query) location.href = `search.html?q=${encodeURIComponent(query)}`;
+      });
+      scheduleCombo = makeCombo($('#scheduleCombo'), {
+        placeholder: 'Ketik nama misa, tanggal, jam, atau petugas...',
+        items: schedules,
+        label: scheduleLabel,
+        desc: scheduleDescription,
+        value: schedule => schedule.id,
+        onSelect: schedule => {
+          selectedSchedule = schedule;
+          renderScheduleList();
+        }
+      });
+      evaluatorCombo = makeCombo($('#evaluatorCombo'), {
+        placeholder: 'Ketik nama pengisi dari jadwal ini...',
+        items: [],
+        label: evaluatorLabel,
+        desc: evaluatorDescription,
+        value: member => String(member.id || evaluatorLabel(member)),
+        onSelect: member => {
+          const roleSelect = $('#evaluatorRole');
+          const roles = member?.scheduleRoles || (member?.scheduleRole ? [member.scheduleRole] : []);
+          if(roles.length === 1) roleSelect.value = roles[0];
+        }
+      });
+      extraMemberCombo = makeCombo($('#extraMemberCombo'), {
+        placeholder: 'Cari nama petugas tambahan...',
+        items: members,
+        label: memberLabel,
+        desc: member => member.accountRole ? `Role akun: ${member.accountRole}` : '',
+        value: member => String(member.id)
+      });
+      scheduleList.addEventListener('click', event => {
+        const card = event.target.closest('.session-item');
+        if(!card) return;
+        selectedSchedule = schedules.find(schedule => schedule.id === card.dataset.id) || null;
+        scheduleCombo.setSelected(selectedSchedule);
+        renderScheduleList();
+      });
+      openFormBtn.addEventListener('click', openFormForSelected);
+      reloadBtn.addEventListener('click', loadSchedules);
+      kindFilter.addEventListener('change', () => {
+        selectedSchedule = null;
+        scheduleCombo.clear();
+        evaluationFormCard.classList.remove('show');
+        loadSchedules();
+      });
+      $('#addExtraBtn').addEventListener('click', () => {
+        const member = extraMemberCombo.getSelected();
+        const role = $('#extraRole').value.trim();
+        if(!member || !role){
+          setStatus('Nama dan role petugas tambahan wajib diisi jika ingin ditambahkan.', 'danger');
+          return;
+        }
+        extraStaff.push({name: member.name, memberId: member.id, role});
+        extraMemberCombo.clear();
+        $('#extraRole').value = '';
+        renderExtraList();
+        renderStaffEvaluations();
+      });
+      $('#cancelBtn').addEventListener('click', () => {
+        evaluationForm.reset();
+        evaluationFormCard.classList.remove('show');
+        setStatus('Pengisian evaluasi dibatalkan.', 'danger');
+      });
+      evaluationForm.addEventListener('submit', submitEvaluation);
+      loadSchedules();
+    }
+
+    init();
   </script>
-<script src="_public-nav-sync.js"></script>
 </body>
 </html>
