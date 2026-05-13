@@ -2543,7 +2543,11 @@ def create_notification_once(
     *,
     dedupe_key: str | None = None,
 ):
-    """Buat notifikasi sekali saja berdasarkan dedupe_key di payload data."""
+    """Buat notifikasi sekali saja berdasarkan dedupe_key di payload data.
+
+    Dedupe dibuat tahan terhadap variasi JSON yang memakai spasi ataupun tidak,
+    karena data notifikasi lama di database bisa berasal dari beberapa versi kode.
+    """
     payload = dict(data or {})
     clean_key = normalize_text(dedupe_key or payload.get("dedupe_key"))
     if clean_key:
@@ -2551,10 +2555,15 @@ def create_notification_once(
         cursor.execute(
             """
             SELECT `id` FROM `notifications`
-            WHERE `type` = %s AND `data` LIKE %s
+            WHERE `type` = %s
+              AND (`data` LIKE %s OR `data` LIKE %s)
             LIMIT 1
             """,
-            (str(type_value or ""), f'%"dedupe_key": "{clean_key}"%'),
+            (
+                str(type_value or ""),
+                f'%"dedupe_key": "{clean_key}"%',
+                f'%"dedupe_key":"{clean_key}"%',
+            ),
         )
         existing = cursor.fetchone()
         if existing:
@@ -2798,14 +2807,40 @@ def get_notifications():
     try:
         target_roles = ["admin", "super_admin"] if role in ["admin", "super_admin"] else ["user"]
         format_strings = ','.join(['%s'] * len(target_roles))
-        
+
+        # Filter target_user_id langsung di SQL, bukan hanya di frontend.
+        # Sebelumnya API mengambil 50 notifikasi global terlebih dahulu, lalu dashboard
+        # memfilter target_user_id di browser. Jika ada banyak notifikasi milik user lain,
+        # notifikasi evaluasi milik user yang sedang login bisa tidak ikut terbawa limit.
+        user_id = normalize_text(viewer.get("user_id")) if viewer.get("logged_in") else ""
+        target_user_clause = ""
+        target_user_params = []
+        if user_id:
+            target_user_clause = """
+              AND (
+                `data` IS NULL OR `data` = ''
+                OR `data` NOT LIKE '%"target_user_id"%'
+                OR `data` LIKE %s
+                OR `data` LIKE %s
+                OR `data` LIKE %s
+                OR `data` LIKE %s
+              )
+            """
+            target_user_params = [
+                f'%"target_user_id": "{user_id}"%',
+                f'%"target_user_id":"{user_id}"%',
+                f'%"target_user_id": {user_id}%',
+                f'%"target_user_id":{user_id}%',
+            ]
+
         query = f"""
-            SELECT * FROM `notifications` 
-            WHERE `target_role` IS NULL OR `target_role` IN ({format_strings}) 
-            ORDER BY `created_at` DESC LIMIT %s
+            SELECT * FROM `notifications`
+            WHERE (`target_role` IS NULL OR `target_role` IN ({format_strings}))
+            {target_user_clause}
+            ORDER BY `created_at` DESC, `id` DESC LIMIT %s
         """
-        params = tuple(target_roles) + (limit,)
-        
+        params = tuple(target_roles) + tuple(target_user_params) + (limit,)
+
         cursor.execute(query, params)
         rows = cursor.fetchall() or []
         results = []
@@ -12362,7 +12397,19 @@ def api_streaming_evaluation_export_pdf():
 
 
 def create_streaming_evaluation_reminder_notifications() -> int:
+    """Kirim pengingat evaluasi streaming H+1 setiap hari sampai evaluasi terisi.
+
+    Perbaikan penting:
+    - Backfill reminder harian yang terlewat. Misalnya hari ini 14 Mei dan jadwal
+      10 Mei belum dievaluasi, sistem akan membuat reminder untuk 11, 12, 13,
+      dan 14 Mei jika belum pernah dibuat.
+    - Berlaku untuk Misa Biasa dan Misa Besar.
+    - Dikirim ke setiap petugas pada sesi tersebut, termasuk user, admin, super_admin.
+    - Jika satu evaluasi sudah masuk untuk sesi itu, reminder berhenti untuk semua petugas.
+    - Dedupe per tanggal reminder + jadwal + member, sehingga aman dipanggil berkali-kali.
+    """
     ensure_streaming_evaluation_schema()
+    ensure_notifications_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
     sent = 0
@@ -12370,43 +12417,113 @@ def create_streaming_evaluation_reminder_notifications() -> int:
         today = datetime.now().date()
         settings = eval_get_settings(cursor)
         start = eval_start_date_from_settings(settings)
+        # Pengingat mulai H+1, jadi jadwal yang dicek maksimal kemarin.
         end = today - timedelta(days=1)
         if end < start:
+            conn.commit()
             return 0
+
         schedules = eval_all_schedules(cursor, start, end, "all")
         evals = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
-        today_key = today.isoformat()
+
         for schedule in schedules:
             dt = eval_datetime_from_parts(schedule.get("date"), schedule.get("time"))
             if not dt or dt.date() >= today:
                 continue
             if not eval_schedule_has_staff(schedule):
                 continue
+            # Jika salah satu petugas sudah submit evaluasi untuk sesi ini, stop pengingat.
             if evals.get((schedule.get("kind"), schedule.get("scheduleKey"))):
                 continue
-            for staff in schedule.get("staff") or []:
-                member_id = normalize_text(staff.get("memberId"))
-                if not member_id:
-                    continue
-                member_role = normalize_text(staff.get("accountRole")) or "user"
-                title = f"Pengingat Evaluasi Streaming: {schedule.get('misaName')}"
-                body = (
-                    f"Form evaluasi untuk <b>{html.escape(schedule.get('misaName') or '-')}</b> pada "
-                    f"{html.escape(schedule.get('displayDateTime') or '-')} belum diisi. "
-                    f"Silakan isi evaluasi streaming untuk sesi tersebut."
-                )
-                url = "/form-evaluasi-streaming.html" if member_role in {"admin", "super_admin"} else "/evaluasi-streaming-anggota.html"
-                create_notification_once(
-                    cursor,
-                    "evaluasi",
-                    title,
-                    body,
-                    url,
-                    {"target_user_id": member_id, "notification_kind": "streaming_evaluation_reminder", "schedule_id": schedule.get("id"), "misa_name": schedule.get("misaName")},
-                    target_role=None,
-                    dedupe_key=f"eval-reminder:{today_key}:{schedule.get('id')}:{member_id}",
-                )
-                sent += 1
+
+            schedule_id = normalize_text(schedule.get("id"))
+            misa_name = normalize_text(schedule.get("misaName")) or "Jadwal Streaming"
+            display_dt = normalize_text(schedule.get("displayDateTime")) or eval_format_period_id(schedule.get("date"), schedule.get("time"))
+            kind_label = normalize_text(schedule.get("kindLabel")) or "Jadwal Streaming"
+
+            # Backfill dari H+1 sampai hari ini. Dibatasi 31 hari agar tidak membanjiri
+            # database jika ada jadwal sangat lama yang belum dievaluasi.
+            first_reminder_day = dt.date() + timedelta(days=1)
+            if (today - first_reminder_day).days > 31:
+                first_reminder_day = today - timedelta(days=31)
+
+            reminder_days = []
+            walk_day = first_reminder_day
+            while walk_day <= today:
+                reminder_days.append(walk_day)
+                walk_day += timedelta(days=1)
+
+            for reminder_day in reminder_days:
+                reminder_date_key = reminder_day.isoformat()
+                elapsed_days = max((reminder_day - dt.date()).days, 1)
+                sent_members_for_schedule: set[str] = set()
+                for staff in schedule.get("staff") or []:
+                    if not isinstance(staff, dict):
+                        continue
+                    member_id = normalize_text(staff.get("memberId"))
+                    if not member_id or member_id in sent_members_for_schedule:
+                        continue
+                    sent_members_for_schedule.add(member_id)
+
+                    member_role = normalize_role_value(staff.get("accountRole") or "user")
+                    role_name = normalize_text(staff.get("role")) or "Petugas"
+                    url = "/form-evaluasi-streaming.html" if member_role in {"admin", "super_admin"} else "/evaluasi-streaming-anggota.html"
+                    dedupe_key = f"eval-reminder:{reminder_date_key}:{schedule_id}:{member_id}"
+
+                    cursor.execute(
+                        """
+                        SELECT `id` FROM `notifications`
+                        WHERE `type` = %s
+                          AND (`data` LIKE %s OR `data` LIKE %s)
+                        LIMIT 1
+                        """,
+                        (
+                            "evaluasi",
+                            f'%"dedupe_key": "{dedupe_key}"%',
+                            f'%"dedupe_key":"{dedupe_key}"%',
+                        ),
+                    )
+                    already_exists = cursor.fetchone() is not None
+
+                    if elapsed_days == 1:
+                        overdue_label = "H+1"
+                    else:
+                        overdue_label = f"H+{elapsed_days}"
+
+                    title = f"Pengingat Evaluasi Streaming {overdue_label}: {misa_name}"
+                    body = (
+                        f"Form evaluasi untuk <b>{html.escape(misa_name)}</b> ({html.escape(kind_label)}) pada "
+                        f"{html.escape(display_dt)} belum diisi. Anda terdaftar sebagai "
+                        f"<b>{html.escape(role_name)}</b>. Silakan isi evaluasi streaming; cukup salah satu petugas "
+                        f"pada sesi ini yang mengisi agar pengingat berhenti."
+                    )
+                    create_notification_once(
+                        cursor,
+                        "evaluasi",
+                        title,
+                        body,
+                        url,
+                        {
+                            "target_user_id": member_id,
+                            "notification_kind": "streaming_evaluation_reminder",
+                            "schedule_id": schedule_id,
+                            "schedule_kind": schedule.get("kind"),
+                            "schedule_key": schedule.get("scheduleKey"),
+                            "misa_type": schedule.get("kind"),
+                            "misa_name": misa_name,
+                            "misa_date": schedule.get("date"),
+                            "misa_time": schedule.get("time"),
+                            "role": role_name,
+                            "reminder_date": reminder_date_key,
+                            "overdue_days": elapsed_days,
+                            "overdue_label": overdue_label,
+                        },
+                        target_role=None,
+                        dedupe_key=dedupe_key,
+                    )
+                    if not already_exists:
+                        sent += 1
+
         conn.commit()
         return sent
     except Exception:
@@ -12415,6 +12532,46 @@ def create_streaming_evaluation_reminder_notifications() -> int:
     finally:
         cursor.close()
         conn.close()
+
+
+@app.route("/api/evaluasi-streaming/reminders/run", methods=["POST"])
+def api_streaming_evaluation_reminders_run():
+    """Endpoint manual untuk admin/super_admin menjalankan generator reminder evaluasi."""
+    if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+    try:
+        created = create_streaming_evaluation_reminder_notifications()
+        return jsonify({"success": True, "created": created})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+
+
+_EVAL_REMINDER_AUTO_RUN_DATE: str | None = None
+
+
+@app.before_request
+def auto_run_streaming_evaluation_reminders_once_per_day():
+    """Menjalankan pengingat evaluasi sekali per hari saat aplikasi menerima request.
+
+    Catatan: untuk produksi, endpoint `/api/evaluasi-streaming/reminders/run` tetap bisa dipanggil
+    lewat cron harian. Hook ini membantu mode lokal/dev agar notifikasi tetap dibuat otomatis
+    tanpa harus membuka dashboard tertentu terlebih dahulu.
+    """
+    global _EVAL_REMINDER_AUTO_RUN_DATE
+    path = request.path or ""
+    if path.startswith("/static/") or path.startswith("/uploads/") or path == "/favicon.ico":
+        return
+    if path == "/api/evaluasi-streaming/reminders/run":
+        return
+    today_key = datetime.now().date().isoformat()
+    if _EVAL_REMINDER_AUTO_RUN_DATE == today_key:
+        return
+    try:
+        create_streaming_evaluation_reminder_notifications()
+        _EVAL_REMINDER_AUTO_RUN_DATE = today_key
+    except Exception as exc:
+        # Jangan sampai halaman utama gagal hanya karena generator notif bermasalah.
+        print(f"[WARN] Gagal auto-run pengingat evaluasi streaming: {exc}")
 
 
 if __name__ == "__main__":
