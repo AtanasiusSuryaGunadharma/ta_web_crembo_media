@@ -4474,6 +4474,18 @@ def render_mockup_page(page: str):
     if candidate == "login.html":
         session.clear()
 
+    # Role-aware dashboard guard for direct .html URLs.
+    # Without this, /dashboard.html is served by the generic template router
+    # and user/anggota accounts can accidentally see the admin dashboard.
+    if candidate in {"dashboard.html", "dashboard-anggota.html"}:
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        current_role = session.get("role") or "user"
+        if candidate == "dashboard.html" and current_role == "user":
+            return redirect(url_for("dashboard_anggota"))
+        if candidate == "dashboard-anggota.html" and current_role != "user":
+            return redirect(url_for("dashboard"))
+
     if template_exists(candidate):
         extra_context = {"current_user": current_user_context()}
         if candidate == "home.html":
