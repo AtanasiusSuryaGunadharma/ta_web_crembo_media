@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 13 Bulan Mei 2026 pada 10.46
+-- Waktu pembuatan: 13 Bulan Mei 2026 pada 12.52
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1173,7 +1173,10 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778653383871-c72fa3', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>2</b> tugas dari target minimum <b>3</b>; masih kurang <b>1</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"12\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 2, \"shortage\": 1, \"dedupe_key\": \"monthly-monitoring:2026-05:12:daily_current:2026-05-13:target3\"}', '2026-05-13 13:23:03', 'user'),
 ('notif-1778653383873-162349', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>1</b> tugas dari target minimum <b>3</b>; masih kurang <b>2</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"13\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 1, \"shortage\": 2, \"dedupe_key\": \"monthly-monitoring:2026-05:13:daily_current:2026-05-13:target3\"}', '2026-05-13 13:23:03', 'user'),
 ('notif-1778653383874-4f7272', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"15\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:15:daily_current:2026-05-13:target3\"}', '2026-05-13 13:23:03', 'user'),
-('notif-1778653383876-3db331', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"18\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:18:daily_current:2026-05-13:target3\"}', '2026-05-13 13:23:03', 'user');
+('notif-1778653383876-3db331', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"18\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:18:daily_current:2026-05-13:target3\"}', '2026-05-13 13:23:03', 'user'),
+('notif-1778667846699-81fcca', 'tugas', 'Request Tugas Berhasil: Kameramen', 'Anda berhasil terdaftar sebagai <b>Kameramen</b> untuk <b>Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 18:30 WIB.', '/request-tugas-anggota.html', '{\"target_user_id\": \"21\", \"notification_kind\": \"member_request_success\", \"misa_type\": \"misa_biasa\", \"misa_besar_id\": null, \"misa_name\": \"Misa Mingguan\", \"role\": \"Kameramen\", \"misa_date\": \"2026-05-31\", \"misa_time\": \"18:30\", \"source\": \"member_request\"}', '2026-05-13 17:24:06', NULL),
+('notif-1778667885962-67a720', 'tugas', 'Pembatalan Tugas: Aura', '<b>Aura</b> membatalkan tugas sebagai <b>Kameramen</b> pada <b>Misa Biasa - Misa Mingguan</b>, hari Minggu, 31/05/2026 jam 18:30 WIB.', '/dashboard.html', '{\"notification_kind\": \"task_cancelled_by_member\", \"member_id\": \"21\", \"member_name\": \"Aura\", \"misa_type\": \"biasa\", \"misa_name\": \"Misa Mingguan\", \"role\": \"Kameramen\", \"misa_date\": \"2026-05-31\", \"misa_time\": \"18:30\"}', '2026-05-13 17:24:45', 'admin'),
+('notif-1778667885963-32c3d1', 'tugas', 'Tugas Dibatalkan: Kameramen', 'Tugas Anda sebagai <b>Kameramen</b> untuk <b>Misa Biasa - Misa Mingguan</b> pada hari Minggu, 31/05/2026 jam 18:30 WIB telah berhasil dibatalkan.', '/pembatalan-tugas-anggota.html', '{\"target_user_id\": \"21\", \"notification_kind\": \"task_cancelled_success\", \"misa_type\": \"biasa\", \"misa_name\": \"Misa Mingguan\", \"role\": \"Kameramen\", \"misa_date\": \"2026-05-31\", \"misa_time\": \"18:30\"}', '2026-05-13 17:24:45', 'user');
 
 -- --------------------------------------------------------
 
@@ -1572,7 +1575,8 @@ CREATE TABLE `task_cancellations` (
 
 INSERT INTO `task_cancellations` (`id`, `member_id`, `member_name`, `kind`, `type_label`, `misa_id`, `role_id`, `assignment_id`, `schedule_date`, `schedule_time`, `misa_name`, `role_name`, `request_source`, `cancelled_at`, `status`, `note`) VALUES
 (1, 21, 'Aura', 'biasa', 'Misa Biasa', NULL, NULL, 188, '2026-05-20', '18:00:00', 'Misa Harian', 'Operator', 'admin', '2026-05-12 05:14:50', 'batal', NULL),
-(2, 21, 'Aura', 'besar', 'Misa Besar', 15, 163, 132, '2026-05-28', '10:00:00', 'Tes Misa Besar Cancel Notif', 'PD', 'admin', '2026-05-12 05:19:07', 'batal', NULL);
+(2, 21, 'Aura', 'besar', 'Misa Besar', 15, 163, 132, '2026-05-28', '10:00:00', 'Tes Misa Besar Cancel Notif', 'PD', 'admin', '2026-05-12 05:19:07', 'batal', NULL),
+(3, 21, 'Aura', 'biasa', 'Misa Biasa', NULL, NULL, 870, '2026-05-31', '18:30:00', 'Misa Mingguan', 'Kameramen', 'member_request', '2026-05-13 17:24:45', 'batal', NULL);
 
 -- --------------------------------------------------------
 
@@ -1948,7 +1952,7 @@ ALTER TABLE `sertifikat_config`
 -- AUTO_INCREMENT untuk tabel `streaming_assignments`
 --
 ALTER TABLE `streaming_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=870;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=871;
 
 --
 -- AUTO_INCREMENT untuk tabel `streaming_cancelled`
@@ -1972,7 +1976,7 @@ ALTER TABLE `streaming_weekly_config`
 -- AUTO_INCREMENT untuk tabel `task_cancellations`
 --
 ALTER TABLE `task_cancellations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `task_exchange_requests`
