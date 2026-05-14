@@ -1674,27 +1674,47 @@
 		.footer-sub { margin: 3px 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); line-height: 1.6; }
 
 		.contact-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
-		.contact-list li { color: rgba(255, 255, 255, 0.8); display: flex; gap: 8px; }
-		.contact-list strong { display: inline-block; min-width: 70px; color: var(--accent-gold-light); font-weight: 600; }
+		.contact-list li { color: rgba(255, 255, 255, 0.8); display: flex; gap: 8px; align-items: flex-start; }
+		.contact-list strong { display: inline-block; min-width: 70px; color: var(--accent-gold-light); font-weight: 600; flex-shrink: 0; }
+		.contact-list a { color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: var(--transition); }
+		.contact-list a:hover { color: var(--accent-gold-light); text-decoration: underline; }
 
-		.social-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.9rem; }
-		.social-item { display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.8); transition: var(--transition); padding: 4px 0; }
-		.social-item:hover { color: #ffffff; }
+		.social-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 0.9rem; }
+		.social-item { display: flex; align-items: center; gap: 12px; transition: var(--transition); padding: 2px 0; }
+		.social-link {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			color: rgba(255, 255, 255, 0.8);
+			text-decoration: none;
+			transition: var(--transition);
+			padding: 8px 12px;
+			border-radius: var(--radius-sm);
+			width: 100%;
+			border: 1px solid transparent;
+		}
+		.social-link:hover { color: #ffffff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); transform: translateX(4px); }
 
-		.social-dot {
-			width: 32px;
-			height: 32px;
-			border-radius: 50%;
-			display: grid;
-			place-items: center;
-			font-size: 0.7rem;
-			font-weight: 700;
-			border: 1px solid rgba(212, 160, 23, 0.4);
-			background: rgba(212, 160, 23, 0.15);
-			color: var(--accent-gold-light);
+		.social-icon {
+			width: 36px;
+			height: 36px;
+			border-radius: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
 			transition: var(--transition);
 		}
-		.social-item:hover .social-dot { background: rgba(212, 160, 23, 0.3); transform: scale(1.1); }
+		.social-icon svg { width: 18px; height: 18px; }
+		.social-icon.ig { background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+		.social-icon.tt { background: #000000; border: 1px solid rgba(255,255,255,0.15); }
+		.social-icon.yt { background: #ff0000; }
+		.social-icon.maps { background: #34a853; }
+		.social-link:hover .social-icon { transform: scale(1.12) rotate(-3deg); box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
+
+		.social-label { display: flex; flex-direction: column; line-height: 1.3; }
+		.social-label span:first-child { font-weight: 600; font-size: 0.88rem; color: #fff; }
+		.social-label span:last-child { font-size: 0.76rem; color: rgba(255,255,255,0.55); }
 
 		.footer-bottom {
 			border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -2104,17 +2124,63 @@
 				<section class="footer-col" aria-label="Kontak">
 					<h4 class="footer-title">Kontak</h4>
 					<ul class="contact-list" style="margin-top: 14px;">
-						<li><strong>Email</strong> : crembomedia@egmail.com</li>
-						<!-- <li><strong>Telepon</strong> : 08xx-xxxx-xxxx</li> -->
-						<li><strong>Alamat</strong> : Jl. Melati Wetan 47, Baciro, Yogyakarta</li>
+						<li>
+							<strong>Email</strong>
+							<a href="mailto:crembomedia@gmail.com" title="Kirim email ke Crembo Media">: crembomedia@gmail.com</a>
+						</li>
+						<li>
+							<strong>Alamat</strong>
+							<a href="https://maps.app.goo.gl/1gf6nDNATsgQwmHK8" target="_blank" rel="noopener noreferrer" title="Lihat lokasi di Google Maps">: Jl. Melati Wetan 47, Baciro, Yogyakarta</a>
+						</li>
 					</ul>
 				</section>
 				<section class="footer-col" aria-label="Media sosial">
 					<h4 class="footer-title">Media Sosial</h4>
 					<ul class="social-list" style="margin-top: 14px;">
-						<li class="social-item"><span class="social-dot">IG</span><span>@crembo_media</span></li>
-						<li class="social-item"><span class="social-dot">YT</span><span>Crembo Media</span></li>
-						<!-- <li class="social-item"><span class="social-dot">WA</span><span>Admin Pelayanan Multimedia</span></li> -->
+						<li class="social-item">
+							<a class="social-link" href="https://www.instagram.com/crembo_media?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram Crembo Media">
+								<span class="social-icon ig">
+									<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="6" stroke="white" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="white"/></svg>
+								</span>
+								<span class="social-label">
+									<span>Instagram</span>
+									<span>@crembo_media</span>
+								</span>
+							</a>
+						</li>
+						<li class="social-item">
+							<a class="social-link" href="https://www.tiktok.com/@crembomedia?_r=1&_t=ZS-96M8DwmBcFp" target="_blank" rel="noopener noreferrer" aria-label="TikTok Crembo Media">
+								<span class="social-icon tt">
+									<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.28 8.28 0 0 0 4.84 1.55V6.79a4.85 4.85 0 0 1-1.07-.1z"/></svg>
+								</span>
+								<span class="social-label">
+									<span>TikTok</span>
+									<span>@crembomedia</span>
+								</span>
+							</a>
+						</li>
+						<li class="social-item">
+							<a class="social-link" href="https://youtube.com/@crembomedia?si=H6tARY4BH2jMyJu2" target="_blank" rel="noopener noreferrer" aria-label="YouTube Crembo Media">
+								<span class="social-icon yt">
+									<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+								</span>
+								<span class="social-label">
+									<span>YouTube</span>
+									<span>@crembomedia</span>
+								</span>
+							</a>
+						</li>
+						<li class="social-item">
+							<a class="social-link" href="https://maps.app.goo.gl/1gf6nDNATsgQwmHK8" target="_blank" rel="noopener noreferrer" aria-label="Lokasi Crembo Media di Google Maps">
+								<span class="social-icon maps">
+									<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+								</span>
+								<span class="social-label">
+									<span>Google Maps</span>
+									<span>Lihat Lokasi Kami</span>
+								</span>
+							</a>
+						</li>
 					</ul>
 				</section>
 			</div>
