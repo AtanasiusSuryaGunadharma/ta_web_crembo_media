@@ -7278,7 +7278,7 @@ def api_search():
         if not ftype or ftype == "FormPendaftaran":
             try:
                 cursor.execute("""
-                    SELECT id, title, description, visibility, updated_at, created_at
+                    SELECT id, title, description, visibility, image_url, updated_at, created_at
                     FROM `registration_forms`
                     WHERE visibility != 'draft'
                     ORDER BY updated_at DESC, created_at DESC
@@ -7299,7 +7299,7 @@ def api_search():
                         "date":    date_str,
                         "date_ts": date_ts,
                         "url":     f"/form-pendaftaran-detail.html?id={row['id']}",
-                        "thumb":   "",
+                        "thumb":   row.get("image_url") or "",
                     })
             except Exception:
                 pass
