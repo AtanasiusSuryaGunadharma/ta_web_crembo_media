@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 14 Bulan Mei 2026 pada 09.03
+-- Waktu pembuatan: 14 Bulan Mei 2026 pada 09.31
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1952,8 +1952,7 @@ CREATE TABLE `tentang_crembo_media` (
 --
 
 INSERT INTO `tentang_crembo_media` (`id`, `type`, `url`, `order_index`, `is_visible`) VALUES
-('about-img-1777487364855-0', 'image', 'uploads/foto_baju_koki_1777487364.jpg', 2, 1),
-('about-img-1777487374027-0', 'image', 'uploads/sertifikat-anggota-zxczxczxc_1777487374.jpg', 3, 1),
+('about-img-1777487374027-0', 'image', 'uploads/sertifikat-anggota-zxczxczxc_1777487374.jpg', 2, 1),
 ('vid-1777487425472', 'video', 'https://youtu.be/_GVYvIC-6fA?si=HRMlwiYHctAeuNeT', 1, 1);
 
 -- --------------------------------------------------------
@@ -1964,7 +1963,9 @@ INSERT INTO `tentang_crembo_media` (`id`, `type`, `url`, `order_index`, `is_visi
 
 CREATE TABLE `youtube_embeds` (
   `id` varchar(100) NOT NULL,
-  `url` varchar(255) NOT NULL,
+  `url` text NOT NULL,
+  `embed_type` varchar(30) NOT NULL DEFAULT 'video',
+  `title` varchar(255) DEFAULT NULL,
   `order_index` int(11) DEFAULT 0,
   `is_visible` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1973,12 +1974,10 @@ CREATE TABLE `youtube_embeds` (
 -- Dumping data untuk tabel `youtube_embeds`
 --
 
-INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
-('yt-1777497207553', 'https://youtu.be/7y3AlFqobck?si=HoSKCZdrYLbPr3PB', 3, 1),
-('yt-1777497242761', 'https://youtu.be/tPIDedX3zQ4?si=VHukpSDtC64xZ49s', 2, 1),
-('yt-1777497264044', 'https://youtu.be/PWkkMvsp4Ws?si=SvjcHAqsgWNJ3518', 4, 1),
-('yt-1777504238859', 'https://youtu.be/d5mZ5SKWIx4?si=uguT4CisV_sxs6la', 5, 1),
-('yt-1777640091613', 'https://www.youtube.com/watch?v=qQwGd9PxqpA&list=PLK7ZkEoQFKXKbArZITSM5ZFH4N9zNcdKS', 1, 1);
+INSERT INTO `youtube_embeds` (`id`, `url`, `embed_type`, `title`, `order_index`, `is_visible`) VALUES
+('yt-1777497207553', 'https://youtu.be/7y3AlFqobck?si=HoSKCZdrYLbPr3PB', 'video', '', 2, 1),
+('yt-1777497264044', 'https://youtu.be/PWkkMvsp4Ws?si=SvjcHAqsgWNJ3518', 'video', '', 3, 1),
+('yt-1778743121106', 'https://www.youtube.com/watch?v=qQwGd9PxqpA&list=PLK7ZkEoQFKXKbArZITSM5ZFH4N9zNcdKS', 'playlist', '', 1, 1);
 
 --
 -- Indexes for dumped tables
