@@ -401,8 +401,69 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
+
+    .evidence-preview-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .evidence-preview-btn {
+      border: 1px solid #cfd8e5;
+      background: #fff;
+      color: #800000;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .evidence-preview-btn:hover {
+      border-color: #800000;
+      background: #fff7f7;
+    }
+
+    .membership-preview-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.62);
+    }
+
+    .membership-preview-modal.show { display: flex; }
+
+    .membership-preview-card {
+      width: min(860px, 96vw);
+      max-height: 88vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.35);
+      padding: 16px;
+    }
+
+    .membership-preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .membership-preview-head h3 { margin: 0; font-size: 1rem; }
+    .membership-preview-body img { max-width: 100%; border-radius: 12px; border: 1px solid #e5eaf3; }
+    .membership-preview-body iframe { width: 100%; min-height: 70vh; border: 1px solid #e5eaf3; border-radius: 12px; }
+
 
     .btn-row {
       display: flex;
@@ -769,7 +830,7 @@
                 <label for="inactiveDate">Tanggal Mulai Nonaktif</label>
                 <input id="inactiveDate" type="date" required>
               </div>
-              <div id="returnDateField" class="field hidden">
+              <div id="returnDateField" class="field hidden" style="display:none;">
                 <label for="inactiveReturnDate">Tanggal Aktif Kembali</label>
                 <input id="inactiveReturnDate" type="date">
               </div>
@@ -827,6 +888,16 @@
   </div>
 
   <div id="notify" class="notify" role="status" aria-live="polite"></div>
+
+  <div id="membershipEvidencePreviewModal" class="membership-preview-modal" aria-hidden="true">
+    <div class="membership-preview-card">
+      <div class="membership-preview-head">
+        <h3 id="membershipEvidencePreviewTitle">Bukti Pendukung</h3>
+        <button id="closeMembershipEvidencePreview" class="btn secondary" type="button">Tutup</button>
+      </div>
+      <div id="membershipEvidencePreviewBody" class="membership-preview-body"></div>
+    </div>
+  </div>
 
   <script>
     const PROFILE_STORAGE_KEY = "crembo-member-profile";
@@ -1041,11 +1112,46 @@
       });
     }
 
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch];
+      });
+    }
+
     function updateEvidenceInfo() {
       if (draftEvidence && draftEvidence.name) {
-        inactiveEvidenceInfo.textContent = "Bukti terpilih: " + draftEvidence.name;
+        inactiveEvidenceInfo.innerHTML = '<span class="evidence-preview-inline">Bukti terpilih: <b>' + escapeHtml(draftEvidence.name) + '</b> <button class="evidence-preview-btn" type="button" data-preview-evidence="draft">Lihat Bukti</button></span>';
       } else {
         inactiveEvidenceInfo.textContent = "Upload bukti pendukung agar alasan pengajuan lebih kredibel.";
+      }
+    }
+
+    function openEvidencePreview(url, name, type) {
+      const modal = document.getElementById("membershipEvidencePreviewModal");
+      const body = document.getElementById("membershipEvidencePreviewBody");
+      const title = document.getElementById("membershipEvidencePreviewTitle");
+      if (!modal || !body || !url) return;
+      const safeUrl = String(url);
+      const safeName = String(name || "Bukti Pendukung");
+      const lowerType = String(type || "").toLowerCase();
+      const lowerUrl = safeUrl.toLowerCase();
+      title.textContent = safeName;
+      if (lowerType.startsWith("image/") || /\.(png|jpg|jpeg|gif|webp|bmp)(\?|$)/i.test(lowerUrl)) {
+        body.innerHTML = '<img src="' + escapeHtml(safeUrl) + '" alt="' + escapeHtml(safeName) + '">';
+      } else if (lowerType === "application/pdf" || /\.pdf(\?|$)/i.test(lowerUrl)) {
+        body.innerHTML = '<iframe src="' + escapeHtml(safeUrl) + '" title="' + escapeHtml(safeName) + '"></iframe><p><a href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener">Buka di tab baru</a></p>';
+      } else {
+        body.innerHTML = '<p>File bukti: <b>' + escapeHtml(safeName) + '</b></p><p><a class="btn" href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener">Buka File</a></p>';
+      }
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeEvidencePreview() {
+      const modal = document.getElementById("membershipEvidencePreviewModal");
+      if (modal) {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
       }
     }
 
@@ -1178,7 +1284,9 @@
       inactiveRequestForm.reset();
       inactiveType.value = "permanent";
       returnDateField.classList.add("hidden");
+      returnDateField.style.display = "none";
       inactiveReturnDate.required = false;
+      inactiveReturnDate.disabled = true;
       submitInactiveBtn.textContent = "Kirim Pengajuan";
       draftEvidence = { name: "", type: "", dataUrl: "" };
       updateEvidenceInfo();
@@ -1187,7 +1295,9 @@
     function updateInactiveTypeUI() {
       const temporary = inactiveType.value === "temporary";
       returnDateField.classList.toggle("hidden", !temporary);
+      returnDateField.style.display = temporary ? "grid" : "none";
       inactiveReturnDate.required = temporary;
+      inactiveReturnDate.disabled = !temporary;
       if (!temporary) {
         inactiveReturnDate.value = "";
       }
@@ -1605,6 +1715,18 @@
       });
     });
     inactiveType.addEventListener("change", updateInactiveTypeUI);
+
+    inactiveEvidenceInfo.addEventListener("click", function (event) {
+      const btn = event.target.closest("[data-preview-evidence]");
+      if (!btn) return;
+      if (btn.getAttribute("data-preview-evidence") === "draft" && draftEvidence && draftEvidence.dataUrl) {
+        openEvidencePreview(draftEvidence.dataUrl, draftEvidence.name, draftEvidence.type);
+      }
+    });
+    document.getElementById("closeMembershipEvidencePreview").addEventListener("click", closeEvidencePreview);
+    document.getElementById("membershipEvidencePreviewModal").addEventListener("click", function (event) {
+      if (event.target.id === "membershipEvidencePreviewModal") closeEvidencePreview();
+    });
     editRequestBtn.addEventListener("click", editPendingRequest);
     cancelRequestBtn.addEventListener("click", cancelPendingRequest);
     if (reactivateNowBtn) {
@@ -1640,6 +1762,11 @@
     if (submitInactiveBtn) submitInactiveBtn.textContent = editingRequestId ? 'Simpan Perubahan Pengajuan' : 'Kirim Pengajuan';
     if (inactiveEvidence) inactiveEvidence.required = !(backendLatestRequest && backendLatestRequest.evidenceUrl && editingRequestId);
   }
+  inactiveEvidenceInfo.addEventListener('click', function(event){
+    const btn = event.target.closest('[data-preview-evidence="server"]');
+    if(!btn || !backendLatestRequest || !backendLatestRequest.evidenceUrl) return;
+    openEvidencePreview(backendLatestRequest.evidenceUrl, backendLatestRequest.evidenceName || 'Bukti Pendukung', backendLatestRequest.evidenceType || '');
+  });
   async function loadBackendMembership(){
     try{
       const res = await fetch('/api/membership/my', {credentials:'same-origin'});
@@ -1717,7 +1844,7 @@
     inactiveReturnDate.value = normalizeDateOnly(req.reactivateDate);
     inactiveNote.value = req.note || '';
     inactiveEvidence.value = '';
-    inactiveEvidenceInfo.textContent = req.evidenceName ? ('Bukti tersimpan: ' + req.evidenceName + '. Upload file baru jika ingin mengganti.') : 'Upload bukti pendukung agar alasan pengajuan lebih kredibel.';
+    inactiveEvidenceInfo.innerHTML = req.evidenceName ? ('<span class="evidence-preview-inline">Bukti tersimpan: <b>' + escapeHtml(req.evidenceName) + '</b> <button class="evidence-preview-btn" type="button" data-preview-evidence="server">Lihat Bukti</button><span>Upload file baru jika ingin mengganti.</span></span>') : 'Upload bukti pendukung agar alasan pengajuan lebih kredibel.';
     setReqActions();
     showNotify('Form pengajuan dimuat untuk diedit.');
   }

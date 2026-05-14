@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 14 Bulan Mei 2026 pada 11.04
+-- Waktu pembuatan: 14 Bulan Mei 2026 pada 12.30
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -96,7 +96,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (6, 'Pria', 'Pria', '081228330226', 'scrypt:32768:8:1$4nCgWeSwWR7cEYj3$d40e423b6ec59c153bfc0843476c48bcbffdcfe69844e4a9e942320107b0c624c3a68c1cb0a597bdbba85a117cbfbd0b3be743cb18abb77365a621a6f63c7eee', 'super_admin', '2026-04-29', 'pria@gmail.com', 'Jl Baciro', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (7, 'Aurel', 'Aurel', '085878495255', 'scrypt:32768:8:1$WsEELS5C525TKDKr$d70c89e1f0e8c98944a9b9a56e4927f19805d4ed92a319da6f7e6743884392281825a9298587241f07fc4af871e6013771f9a07471d79bff4df7ede78c44b0bd', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (8, 'Dewi', 'Dewi', '087700652865', 'scrypt:32768:8:1$z8mtUa3kB43bDHfP$5f8d2ff4647348ed2fc60b4eeaa8e027c892a1e2500cf4015554a2940367dbfa0d48a9d3c5b121e2ea6472abbdd2ea5e073e0bd7bcfe58b9e1ec62032813e80d', 'admin', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
-(9, 'Febrian', 'Febrian', '081220239158', 'scrypt:32768:8:1$v7BBX2N2uKgzq8gu$245b6a3723e1ddd0d0b3178c685448a8d792bd42d7ebd52d4ba423cfb89a5c9a85612c260f5f396a4e1a0b3cd4901605c6e06537a4f5622d83fb3fccd24f6e4a', 'user', '2026-05-01', 'febrian@example.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-14 15:16:07', NULL, '2026-05-14', '', '', ''),
+(9, 'Febrian', 'Febrian', '081220239158', 'scrypt:32768:8:1$v7BBX2N2uKgzq8gu$245b6a3723e1ddd0d0b3178c685448a8d792bd42d7ebd52d4ba423cfb89a5c9a85612c260f5f396a4e1a0b3cd4901605c6e06537a4f5622d83fb3fccd24f6e4a', 'user', '2026-05-01', 'febrian@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 16:11:17', NULL, NULL, '', '', ''),
 (10, 'Lisa', 'Lisa', '081327428922', 'scrypt:32768:8:1$zugzoG5d10AkzMMw$e01ff24899ee0f31c5aed313b7dce55a82d8888eee6144a6c42087df37cf413053eadd69a80cf63af2a6cce7fd4a154450c13c95eb7785029519285b3f467b93', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (11, 'Rosel', 'Rosel', '081919811671', 'scrypt:32768:8:1$O1LLlNyMX3bRjTBo$0029c8759982f8bcbb82dcfa08f7011c6683bc2dc6bae201959d90d8eb480131023d34cd9c022ecfb497b20a0b8ca63ba44e47641d08633bfcc66f10a18f4221', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (12, 'Vio', 'Vio', '085866168513', 'scrypt:32768:8:1$MQB3DJzR55lAxfRz$4e1c6da0f56406b6ff7fd39004e2a0e72a61d12e990ad4bb03aa6b47e74d3ec16e71eaf69541ee638d8d53079db24544ae5da0762b8545b0a92bdfc95ee84aef', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
@@ -161,7 +161,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (77, 'Ista', 'Ista', '08123431231', 'scrypt:32768:8:1$8HoPuTRVbkm5JiKN$f274e7b3357c9c3025e3cbe0235ac948fb06ab3af4f92367d0125b7bc0a69a46e8d5ab653962b908ef129c14fbc31c2e32446de0b84411001943b985d2b7c238', 'user', '2026-05-01', 'ista@gmail.com', '-', 'aktif', '2026-05-13 09:52:08', '2026-05-13 09:52:52', NULL, NULL, '', '', ''),
-(78, 'TesNonaktif', 'TesNonaktif', '08123123123', 'scrypt:32768:8:1$ivVcwILMZIhgQpWz$2f68eabc19cb8fffa188835ecc77188e54e50aa0157df6a7417a7029ca60bfd1230008ca8985a3dda3db459a103a50ec12f5b4fb6ed9930259b3b57b7ef646a7', 'user', '2026-05-01', 'TesNonaktif@gmail.com', 'aasdadaasdasdasd', 'aktif', '2026-05-14 15:51:00', '2026-05-14 15:57:21', NULL, NULL, '', '', '');
+(78, 'TesNonaktif', 'TesNonaktif', '08123123123', 'scrypt:32768:8:1$ivVcwILMZIhgQpWz$2f68eabc19cb8fffa188835ecc77188e54e50aa0157df6a7417a7029ca60bfd1230008ca8985a3dda3db459a103a50ec12f5b4fb6ed9930259b3b57b7ef646a7', 'user', '2026-05-01', 'TesNonaktif@gmail.com', 'aasdadaasdasdasd', 'nonaktif', '2026-05-14 15:51:00', '2026-05-14 17:17:13', '2026-05-15', '2026-05-14', 'temporary', 'Kesehatan', 'Tes nonaktif sehari');
 
 -- --------------------------------------------------------
 
@@ -402,6 +402,8 @@ CREATE TABLE `membership_status_requests` (
   `admin_name` varchar(255) DEFAULT NULL,
   `admin_note` text DEFAULT NULL,
   `decided_at` datetime DEFAULT NULL,
+  `applied_at` datetime DEFAULT NULL,
+  `manual_reactivated_at` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -410,8 +412,9 @@ CREATE TABLE `membership_status_requests` (
 -- Dumping data untuk tabel `membership_status_requests`
 --
 
-INSERT INTO `membership_status_requests` (`id`, `member_id`, `member_name`, `inactive_type`, `reason`, `start_date`, `return_date`, `note`, `evidence_json`, `status`, `admin_id`, `admin_name`, `admin_note`, `decided_at`, `created_at`, `updated_at`) VALUES
-('nonaktif-1778748868047-3e4a1b82', 78, 'TesNonaktif', 'temporary', 'Kesibukan Pekerjaan', '2026-05-13', '2026-05-31', 'Tes1232321', '[{\"url\": \"/uploads/IMG_1970_02a3d8b1f01649bea8fdc1d630c78af5.jpg\", \"name\": \"IMG_1970.JPG\", \"mimeType\": \"image/jpeg\", \"size\": 9801452, \"previewable\": true, \"kind\": \"image\"}]', 'rejected', 50, 'Atanasius Surya', 'Tidak sesuai', '2026-05-14 15:55:46', '2026-05-14 15:54:28', '2026-05-14 15:55:46');
+INSERT INTO `membership_status_requests` (`id`, `member_id`, `member_name`, `inactive_type`, `reason`, `start_date`, `return_date`, `note`, `evidence_json`, `status`, `admin_id`, `admin_name`, `admin_note`, `decided_at`, `applied_at`, `manual_reactivated_at`, `created_at`, `updated_at`) VALUES
+('nonaktif-1778753696952-8c4d6eca', 78, 'TesNonaktif', 'temporary', 'Fokus Akademik', '2026-05-13', '2026-05-15', 'Tes Aktif Tanggal 15', '[{\"url\": \"/uploads/logo_crembo_hitam_a339e6d373e84ba9b4f8cf5690dd26f0.png\", \"name\": \"logo_crembo_hitam.png\", \"mimeType\": \"image/png\", \"size\": 119503, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-14 17:15:20', '2026-05-14 17:15:20', '2026-05-14 17:15:37', '2026-05-14 17:14:56', '2026-05-14 17:15:37'),
+('nonaktif-1778753814211-dc236615', 78, 'TesNonaktif', 'temporary', 'Kesehatan', '2026-05-14', '2026-05-15', 'Tes nonaktif sehari', '[{\"url\": \"/uploads/logo_crembo_hitam_a26ddd898f3d47819460aedaf3b4df52.png\", \"name\": \"logo_crembo_hitam.png\", \"mimeType\": \"image/png\", \"size\": 119503, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-14 17:17:13', '2026-05-14 17:17:13', NULL, '2026-05-14 17:16:54', '2026-05-14 17:17:13');
 
 -- --------------------------------------------------------
 
@@ -1419,7 +1422,29 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778748738036-c21e95', 'tugas', 'Tugas Baru: Operator', 'Anda ditugaskan sebagai <b>Operator</b> untuk <b>Misa Harian</b> pada hari Senin, 01/06/2026 jam 18:00 WIB.', '/jadwal-tugas-misa-anggota.html', '{\"target_user_id\": \"78\"}', '2026-05-14 15:52:18', NULL),
 ('notif-1778748868048-814e03', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778748868047-3e4a1b82\"}', '2026-05-14 15:54:28', 'admin'),
 ('notif-1778748917687-a7409f', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778748868047-3e4a1b82\"}', '2026-05-14 15:55:17', 'admin'),
-('notif-1778748946943-4ac939', 'keanggotaan', 'Pengajuan Nonaktif Ditolak', 'Pengajuan status nonaktif Anda ditolak oleh admin. Catatan: Tidak sesuai', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778748868047-3e4a1b82\", \"dedupe_key\": \"membership-rejected-nonaktif-1778748868047-3e4a1b82\"}', '2026-05-14 15:55:46', 'user');
+('notif-1778748946943-4ac939', 'keanggotaan', 'Pengajuan Nonaktif Ditolak', 'Pengajuan status nonaktif Anda ditolak oleh admin. Catatan: Tidak sesuai', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778748868047-3e4a1b82\", \"dedupe_key\": \"membership-rejected-nonaktif-1778748868047-3e4a1b82\"}', '2026-05-14 15:55:46', 'user'),
+('notif-1778749678690-20a046', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778749678687-225244b2\"}', '2026-05-14 16:07:58', 'admin'),
+('notif-1778749689654-0cd4b2', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778749678687-225244b2\", \"dedupe_key\": \"membership-approved-nonaktif-1778749678687-225244b2\"}', '2026-05-14 16:08:09', 'user'),
+('notif-1778749751090-197253', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 78, \"dedupe_key\": \"membership-manual-activate-78-1778749751\"}', '2026-05-14 16:09:11', 'user'),
+('notif-1778749753335-7e6ce9', 'keanggotaan', 'Status Keanggotaan Nonaktif', 'Pengajuan nonaktif Anda sudah disetujui dan status akun menjadi nonaktif.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778749678687-225244b2\", \"dedupe_key\": \"membership-approved-active-nonaktif-1778749678687-225244b2\"}', '2026-05-14 16:09:13', 'user'),
+('notif-1778749812141-f587bc', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 78, \"dedupe_key\": \"membership-manual-activate-78-1778749812\"}', '2026-05-14 16:10:12', 'user'),
+('notif-1778749834746-0813c5', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 9, \"dedupe_key\": \"membership-manual-activate-9-1778749834\"}', '2026-05-14 16:10:34', 'user'),
+('notif-1778749851051-adb518', 'keanggotaan', 'Status Keanggotaan Nonaktif', 'Admin telah mengubah status keanggotaan Anda menjadi nonaktif.', '/profil-anggota.html', '{\"target_user_id\": 9, \"dedupe_key\": \"membership-manual-inactivate-9-1778749851\"}', '2026-05-14 16:10:51', 'user'),
+('notif-1778749877470-6d2e11', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 9, \"dedupe_key\": \"membership-manual-activate-9-1778749877\"}', '2026-05-14 16:11:17', 'user'),
+('notif-1778749887689-f404cd', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"9\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:9:daily_current:2026-05-14:target3\"}', '2026-05-14 16:11:27', 'user'),
+('notif-1778750429531-325be5', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 78, \"dedupe_key\": \"membership-manual-activate-78-1778750429\"}', '2026-05-14 16:20:29', 'user'),
+('notif-1778750490564-f636c5', 'tugas', 'Pembatalan Tugas: TesNonaktif', '<b>TesNonaktif</b> membatalkan tugas sebagai <b>Operator</b> pada <b>Misa Biasa - Misa Harian</b>, hari Senin, 01/06/2026 jam 18:00 WIB.', '/dashboard.html', '{\"notification_kind\": \"task_cancelled_by_member\", \"member_id\": \"78\", \"member_name\": \"TesNonaktif\", \"misa_type\": \"biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"Operator\", \"misa_date\": \"2026-06-01\", \"misa_time\": \"18:00\"}', '2026-05-14 16:21:30', 'admin'),
+('notif-1778750490566-8bad1e', 'tugas', 'Tugas Dibatalkan: Operator', 'Tugas Anda sebagai <b>Operator</b> untuk <b>Misa Biasa - Misa Harian</b> pada hari Senin, 01/06/2026 jam 18:00 WIB telah berhasil dibatalkan.', '/pembatalan-tugas-anggota.html', '{\"target_user_id\": \"78\", \"notification_kind\": \"task_cancelled_success\", \"misa_type\": \"biasa\", \"misa_name\": \"Misa Harian\", \"role\": \"Operator\", \"misa_date\": \"2026-06-01\", \"misa_time\": \"18:00\"}', '2026-05-14 16:21:30', 'user'),
+('notif-1778750818453-32711e', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778750818452-a3bdd603\"}', '2026-05-14 16:26:58', 'admin'),
+('notif-1778750838662-ccb9e5', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778750818452-a3bdd603\", \"dedupe_key\": \"membership-approved-nonaktif-1778750818452-a3bdd603\"}', '2026-05-14 16:27:18', 'user'),
+('notif-1778750873259-2799b9', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 78, \"dedupe_key\": \"membership-manual-activate-78-1778750873\"}', '2026-05-14 16:27:53', 'user'),
+('notif-1778750875941-eed264', 'keanggotaan', 'Status Keanggotaan Nonaktif', 'Pengajuan nonaktif Anda sudah disetujui dan status akun menjadi nonaktif.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778750818452-a3bdd603\", \"dedupe_key\": \"membership-approved-active-nonaktif-1778750818452-a3bdd603\"}', '2026-05-14 16:27:55', 'user'),
+('notif-1778753660060-3c3c4f', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 78, \"dedupe_key\": \"membership-manual-activate-78-1778753660\"}', '2026-05-14 17:14:20', 'user'),
+('notif-1778753696953-2acce4', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778753696952-8c4d6eca\"}', '2026-05-14 17:14:56', 'admin'),
+('notif-1778753720218-c5e0a7', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778753696952-8c4d6eca\", \"dedupe_key\": \"membership-approved-nonaktif-1778753696952-8c4d6eca\"}', '2026-05-14 17:15:20', 'user'),
+('notif-1778753737411-a44699', 'keanggotaan', 'Status Keanggotaan Diaktifkan', 'Admin telah mengaktifkan kembali status keanggotaan Anda.', '/profil-anggota.html', '{\"target_user_id\": 78, \"dedupe_key\": \"membership-manual-activate-78-1778753737\"}', '2026-05-14 17:15:37', 'user'),
+('notif-1778753814212-8ce74b', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778753814211-dc236615\"}', '2026-05-14 17:16:54', 'admin'),
+('notif-1778753833482-28359e', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778753814211-dc236615\", \"dedupe_key\": \"membership-approved-nonaktif-1778753814211-dc236615\"}', '2026-05-14 17:17:13', 'user');
 
 -- --------------------------------------------------------
 
@@ -1452,9 +1477,17 @@ INSERT INTO `notification_reads` (`notification_id`, `user_key`, `read_at`) VALU
 ('notif-1778585728176-b7eaf9', 'member:21', '2026-05-12 18:37:05'),
 ('notif-1778585918309-68eebf', 'member:53', '2026-05-12 18:39:03'),
 ('notif-1778644510671-c758c4', 'member:78', '2026-05-14 15:17:12'),
+('notif-1778692272486-bb13b0', 'member:17', '2026-05-14 17:20:03'),
 ('notif-1778702785952-36de1c', 'member:50', '2026-05-14 03:07:03'),
+('notif-1778748738036-c21e95', 'member:78', '2026-05-14 16:21:05'),
 ('notif-1778748917687-a7409f', 'member:50', '2026-05-14 15:56:02'),
-('notif-1778748946943-4ac939', 'member:78', '2026-05-14 15:59:58');
+('notif-1778748946943-4ac939', 'member:78', '2026-05-14 15:59:58'),
+('notif-1778749689654-0cd4b2', 'member:78', '2026-05-14 16:25:37'),
+('notif-1778749751090-197253', 'member:78', '2026-05-14 16:25:36'),
+('notif-1778749753335-7e6ce9', 'member:78', '2026-05-14 16:25:35'),
+('notif-1778749812141-f587bc', 'member:78', '2026-05-14 16:25:33'),
+('notif-1778750429531-325be5', 'member:78', '2026-05-14 16:25:30'),
+('notif-1778750490566-8bad1e', 'member:78', '2026-05-14 16:25:28');
 
 -- --------------------------------------------------------
 
@@ -1721,8 +1754,7 @@ INSERT INTO `streaming_assignments` (`id`, `schedule_date`, `schedule_time`, `ro
 (736, '2026-05-31', '16:30:00', 'Operator', 45, '2026-05-13 10:05:59', 'admin'),
 (737, '2026-05-31', '16:30:00', 'Kameramen', 58, '2026-05-13 10:05:59', 'admin'),
 (738, '2026-05-31', '16:30:00', 'SPV', 49, '2026-05-13 10:05:59', 'admin'),
-(739, '2026-05-31', '18:30:00', 'Operator', 49, '2026-05-13 10:05:59', 'admin'),
-(901, '2026-06-01', '18:00:00', 'Operator', 78, '2026-05-14 15:52:18', 'admin');
+(739, '2026-05-31', '18:30:00', 'Operator', 49, '2026-05-13 10:05:59', 'admin');
 
 -- --------------------------------------------------------
 
@@ -1909,7 +1941,8 @@ CREATE TABLE `task_cancellations` (
 INSERT INTO `task_cancellations` (`id`, `member_id`, `member_name`, `kind`, `type_label`, `misa_id`, `role_id`, `assignment_id`, `schedule_date`, `schedule_time`, `misa_name`, `role_name`, `request_source`, `cancelled_at`, `status`, `note`) VALUES
 (1, 21, 'Aura', 'biasa', 'Misa Biasa', NULL, NULL, 188, '2026-05-20', '18:00:00', 'Misa Harian', 'Operator', 'admin', '2026-05-12 05:14:50', 'batal', NULL),
 (2, 21, 'Aura', 'besar', 'Misa Besar', 15, 163, 132, '2026-05-28', '10:00:00', 'Tes Misa Besar Cancel Notif', 'PD', 'admin', '2026-05-12 05:19:07', 'batal', NULL),
-(3, 21, 'Aura', 'biasa', 'Misa Biasa', NULL, NULL, 870, '2026-05-31', '18:30:00', 'Misa Mingguan', 'Kameramen', 'member_request', '2026-05-13 17:24:45', 'batal', NULL);
+(3, 21, 'Aura', 'biasa', 'Misa Biasa', NULL, NULL, 870, '2026-05-31', '18:30:00', 'Misa Mingguan', 'Kameramen', 'member_request', '2026-05-13 17:24:45', 'batal', NULL),
+(4, 78, 'TesNonaktif', 'biasa', 'Misa Biasa', NULL, NULL, 901, '2026-06-01', '18:00:00', 'Misa Harian', 'Operator', 'admin', '2026-05-14 16:21:30', 'batal', NULL);
 
 -- --------------------------------------------------------
 
@@ -2331,7 +2364,7 @@ ALTER TABLE `streaming_weekly_config`
 -- AUTO_INCREMENT untuk tabel `task_cancellations`
 --
 ALTER TABLE `task_cancellations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `task_exchange_requests`

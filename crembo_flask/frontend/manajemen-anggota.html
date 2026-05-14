@@ -1790,7 +1790,9 @@
   .request-table { width:100%; border-collapse:collapse; font-size:.84rem; }
   .request-table th,.request-table td{ border:1px solid rgba(128,0,0,.12); padding:9px; text-align:left; vertical-align:top; }
   .request-table th{ background:#fff7f7; color:#7f1d1d; text-transform:uppercase; font-size:.74rem; }
-  .request-card .request-thumb{ width:58px; height:48px; object-fit:cover; border-radius:8px; border:1px solid rgba(128,0,0,.18); cursor:pointer; }
+  .request-thumb{ width:58px; height:48px; max-width:58px; max-height:48px; object-fit:cover; border-radius:8px; border:1px solid rgba(128,0,0,.18); cursor:pointer; display:inline-block; vertical-align:middle; }
+  .request-table .request-evidence-box{ max-width:180px; }
+  .request-table .request-evidence-box .btn{ padding:6px 8px; font-size:.72rem; }
   .request-evidence-box{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .membership-modal{ position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; }
   .membership-modal.show{ display:flex; }

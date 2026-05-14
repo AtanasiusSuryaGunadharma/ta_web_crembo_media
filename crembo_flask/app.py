@@ -3665,6 +3665,8 @@ def ensure_membership_request_schema(cursor) -> None:
           `admin_name` varchar(255) DEFAULT NULL,
           `admin_note` text DEFAULT NULL,
           `decided_at` datetime DEFAULT NULL,
+          `applied_at` datetime DEFAULT NULL,
+          `manual_reactivated_at` datetime DEFAULT NULL,
           `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
@@ -3674,6 +3676,8 @@ def ensure_membership_request_schema(cursor) -> None:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
+    ensure_column(cursor, "membership_status_requests", "applied_at", "`applied_at` datetime DEFAULT NULL")
+    ensure_column(cursor, "membership_status_requests", "manual_reactivated_at", "`manual_reactivated_at` datetime DEFAULT NULL")
 
 def membership_evidence_payload(value) -> dict[str, object]:
     attachments = normalize_attachment_payload(value)
@@ -3689,6 +3693,8 @@ def membership_request_row_to_dict(row: dict[str, object]) -> dict[str, object]:
     created_at = row.get("created_at")
     updated_at = row.get("updated_at")
     decided_at = row.get("decided_at")
+    applied_at = row.get("applied_at")
+    manual_reactivated_at = row.get("manual_reactivated_at")
     return {
         "id": row.get("id"),
         "memberId": row.get("member_id"),
@@ -3712,6 +3718,8 @@ def membership_request_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at),
         "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else normalize_text(updated_at),
         "decidedAt": decided_at.isoformat() if hasattr(decided_at, "isoformat") else normalize_text(decided_at),
+        "appliedAt": applied_at.isoformat() if hasattr(applied_at, "isoformat") else normalize_text(applied_at),
+        "manualReactivatedAt": manual_reactivated_at.isoformat() if hasattr(manual_reactivated_at, "isoformat") else normalize_text(manual_reactivated_at),
     }
 
 def ensure_membership_columns(cursor) -> None:
@@ -3735,6 +3743,8 @@ def apply_membership_status_transitions(cursor) -> None:
         JOIN `anggota` a ON a.id = r.member_id
         WHERE r.status = 'approved'
           AND r.start_date <= %s
+          AND r.applied_at IS NULL
+          AND r.manual_reactivated_at IS NULL
           AND COALESCE(a.status_akun, 'aktif') <> 'nonaktif'
           AND (r.return_date IS NULL OR r.return_date > %s)
         """,
@@ -3757,6 +3767,14 @@ def apply_membership_status_transitions(cursor) -> None:
                 row.get("member_id"),
             ),
         )
+        cursor.execute(
+            """
+            UPDATE `membership_status_requests`
+            SET applied_at = COALESCE(applied_at, CURRENT_TIMESTAMP), updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            """,
+            (row.get("id"),),
+        )
         create_notification_once(
             cursor,
             "keanggotaan",
@@ -3778,6 +3796,7 @@ def apply_membership_status_transitions(cursor) -> None:
           AND r.inactive_type = 'temporary'
           AND r.return_date IS NOT NULL
           AND r.return_date <= %s
+          AND r.manual_reactivated_at IS NULL
           AND COALESCE(a.status_akun, 'aktif') = 'nonaktif'
         """,
         (today,),
@@ -4285,6 +4304,19 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
             if is_existing:
                 previous_status = normalize_status(existing.get("status_akun") or "aktif")
                 if previous_status == "nonaktif" and status_value == "aktif":
+                    cursor.execute(
+                        """
+                        UPDATE membership_status_requests
+                        SET manual_reactivated_at = COALESCE(manual_reactivated_at, CURRENT_TIMESTAMP),
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE member_id = %s
+                          AND status = 'approved'
+                          AND start_date <= CURDATE()
+                          AND (return_date IS NULL OR return_date > CURDATE())
+                          AND manual_reactivated_at IS NULL
+                        """,
+                        (member_id,),
+                    )
                     create_notification_once(
                         cursor,
                         "keanggotaan",
@@ -4915,6 +4947,14 @@ def api_membership_admin_respond(request_id):
                     WHERE id=%s
                     """,
                     (req.get("start_date"), req.get("return_date"), req.get("inactive_type"), req.get("reason"), req.get("note"), member_id),
+                )
+                cursor.execute(
+                    """
+                    UPDATE membership_status_requests
+                    SET applied_at = COALESCE(applied_at, CURRENT_TIMESTAMP), updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    """,
+                    (request_id,),
                 )
             create_notification_once(
                 cursor,
