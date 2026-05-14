@@ -827,7 +827,7 @@
   </div>
 
   <script>
-    const API_BASE = "http://127.0.0.1:5000";
+    const API_BASE = window.location.origin || "";
 
     const menuGroups = Array.from(document.querySelectorAll(".menu-group"));
     menuGroups.forEach(function (group) {
@@ -975,17 +975,44 @@
       select.value = String(defaultValue);
     }
 
-    async function fetchJson(url) {
-      const response = await fetch(resolveApiUrl(url), {
-        credentials: "include",
-        cache: "no-store",
-        headers: { Accept: "application/json" },
-      });
-      const data = await response.json().catch(function () { return {}; });
-      if (!response.ok || data.success === false) {
-        throw new Error(data.error || "Gagal mengambil data.");
+    async function fetchJson(url, retries) {
+      const maxRetries = Number.isFinite(Number(retries)) ? Number(retries) : 1;
+      const requestUrl = resolveApiUrl(url);
+      let lastError = null;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+        try {
+          const response = await fetch(requestUrl, {
+            credentials: "include",
+            cache: "no-store",
+            headers: { Accept: "application/json" },
+          });
+          const contentType = (response.headers.get("content-type") || "").toLowerCase();
+          const textPayload = await response.text();
+          let data = {};
+          try {
+            data = textPayload ? JSON.parse(textPayload) : {};
+          } catch (_jsonError) {
+            if (contentType.indexOf("application/json") === -1) {
+              throw new Error("Respons server tidak valid.");
+            }
+            throw new Error("Data server tidak bisa dibaca.");
+          }
+
+          if (!response.ok || data.success === false) {
+            throw new Error(data.error || "Gagal mengambil data.");
+          }
+          return data;
+        } catch (error) {
+          lastError = error;
+          if (attempt >= maxRetries) {
+            throw lastError;
+          }
+          await new Promise(function (resolve) { setTimeout(resolve, 250); });
+        }
       }
-      return data;
+
+      throw lastError || new Error("Gagal mengambil data.");
     }
 
     function updateProfile(profile) {
