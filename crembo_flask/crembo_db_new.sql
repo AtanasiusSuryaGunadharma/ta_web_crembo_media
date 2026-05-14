@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 14 Bulan Mei 2026 pada 17.27
+-- Waktu pembuatan: 14 Bulan Mei 2026 pada 18.30
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1572,6 +1572,7 @@ CREATE TABLE `password_reset_otps` (
 --
 
 INSERT INTO `password_reset_otps` (`id`, `member_id`, `member_email`, `identifier`, `otp_hash`, `reset_token_hash`, `expires_at`, `resend_available_at`, `verified_at`, `used_at`, `attempts`, `request_ip`, `user_agent`, `created_at`, `updated_at`) VALUES
+('219f91e7983b41e486268e9650713f45', 50, 'atanasiussurya@gmail.com', '081350751753', 'scrypt:32768:8:1$KYbLfMUsdoDx6dIf$edbda5adb1fa60f2aaa0fd0fba51567e0e09451b45218c1ddca899be970525895e7e02e6239bc414ea99aef2fa2a12f0b741020a3231e5a8e4cdfccadf0953fc', 'scrypt:32768:8:1$2AzsWDNW20VIKfJp$ea4eb3fcf68069d5f92d427eed2b8d903294f2ead09a625f5b5530af53c84b4468879e71b3b4d6b6146145de17478ea32ec6987bc0a46940f0319d4030212cdf', '2026-05-14 15:54:52', '2026-05-14 15:51:52', '2026-05-14 15:51:37', NULL, 0, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-14 22:49:53', '2026-05-14 22:51:37'),
 ('b483ce5d0f4c4259be80db22529aaeff', 50, 'atanasiussurya@gmail.com', 'atanasiussurya@gmail.com', 'scrypt:32768:8:1$86AWcG3Y60xu3gSt$48dc0a7025f8cfb6723d6539be0a8965fa844e247390a9c3f4f2343f8c65031cb6296b1ffa64ca818b3ad3dd6035f8bfe172edc44facbc8d0797a31e0a2d4c4f', 'scrypt:32768:8:1$0mZYQ28PXAU5mdzm$62eedade9e1d3b2feecb290f01b7113474c160b27ff485a1f368077105e8fa56f0c12fd90b3fbfc3d71c9a15d8c13b8090335bf047fe3208c2a73e56d89f936f', '2026-05-14 13:25:29', '2026-05-14 13:22:29', '2026-05-14 13:21:05', '2026-05-14 13:21:33', 0, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-14 20:20:29', '2026-05-14 20:21:33');
 
 -- --------------------------------------------------------

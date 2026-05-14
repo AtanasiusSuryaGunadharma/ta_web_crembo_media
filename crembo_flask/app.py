@@ -11667,29 +11667,36 @@ def api_task_exchanges_cancel(request_id):
 # ---------------------------------------------------------------------------
 
 def ensure_monthly_monitoring_schema(cursor) -> None:
-    """Schema kecil untuk menyimpan target minimum tugas bulanan."""
+    """Schema kecil untuk menyimpan target minimum tugas bulanan.
+
+    Default target minimum disamakan dengan kebutuhan sistem saat ini: 3 tugas
+    Misa Biasa per bulan. Jika row default sudah ada, nilainya tidak ditimpa;
+    admin tetap bisa mengubahnya dari halaman monitoring admin.
+    """
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS `monthly_task_settings` (
           `id` varchar(50) NOT NULL,
-          `target_minimum` int NOT NULL DEFAULT 2,
+          `target_minimum` int NOT NULL DEFAULT 3,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """
     )
+    try:
+        ensure_column(cursor, "monthly_task_settings", "target_minimum", "`target_minimum` int NOT NULL DEFAULT 3")
+    except Exception:
+        pass
     cursor.execute(
         """
         INSERT IGNORE INTO `monthly_task_settings` (`id`, `target_minimum`)
-        VALUES ('default', 2)
+        VALUES ('default', 3)
         """
     )
     try:
         ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
     except Exception:
         pass
-
-
 def monitoring_require_admin():
     if not session.get("logged_in"):
         return jsonify({"success": False, "error": "Anda harus login terlebih dahulu."}), 401
@@ -11699,13 +11706,36 @@ def monitoring_require_admin():
 
 
 def monitoring_get_target_minimum(cursor) -> int:
-    ensure_monthly_monitoring_schema(cursor)
-    cursor.execute("SELECT target_minimum FROM monthly_task_settings WHERE id = 'default' LIMIT 1")
-    row = cursor.fetchone()
-    value = fetch_scalar_value(row, 2)
-    return max(1, min(99, parse_required_int(value, 2)))
+    """Ambil target minimum bulanan dengan fallback aman.
 
-
+    Target default sekarang 3. Jika tabel/row belum ada, backend membuat row
+    default bernilai 3 agar halaman anggota tidak menampilkan 0/2 lagi.
+    """
+    try:
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS `monthly_task_settings` (
+              `id` varchar(50) NOT NULL,
+              `target_minimum` int NOT NULL DEFAULT 3,
+              `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+            """
+        )
+        try:
+            ensure_column(cursor, "monthly_task_settings", "target_minimum", "`target_minimum` int NOT NULL DEFAULT 3")
+        except Exception:
+            pass
+        cursor.execute("SELECT target_minimum FROM monthly_task_settings WHERE id = 'default' LIMIT 1")
+        row = cursor.fetchone()
+        if not row:
+            cursor.execute("INSERT INTO monthly_task_settings (id, target_minimum) VALUES ('default', 3)")
+            return 3
+        value = fetch_scalar_value(row, 3)
+        return max(1, min(99, parse_required_int(value, 3)))
+    except Exception as exc:
+        print(f"[WARN] Gagal membaca target minimum monitoring: {exc}")
+        return 3
 def monitoring_account_role_label(role_value: str) -> str:
     role = normalize_role_value(role_value or "user")
     if role == "super_admin":
@@ -12330,64 +12360,100 @@ def member_monitoring_task_item(kind: str, type_label: str, misa_name: str, date
 
 
 def member_monitoring_fetch_regular_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all") -> list[dict[str, object]]:
-    ensure_streaming_schema()
-    where = ["sa.member_id = %s"]
-    params: list[object] = [member_id]
-    if normalize_text(month).lower() != "all":
-        where.append("MONTH(sa.schedule_date) = %s")
-        params.append(parse_required_int(month, datetime.now().month))
-    if normalize_text(year).lower() != "all":
-        where.append("YEAR(sa.schedule_date) = %s")
-        params.append(parse_required_int(year, datetime.now().year))
-    where_sql = " AND ".join(where)
-    cursor.execute(
-        f"""
-        SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
-               DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
-               sa.role_name,
-               sa.created_at,
-               cfg.mass_name
-        FROM streaming_assignments sa
-        LEFT JOIN streaming_weekly_config cfg
-          ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
-            WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
-            WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
-            ELSE 'Minggu' END
-          AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
-        WHERE {where_sql}
-          AND NOT EXISTS (
-            SELECT 1 FROM streaming_cancelled sc
-            WHERE sc.mass_date = sa.schedule_date
-              AND DATE_FORMAT(sc.mass_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM misa_besar mb
-            WHERE mb.status = 'published'
-              AND mb.misa_date = sa.schedule_date
-              AND DATE_FORMAT(mb.misa_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
-          )
-        ORDER BY sa.schedule_date ASC, sa.schedule_time ASC, sa.role_name ASC
-        """,
-        tuple(params),
-    )
-    rows = cursor.fetchall() or []
-    return [
-        member_monitoring_task_item(
-            "biasa",
-            "Misa Biasa",
-            row.get("mass_name") or "Misa Biasa",
-            row.get("date"),
-            row.get("time"),
-            row.get("role_name"),
-            row.get("created_at"),
+    """Ambil semua tugas Misa Biasa milik anggota secara defensif."""
+    try:
+        ensure_streaming_schema()
+    except Exception as exc:
+        print(f"[WARN] ensure_streaming_schema monitoring anggota gagal: {exc}")
+
+    def build_filters(alias: str = "sa"):
+        where_parts = [f"{alias}.member_id = %s"]
+        params_local: list[object] = [member_id]
+        if normalize_text(month).lower() != "all":
+            where_parts.append(f"MONTH({alias}.schedule_date) = %s")
+            params_local.append(parse_required_int(month, datetime.now().month))
+        if normalize_text(year).lower() != "all":
+            where_parts.append(f"YEAR({alias}.schedule_date) = %s")
+            params_local.append(parse_required_int(year, datetime.now().year))
+        return " AND ".join(where_parts), params_local
+
+    rows = []
+    where_sql, params = build_filters("sa")
+    try:
+        cursor.execute(
+            f"""
+            SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   TIME_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name,
+                   sa.created_at,
+                   COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
+            FROM streaming_assignments sa
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND TIME_FORMAT(cfg.start_time, '%H:%i') = TIME_FORMAT(sa.schedule_time, '%H:%i')
+            LEFT JOIN streaming_cancelled sc
+              ON sc.mass_date = sa.schedule_date
+             AND TIME_FORMAT(sc.mass_time, '%H:%i') = TIME_FORMAT(sa.schedule_time, '%H:%i')
+            LEFT JOIN misa_besar mb
+              ON mb.status = 'published'
+             AND mb.misa_date = sa.schedule_date
+             AND TIME_FORMAT(mb.misa_time, '%H:%i') = TIME_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE {where_sql}
+              AND sc.id IS NULL
+              AND mb.id IS NULL
+            ORDER BY sa.schedule_date ASC, sa.schedule_time ASC, sa.role_name ASC
+            """,
+            tuple(params),
         )
-        for row in rows
-    ]
+        rows = cursor.fetchall() or []
+    except Exception as exc:
+        print(f"[WARN] Query lengkap tugas Misa Biasa gagal, pakai fallback: {exc}")
+        try:
+            where_sql, params = build_filters("sa")
+            cursor.execute(
+                f"""
+                SELECT DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                       TIME_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                       sa.role_name,
+                       sa.created_at,
+                       'Misa Biasa' AS mass_name
+                FROM streaming_assignments sa
+                WHERE {where_sql}
+                ORDER BY sa.schedule_date ASC, sa.schedule_time ASC, sa.role_name ASC
+                """,
+                tuple(params),
+            )
+            rows = cursor.fetchall() or []
+        except Exception as fallback_exc:
+            print(f"[ERROR] Fallback tugas Misa Biasa anggota gagal: {fallback_exc}")
+            rows = []
 
-
+    tasks: list[dict[str, object]] = []
+    for row in rows:
+        try:
+            tasks.append(member_monitoring_task_item(
+                "biasa",
+                "Misa Biasa",
+                row.get("mass_name") or "Misa Biasa",
+                row.get("date"),
+                row.get("time"),
+                row.get("role_name"),
+                row.get("created_at"),
+            ))
+        except Exception as exc:
+            print(f"[WARN] Skip row tugas Misa Biasa yang tidak valid: {exc}")
+    return tasks
 def member_monitoring_fetch_big_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all") -> list[dict[str, object]]:
-    ensure_misa_besar_schema()
-    where = ["a.member_id = %s", "mb.status = 'published'"]
+    """Ambil tugas Misa Besar milik anggota dengan fallback aman."""
+    try:
+        ensure_misa_besar_schema()
+    except Exception as exc:
+        print(f"[WARN] ensure_misa_besar_schema monitoring anggota gagal: {exc}")
+
+    where = ["a.member_id = %s", "COALESCE(mb.status, 'published') = 'published'"]
     params: list[object] = [member_id]
     if normalize_text(month).lower() != "all":
         where.append("MONTH(mb.misa_date) = %s")
@@ -12396,44 +12462,59 @@ def member_monitoring_fetch_big_tasks(cursor, member_id: object, *, month: str =
         where.append("YEAR(mb.misa_date) = %s")
         params.append(parse_required_int(year, datetime.now().year))
     where_sql = " AND ".join(where)
-    cursor.execute(
-        f"""
-        SELECT mb.misa_name,
-               DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
-               DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
-               n.role_name,
-               a.created_at
-        FROM misa_besar_assignments a
-        JOIN misa_besar_names n ON n.id = a.role_id
-        JOIN misa_besar mb ON mb.id = n.misa_id
-        WHERE {where_sql}
-        ORDER BY mb.misa_date ASC, mb.misa_time ASC, n.role_name ASC
-        """,
-        tuple(params),
-    )
-    rows = cursor.fetchall() or []
-    return [
-        member_monitoring_task_item(
-            "besar",
-            "Misa Besar",
-            row.get("misa_name") or "Misa Besar",
-            row.get("date"),
-            row.get("time"),
-            row.get("role_name"),
-            row.get("created_at"),
+
+    try:
+        cursor.execute(
+            f"""
+            SELECT mb.misa_name,
+                   DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   TIME_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name,
+                   a.created_at
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            WHERE {where_sql}
+            ORDER BY mb.misa_date ASC, mb.misa_time ASC, n.role_name ASC
+            """,
+            tuple(params),
         )
-        for row in rows
-    ]
+        rows = cursor.fetchall() or []
+    except Exception as exc:
+        print(f"[ERROR] Gagal mengambil tugas Misa Besar anggota: {exc}")
+        rows = []
 
-
-def member_monitoring_fetch_all_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all", include_big: bool = True) -> list[dict[str, object]]:
-    tasks = member_monitoring_fetch_regular_tasks(cursor, member_id, month=month, year=year)
-    if include_big:
-        tasks.extend(member_monitoring_fetch_big_tasks(cursor, member_id, month=month, year=year))
-    tasks.sort(key=lambda item: member_monitoring_schedule_dt(item.get("date"), item.get("time")))
+    tasks: list[dict[str, object]] = []
+    for row in rows:
+        try:
+            tasks.append(member_monitoring_task_item(
+                "besar",
+                "Misa Besar",
+                row.get("misa_name") or "Misa Besar",
+                row.get("date"),
+                row.get("time"),
+                row.get("role_name"),
+                row.get("created_at"),
+            ))
+        except Exception as exc:
+            print(f"[WARN] Skip row tugas Misa Besar yang tidak valid: {exc}")
     return tasks
-
-
+def member_monitoring_fetch_all_tasks(cursor, member_id: object, *, month: str = "all", year: str = "all", include_big: bool = True) -> list[dict[str, object]]:
+    tasks: list[dict[str, object]] = []
+    try:
+        tasks.extend(member_monitoring_fetch_regular_tasks(cursor, member_id, month=month, year=year))
+    except Exception as exc:
+        print(f"[ERROR] Ambil tugas Misa Biasa gagal: {exc}")
+    if include_big:
+        try:
+            tasks.extend(member_monitoring_fetch_big_tasks(cursor, member_id, month=month, year=year))
+        except Exception as exc:
+            print(f"[ERROR] Ambil tugas Misa Besar gagal: {exc}")
+    try:
+        tasks.sort(key=lambda item: member_monitoring_schedule_dt(item.get("date"), item.get("time")))
+    except Exception:
+        pass
+    return tasks
 def member_monitoring_available_years(cursor, member_id: object) -> list[int]:
     years = {datetime.now().year}
     try:
@@ -12529,6 +12610,12 @@ def member_monitoring_regular_count_for_period(cursor, member_id: object, year: 
     return len(member_monitoring_fetch_regular_tasks(cursor, member_id, month=str(month), year=str(year)))
 
 
+def member_monitoring_api_error(exc: Exception, message: str = "Gagal mengambil data monitoring."):
+    """Return JSON error agar frontend tidak menerima HTML 500/teks kosong."""
+    detail = str(exc)
+    print(f"[ERROR] {message} {detail}")
+    shown = message if not detail else f"{message} Detail: {detail}"
+    return jsonify({"success": False, "error": shown, "detail": detail}), 500
 @app.route("/api/monitoring-kewajiban-tugas/profile", methods=["GET"])
 def api_member_monitoring_profile():
     ensure_auth_schema()
@@ -12538,27 +12625,29 @@ def api_member_monitoring_profile():
         member, error = member_monitoring_current_user(cursor)
         if error:
             return error
+        now = datetime.now()
         return jsonify({
             "success": True,
             "member": {
                 "id": member.get("id"),
                 "name": member.get("name"),
+                "username": member.get("username") or "",
                 "role": member.get("roleNormalized"),
                 "roleLabel": member.get("roleLabel"),
-                "initial": (normalize_text(member.get("name"))[:1] or "A").upper(),
+                "initial": (member.get("name") or "A")[:1].upper(),
             },
+            "current": {"month": now.month, "year": now.year},
             "years": member_monitoring_available_years(cursor, member.get("id")),
-            "current": {"month": datetime.now().month, "year": datetime.now().year},
         })
+    except Exception as exc:
+        return member_monitoring_api_error(exc)
     finally:
         cursor.close()
         conn.close()
 
-
 @app.route("/api/monitoring-kewajiban-tugas/summary", methods=["GET"])
 def api_member_monitoring_summary():
     ensure_auth_schema()
-    ensure_monthly_monitoring_schema(mysql_connection().cursor()) if False else None
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
     try:
@@ -12566,10 +12655,9 @@ def api_member_monitoring_summary():
         member, error = member_monitoring_current_user(cursor)
         if error:
             return error
-        member_id = member.get("id")
         now = datetime.now()
+        member_id = member.get("id")
         target = monitoring_get_target_minimum(cursor)
-
         progress_month = member_monitoring_parse_month(request.args.get("progressMonth"), now.month)
         progress_year = member_monitoring_parse_year(request.args.get("progressYear"), now.year)
         shortage_month = member_monitoring_parse_month(request.args.get("shortageMonth"), now.month)
@@ -12585,8 +12673,8 @@ def api_member_monitoring_summary():
         shortage_periods = member_monitoring_period_list(cursor, member_id, month=shortage_month, year=shortage_year)
         shortage_total_value = 0
         shortage_regular_total = 0
-        for year, month in shortage_periods:
-            total_regular = member_monitoring_regular_count_for_period(cursor, member_id, year, month)
+        for y, m in shortage_periods:
+            total_regular = member_monitoring_regular_count_for_period(cursor, member_id, y, m)
             shortage_regular_total += total_regular
             shortage_total_value += max(0, target - total_regular)
 
@@ -12614,10 +12702,11 @@ def api_member_monitoring_summary():
                 "periodLabel": member_monitoring_period_label(total_month, total_year),
             },
         })
+    except Exception as exc:
+        return member_monitoring_api_error(exc)
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/monitoring-kewajiban-tugas/progress", methods=["GET"])
 def api_member_monitoring_progress():
@@ -12656,10 +12745,11 @@ def api_member_monitoring_progress():
             "tasks": tasks,
             "period": {"month": month, "year": year, "label": member_monitoring_period_label(month, year)},
         })
+    except Exception as exc:
+        return member_monitoring_api_error(exc)
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/monitoring-kewajiban-tugas/shortage", methods=["GET"])
 def api_member_monitoring_shortage():
@@ -12709,10 +12799,11 @@ def api_member_monitoring_shortage():
         else:
             rows.sort(key=lambda row: (row.get("year"), row.get("month")))
         return jsonify({"success": True, "items": rows, "targetMinimum": target})
+    except Exception as exc:
+        return member_monitoring_api_error(exc)
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/monitoring-kewajiban-tugas/stats", methods=["GET"])
 def api_member_monitoring_stats():
@@ -12750,10 +12841,11 @@ def api_member_monitoring_stats():
             })
         rows.sort(key=lambda row: (row.get("year"), row.get("month")), reverse=True)
         return jsonify({"success": True, "items": rows, "targetMinimum": target})
+    except Exception as exc:
+        return member_monitoring_api_error(exc)
     finally:
         cursor.close()
         conn.close()
-
 # -----------------------------------------------------------------------------
 # Evaluasi Streaming: Misa Biasa & Misa Besar
 # -----------------------------------------------------------------------------
