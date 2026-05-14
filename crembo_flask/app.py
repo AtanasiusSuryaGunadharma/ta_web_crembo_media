@@ -594,7 +594,13 @@ def ensure_column(cursor, table_name: str, column_name: str, definition: str) ->
         exists = row[0] > 0 if row else False
         
     if not exists:
-        cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
+        try:
+            cursor.execute(f"ALTER TABLE `{table_name}` ADD COLUMN {definition}")
+        except mysql.connector.Error as exc:
+            # Intermittent race antar request: dua request bisa ALTER kolom yang sama.
+            # 1060 = Duplicate column name.
+            if getattr(exc, "errno", None) != 1060:
+                raise
 
 def ensure_inventory_schema(cursor) -> None:
     cursor.execute(

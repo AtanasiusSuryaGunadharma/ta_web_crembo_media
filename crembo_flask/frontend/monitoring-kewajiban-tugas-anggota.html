@@ -1182,7 +1182,11 @@
       } catch (error) {
         // Tetap tampilkan UI, tapi data backend akan menampilkan pesan error di tabel.
       }
-      await Promise.all([loadSummary(), loadProgress(), loadShortage(), loadStats()]);
+      // Load berurutan untuk menghindari race request awal yang bisa memicu 500 acak per section.
+      await loadSummary();
+      await loadProgress();
+      await loadShortage();
+      await loadStats();
     }
 
     [cardProgressMonthSelect, cardProgressYearSelect, cardShortageMonthSelect, cardShortageYearSelect, cardTotalMonthSelect, cardTotalYearSelect].forEach(function (el) {
