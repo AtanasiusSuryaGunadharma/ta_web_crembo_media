@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 14 Bulan Mei 2026 pada 17.07
+-- Waktu pembuatan: 14 Bulan Mei 2026 pada 17.27
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -165,7 +165,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (47, 'There', 'There', '087898555370', 'scrypt:32768:8:1$IURMpb4BKozcqzQv$723f337692d6b0d53fb92fe0fe09155c782e20fd28efdde82b965db14ec9bc78672524ea4a751f681dd839f960a1e26a671051c4f37c31eea9338d5261bc7ef8', 'user', '2011-01-30', 'yoshefasabatini@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (48, 'Toto', 'Toto', '085820134705', 'scrypt:32768:8:1$YJlFgQbsb2jXCukn$9d06995e524e5bd8a46383d786634a3a95974229cdaece7ac41411f3489dbec4185e71040493b5c072a7262d2bc724bfa781a8f5861f358ea29ba525b1b9b67d', 'user', '2008-06-05', 'lucasmagnetosudrajat2008@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:11:06', NULL, NULL, '', '', ''),
 (49, 'Tyas', 'Tyas', '088985826095', 'scrypt:32768:8:1$rbhGaMjTfmgzPkVY$6fa412ca61b11f8cb4530b5b25a32cf75e5770e99f0b741405a33ae139fbaa3414d9c9155f987bde4461cd3568f886fecdee0f02c4436e4b8ebaea7958304183', 'user', '2007-01-07', 'angelasuryaningtyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:05:04', NULL, NULL, '', '', ''),
-(50, 'Atanasius Surya', 'Ata Surya', '081350751753', 'scrypt:32768:8:1$oVUdmTnBXhdHOlUc$f36c3aab69fa104f57398d5bf04168d1e33e7babb8c9ba8fd19f4336fcff7e2bd93b6302a256d5d8584b1a559abc030f0a32b8fc2674340bf88bbcd2e7a6f859', 'super_admin', '2004-05-13', 'atanasiussurya@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 20:21:33', NULL, NULL, '', '', ''),
+(50, 'Atanasius Surya', 'Ata Surya', '081350751753', 'scrypt:32768:8:1$8b9BLjJFuzpyufFw$17a61d32b78de05dd90bf122abd0e4570ebcc1518fe0e09112961fdb246ff962faedbf3007826e8e6296a06faff2f80c4d74d932c8a4a0777d0de00cda48c56a', 'super_admin', '2004-05-13', 'atanasiussurya@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 22:25:06', NULL, NULL, '', '', ''),
 (51, 'Rafael', 'Rafael', '081390333758', 'scrypt:32768:8:1$XTjB22QBETTUwjPH$2a4f5f9da5660c3b8f94f928ea8e76ddebf18f576c1f36a5c526c01dd032081466edf3f2cb14ad766d1dc3820f5f763d18ae13d63bdae711d422759b31339168', 'user', '2009-11-09', 'rafaelweharima@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:13:32', NULL, NULL, '', '', ''),
 (52, 'Frugal123', 'Frugal123', '081398307591', 'scrypt:32768:8:1$D03o2WrlrPCX74Bo$72cdb406fc98e86d38df12ce1c8a48663dc428ef7bb713c088fd8bf266b87db957219d003b0f939d6c82dfe5f7d6d3bf652a0a591caf0352b323a636e5505c7b', 'user', '2026-04-15', 'frugal@gmail.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-14 15:16:07', NULL, '2026-05-14', '', '', ''),
 (53, 'Daflo', 'Daflo', '082157663661', 'scrypt:32768:8:1$Zc9dxqOoPHloMykh$13e8ea993a03223c84fad9e790ae501da432fc9d2004a4ad3c72d1dacf53ac733920e844e26ec2fb63796f4b01e8d2e6f7dea93aaf83c30bda1e32b533dc0a59', 'user', '2002-07-31', 'germanusdaflo@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:15:39', NULL, NULL, '', '', ''),
