@@ -33,6 +33,25 @@ app = Flask(
 app.secret_key = "dev-secret-change-me"
 
 
+@app.errorhandler(404)
+def handle_api_not_found(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Endpoint API tidak ditemukan."}), 404
+    return error
+
+@app.errorhandler(403)
+def handle_api_forbidden(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Akses ditolak."}), 403
+    return error
+
+@app.errorhandler(500)
+def handle_api_internal_error(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Terjadi kesalahan server pada API. Cek terminal Flask untuk detailnya."}), 500
+    return error
+
+
 @app.after_request
 def add_monitoring_api_cors_headers(response):
     if request.path.startswith("/api/monitoring-kewajiban-tugas/"):
@@ -1531,8 +1550,84 @@ def _date_to_iso(value) -> str:
         return value.isoformat()
     return str(value)
 
+def sync_session_from_member_row(row: dict[str, object] | None) -> None:
+    """Sinkronkan session dari 1 row anggota tanpa menjalankan proses tulis DB."""
+    if not row:
+        return
+    session["user_id"] = row.get("id")
+    session["username"] = row.get("username") or ""
+    session["nama"] = row.get("nama") or ""
+    session["role"] = normalize_role_value(row.get("role") or "user")
+    session["telp"] = row.get("telp") or ""
+    session["email"] = row.get("email") or ""
+    session["alamat"] = row.get("alamat") or ""
+    session["tgl_lahir"] = _date_to_iso(row.get("tgl_lahir"))
+    session["status_akun"] = row.get("status_akun") or "aktif"
+
+
+def current_user_context_from_row(row: dict[str, object] | None, *, include_admin_permissions: bool = False) -> dict[str, object]:
+    """Bangun context user dari row yang sudah dibaca.
+
+    Fungsi ini sengaja tidak memanggil apply_membership_status_transitions(),
+    ensure_auth_schema(), atau query tambahan lain agar endpoint read-only seperti
+    profil anggota tidak memicu deadlock ketika beberapa request berjalan bersamaan.
+    """
+    if not row:
+        return {
+            "logged_in": bool(session.get("logged_in")),
+            "user_id": session.get("user_id"),
+            "username": session.get("username") or "",
+            "nama": session.get("nama") or "",
+            "role": session.get("role") or "",
+            "telp": session.get("telp") or "",
+            "email": session.get("email") or "",
+            "alamat": session.get("alamat") or "",
+            "tgl_lahir": _date_to_iso(session.get("tgl_lahir")),
+            "status_akun": session.get("status_akun") or "",
+            "inactive_until": "",
+            "inactive_from": "",
+            "inactive_type": "",
+            "inactive_reason": "",
+            "admin_permissions": {},
+            "created_at": "",
+            "updated_at": "",
+        }
+
+    role_value = normalize_role_value(row.get("role") or "user")
+    admin_permissions = {}
+    if include_admin_permissions and session.get("logged_in") and role_value in {"admin", "super_admin"}:
+        admin_permissions = get_admin_permissions(row.get("id"), role_value)
+
+    return {
+        "logged_in": bool(session.get("logged_in")),
+        "user_id": row.get("id"),
+        "username": row.get("username") or "",
+        "nama": row.get("nama") or "",
+        "role": role_value,
+        "telp": row.get("telp") or "",
+        "email": row.get("email") or "",
+        "alamat": row.get("alamat") or "",
+        "tgl_lahir": _date_to_iso(row.get("tgl_lahir")),
+        "status_akun": row.get("status_akun") or "aktif",
+        "inactive_until": _date_to_iso(row.get("inactive_until")),
+        "inactive_from": _date_to_iso(row.get("inactive_from")),
+        "inactive_type": row.get("inactive_type") or "",
+        "inactive_reason": row.get("inactive_reason") or "",
+        "admin_permissions": admin_permissions,
+        "created_at": row.get("created_at").isoformat() if row.get("created_at") else "",
+        "updated_at": row.get("updated_at").isoformat() if row.get("updated_at") else "",
+    }
+
+
 def refresh_session_user_from_db() -> dict[str, object] | None:
-    """Ambil ulang user login dari database agar halaman profil tidak memakai data lama/browser cache."""
+    """Ambil ulang user login dari database dengan proses read-only.
+
+    Sebelumnya fungsi ini menjalankan apply_membership_status_transitions() setiap
+    kali halaman profil/dashboard dirender. Karena proses tersebut melakukan
+    UPDATE ke tabel anggota dan membership_status_requests, request paralel dari
+    halaman profil anggota bisa saling mengunci dan memunculkan error MySQL 1213
+    deadlock. Refresh session cukup membaca data user login saja.
+    """
     if not session.get("logged_in") or not session.get("user_id"):
         return None
 
@@ -1541,14 +1636,11 @@ def refresh_session_user_from_db() -> dict[str, object] | None:
     try:
         conn = mysql_connection()
         cursor = conn.cursor(dictionary=True)
-        try:
-            apply_membership_status_transitions(cursor)
-            conn.commit()
-        except Exception:
-            conn.rollback()
         cursor.execute(
             """
-            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note, created_at, updated_at
+            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat,
+                   status_akun, inactive_until, inactive_from, inactive_type,
+                   inactive_reason, inactive_note, created_at, updated_at
             FROM anggota
             WHERE id = %s
             LIMIT 1
@@ -1559,15 +1651,7 @@ def refresh_session_user_from_db() -> dict[str, object] | None:
         if not row:
             return None
 
-        session["user_id"] = row.get("id")
-        session["username"] = row.get("username") or ""
-        session["nama"] = row.get("nama") or ""
-        session["role"] = normalize_role_value(row.get("role") or "user")
-        session["telp"] = row.get("telp") or ""
-        session["email"] = row.get("email") or ""
-        session["alamat"] = row.get("alamat") or ""
-        session["tgl_lahir"] = _date_to_iso(row.get("tgl_lahir"))
-        session["status_akun"] = row.get("status_akun") or "aktif"
+        sync_session_from_member_row(row)
         return row
     except Exception:
         return None
@@ -1577,27 +1661,10 @@ def refresh_session_user_from_db() -> dict[str, object] | None:
         if conn:
             conn.close()
 
-def current_user_context() -> dict[str, str]:
+
+def current_user_context() -> dict[str, object]:
     row = refresh_session_user_from_db()
-    return {
-        "logged_in": bool(session.get("logged_in")),
-        "user_id": session.get("user_id"),
-        "username": session.get("username") or "",
-        "nama": session.get("nama") or "",
-        "role": session.get("role") or "",
-        "telp": session.get("telp") or "",
-        "email": session.get("email") or "",
-        "alamat": session.get("alamat") or "",
-        "tgl_lahir": _date_to_iso(session.get("tgl_lahir") or (row.get("tgl_lahir") if row else "")),
-        "status_akun": session.get("status_akun") or "",
-        "inactive_until": _date_to_iso(row.get("inactive_until") if row else ""),
-        "inactive_from": _date_to_iso(row.get("inactive_from") if row else ""),
-        "inactive_type": (row.get("inactive_type") if row else "") or "",
-        "inactive_reason": (row.get("inactive_reason") if row else "") or "",
-        "admin_permissions": get_admin_permissions(session.get("user_id"), session.get("role")) if session.get("logged_in") and normalize_role_value(session.get("role") or "") in {"admin", "super_admin"} else {},
-        "created_at": row.get("created_at").isoformat() if row and row.get("created_at") else "",
-        "updated_at": row.get("updated_at").isoformat() if row and row.get("updated_at") else "",
-    }
+    return current_user_context_from_row(row, include_admin_permissions=True)
 
 def normalize_phone(value: str) -> str:
     cleaned = re.sub(r"[\s\-()]+", "", (value or "").strip())
@@ -5377,17 +5444,30 @@ def profil():
 
 @app.route("/api/membership/my", methods=["GET"])
 def api_membership_my():
+    """Ambil status keanggotaan user login sebagai JSON murni dan read-only.
+
+    Endpoint ini dipanggil bersamaan dengan /api/profile/me dari halaman profil.
+    Karena itu endpoint tidak menjalankan auto-transition/DDL agar tidak terjadi
+    deadlock MySQL 1213 pada tabel anggota atau membership_status_requests.
+    """
     if not session.get("logged_in"):
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
-    ensure_auth_schema()
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
+
+    conn = None
+    cursor = None
     try:
-        apply_membership_status_transitions(cursor)
-        conn.commit()
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
         user_id = session.get("user_id")
+
         cursor.execute("SELECT * FROM `anggota` WHERE id = %s LIMIT 1", (user_id,))
-        member = cursor.fetchone() or {}
+        member = cursor.fetchone()
+        if not member:
+            session.clear()
+            return jsonify({"ok": False, "message": "Akun login tidak ditemukan. Silakan login ulang."}), 404
+
+        sync_session_from_member_row(member)
+
         cursor.execute(
             """
             SELECT * FROM `membership_status_requests`
@@ -5398,17 +5478,40 @@ def api_membership_my():
             (user_id,),
         )
         latest = cursor.fetchone()
+
         return jsonify({
             "ok": True,
-            "member": member_row_to_dict(member) if member else {},
+            "member": member_row_to_dict(member),
             "request": membership_request_row_to_dict(latest) if latest else None,
-            "currentUser": current_user_context(),
+            "currentUser": current_user_context_from_row(member),
         })
+    except mysql.connector.Error as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        if getattr(exc, "errno", None) in {1205, 1213}:
+            return jsonify({
+                "ok": False,
+                "message": "Database sedang sibuk memproses data keanggotaan. Silakan muat ulang halaman beberapa detik lagi."
+            }), 503
+        return jsonify({"ok": False, "message": f"Gagal memuat status keanggotaan: {exc}"}), 500
+    except Exception as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return jsonify({"ok": False, "message": f"Gagal memuat status keanggotaan: {exc}"}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @app.route("/api/membership/inactive-request", methods=["POST"])
+
 def api_membership_submit_request():
     if not session.get("logged_in"):
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
@@ -5968,15 +6071,17 @@ def api_anggota_sync():
 def api_profile_me():
     """Ambil profil anggota/admin yang sedang login langsung dari DB.
 
-    Endpoint ini dipakai halaman profil agar tidak lagi bergantung pada cache
-    localStorage/session browser lama saat user berganti akun.
+    Endpoint dibuat read-only supaya aman dipanggil paralel dengan
+    /api/membership/my dari halaman profil anggota.
     """
     if not session.get("logged_in"):
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
-    ensure_auth_schema()
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
+
+    conn = None
+    cursor = None
     try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
         user_id = session.get("user_id")
         cursor.execute(
             """
@@ -5994,25 +6099,40 @@ def api_profile_me():
             session.clear()
             return jsonify({"ok": False, "message": "Akun login tidak ditemukan. Silakan login ulang."}), 404
 
-        # Sinkronkan session supaya render template berikutnya memakai akun yang benar.
-        session["user_id"] = row.get("id")
-        session["username"] = row.get("username") or ""
-        session["nama"] = row.get("nama") or ""
-        session["role"] = normalize_role_value(row.get("role") or "user")
-        session["telp"] = row.get("telp") or ""
-        session["email"] = row.get("email") or ""
-        session["alamat"] = row.get("alamat") or ""
-        session["tgl_lahir"] = _date_to_iso(row.get("tgl_lahir"))
-        session["status_akun"] = row.get("status_akun") or "aktif"
-
-        user = current_user_context()
+        sync_session_from_member_row(row)
+        user = current_user_context_from_row(
+            row,
+            include_admin_permissions=normalize_role_value(row.get("role") or "") in {"admin", "super_admin"},
+        )
         return jsonify({"ok": True, "user": user, "member": member_row_to_dict(row)})
+    except mysql.connector.Error as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        if getattr(exc, "errno", None) in {1205, 1213}:
+            return jsonify({
+                "ok": False,
+                "message": "Database sedang sibuk memproses data profil. Silakan muat ulang halaman beberapa detik lagi."
+            }), 503
+        return jsonify({"ok": False, "message": f"Gagal memuat profil login: {exc}"}), 500
+    except Exception as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return jsonify({"ok": False, "message": f"Gagal memuat profil login: {exc}"}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @app.route("/api/profile/update", methods=["POST"])
+
 def api_profile_update():
     if not session.get("logged_in"):
         return jsonify({"ok": False, "message": "Unauthorized"}), 401

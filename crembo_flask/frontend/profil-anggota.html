@@ -1028,6 +1028,23 @@
       }, 2000);
     }
 
+
+    async function readJsonResponse(response, fallbackMessage) {
+      const text = await response.text();
+      if (!text) {
+        return {};
+      }
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        const isHtml = /^\s*</.test(text);
+        if (isHtml) {
+          throw new Error(fallbackMessage || "Server mengembalikan halaman HTML, bukan JSON. Silakan refresh halaman atau login ulang.");
+        }
+        throw new Error(fallbackMessage || "Format respons server tidak valid.");
+      }
+    }
+
     function readLoginName() {
       const serverUser = window.CREMBO_CURRENT_USER || {};
       if (serverUser.nama || serverUser.username || serverUser.email) {
@@ -1379,7 +1396,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        const result = await response.json();
+        const result = await readJsonResponse(response, "Format respons profil tidak valid.");
         if (!result.ok) {
           showNotify("Gagal: " + result.message);
           return;
@@ -1426,7 +1443,7 @@
             newPassword: newPassword.value
           })
         });
-        const result = await response.json();
+        const result = await readJsonResponse(response, "Format respons profil tidak valid.");
         if (!result.ok) {
           showNotify("Gagal: " + result.message);
           return;
@@ -1770,7 +1787,7 @@
   async function loadBackendMembership(){
     try{
       const res = await fetch('/api/membership/my', {credentials:'same-origin'});
-      const data = await res.json();
+      const data = await readJsonResponse(res, "Format respons status keanggotaan tidak valid.");
       if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal memuat status keanggotaan.');
       backendLatestRequest = data.request || null;
       backendMember = data.member || null;
@@ -1825,7 +1842,7 @@
     if(inactiveEvidence.files && inactiveEvidence.files[0]) fd.append('evidence', inactiveEvidence.files[0]);
     try{
       const res = await fetch('/api/membership/inactive-request', {method:'POST', body:fd, credentials:'same-origin'});
-      const data = await res.json();
+      const data = await readJsonResponse(res, "Format respons status keanggotaan tidak valid.");
       if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal mengirim pengajuan.');
       resetInactiveForm();
       editingRequestId = '';
@@ -1854,7 +1871,7 @@
     if(!confirm('Batalkan pengajuan nonaktif yang masih pending?')) return;
     try{
       const res = await fetch('/api/membership/inactive-request/' + encodeURIComponent(req.id), {method:'DELETE', credentials:'same-origin'});
-      const data = await res.json();
+      const data = await readJsonResponse(res, "Format respons status keanggotaan tidak valid.");
       if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal membatalkan pengajuan.');
       resetInactiveForm(); editingRequestId = '';
       showNotify(data.message || 'Pengajuan nonaktif berhasil dibatalkan.');
@@ -1877,7 +1894,7 @@
   async function refreshProfileFromBackend(){
     try {
       const res = await fetch('/api/profile/me', { credentials: 'same-origin', cache: 'no-store' });
-      const data = await res.json();
+      const data = await readJsonResponse(res, "Format respons status keanggotaan tidak valid.");
       if (!res.ok || data.ok === false || !data.user) return;
       window.CREMBO_CURRENT_USER = data.user;
       if (typeof renderProfile === 'function') renderProfile();
