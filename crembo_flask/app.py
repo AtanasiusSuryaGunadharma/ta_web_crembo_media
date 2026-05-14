@@ -7206,7 +7206,7 @@ def api_search():
         if not ftype or ftype == "Pengumuman":
             try:
                 cursor.execute("""
-                    SELECT id, title, summary, content, published_at, created_at, status
+                    SELECT id, title, summary, content, thumbnails, published_at, created_at, status
                     FROM `news`
                     WHERE status = 'published'
                     ORDER BY published_at DESC, created_at DESC
@@ -7221,6 +7221,14 @@ def api_search():
                     snippet = (summary_val or content_raw[:200]).strip()
                     date_val = row.get("published_at") or row.get("created_at")
                     date_str = date_val.strftime("%d %b %Y") if date_val else ""
+                    # Ambil URL thumbnail pertama dari JSON
+                    thumb_url = ""
+                    try:
+                        thumbs = json.loads(row.get("thumbnails") or "[]")
+                        if thumbs and isinstance(thumbs, list) and isinstance(thumbs[0], dict):
+                            thumb_url = thumbs[0].get("url") or ""
+                    except Exception:
+                        pass
                     results.append({
                         "type":    "Pengumuman",
                         "title":   title_val,
@@ -7228,7 +7236,7 @@ def api_search():
                         "date":    date_str,
                         "date_ts": date_val.timestamp() if date_val else 0,
                         "url":     f"/pengumuman/{row['id']}",
-                        "thumb":   "",
+                        "thumb":   thumb_url,
                     })
             except Exception as e:
                 pass  # Tabel belum ada atau error, skip
@@ -7266,38 +7274,31 @@ def api_search():
             except Exception:
                 pass
 
-        # ── 3. Jadwal Streaming ──────────────────────────────────────────────────
-        if not ftype or ftype == "Jadwal":
+        # ── 3. Form Pendaftaran ───────────────────────────────────────────────────
+        if not ftype or ftype == "FormPendaftaran":
             try:
                 cursor.execute("""
-                    SELECT DISTINCT YEAR(date) AS yr, MONTH(date) AS mo,
-                           MIN(date) AS sample_date,
-                           GROUP_CONCAT(DISTINCT mass_name ORDER BY date SEPARATOR ', ') AS mass_names
-                    FROM `streaming_schedules`
-                    WHERE status = 'Published'
-                    GROUP BY YEAR(date), MONTH(date)
-                    ORDER BY yr DESC, mo DESC
-                    LIMIT 24
+                    SELECT id, title, description, visibility, updated_at, created_at
+                    FROM `registration_forms`
+                    WHERE visibility != 'draft'
+                    ORDER BY updated_at DESC, created_at DESC
                 """)
-                import calendar as _cal
-                MONTHS_ID = ["","Januari","Februari","Maret","April","Mei","Juni",
-                              "Juli","Agustus","September","Oktober","November","Desember"]
                 for row in (cursor.fetchall() or []):
-                    yr, mo = row.get("yr"), row.get("mo")
-                    mass_names = row.get("mass_names") or ""
-                    title_val = f"Jadwal Streaming {MONTHS_ID[mo] if mo else ''} {yr}"
-                    haystack  = (title_val + " " + mass_names).lower()
+                    title_val = (row.get("title") or "")
+                    desc_raw  = re.sub(r'<[^>]+>', ' ', row.get("description") or "")
+                    haystack  = (title_val + " " + desc_raw).lower()
                     if query and query not in haystack:
                         continue
-                    sample_date = row.get("sample_date")
-                    date_ts = sample_date.timestamp() if hasattr(sample_date, "timestamp") else 0
+                    upd = row.get("updated_at") or row.get("created_at")
+                    date_ts = upd.timestamp() if hasattr(upd, "timestamp") else 0
+                    date_str = upd.strftime("%d %b %Y") if upd else ""
                     results.append({
-                        "type":    "Jadwal",
+                        "type":    "FormPendaftaran",
                         "title":   title_val,
-                        "snippet": f"Jadwal pelayanan multimedia bulan {MONTHS_ID[mo] if mo else ''} {yr}. {mass_names[:120]}",
-                        "date":    f"Bulan {MONTHS_ID[mo] if mo else ''} {yr}",
+                        "snippet": desc_raw[:220].strip(),
+                        "date":    date_str,
                         "date_ts": date_ts,
-                        "url":     f"/jadwal-streaming.html?bulan={mo}&tahun={yr}",
+                        "url":     f"/form-pendaftaran-detail.html?id={row['id']}",
                         "thumb":   "",
                     })
             except Exception:
@@ -7349,7 +7350,7 @@ def api_search():
         results.sort(key=lambda r: r["date_ts"], reverse=True)
 
     # Hitung count per tipe (SEBELUM pagination)
-    counts = {"Pengumuman": 0, "Agenda": 0, "Jadwal": 0, "Profil": 0}
+    counts = {"Pengumuman": 0, "Agenda": 0, "FormPendaftaran": 0, "Profil": 0}
     for r in results:
         t = r.get("type", "")
         if t in counts:

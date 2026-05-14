@@ -363,7 +363,7 @@
 			<button class="qf-btn active" id="qf-semua" type="button" data-type="">Semua</button>
 			<button class="qf-btn" id="qf-pengumuman" type="button" data-type="Pengumuman">Pengumuman</button>
 			<button class="qf-btn" id="qf-agenda" type="button" data-type="Agenda">Agenda</button>
-			<button class="qf-btn" id="qf-jadwal" type="button" data-type="Jadwal">Jadwal</button>
+			<button class="qf-btn" id="qf-form" type="button" data-type="FormPendaftaran">Form Pendaftaran</button>
 			<button class="qf-btn" id="qf-profil" type="button" data-type="Profil">Profil</button>
 		</div>
 	</section>
@@ -391,7 +391,7 @@
 					<li><button class="type-btn active" type="button" data-type="">Semua <span class="type-count" id="cntSemua">0</span></button></li>
 					<li><button class="type-btn" type="button" data-type="Pengumuman">Pengumuman <span class="type-count" id="cntPengumuman">0</span></button></li>
 					<li><button class="type-btn" type="button" data-type="Agenda">Agenda <span class="type-count" id="cntAgenda">0</span></button></li>
-					<li><button class="type-btn" type="button" data-type="Jadwal">Jadwal <span class="type-count" id="cntJadwal">0</span></button></li>
+					<li><button class="type-btn" type="button" data-type="FormPendaftaran">Form Pendaftaran <span class="type-count" id="cntFormPendaftaran">0</span></button></li>
 					<li><button class="type-btn" type="button" data-type="Profil">Profil <span class="type-count" id="cntProfil">0</span></button></li>
 				</ul>
 			</aside>
@@ -517,8 +517,8 @@
 
 	function esc(s){return String(s||"");}
 	function highlight(t,q){if(!q)return esc(t);return esc(t).replace(new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi"),"<em>$1</em>");}
-	function typeColor(t){return{Pengumuman:"var(--primary)",Agenda:"#166534",Jadwal:"#1e3a8a",Profil:"#7c3aed"}[t]||"var(--primary)";}
-	function thumbGrad(t){return{Pengumuman:"linear-gradient(135deg,#3a0000,#800000)",Agenda:"linear-gradient(135deg,#1a3a1a,#2d6a2d)",Jadwal:"linear-gradient(135deg,#1a1a3a,#2d2d6a)",Profil:"linear-gradient(135deg,#2a0a3a,#5a1a6a)"}[t]||"linear-gradient(135deg,var(--primary-deeper),var(--primary))";}
+	function typeColor(t){return{Pengumuman:"var(--primary)",Agenda:"#166534",FormPendaftaran:"#b45309",Profil:"#7c3aed"}[t]||"var(--primary)";}
+	function thumbGrad(t){return{Pengumuman:"linear-gradient(135deg,#3a0000,#800000)",Agenda:"linear-gradient(135deg,#1a3a1a,#2d6a2d)",FormPendaftaran:"linear-gradient(135deg,#3a1a00,#8a4500)",Profil:"linear-gradient(135deg,#2a0a3a,#5a1a6a)"}[t]||"linear-gradient(135deg,var(--primary-deeper),var(--primary))";}
 
 	async function fetchSearch(){
 		if(isLoading)return;
@@ -535,13 +535,15 @@
 		}finally{isLoading=false;}
 	}
 
+	const TYPE_LABEL = {Pengumuman:"Pengumuman",Agenda:"Agenda",FormPendaftaran:"Form Pendaftaran",Profil:"Profil"};
 	function renderResults(data){
 		const results=data.results||[],counts=data.counts||{},total=data.total||0,totalPages=data.total_pages||1,page=data.page||1;
+		const typeLabel = TYPE_LABEL[currentType] || currentType;
 		if(currentQuery){searchQueryDisplay.innerHTML='Hasil pencarian untuk: <em>"'+esc(currentQuery)+'"</em>';}
-		else{searchQueryDisplay.textContent=currentType?currentType:"Semua hasil tersedia";}
-		searchCountDisplay.textContent=total+" hasil ditemukan"+(currentType?" dalam kategori "+currentType:"");
+		else{searchQueryDisplay.textContent=currentType?typeLabel:"Semua hasil tersedia";}
+		searchCountDisplay.textContent=total+" hasil ditemukan"+(currentType?" dalam kategori "+typeLabel:"");
 		const el0=document.getElementById("cntSemua");if(el0)el0.textContent=Object.values(counts).reduce((a,b)=>a+b,0);
-		["Pengumuman","Agenda","Jadwal","Profil"].forEach(t=>{const e=document.getElementById("cnt"+t);if(e)e.textContent=counts[t]||0;});
+		["Pengumuman","Agenda","FormPendaftaran","Profil"].forEach(t=>{const e=document.getElementById("cnt"+t);if(e)e.textContent=counts[t]||0;});
 		if(!results.length){resultsList.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><h3>Tidak ada hasil ditemukan</h3><p>Coba kata kunci lain atau pilih kategori yang berbeda.</p></div>`;paginationWrap.innerHTML="";return;}
 		resultsList.innerHTML=results.map(r=>{
 			const thumb=r.thumb?`<a href="${esc(r.url)}"><div class="result-thumb" style="background:url('${esc(r.thumb)}') center/cover;min-height:120px;"></div></a>`:`<a href="${esc(r.url)}"><div class="result-thumb" style="background:${thumbGrad(r.type)};min-height:120px;"></div></a>`;
