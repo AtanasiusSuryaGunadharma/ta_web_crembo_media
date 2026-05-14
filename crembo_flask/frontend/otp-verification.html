@@ -120,11 +120,11 @@
 					<div class="step-dot">3</div>
 				</div>
 				<h3>Masukkan Kode OTP</h3>
-				<p class="sub">Kode OTP untuk demo tercantum di bawah ini. Ketikkan ke dalam kolom, lalu klik Verifikasi.</p>
+				<p class="sub">Masukkan 6 digit kode OTP yang telah dikirim ke email terdaftar, lalu klik Verifikasi.</p>
 
 				<div class="otp-display" id="otpDisplay">
-					<span id="otpCode">------</span>
-					<small>Kode OTP Demo (berlaku 5 menit)</small>
+					<span id="otpCode">Email Terkirim</span>
+					<small id="otpEmailHint">Kode OTP berlaku 5 menit</small>
 				</div>
 
 				<div id="alertOtp" class="alert error"></div>
@@ -162,6 +162,7 @@
 	</footer>
 
 	<script>
+
 	const OTP_KEY = "crembo-otp-session";
 	const topHeader = document.getElementById("topHeader");
 	function syncH(){const h=topHeader?topHeader.offsetHeight:104;document.documentElement.style.setProperty("--header-h",h+"px");}
@@ -170,17 +171,46 @@
 	let otpSession = null;
 	try { otpSession = JSON.parse(localStorage.getItem(OTP_KEY)||"null"); } catch(e){}
 	const alertEl = document.getElementById("alertOtp");
+	const otpCodeTitle = document.getElementById("otpCode");
+	const otpEmailHint = document.getElementById("otpEmailHint");
+	const verifyBtn = document.getElementById("verifyBtn");
+	const resendBtn = document.getElementById("resendBtn");
+	const boxes = Array.from(document.querySelectorAll(".otp-box"));
+	const timerEl = document.getElementById("timerDisplay");
 
-	if (!otpSession || !otpSession.otp) {
-		alertEl.textContent = "Sesi tidak valid. Ulangi dari Lupa Sandi.";
-		alertEl.className = "alert error show";
-		document.getElementById("verifyBtn").disabled = true;
-	} else {
-		document.getElementById("otpCode").textContent = otpSession.otp;
+	function showAlert(message, type){
+		alertEl.textContent = message || "";
+		alertEl.className = "alert " + (type || "error") + " show";
 	}
 
-	// OTP input: auto-advance, backspace
-	const boxes = Array.from(document.querySelectorAll(".otp-box"));
+	function toMs(value, fallbackMs){
+		if (!value) return fallbackMs;
+		if (typeof value === "number") return value;
+		const parsed = new Date(value).getTime();
+		return Number.isFinite(parsed) ? parsed : fallbackMs;
+	}
+
+	function ensureSessionTimes(){
+		if (!otpSession) return;
+		otpSession.expiresAt = toMs(otpSession.expiresAt, Date.now() + 5*60*1000);
+		otpSession.resendAvailableAt = toMs(otpSession.resendAvailableAt, Date.now() + 120*1000);
+	}
+
+	function fmtTime(s){ return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+	function secondsLeft(msValue){ return Math.max(0, Math.ceil((msValue - Date.now()) / 1000)); }
+
+	if (!otpSession || !otpSession.resetId) {
+		showAlert("Sesi tidak valid. Ulangi dari Lupa Sandi.", "error");
+		verifyBtn.disabled = true;
+		resendBtn.disabled = true;
+	} else {
+		ensureSessionTimes();
+		otpCodeTitle.textContent = "OTP terkirim";
+		otpEmailHint.textContent = otpSession.maskedEmail
+			? "Kode dikirim ke " + otpSession.maskedEmail + " dan berlaku 5 menit"
+			: "Kode OTP berlaku 5 menit";
+	}
+
 	boxes.forEach(function(box, i) {
 		box.addEventListener("input", function() {
 			box.value = box.value.replace(/\D/g, "").slice(-1);
@@ -194,53 +224,94 @@
 			e.preventDefault();
 			const text = (e.clipboardData||window.clipboardData).getData("text").replace(/\D/g,"").slice(0,6);
 			text.split("").forEach(function(ch,j){ if(boxes[j]){boxes[j].value=ch;boxes[j].classList.add("filled");} });
+			if (boxes[Math.min(text.length, 5)]) boxes[Math.min(text.length, 5)].focus();
 		});
 	});
 
-	// Timer
-	let timerSec = 300;
-	let resendCooldown = 60;
-	const timerEl = document.getElementById("timerDisplay");
-	const resendBtn = document.getElementById("resendBtn");
+	function updateTimer(){
+		if(!otpSession || !otpSession.expiresAt) return;
+		const left = secondsLeft(otpSession.expiresAt);
+		timerEl.textContent = left > 0 ? fmtTime(left) : "Kedaluwarsa";
+		timerEl.style.color = left > 0 ? "" : "#dc2626";
+		verifyBtn.disabled = left <= 0;
+	}
 
-	function fmtTime(s){ return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
-	timerEl.textContent = fmtTime(timerSec);
+	function updateResend(){
+		if(!otpSession || !otpSession.resendAvailableAt) return;
+		const left = secondsLeft(otpSession.resendAvailableAt);
+		resendBtn.disabled = left > 0;
+		resendBtn.textContent = left > 0 ? "Kirim Ulang (" + left + "d)" : "Kirim Ulang";
+	}
 
-	const timerInterval = setInterval(function(){
-		timerSec--;
-		timerEl.textContent = fmtTime(Math.max(timerSec,0));
-		if(timerSec<=0){ clearInterval(timerInterval); timerEl.textContent="Kedaluwarsa"; timerEl.style.color="#dc2626"; }
-	},1000);
+	updateTimer();
+	updateResend();
+	setInterval(function(){ updateTimer(); updateResend(); }, 1000);
 
-	let resendInterval = setInterval(function(){
-		resendCooldown--;
-		if(resendCooldown<=0){ clearInterval(resendInterval); resendBtn.disabled=false; resendBtn.textContent="Kirim Ulang"; }
-	},1000);
-
-	resendBtn.addEventListener("click",function(){
-		if(!otpSession)return;
-		const newOtp = String(Math.floor(100000+Math.random()*900000));
-		otpSession.otp = newOtp;
-		otpSession.expiry = Date.now()+5*60*1000;
-		localStorage.setItem(OTP_KEY,JSON.stringify(otpSession));
-		document.getElementById("otpCode").textContent = newOtp;
-		timerSec = 300; timerEl.textContent = fmtTime(timerSec); timerEl.style.color="";
-		resendCooldown = 60; resendBtn.disabled=true;
-		resendInterval = setInterval(function(){resendCooldown--;if(resendCooldown<=0){clearInterval(resendInterval);resendBtn.disabled=false;}},1000);
-		boxes.forEach(function(b){b.value="";b.classList.remove("filled");});
+	resendBtn.addEventListener("click", async function(){
+		if(!otpSession || !otpSession.resetId) return;
+		resendBtn.disabled = true;
+		resendBtn.textContent = "Mengirim...";
+		try {
+			const response = await fetch("/api/password/resend", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({ resetId: otpSession.resetId })
+			});
+			const data = await response.json().catch(() => ({}));
+			if (!response.ok || !data.ok) {
+				showAlert(data.message || "Gagal mengirim ulang OTP.", "error");
+				updateResend();
+				return;
+			}
+			otpSession.maskedEmail = data.maskedEmail || otpSession.maskedEmail || "";
+			otpSession.expiresAt = Date.now() + ((data.expiresIn || 300) * 1000);
+			otpSession.resendAvailableAt = Date.now() + ((data.resendAfter || 120) * 1000);
+			localStorage.setItem(OTP_KEY, JSON.stringify(otpSession));
+			boxes.forEach(function(b){b.value="";b.classList.remove("filled");});
+			boxes[0].focus();
+			showAlert(data.message || "Kode OTP baru berhasil dikirim.", "success");
+			updateTimer();
+			updateResend();
+		} catch (error) {
+			showAlert("Tidak dapat terhubung ke server. Coba lagi beberapa saat.", "error");
+			updateResend();
+		}
 	});
 
-	document.getElementById("verifyBtn").addEventListener("click",function(){
+	verifyBtn.addEventListener("click", async function(){
 		const entered = boxes.map(b=>b.value).join("");
-		if(entered.length<6){alertEl.textContent="Masukkan semua 6 digit OTP.";alertEl.className="alert error show";return;}
-		if(!otpSession||!otpSession.otp){alertEl.textContent="Sesi tidak valid.";alertEl.className="alert error show";return;}
-		if(Date.now()>otpSession.expiry){alertEl.textContent="Kode OTP sudah kedaluwarsa. Klik Kirim Ulang.";alertEl.className="alert error show";return;}
-		if(entered!==otpSession.otp){alertEl.textContent="Kode OTP salah. Periksa kembali.";alertEl.className="alert error show";return;}
-		otpSession.used = true;
-		localStorage.setItem(OTP_KEY,JSON.stringify(otpSession));
-		alertEl.textContent="OTP benar! Mengarahkan ke halaman reset password...";alertEl.className="alert success show";
-		setTimeout(function(){window.location.href="reset-password.html";},1200);
+		if(entered.length<6){showAlert("Masukkan semua 6 digit OTP.", "error");return;}
+		if(!otpSession||!otpSession.resetId){showAlert("Sesi tidak valid.", "error");return;}
+		if(Date.now()>otpSession.expiresAt){showAlert("Kode OTP sudah kedaluwarsa. Klik Kirim Ulang.", "error");return;}
+
+		const originalText = verifyBtn.textContent;
+		verifyBtn.disabled = true;
+		verifyBtn.textContent = "Memverifikasi...";
+		try {
+			const response = await fetch("/api/password/verify", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({ resetId: otpSession.resetId, otp: entered })
+			});
+			const data = await response.json().catch(() => ({}));
+			if (!response.ok || !data.ok) {
+				showAlert(data.message || "Kode OTP salah atau sudah kedaluwarsa.", "error");
+				verifyBtn.disabled = false;
+				verifyBtn.textContent = originalText;
+				return;
+			}
+			otpSession.used = true;
+			otpSession.resetToken = data.resetToken;
+			localStorage.setItem(OTP_KEY, JSON.stringify(otpSession));
+			showAlert(data.message || "OTP benar! Mengarahkan ke halaman reset password...", "success");
+			setTimeout(function(){window.location.href="reset-password.html";},1000);
+		} catch (error) {
+			showAlert("Tidak dapat terhubung ke server. Coba lagi beberapa saat.", "error");
+			verifyBtn.disabled = false;
+			verifyBtn.textContent = originalText;
+		}
 	});
-	</script>
+
+</script>
 </body>
 </html>
