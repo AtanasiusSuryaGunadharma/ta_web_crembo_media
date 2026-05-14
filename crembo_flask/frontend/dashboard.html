@@ -585,15 +585,25 @@
       return { streaming: true, inventaris: true, publikasi: true, konten: true, keanggotaan: true };
     }
 
+    function normalizePermissionValue(value, fallback) {
+      if (value === undefined || value === null || value === "") return fallback;
+      if (typeof value === "boolean") return value;
+      if (typeof value === "number") return value !== 0;
+      const normalized = String(value).trim().toLowerCase();
+      if (["0", "false", "no", "tidak", "off", "nonaktif"].includes(normalized)) return false;
+      if (["1", "true", "yes", "ya", "on", "aktif"].includes(normalized)) return true;
+      return Boolean(value);
+    }
+
     function normalizePermissions(value) {
       const base = defaultPermissions();
       if (!value || typeof value !== "object") return base;
       return {
-        streaming: value.streaming !== false,
-        inventaris: value.inventaris !== false,
-        publikasi: value.publikasi !== false,
-        konten: value.konten !== false,
-        keanggotaan: value.keanggotaan !== false
+        streaming: normalizePermissionValue(value.streaming, base.streaming),
+        inventaris: normalizePermissionValue(value.inventaris, base.inventaris),
+        publikasi: normalizePermissionValue(value.publikasi, base.publikasi),
+        konten: normalizePermissionValue(value.konten, base.konten),
+        keanggotaan: normalizePermissionValue(value.keanggotaan, base.keanggotaan)
       };
     }
 
@@ -645,6 +655,12 @@
     function resolveAdminPermissions() {
       if (role === "super_admin") return defaultPermissions();
       if (role !== "admin") return defaultPermissions();
+
+      // Prioritas utama: permission dari backend Flask current_user_context().
+      // Ini membuat dashboard mengikuti tabel admin_module_permissions di database.
+      if (serverUser && serverUser.admin_permissions) {
+        return normalizePermissions(serverUser.admin_permissions);
+      }
 
       const sessionObj = storedSessionRaw ? safeParse(storedSessionRaw) : null;
       if (sessionObj && sessionObj.adminPermissions) return normalizePermissions(sessionObj.adminPermissions);

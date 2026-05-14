@@ -46,6 +46,145 @@ PREVIEWABLE_ATTACHMENT_EXTENSIONS = {
 INVENTORY_DEFAULT_CATEGORIES = ["Kamera", "Audio", "Aksesori", "Switcher", "Kabel", "Lighting", "Lainnya"]
 INVENTORY_DEFAULT_ITEMS = []
 
+
+ADMIN_MODULE_KEYS = ["streaming", "inventaris", "publikasi", "konten", "keanggotaan"]
+ADMIN_MODULE_LABELS = {
+    "streaming": "Tugas Streaming",
+    "inventaris": "Inventaris & Peminjaman",
+    "publikasi": "Informasi & Publikasi",
+    "konten": "Konten Utama Website",
+    "keanggotaan": "Keanggotaan",
+}
+ADMIN_PAGE_MODULE_MAP = {
+    "jadwal-tugas-streaming-admin.html": "streaming",
+    "registrasi-tugas-misa-besar.html": "streaming",
+    "penugasan-petugas-misa.html": "streaming",
+    "monitoring-tugas-anggota.html": "streaming",
+    "hasil-evaluasi-streaming.html": "streaming",
+    "setting-pertanyaan-evaluasi-streaming.html": "streaming",
+    "data-inventaris-barang.html": "inventaris",
+    "persetujuan-peminjaman.html": "inventaris",
+    "riwayat-peminjaman-pengembalian.html": "inventaris",
+    "hasil-form-kerusakan-barang.html": "inventaris",
+    "manajemen-profil.html": "publikasi",
+    "kelola-berita.html": "publikasi",
+    "manajemen-agenda.html": "publikasi",
+    "manajemen-form-pendaftaran.html": "publikasi",
+    "kelola-carousel-home.html": "konten",
+    "kelola-tentang-crembo.html": "konten",
+    "kelola-embed-youtube.html": "konten",
+    "kelola-embed-google-maps.html": "konten",
+    "kelola-embed-instagram.html": "konten",
+    "manajemen-anggota.html": "keanggotaan",
+    "setting-sertifikat-anggota.html": "keanggotaan",
+}
+
+def default_admin_permissions() -> dict[str, bool]:
+    return {key: True for key in ADMIN_MODULE_KEYS}
+
+def normalize_admin_permissions(value=None, *, default_all: bool = True) -> dict[str, bool]:
+    base = {key: bool(default_all) for key in ADMIN_MODULE_KEYS}
+    if isinstance(value, str):
+        value = safe_json_loads(value, {})
+    if not isinstance(value, dict):
+        return base
+    normalized = {}
+    for key in ADMIN_MODULE_KEYS:
+        raw = value.get(key, base[key])
+        normalized[key] = bool(raw) and str(raw).lower() not in {"0", "false", "no", "tidak", "off"}
+    return normalized
+
+def permission_row_to_dict(row) -> dict[str, bool]:
+    if not row:
+        return default_admin_permissions()
+    return {key: bool(row.get(key, 1)) for key in ADMIN_MODULE_KEYS}
+
+def ensure_admin_permissions_schema(cursor) -> None:
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `admin_module_permissions` (
+          `member_id` int(11) NOT NULL,
+          `streaming` tinyint(1) NOT NULL DEFAULT 1,
+          `inventaris` tinyint(1) NOT NULL DEFAULT 1,
+          `publikasi` tinyint(1) NOT NULL DEFAULT 1,
+          `konten` tinyint(1) NOT NULL DEFAULT 1,
+          `keanggotaan` tinyint(1) NOT NULL DEFAULT 1,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`member_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+    for key in ADMIN_MODULE_KEYS:
+        ensure_column(cursor, "admin_module_permissions", key, f"`{key}` tinyint(1) NOT NULL DEFAULT 1")
+    ensure_column(cursor, "admin_module_permissions", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
+    ensure_column(cursor, "admin_module_permissions", "updated_at", "`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    cursor.execute(
+        """
+        INSERT IGNORE INTO `admin_module_permissions`
+          (`member_id`, `streaming`, `inventaris`, `publikasi`, `konten`, `keanggotaan`)
+        SELECT `id`, 1, 1, 1, 1, 1
+        FROM `anggota`
+        WHERE `role` = 'admin'
+        """
+    )
+    cursor.execute(
+        """
+        DELETE p FROM `admin_module_permissions` p
+        LEFT JOIN `anggota` a ON a.id = p.member_id
+        WHERE a.id IS NULL OR COALESCE(a.role, '') <> 'admin'
+        """
+    )
+
+def get_admin_permissions(member_id=None, role: str | None = None) -> dict[str, bool]:
+    normalized_role = normalize_role_value(role or session.get("role") or "")
+    if normalized_role == "super_admin":
+        return default_admin_permissions()
+    if normalized_role != "admin":
+        return default_admin_permissions()
+    try:
+        target_id = int(member_id if member_id is not None else session.get("user_id"))
+    except (TypeError, ValueError):
+        return default_admin_permissions()
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_admin_permissions_schema(cursor)
+        cursor.execute("SELECT streaming, inventaris, publikasi, konten, keanggotaan FROM admin_module_permissions WHERE member_id = %s LIMIT 1", (target_id,))
+        row = cursor.fetchone()
+        if not row:
+            cursor.execute(
+                """
+                INSERT IGNORE INTO admin_module_permissions
+                  (member_id, streaming, inventaris, publikasi, konten, keanggotaan)
+                VALUES (%s, 1, 1, 1, 1, 1)
+                """,
+                (target_id,),
+            )
+            conn.commit()
+            return default_admin_permissions()
+        return permission_row_to_dict(row)
+    finally:
+        cursor.close()
+        conn.close()
+
+def admin_has_module_access(module_key: str) -> bool:
+    if not session.get("logged_in"):
+        return False
+    role = normalize_role_value(session.get("role") or "")
+    if role == "super_admin":
+        return True
+    if role != "admin":
+        return False
+    permissions = get_admin_permissions(session.get("user_id"), role)
+    return bool(permissions.get(module_key))
+
+def require_super_admin_api():
+    if not session.get("logged_in") or normalize_role_value(session.get("role") or "") != "super_admin":
+        return jsonify({"ok": False, "message": "Hanya Super Admin yang dapat mengakses Kelola Data Admin."}), 403
+    return None
+
 def template_exists(template_name: str) -> bool:
     return (FRONTEND_DIR / template_name).is_file()
 
@@ -1416,6 +1555,7 @@ def current_user_context() -> dict[str, str]:
         "inactive_from": _date_to_iso(row.get("inactive_from") if row else ""),
         "inactive_type": (row.get("inactive_type") if row else "") or "",
         "inactive_reason": (row.get("inactive_reason") if row else "") or "",
+        "admin_permissions": get_admin_permissions(session.get("user_id"), session.get("role")) if session.get("logged_in") and normalize_role_value(session.get("role") or "") in {"admin", "super_admin"} else {},
         "created_at": row.get("created_at").isoformat() if row and row.get("created_at") else "",
         "updated_at": row.get("updated_at").isoformat() if row and row.get("updated_at") else "",
     }
@@ -3415,6 +3555,7 @@ def ensure_auth_schema() -> None:
     ensure_column(cursor, "anggota", "inactive_reason", "`inactive_reason` varchar(255) DEFAULT NULL")
     ensure_column(cursor, "anggota", "inactive_note", "`inactive_note` text DEFAULT NULL")
     ensure_membership_request_schema(cursor)
+    ensure_admin_permissions_schema(cursor)
     ensure_column(cursor, "anggota", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
     ensure_column(cursor, "anggota", "updated_at", "`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
@@ -3838,7 +3979,14 @@ def is_inactive_member_page_allowed(candidate: str) -> bool:
     return candidate in allowed
 
 def can_manage_members() -> bool:
-    return bool(session.get("logged_in")) and (session.get("role") or "") in {"admin", "super_admin"}
+    if not session.get("logged_in"):
+        return False
+    role = normalize_role_value(session.get("role") or "")
+    if role == "super_admin":
+        return True
+    if role == "admin":
+        return admin_has_module_access("keanggotaan")
+    return False
 
 
 def can_manage_registration_forms() -> bool:
@@ -4301,6 +4449,18 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                 ),
             )
 
+            if requested_role == "admin":
+                cursor.execute(
+                    """
+                    INSERT IGNORE INTO admin_module_permissions
+                      (member_id, streaming, inventaris, publikasi, konten, keanggotaan)
+                    VALUES (%s, 1, 1, 1, 1, 1)
+                    """,
+                    (member_id,),
+                )
+            else:
+                cursor.execute("DELETE FROM admin_module_permissions WHERE member_id = %s", (member_id,))
+
             if is_existing:
                 previous_status = normalize_status(existing.get("status_akun") or "aktif")
                 if previous_status == "nonaktif" and status_value == "aktif":
@@ -4349,6 +4509,7 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
 
         if ids_to_delete:
             placeholders = ",".join(["%s"] * len(ids_to_delete))
+            cursor.execute(f"DELETE FROM admin_module_permissions WHERE member_id IN ({placeholders})", tuple(ids_to_delete))
             cursor.execute(f"DELETE FROM anggota WHERE id IN ({placeholders})", tuple(ids_to_delete))
 
         conn.commit()
@@ -4621,6 +4782,12 @@ def build_home_page_data() -> dict[str, object]:
         "profileMenu": load_public_profile_menu_from_db(),
     }
 
+
+@app.errorhandler(403)
+def forbidden_page(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Akses modul ini tidak diizinkan."}), 403
+    return "<h1>403 Forbidden</h1><p>Akses modul ini tidak diizinkan untuk akun Anda.</p>", 403
 
 @app.route("/")
 def index():
@@ -5008,6 +5175,261 @@ def api_membership_admin_pending_actions():
         cursor.close()
         conn.close()
 
+
+def admin_user_row_to_dict(row: dict[str, object]) -> dict[str, object]:
+    permissions = permission_row_to_dict(row)
+    birth_date = _date_to_iso(row.get("tgl_lahir"))
+    status_value = normalize_status(row.get("status_akun") or "aktif")
+    return {
+        "id": row.get("id"),
+        "fullName": row.get("nama") or "Admin",
+        "name": row.get("nama") or "Admin",
+        "username": row.get("username") or "",
+        "loginIdentifier": row.get("username") or "",
+        "email": row.get("email") or "",
+        "phone": row.get("telp") or "",
+        "address": row.get("alamat") or "",
+        "birthDate": birth_date,
+        "role": "admin",
+        "status": "Aktif" if status_value == "aktif" else "Nonaktif",
+        "permissions": permissions,
+        "createdAt": row.get("created_at").isoformat() if row.get("created_at") else "",
+        "updatedAt": row.get("updated_at").isoformat() if row.get("updated_at") else "",
+    }
+
+def fetch_admin_users_for_super(cursor) -> list[dict[str, object]]:
+    ensure_admin_permissions_schema(cursor)
+    cursor.execute(
+        """
+        SELECT a.id, a.nama, a.username, a.telp, a.role, a.tgl_lahir, a.email, a.alamat,
+               a.status_akun, a.created_at, a.updated_at,
+               p.streaming, p.inventaris, p.publikasi, p.konten, p.keanggotaan
+        FROM anggota a
+        LEFT JOIN admin_module_permissions p ON p.member_id = a.id
+        WHERE a.role = 'admin'
+        ORDER BY a.nama ASC, a.id ASC
+        """
+    )
+    return [admin_user_row_to_dict(row) for row in cursor.fetchall() or []]
+
+def validate_admin_user_payload(payload: dict[str, object], *, existing_id: int | None = None) -> tuple[dict[str, object] | None, str | None]:
+    full_name = normalize_text(payload.get("fullName") or payload.get("name"))
+    username = normalize_text(payload.get("loginIdentifier") or payload.get("username"))
+    email = normalize_text(payload.get("email"))
+    phone = normalize_text(payload.get("phone") or payload.get("telp"))
+    address = normalize_text(payload.get("address") or payload.get("alamat"))
+    birth_date = parse_optional_date(payload.get("birthDate") or payload.get("tanggalLahir"))
+    status_value = normalize_status(payload.get("status") or payload.get("status_akun") or "aktif")
+    permissions = normalize_admin_permissions(payload.get("permissions"), default_all=False)
+
+    if not full_name:
+        return None, "Nama lengkap admin wajib diisi."
+    if not username:
+        return None, "Login identifier/username wajib diisi."
+    if not email:
+        return None, "Email admin wajib diisi."
+    if not phone:
+        return None, "Nomor WhatsApp admin wajib diisi."
+    if not address:
+        return None, "Alamat admin wajib diisi."
+    if not birth_date:
+        return None, "Tanggal lahir admin wajib diisi dengan format valid."
+
+    return {
+        "full_name": full_name,
+        "username": username,
+        "email": email,
+        "phone": phone,
+        "address": address,
+        "birth_date": birth_date,
+        "status": status_value,
+        "permissions": permissions,
+    }, None
+
+def ensure_admin_user_unique(cursor, username: str, email: str, phone: str, *, except_id: int | None = None) -> str | None:
+    params = [username, email, phone]
+    sql = "SELECT id, username, email, telp FROM anggota WHERE (username = %s OR email = %s OR telp = %s)"
+    if except_id is not None:
+        sql += " AND id <> %s"
+        params.append(except_id)
+    sql += " LIMIT 1"
+    cursor.execute(sql, tuple(params))
+    existing = cursor.fetchone()
+    if existing:
+        return "Username, email, atau nomor WhatsApp sudah digunakan akun lain."
+    return None
+
+def upsert_admin_permissions(cursor, member_id: int, permissions: dict[str, bool]) -> None:
+    normalized = normalize_admin_permissions(permissions, default_all=False)
+    cursor.execute(
+        """
+        INSERT INTO admin_module_permissions
+          (member_id, streaming, inventaris, publikasi, konten, keanggotaan)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+          streaming = VALUES(streaming),
+          inventaris = VALUES(inventaris),
+          publikasi = VALUES(publikasi),
+          konten = VALUES(konten),
+          keanggotaan = VALUES(keanggotaan),
+          updated_at = CURRENT_TIMESTAMP
+        """,
+        (
+            member_id,
+            1 if normalized.get("streaming") else 0,
+            1 if normalized.get("inventaris") else 0,
+            1 if normalized.get("publikasi") else 0,
+            1 if normalized.get("konten") else 0,
+            1 if normalized.get("keanggotaan") else 0,
+        ),
+    )
+
+@app.route("/api/admin-users", methods=["GET"])
+def api_admin_users_list():
+    forbidden = require_super_admin_api()
+    if forbidden:
+        return forbidden
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        admins = fetch_admin_users_for_super(cursor)
+        return jsonify({"ok": True, "admins": admins, "total": len(admins)})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/admin-users", methods=["POST"])
+def api_admin_users_create():
+    forbidden = require_super_admin_api()
+    if forbidden:
+        return forbidden
+    payload = request.get_json(silent=True) or {}
+    values, error = validate_admin_user_payload(payload)
+    if error:
+        return jsonify({"ok": False, "message": error}), 400
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("START TRANSACTION")
+        unique_error = ensure_admin_user_unique(cursor, values["username"], values["email"], values["phone"])
+        if unique_error:
+            conn.rollback()
+            return jsonify({"ok": False, "message": unique_error}), 400
+        cursor.execute("SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM anggota")
+        next_id = int((cursor.fetchone() or {}).get("next_id") or 1)
+        password_hash = hash_member_password("", values["birth_date"])
+        cursor.execute(
+            """
+            INSERT INTO anggota
+              (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, 'admin', %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            """,
+            (
+                next_id,
+                values["full_name"],
+                values["username"],
+                values["phone"],
+                password_hash,
+                values["birth_date"],
+                values["email"],
+                values["address"],
+                values["status"],
+            ),
+        )
+        upsert_admin_permissions(cursor, next_id, values["permissions"])
+        conn.commit()
+        admins = fetch_admin_users_for_super(cursor)
+        return jsonify({"ok": True, "message": "Admin baru berhasil ditambahkan.", "admins": admins})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/admin-users/<int:admin_id>", methods=["PUT"])
+def api_admin_users_update(admin_id: int):
+    forbidden = require_super_admin_api()
+    if forbidden:
+        return forbidden
+    payload = request.get_json(silent=True) or {}
+    values, error = validate_admin_user_payload(payload, existing_id=admin_id)
+    if error:
+        return jsonify({"ok": False, "message": error}), 400
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute("SELECT id, role FROM anggota WHERE id = %s LIMIT 1", (admin_id,))
+        row = cursor.fetchone()
+        if not row or normalize_role_value(row.get("role") or "") != "admin":
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Data admin tidak ditemukan."}), 404
+        unique_error = ensure_admin_user_unique(cursor, values["username"], values["email"], values["phone"], except_id=admin_id)
+        if unique_error:
+            conn.rollback()
+            return jsonify({"ok": False, "message": unique_error}), 400
+        cursor.execute(
+            """
+            UPDATE anggota
+            SET nama = %s, username = %s, telp = %s, tgl_lahir = %s, email = %s,
+                alamat = %s, status_akun = %s, updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s AND role = 'admin'
+            """,
+            (
+                values["full_name"],
+                values["username"],
+                values["phone"],
+                values["birth_date"],
+                values["email"],
+                values["address"],
+                values["status"],
+                admin_id,
+            ),
+        )
+        upsert_admin_permissions(cursor, admin_id, values["permissions"])
+        conn.commit()
+        admins = fetch_admin_users_for_super(cursor)
+        return jsonify({"ok": True, "message": "Data admin berhasil diperbarui.", "admins": admins})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/admin-users/<int:admin_id>", methods=["DELETE"])
+def api_admin_users_delete(admin_id: int):
+    forbidden = require_super_admin_api()
+    if forbidden:
+        return forbidden
+    if str(admin_id) == str(session.get("user_id") or ""):
+        return jsonify({"ok": False, "message": "Anda tidak dapat menghapus akun sendiri dari halaman ini."}), 400
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute("SELECT id, role FROM anggota WHERE id = %s LIMIT 1", (admin_id,))
+        row = cursor.fetchone()
+        if not row or normalize_role_value(row.get("role") or "") != "admin":
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Data admin tidak ditemukan."}), 404
+        cursor.execute("DELETE FROM admin_module_permissions WHERE member_id = %s", (admin_id,))
+        cursor.execute("DELETE FROM anggota WHERE id = %s AND role = 'admin'", (admin_id,))
+        conn.commit()
+        admins = fetch_admin_users_for_super(cursor)
+        return jsonify({"ok": True, "message": "Data admin berhasil dihapus.", "admins": admins})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route("/api/anggota", methods=["GET"])
 def api_anggota_list():
     if not can_manage_members():
@@ -5199,6 +5621,19 @@ def render_mockup_page(page: str):
             return redirect(url_for("dashboard_anggota"))
         if candidate == "dashboard-anggota.html" and current_role != "user":
             return redirect(url_for("dashboard"))
+
+    if candidate == "kelola-data-admin.html":
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        if normalize_role_value(session.get("role") or "") != "super_admin":
+            abort(403)
+
+    module_key = ADMIN_PAGE_MODULE_MAP.get(candidate)
+    if module_key:
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        if not admin_has_module_access(module_key):
+            abort(403)
 
     if session.get("logged_in") and current_member_is_inactive() and not is_inactive_member_page_allowed(candidate):
         return redirect(url_for("dashboard_anggota", inactive="1"))

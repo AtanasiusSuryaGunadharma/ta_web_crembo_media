@@ -293,7 +293,7 @@
       display: inline-block;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       border: 1px solid #bdbdbd;
       border-radius: 10px;
@@ -302,6 +302,8 @@
       font-family: inherit;
       background: #fff;
     }
+
+    textarea { min-height: 90px; resize: vertical; }
 
     .perm-grid {
       display: grid;
@@ -518,6 +520,22 @@
               </div>
 
               <div>
+                <label class="label" for="adminPhoneInput">Nomor WhatsApp</label>
+                <input id="adminPhoneInput" type="text" placeholder="08xx-xxxx-xxxx" required>
+              </div>
+
+              <div>
+                <label class="label" for="adminBirthDateInput">Tanggal Lahir</label>
+                <input id="adminBirthDateInput" type="date" required>
+                <p class="helper">Password awal/reset admin memakai tanggal lahir seperti di Manajemen Anggota.</p>
+              </div>
+
+              <div>
+                <label class="label" for="adminAddressInput">Alamat</label>
+                <textarea id="adminAddressInput" placeholder="Alamat admin..." required></textarea>
+              </div>
+
+              <div>
                 <label class="label" for="adminStatusInput">Status</label>
                 <select id="adminStatusInput">
                   <option value="Aktif">Aktif</option>
@@ -551,7 +569,6 @@
 
   <script>
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
-    const STORAGE_KEY = "crembo-admin-users";
     const SESSION_KEY = "crembo-login-session";
 
     const roleBadge = document.getElementById("roleBadge");
@@ -566,6 +583,9 @@
     const adminNameInput = document.getElementById("adminNameInput");
     const adminEmailInput = document.getElementById("adminEmailInput");
     const adminLoginIdInput = document.getElementById("adminLoginIdInput");
+    const adminPhoneInput = document.getElementById("adminPhoneInput");
+    const adminBirthDateInput = document.getElementById("adminBirthDateInput");
+    const adminAddressInput = document.getElementById("adminAddressInput");
     const adminStatusInput = document.getElementById("adminStatusInput");
     const permStreaming = document.getElementById("permStreaming");
     const permInventaris = document.getElementById("permInventaris");
@@ -579,117 +599,62 @@
     let admins = [];
 
     function safeParse(raw) {
-      try {
-        return JSON.parse(raw);
-      } catch (error) {
-        return null;
-      }
+      try { return JSON.parse(raw); } catch (error) { return null; }
     }
 
-    function makeId(prefix) {
-      return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-    }
-
-    function defaultAdmins() {
-      return [
-        {
-          id: "adm-1",
-          fullName: "Admin Andi",
-          email: "admin.andi@example.com",
-          loginIdentifier: "admin_andi",
-          role: "admin",
-          status: "Aktif",
-          permissions: {
-            streaming: true,
-            inventaris: true,
-            publikasi: false,
-            konten: false,
-            keanggotaan: false
-          }
-        },
-        {
-          id: "adm-2",
-          fullName: "Admin Maria",
-          email: "admin.maria@example.com",
-          loginIdentifier: "admin_maria",
-          role: "admin",
-          status: "Aktif",
-          permissions: {
-            streaming: false,
-            inventaris: false,
-            publikasi: true,
-            konten: true,
-            keanggotaan: true
-          }
-        }
-      ];
+    function readSession() {
+      const serverUser = window.CREMBO_CURRENT_USER || {};
+      if (serverUser.role) return serverUser;
+      const raw = localStorage.getItem(SESSION_KEY);
+      const parsed = raw ? safeParse(raw) : null;
+      return parsed && typeof parsed === "object" ? parsed : {};
     }
 
     function normalizePermissions(permissions) {
+      permissions = permissions || {};
       return {
-        streaming: !!(permissions && permissions.streaming),
-        inventaris: !!(permissions && permissions.inventaris),
-        publikasi: !!(permissions && permissions.publikasi),
-        konten: !!(permissions && permissions.konten),
-        keanggotaan: !!(permissions && permissions.keanggotaan)
+        streaming: !!permissions.streaming,
+        inventaris: !!permissions.inventaris,
+        publikasi: !!permissions.publikasi,
+        konten: !!permissions.konten,
+        keanggotaan: !!permissions.keanggotaan
       };
     }
 
     function normalizeAdmin(item) {
       return {
-        id: String(item && item.id ? item.id : makeId("adm")),
-        fullName: String(item && item.fullName ? item.fullName : "Admin"),
-        email: String(item && item.email ? item.email : "admin@example.com"),
-        loginIdentifier: String(item && item.loginIdentifier ? item.loginIdentifier : "admin_user"),
+        id: String(item && item.id ? item.id : ""),
+        fullName: String(item && (item.fullName || item.name) ? (item.fullName || item.name) : "Admin"),
+        email: String(item && item.email ? item.email : ""),
+        loginIdentifier: String(item && (item.loginIdentifier || item.username) ? (item.loginIdentifier || item.username) : ""),
+        phone: String(item && item.phone ? item.phone : ""),
+        birthDate: String(item && item.birthDate ? item.birthDate : ""),
+        address: String(item && item.address ? item.address : ""),
         role: "admin",
         status: String(item && item.status ? item.status : "Aktif"),
         permissions: normalizePermissions(item && item.permissions)
       };
     }
 
-    function readSession() {
-      // Prefer server session injected by Flask
-      const serverUser = window.CREMBO_CURRENT_USER || {};
-      if (serverUser.role) {
-        return serverUser;
-      }
-      const raw = localStorage.getItem(SESSION_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      return parsed && typeof parsed === "object" ? parsed : {};
-    }
-
-    function loadAdmins() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const parsed = raw ? safeParse(raw) : null;
-      if (Array.isArray(parsed) && parsed.length) {
-        admins = parsed.map(normalizeAdmin);
-        return;
-      }
-      admins = defaultAdmins().map(normalizeAdmin);
-      saveAdmins();
-    }
-
-    function saveAdmins() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(admins));
-    }
-
     function showNotify(message) {
       notify.textContent = message;
       notify.classList.add("show");
+      window.clearTimeout(showNotify.timer);
+      showNotify.timer = window.setTimeout(function(){ notify.classList.remove("show"); }, 2600);
     }
 
     function permissionText(permissions) {
       const labels = [];
-      if (permissions.streaming) { labels.push("Streaming"); }
-      if (permissions.inventaris) { labels.push("Inventaris"); }
-      if (permissions.publikasi) { labels.push("Publikasi"); }
-      if (permissions.konten) { labels.push("Konten"); }
-      if (permissions.keanggotaan) { labels.push("Keanggotaan"); }
+      if (permissions.streaming) labels.push("Streaming");
+      if (permissions.inventaris) labels.push("Inventaris");
+      if (permissions.publikasi) labels.push("Publikasi");
+      if (permissions.konten) labels.push("Konten");
+      if (permissions.keanggotaan) labels.push("Keanggotaan");
       return labels.length ? labels.join(", ") : "Tidak ada akses";
     }
 
     function escapeHtml(text) {
-      return String(text)
+      return String(text ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -697,10 +662,29 @@
         .replace(/'/g, "&#39;");
     }
 
+    async function apiJson(url, options) {
+      const response = await fetch(url, Object.assign({ credentials: "same-origin" }, options || {}));
+      const data = await response.json().catch(function(){ return {}; });
+      if (!response.ok || data.ok === false) {
+        throw new Error(data.message || "Aksi gagal diproses server.");
+      }
+      return data;
+    }
+
+    async function loadAdmins() {
+      try {
+        const data = await apiJson("/api/admin-users");
+        admins = Array.isArray(data.admins) ? data.admins.map(normalizeAdmin) : [];
+        renderTable();
+      } catch (error) {
+        adminTableBody.innerHTML = '<tr><td colspan="6">' + escapeHtml(error.message || "Gagal memuat data admin.") + '</td></tr>';
+      }
+    }
+
     function renderTable() {
       adminCountChip.textContent = "Total Admin: " + admins.length;
       if (!admins.length) {
-        adminTableBody.innerHTML = '<tr><td colspan="6">Belum ada admin.</td></tr>';
+        adminTableBody.innerHTML = '<tr><td colspan="6">Belum ada admin biasa.</td></tr>';
         return;
       }
 
@@ -708,8 +692,8 @@
         const statusClass = admin.status === "Nonaktif" ? "status nonaktif" : "status";
         return '<tr>'
           + '<td data-label="Nama">' + escapeHtml(admin.fullName) + '</td>'
-          + '<td data-label="Email">' + escapeHtml(admin.email) + '</td>'
-          + '<td data-label="Login ID">' + escapeHtml(admin.loginIdentifier) + '</td>'
+          + '<td data-label="Email">' + escapeHtml(admin.email) + '<br><small>' + escapeHtml(admin.phone || "-") + '</small></td>'
+          + '<td data-label="Login ID">' + escapeHtml(admin.loginIdentifier) + '<br><small>' + escapeHtml(admin.birthDate || "-") + '</small></td>'
           + '<td data-label="Status"><span class="' + statusClass + '">' + escapeHtml(admin.status) + '</span></td>'
           + '<td data-label="Wewenang">' + escapeHtml(permissionText(admin.permissions)) + '</td>'
           + '<td data-label="Aksi"><div class="inline-actions">'
@@ -733,15 +717,16 @@
     }
 
     function openEdit(id) {
-      const target = admins.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
-      editingId = id;
+      const target = admins.find(function (item) { return String(item.id) === String(id); });
+      if (!target) return;
+      editingId = String(target.id);
       formTitle.textContent = "Edit Admin";
       adminNameInput.value = target.fullName;
       adminEmailInput.value = target.email;
       adminLoginIdInput.value = target.loginIdentifier;
+      adminPhoneInput.value = target.phone || "";
+      adminBirthDateInput.value = target.birthDate || "";
+      adminAddressInput.value = target.address || "";
       adminStatusInput.value = target.status;
       permStreaming.checked = !!target.permissions.streaming;
       permInventaris.checked = !!target.permissions.inventaris;
@@ -751,42 +736,29 @@
       adminNameInput.focus();
     }
 
-    function deleteAdmin(id) {
-      const target = admins.find(function (item) { return item.id === id; });
-      if (!target) {
-        return;
-      }
-      if (!window.confirm('Hapus admin "' + target.fullName + '"?')) {
-        return;
-      }
-      admins = admins.filter(function (item) { return item.id !== id; });
-      saveAdmins();
-      renderTable();
-      showNotify("Data admin dihapus.");
-      if (editingId === id) {
-        resetForm();
+    async function deleteAdmin(id) {
+      const target = admins.find(function (item) { return String(item.id) === String(id); });
+      if (!target) return;
+      if (!window.confirm('Hapus admin "' + target.fullName + '"?')) return;
+      try {
+        const data = await apiJson('/api/admin-users/' + encodeURIComponent(id), { method: 'DELETE' });
+        admins = Array.isArray(data.admins) ? data.admins.map(normalizeAdmin) : admins.filter(function(item){ return String(item.id) !== String(id); });
+        renderTable();
+        showNotify(data.message || "Data admin dihapus.");
+        if (editingId === String(id)) resetForm();
+      } catch (error) {
+        showNotify(error.message || "Gagal menghapus admin.");
       }
     }
 
-    function adminExistsByUnique(email, loginId, exceptId) {
-      const emailKey = String(email || "").trim().toLowerCase();
-      const loginKey = String(loginId || "").trim().toLowerCase();
-      return admins.some(function (item) {
-        if (exceptId && item.id === exceptId) {
-          return false;
-        }
-        return String(item.email || "").trim().toLowerCase() === emailKey
-          || String(item.loginIdentifier || "").trim().toLowerCase() === loginKey;
-      });
-    }
-
-    function submitForm(event) {
-      event.preventDefault();
-      const payload = {
-        id: editingId || makeId("adm"),
+    function buildPayload() {
+      return {
         fullName: adminNameInput.value.trim(),
         email: adminEmailInput.value.trim(),
         loginIdentifier: adminLoginIdInput.value.trim(),
+        phone: adminPhoneInput.value.trim(),
+        birthDate: adminBirthDateInput.value,
+        address: adminAddressInput.value.trim(),
         role: "admin",
         status: adminStatusInput.value,
         permissions: {
@@ -797,29 +769,30 @@
           keanggotaan: permKeanggotaan.checked
         }
       };
+    }
 
-      if (!payload.fullName || !payload.email || !payload.loginIdentifier) {
-        showNotify("Nama, email, dan login identifier wajib diisi.");
+    async function submitForm(event) {
+      event.preventDefault();
+      const payload = buildPayload();
+      if (!payload.fullName || !payload.email || !payload.loginIdentifier || !payload.phone || !payload.birthDate || !payload.address) {
+        showNotify("Nama, email, username, no WA, tanggal lahir, dan alamat wajib diisi.");
         return;
       }
-
-      if (adminExistsByUnique(payload.email, payload.loginIdentifier, editingId)) {
-        showNotify("Email atau login identifier sudah dipakai admin lain.");
-        return;
+      const url = editingId ? '/api/admin-users/' + encodeURIComponent(editingId) : '/api/admin-users';
+      const method = editingId ? 'PUT' : 'POST';
+      try {
+        const data = await apiJson(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        admins = Array.isArray(data.admins) ? data.admins.map(normalizeAdmin) : admins;
+        renderTable();
+        resetForm();
+        showNotify(data.message || "Data admin berhasil disimpan.");
+      } catch (error) {
+        showNotify(error.message || "Gagal menyimpan data admin.");
       }
-
-      const existingIndex = admins.findIndex(function (item) { return item.id === payload.id; });
-      if (existingIndex >= 0) {
-        admins[existingIndex] = normalizeAdmin(payload);
-        showNotify("Data admin berhasil diperbarui.");
-      } else {
-        admins.push(normalizeAdmin(payload));
-        showNotify("Admin baru berhasil ditambahkan.");
-      }
-
-      saveAdmins();
-      renderTable();
-      resetForm();
     }
 
     function updateLiveDateTime() {
@@ -840,7 +813,6 @@
       const session = readSession();
       const role = String(session.role || "admin");
       roleBadge.textContent = "Role: " + (role === "super_admin" ? "Super Admin" : "Admin");
-
       if (role !== "super_admin") {
         adminContent.style.display = "none";
         blockedBox.classList.add("show");
@@ -849,20 +821,12 @@
 
     adminTableBody.addEventListener("click", function (event) {
       const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
+      if (!(target instanceof HTMLElement)) return;
       const action = target.getAttribute("data-action") || "";
       const id = target.getAttribute("data-id") || "";
-      if (!action || !id) {
-        return;
-      }
-      if (action === "edit") {
-        openEdit(id);
-      }
-      if (action === "delete") {
-        deleteAdmin(id);
-      }
+      if (!action || !id) return;
+      if (action === "edit") openEdit(id);
+      if (action === "delete") deleteAdmin(id);
     });
 
     adminForm.addEventListener("submit", submitForm);
@@ -870,9 +834,8 @@
     resetFormBtn.addEventListener("click", resetForm);
 
     setupAccessGuard();
-    loadAdmins();
     resetForm();
-    renderTable();
+    loadAdmins();
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
