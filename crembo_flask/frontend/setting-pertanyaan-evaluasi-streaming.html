@@ -91,12 +91,82 @@
     .preview-item{border:1px solid var(--line-soft);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
     .preview-item b{display:block;margin-bottom:8px;color:#111827}
 
-    @media(max-width:950px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.main{padding:14px}.grid-2,.grid-3{grid-template-columns:1fr}.headline,.hero-strip{flex-direction:column;align-items:flex-start}.head-meta{white-space:normal}.group-items{display:block}}
+    @media(max-width:950px){.grid-2,.grid-3{grid-template-columns:1fr}.hero-strip{flex-direction:column;align-items:flex-start}}
+
+
+    /* ===== Mobile sidebar fix: samakan dengan page Penugasan Petugas Misa ===== */
+    .mobile-toggle,
+    .mobile-menu-btn{
+      display:none;
+      width:max-content;
+      border:1px solid rgba(128,0,0,.18);
+      background:#fff;
+      color:var(--primary);
+      padding:7px 13px;
+      border-radius:10px;
+      font-weight:800;
+      font-size:.82rem;
+      cursor:pointer;
+      box-shadow:0 4px 12px rgba(128,0,0,.10);
+    }
+    .mobile-toggle:hover,
+    .mobile-menu-btn:hover{background:#fff7f7;border-color:rgba(128,0,0,.30)}
+    .sidebar-backdrop,
+    .mobile-sidebar-backdrop{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:3990;
+      background:rgba(17,24,39,.38);
+      backdrop-filter:blur(1px);
+    }
+    .sidebar-backdrop.show,
+    .mobile-sidebar-backdrop.show{display:block}
+
+    @media(max-width:920px){
+      .layout{display:block;grid-template-columns:1fr!important;min-height:100vh}
+      .sidebar{
+        position:fixed!important;
+        top:0!important;
+        left:0!important;
+        width:min(290px,86vw)!important;
+        height:100vh!important;
+        max-height:100vh!important;
+        z-index:4000!important;
+        transform:translateX(-105%);
+        transition:transform 220ms ease;
+        overflow-y:auto!important;
+        box-shadow:12px 0 34px rgba(0,0,0,.28)!important;
+      }
+      .sidebar.show,
+      .sidebar.is-open{transform:translateX(0)!important}
+      body.sidebar-open{overflow:hidden}
+      .mobile-toggle,
+      .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center}
+      .main{padding:14px!important;width:100%;min-width:0}
+      .dashboard-headline-bar,
+      .headline{
+        flex-direction:column;
+        align-items:flex-start!important;
+        justify-content:flex-start;
+        gap:12px;
+        padding:14px 16px!important;
+        min-height:0;
+      }
+      .dashboard-headline-bar h1,
+      .headline h1{font-size:clamp(1.25rem,7vw,1.75rem)!important;line-height:1.18}
+      .head-meta{width:100%;justify-content:space-between;white-space:normal!important;font-size:.82rem;gap:10px}
+      .world-link,.globe{width:34px;height:34px;min-width:34px}
+      .brand{margin-top:0}
+      .group-items{display:block}
+    }
+
+    @media(max-width:720px){.panel-body{padding:14px}.hero-strip{padding:14px 16px}.btn-row{width:100%}.btn-row .btn{flex:1}.qcard-head{align-items:flex-start;flex-direction:column}.q-actions{width:100%}}
   </style>
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar setting pertanyaan evaluasi">
       <div class="brand">
         <h1>CREMBO MEDIA PANEL</h1>
         <p>Atur pertanyaan form evaluasi.</p>
@@ -120,6 +190,7 @@
 
     <main class="main">
       <header class="headline">
+        <button class="mobile-menu-btn" type="button" data-sidebar-toggle>Menu</button>
         <h1>Setting Pertanyaan Evaluasi</h1>
         <div class="head-meta">
           <span id="clock">-</span>
@@ -432,5 +503,47 @@
     tick();
     load();
   </script>
+
+  <script>
+    (function setupMobileSidebar(){
+      const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
+      if(!sidebar) return;
+      let backdrop = document.querySelector('.sidebar-backdrop') || document.querySelector('.mobile-sidebar-backdrop');
+      if(!backdrop){
+        backdrop = document.createElement('div');
+        backdrop.className = 'mobile-sidebar-backdrop';
+        document.body.appendChild(backdrop);
+      }
+      function isMobile(){ return window.matchMedia('(max-width: 920px)').matches; }
+      function openSidebar(){
+        sidebar.classList.add('show','is-open');
+        backdrop.classList.add('show');
+        document.body.classList.add('sidebar-open');
+      }
+      function closeSidebar(){
+        sidebar.classList.remove('show','is-open');
+        backdrop.classList.remove('show');
+        document.body.classList.remove('sidebar-open');
+      }
+      function toggleSidebar(){ sidebar.classList.contains('show') || sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar(); }
+      document.querySelectorAll('[data-sidebar-toggle], .mobile-toggle').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+          event.preventDefault();
+          toggleSidebar();
+        });
+      });
+      backdrop.addEventListener('click', closeSidebar);
+      document.addEventListener('keydown', (event) => {
+        if(event.key === 'Escape') closeSidebar();
+      });
+      window.addEventListener('resize', () => {
+        if(!isMobile()) closeSidebar();
+      });
+      sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+        if(isMobile()) closeSidebar();
+      }));
+    })();
+  </script>
+
 </body>
 </html>

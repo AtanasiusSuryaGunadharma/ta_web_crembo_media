@@ -32,6 +32,17 @@ app = Flask(
 )
 app.secret_key = "dev-secret-change-me"
 
+
+@app.after_request
+def add_monitoring_api_cors_headers(response):
+    if request.path.startswith("/api/monitoring-kewajiban-tugas/"):
+        origin = request.headers.get("Origin")
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Vary"] = "Origin"
+    return response
+
 MYSQL_CONFIG = {
     "host": "127.0.0.1",
     "port": 3306,
