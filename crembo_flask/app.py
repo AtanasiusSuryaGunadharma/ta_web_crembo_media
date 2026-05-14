@@ -12,7 +12,9 @@ import secrets
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from email.utils import formataddr
+import mimetypes
 
 import mysql.connector
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, send_from_directory, session, url_for
@@ -48,6 +50,8 @@ SMTP_USERNAME = os.getenv("SMTP_USERNAME") or os.getenv("SMTP_USER") or "crembom
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD") or os.getenv("SMTP_PASS") or "leezqsrjqdphonev"
 SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USERNAME)
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Crembo Media")
+# Logo untuk body email OTP. Default mengikuti file logo di folder frontend.
+EMAIL_LOGO_PATH = Path(os.getenv("EMAIL_LOGO_PATH", str(FRONTEND_DIR / "LOGO CREMBO PUTIH yg bagus.png")))
 PASSWORD_RESET_OTP_MINUTES = int(os.getenv("PASSWORD_RESET_OTP_MINUTES", "5"))
 PASSWORD_RESET_RESEND_SECONDS = int(os.getenv("PASSWORD_RESET_RESEND_SECONDS", "120"))
 PASSWORD_RESET_MAX_ATTEMPTS = int(os.getenv("PASSWORD_RESET_MAX_ATTEMPTS", "5"))
@@ -4955,8 +4959,17 @@ def build_reset_otp_email(member: dict[str, object], otp_code: str, expires_at: 
 <body style="margin:0;padding:0;background:#f5f0ef;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1a1a1a;">
   <div style="max-width:620px;margin:0 auto;padding:28px 14px;">
     <div style="background:linear-gradient(135deg,#3a0000,#800000 55%,#a52a2a);border-radius:18px 18px 0 0;padding:24px;color:#fff;">
-      <div style="font-size:22px;font-weight:900;letter-spacing:.4px;">CREMBO MEDIA</div>
-      <div style="margin-top:4px;color:rgba(255,255,255,.82);font-size:13px;">Sistem Informasi Internal Komunitas</div>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr>
+          <td width="64" style="vertical-align:middle;padding-right:14px;">
+            <img src="cid:crembo_logo" alt="Logo Crembo Media" width="58" height="58" style="display:block;width:58px;height:58px;object-fit:contain;border-radius:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:4px;">
+          </td>
+          <td style="vertical-align:middle;">
+            <div style="font-size:22px;font-weight:900;letter-spacing:.4px;line-height:1.2;">CREMBO MEDIA</div>
+            <div style="margin-top:4px;color:rgba(255,255,255,.82);font-size:13px;">Sistem Informasi Internal Komunitas</div>
+          </td>
+        </tr>
+      </table>
     </div>
     <div style="background:#fff;border:1px solid rgba(128,0,0,.13);border-top:0;border-radius:0 0 18px 18px;padding:28px;box-shadow:0 12px 32px rgba(128,0,0,.13);">
       <h1 style="margin:0 0 8px;font-size:22px;color:#800000;">Kode OTP Reset Password</h1>
@@ -4980,12 +4993,32 @@ def send_email_message(recipient_email: str, recipient_name: str, subject: str, 
     if not SMTP_USERNAME or not SMTP_PASSWORD:
         raise RuntimeError("SMTP belum dikonfigurasi. Isi SMTP_USERNAME dan SMTP_PASSWORD.")
 
-    msg = MIMEMultipart("alternative")
+    # Struktur related -> alternative agar logo bisa tampil inline via CID di Gmail.
+    msg = MIMEMultipart("related")
     msg["Subject"] = subject
     msg["From"] = formataddr((SMTP_FROM_NAME, SMTP_FROM_EMAIL))
     msg["To"] = formataddr((recipient_name or recipient_email, recipient_email))
-    msg.attach(MIMEText(text_body, "plain", "utf-8"))
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+    alternative = MIMEMultipart("alternative")
+    alternative.attach(MIMEText(text_body, "plain", "utf-8"))
+    alternative.attach(MIMEText(html_body, "html", "utf-8"))
+    msg.attach(alternative)
+
+    logo_path = EMAIL_LOGO_PATH
+    if logo_path and logo_path.exists() and logo_path.is_file():
+        mime_type, _ = mimetypes.guess_type(str(logo_path))
+        image_subtype = (mime_type or "image/png").split("/", 1)[-1]
+        try:
+            with logo_path.open("rb") as logo_file:
+                logo_part = MIMEImage(logo_file.read(), _subtype=image_subtype)
+            logo_part.add_header("Content-ID", "<crembo_logo>")
+            logo_part.add_header("Content-Disposition", "inline", filename=logo_path.name)
+            msg.attach(logo_part)
+        except Exception as exc:
+            # Email tetap dikirim meskipun file logo bermasalah.
+            print(f"[WARN] Gagal melampirkan logo email: {exc}")
+    else:
+        print(f"[WARN] Logo email tidak ditemukan: {logo_path}")
 
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
         server.ehlo()
@@ -4993,7 +5026,6 @@ def send_email_message(recipient_email: str, recipient_name: str, subject: str, 
         server.ehlo()
         server.login(SMTP_USERNAME, SMTP_PASSWORD)
         server.sendmail(SMTP_FROM_EMAIL, [recipient_email], msg.as_string())
-
 
 def create_password_reset_otp(cursor, member: dict[str, object], identifier: str) -> dict[str, object]:
     otp_code = f"{secrets.randbelow(1000000):06d}"
