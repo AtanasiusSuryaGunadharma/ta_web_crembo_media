@@ -1193,5 +1193,50 @@
     });
   </script>
   <script src="_sidebar-fix.js"></script>
+
+<script>
+(function(){
+  const oldLoadPrioritas = window.loadPrioritasHariIni;
+  function esc(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  async function appendMembershipPriority(){
+    const todoList = document.getElementById('todoList');
+    if(!todoList) return;
+    try{
+      const res = await fetch('/api/membership/admin/pending-actions', {credentials:'same-origin'});
+      const data = await res.json();
+      const items = data.ok && Array.isArray(data.items) ? data.items : [];
+      if(!items.length) return;
+      if(/Tidak ada tugas prioritas/i.test(todoList.textContent || '')) todoList.innerHTML = '';
+      const html = items.map(item => '<li class="todo-item" style="border-left-color:#d4a017;background:#fffdf3;">'
+        + '<strong>Pengajuan Nonaktif: '+esc(item.memberName || 'Anggota')+'</strong>'
+        + '<small><b>Jenis:</b> '+(item.inactiveType === 'temporary' ? 'Berjangka' : 'Selamanya')+'<br><b>Mulai:</b> '+esc(item.effectiveDate || '-')+(item.reactivateDate ? '<br><b>Aktif kembali:</b> '+esc(item.reactivateDate) : '')+'<br><b>Alasan:</b> '+esc(item.reason || '-')+'</small>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"><button class="mini-btn" type="button" data-member-action="approve" data-member-id="'+esc(item.id)+'">Setujui</button><button class="mini-btn ghost" type="button" data-member-action="reject" data-member-id="'+esc(item.id)+'">Tolak</button><a class="mini-btn ghost" href="manajemen-anggota.html">Detail</a></div>'
+        + '</li>').join('');
+      todoList.insertAdjacentHTML('afterbegin', html);
+    }catch(e){ console.warn(e); }
+  }
+  window.loadPrioritasHariIni = async function(){
+    if(typeof oldLoadPrioritas === 'function') await oldLoadPrioritas();
+    await appendMembershipPriority();
+  };
+  document.addEventListener('click', async function(e){
+    const btn = e.target.closest('[data-member-action]');
+    if(!btn) return;
+    const action = btn.getAttribute('data-member-action');
+    const id = btn.getAttribute('data-member-id');
+    if(!id || !confirm('Yakin ingin '+(action === 'approve' ? 'menyetujui' : 'menolak')+' pengajuan nonaktif ini?')) return;
+    const adminNote = action === 'reject' ? (prompt('Catatan penolakan (opsional):') || '') : '';
+    try{
+      const res = await fetch('/api/membership/admin/requests/' + encodeURIComponent(id) + '/respond', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, adminNote})});
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || data.ok === false) throw new Error(data.message || 'Aksi gagal diproses.');
+      await window.loadPrioritasHariIni();
+      if(typeof renderNotifications === 'function') await renderNotifications();
+    }catch(err){ alert(err.message || 'Aksi gagal diproses.'); }
+  });
+  window.loadPrioritasHariIni();
+})();
+</script>
+
 </body>
 </html>

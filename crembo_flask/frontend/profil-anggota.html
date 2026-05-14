@@ -775,11 +775,11 @@
               </div>
               <div class="field">
                 <label for="inactiveNote">Catatan Tambahan</label>
-                <textarea id="inactiveNote" placeholder="Jelaskan kebutuhan Anda secara singkat..."></textarea>
+                <textarea id="inactiveNote" placeholder="Jelaskan kebutuhan Anda secara singkat..." required></textarea>
               </div>
               <div class="field">
                 <label for="inactiveEvidence">Bukti Pendukung (Gambar/PDF/Word)</label>
-                <input id="inactiveEvidence" type="file" accept="image/*,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <input id="inactiveEvidence" type="file" accept="image/*,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
                 <p id="inactiveEvidenceInfo" class="field-help">Upload bukti pendukung agar alasan pengajuan lebih kredibel.</p>
               </div>
               <div class="btn-row">
@@ -790,8 +790,7 @@
                 <button id="editRequestBtn" class="btn secondary" type="button">Edit Pengajuan</button>
                 <button id="cancelRequestBtn" class="btn secondary" type="button">Batalkan Pengajuan</button>
               </div>
-              <div id="activeAgainActions" class="request-actions hidden">
-                <button id="reactivateNowBtn" class="btn secondary" type="button">Aktifkan Kembali Sekarang</button>
+              <div id="activeAgainActions" class="request-actions hidden" style="display:none;">
               </div>
             </form>
           </section>
@@ -1165,10 +1164,12 @@
       }
 
       const approvedNonaktif = findLatestApprovedNonaktifRequest();
-      if (targetMember && String(targetMember.status || "") === "Nonaktif" && approvedNonaktif) {
-        activeAgainActions.classList.remove("hidden");
-      } else {
-        activeAgainActions.classList.add("hidden");
+      if (activeAgainActions) {
+        if (targetMember && String(targetMember.status || "") === "Nonaktif" && approvedNonaktif) {
+          activeAgainActions.classList.remove("hidden");
+        } else {
+          activeAgainActions.classList.add("hidden");
+        }
       }
     }
 
@@ -1606,7 +1607,9 @@
     inactiveType.addEventListener("change", updateInactiveTypeUI);
     editRequestBtn.addEventListener("click", editPendingRequest);
     cancelRequestBtn.addEventListener("click", cancelPendingRequest);
-    reactivateNowBtn.addEventListener("click", reactivateNowByMember);
+    if (reactivateNowBtn) {
+      reactivateNowBtn.addEventListener("click", reactivateNowByMember);
+    }
 
     renderProfile();
     updateInactiveTypeUI();
@@ -1615,6 +1618,151 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
+
+<script>
+(function(){
+  let backendLatestRequest = null;
+  let backendMember = null;
+  const pendingActions = document.getElementById('pendingRequestActions');
+  const activeAgain = document.getElementById('activeAgainActions');
+  if (activeAgain) activeAgain.style.display = 'none';
+
+  function isBackendPending(req){ return req && (req.statusKey === 'pending' || String(req.status || '').toLowerCase().includes('menunggu')); }
+  function formatBackendDate(value){
+    if(!value) return '-';
+    const d = new Date(String(value).slice(0,10) + 'T00:00:00');
+    if(Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'});
+  }
+  function setReqActions(){
+    const pending = isBackendPending(backendLatestRequest);
+    if (pendingActions) pendingActions.classList.toggle('hidden', !pending);
+    if (submitInactiveBtn) submitInactiveBtn.textContent = editingRequestId ? 'Simpan Perubahan Pengajuan' : 'Kirim Pengajuan';
+    if (inactiveEvidence) inactiveEvidence.required = !(backendLatestRequest && backendLatestRequest.evidenceUrl && editingRequestId);
+  }
+  async function loadBackendMembership(){
+    try{
+      const res = await fetch('/api/membership/my', {credentials:'same-origin'});
+      const data = await res.json();
+      if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal memuat status keanggotaan.');
+      backendLatestRequest = data.request || null;
+      backendMember = data.member || null;
+      if (backendMember && memberBadge) memberBadge.textContent = 'Anggota Multimedia ' + (backendMember.status || 'Aktif');
+      if (!backendLatestRequest) {
+        statusPill.textContent = backendMember && backendMember.status ? backendMember.status : 'Aktif';
+        statusPill.classList.remove('pending');
+        statusCurrent.textContent = backendMember && backendMember.status ? backendMember.status : 'Aktif';
+        statusRequestDate.textContent = '-';
+        statusEffectiveDate.textContent = '-';
+        statusSummary.textContent = 'Tidak ada pengajuan nonaktif. Status Anda aktif untuk pelayanan.';
+        pendingRequestInfo.classList.add('hidden');
+        editingRequestId = '';
+        setReqActions();
+        return;
+      }
+      statusPill.textContent = backendLatestRequest.status || 'Menunggu Review Admin';
+      statusPill.classList.toggle('pending', isBackendPending(backendLatestRequest));
+      statusCurrent.textContent = backendMember && backendMember.status ? backendMember.status : (backendLatestRequest.status || '-');
+      statusRequestDate.textContent = formatBackendDate(backendLatestRequest.submittedDate || backendLatestRequest.createdAt);
+      statusEffectiveDate.textContent = formatBackendDate(backendLatestRequest.effectiveDate) + (backendLatestRequest.reactivateDate ? ' s/d ' + formatBackendDate(backendLatestRequest.reactivateDate) : '');
+      statusSummary.textContent = 'Pengajuan ' + (backendLatestRequest.inactiveType === 'temporary' ? 'nonaktif berjangka' : 'nonaktif selamanya') + ' dengan alasan "' + (backendLatestRequest.reason || '-') + '" berstatus ' + (backendLatestRequest.status || '-') + '.';
+      if (isBackendPending(backendLatestRequest)) {
+        pendingRequestInfo.textContent = 'Pengajuan pending: ' + (backendLatestRequest.inactiveType === 'temporary' ? 'Nonaktif Berjangka' : 'Nonaktif Selamanya') + ' mulai ' + formatBackendDate(backendLatestRequest.effectiveDate) + (backendLatestRequest.reactivateDate ? ' sampai ' + formatBackendDate(backendLatestRequest.reactivateDate) : '') + '. Bukti: ' + (backendLatestRequest.evidenceName || '-');
+        pendingRequestInfo.classList.remove('hidden');
+      } else {
+        pendingRequestInfo.classList.add('hidden');
+        editingRequestId = '';
+      }
+      setReqActions();
+    } catch(err){ showNotify(err.message || 'Gagal memuat status keanggotaan.'); }
+  }
+  async function submitBackendInactiveRequest(event){
+    event.preventDefault();
+    const mode = inactiveType.value === 'temporary' ? 'temporary' : 'permanent';
+    const startDate = normalizeDateOnly(inactiveDate.value);
+    const returnDate = normalizeDateOnly(inactiveReturnDate.value);
+    if(!inactiveReason.value || !startDate || !inactiveNote.value.trim()) { showNotify('Alasan, tanggal mulai, dan catatan tambahan wajib diisi.'); return; }
+    if(mode === 'temporary'){
+      if(!returnDate){ showNotify('Tanggal aktif kembali wajib diisi untuk nonaktif berjangka.'); return; }
+      if(returnDate <= startDate){ showNotify('Tanggal aktif kembali harus sesudah tanggal mulai nonaktif.'); return; }
+    }
+    const hasExistingEvidence = editingRequestId && backendLatestRequest && backendLatestRequest.evidenceUrl;
+    if(!hasExistingEvidence && (!inactiveEvidence.files || !inactiveEvidence.files[0])) { showNotify('Bukti pendukung wajib diupload.'); return; }
+    const fd = new FormData();
+    if(editingRequestId) fd.append('id', editingRequestId);
+    fd.append('inactiveType', mode);
+    fd.append('reason', inactiveReason.value);
+    fd.append('effectiveDate', startDate);
+    fd.append('reactivateDate', mode === 'temporary' ? returnDate : '');
+    fd.append('note', inactiveNote.value.trim());
+    if(inactiveEvidence.files && inactiveEvidence.files[0]) fd.append('evidence', inactiveEvidence.files[0]);
+    try{
+      const res = await fetch('/api/membership/inactive-request', {method:'POST', body:fd, credentials:'same-origin'});
+      const data = await res.json();
+      if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal mengirim pengajuan.');
+      resetInactiveForm();
+      editingRequestId = '';
+      showNotify(data.message || 'Pengajuan nonaktif berhasil dikirim.');
+      await loadBackendMembership();
+    }catch(err){ showNotify(err.message || 'Gagal mengirim pengajuan.'); }
+  }
+  function editBackendPendingRequest(){
+    const req = backendLatestRequest;
+    if(!isBackendPending(req)){ showNotify('Tidak ada pengajuan pending yang bisa diedit.'); return; }
+    editingRequestId = String(req.id || '');
+    inactiveType.value = req.inactiveType === 'temporary' ? 'temporary' : 'permanent';
+    updateInactiveTypeUI();
+    inactiveReason.value = req.reason || '';
+    inactiveDate.value = normalizeDateOnly(req.effectiveDate);
+    inactiveReturnDate.value = normalizeDateOnly(req.reactivateDate);
+    inactiveNote.value = req.note || '';
+    inactiveEvidence.value = '';
+    inactiveEvidenceInfo.textContent = req.evidenceName ? ('Bukti tersimpan: ' + req.evidenceName + '. Upload file baru jika ingin mengganti.') : 'Upload bukti pendukung agar alasan pengajuan lebih kredibel.';
+    setReqActions();
+    showNotify('Form pengajuan dimuat untuk diedit.');
+  }
+  async function cancelBackendPendingRequest(){
+    const req = backendLatestRequest;
+    if(!isBackendPending(req)){ showNotify('Tidak ada pengajuan pending yang bisa dibatalkan.'); return; }
+    if(!confirm('Batalkan pengajuan nonaktif yang masih pending?')) return;
+    try{
+      const res = await fetch('/api/membership/inactive-request/' + encodeURIComponent(req.id), {method:'DELETE', credentials:'same-origin'});
+      const data = await res.json();
+      if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal membatalkan pengajuan.');
+      resetInactiveForm(); editingRequestId = '';
+      showNotify(data.message || 'Pengajuan nonaktif berhasil dibatalkan.');
+      await loadBackendMembership();
+    }catch(err){ showNotify(err.message || 'Gagal membatalkan pengajuan.'); }
+  }
+  if (typeof submitInactiveRequest === 'function') inactiveRequestForm.removeEventListener('submit', submitInactiveRequest);
+  if (typeof editPendingRequest === 'function') editRequestBtn.removeEventListener('click', editPendingRequest);
+  if (typeof cancelPendingRequest === 'function') cancelRequestBtn.removeEventListener('click', cancelPendingRequest);
+  inactiveRequestForm.addEventListener('submit', submitBackendInactiveRequest);
+  editRequestBtn.addEventListener('click', editBackendPendingRequest);
+  cancelRequestBtn.addEventListener('click', cancelBackendPendingRequest);
+  window.renderMembershipStatus = loadBackendMembership;
+  loadBackendMembership();
+})();
+</script>
+
+<script>
+(function(){
+  async function refreshProfileFromBackend(){
+    try {
+      const res = await fetch('/api/profile/me', { credentials: 'same-origin', cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || data.ok === false || !data.user) return;
+      window.CREMBO_CURRENT_USER = data.user;
+      if (typeof renderProfile === 'function') renderProfile();
+      if (typeof renderMembershipStatus === 'function') renderMembershipStatus();
+    } catch (err) {
+      console.warn('Gagal sinkron profil login:', err);
+    }
+  }
+  refreshProfileFromBackend();
+})();
+</script>
+
 <script src="_sidebar-fix.js"></script>
 
     <script>

@@ -1780,6 +1780,151 @@
     updateLiveDateTime();
     setInterval(updateLiveDateTime, 1000);
   </script>
+
+<style>
+  .membership-request-wide { grid-column: 1 / -1; }
+  .membership-request-tools { display:grid; grid-template-columns:1.4fr .9fr .9fr auto auto; gap:8px; align-items:center; }
+  .view-toggle { display:inline-flex; gap:6px; align-items:center; }
+  .view-toggle button { border:1px solid rgba(128,0,0,.18); background:#fff; border-radius:9px; padding:8px 10px; font-weight:800; color:#7f1d1d; cursor:pointer; }
+  .view-toggle button.active { background:#8b0000; color:#fff; }
+  .request-table { width:100%; border-collapse:collapse; font-size:.84rem; }
+  .request-table th,.request-table td{ border:1px solid rgba(128,0,0,.12); padding:9px; text-align:left; vertical-align:top; }
+  .request-table th{ background:#fff7f7; color:#7f1d1d; text-transform:uppercase; font-size:.74rem; }
+  .request-card .request-thumb{ width:58px; height:48px; object-fit:cover; border-radius:8px; border:1px solid rgba(128,0,0,.18); cursor:pointer; }
+  .request-evidence-box{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .membership-modal{ position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; }
+  .membership-modal.show{ display:flex; }
+  .membership-modal-card{ width:min(860px,96vw); max-height:88vh; overflow:auto; background:#fff; border-radius:16px; box-shadow:0 24px 70px rgba(0,0,0,.35); padding:16px; }
+  .membership-modal-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+  .membership-modal-head h3{ margin:0; }
+  .membership-modal img{ max-width:100%; border-radius:12px; border:1px solid rgba(128,0,0,.14); }
+  @media (max-width:900px){ .membership-request-tools{grid-template-columns:1fr;} }
+</style>
+<div id="membershipEvidenceModal" class="membership-modal" aria-hidden="true">
+  <div class="membership-modal-card">
+    <div class="membership-modal-head"><h3>Bukti Pengajuan</h3><button id="closeMembershipEvidenceModal" class="btn ghost" type="button">Tutup</button></div>
+    <div id="membershipEvidenceContent"></div>
+  </div>
+</div>
+<script>
+(function(){
+  const panel = requestList ? requestList.closest('.panel') : null;
+  const stats = document.querySelector('.stats');
+  if (panel && stats) {
+    panel.classList.add('membership-request-wide');
+    stats.insertAdjacentElement('afterend', panel);
+  }
+  const tools = requestSearchInput ? requestSearchInput.closest('.request-tools') : null;
+  if (tools && !document.getElementById('requestStatusSelect')) {
+    tools.classList.add('membership-request-tools');
+    const status = document.createElement('select');
+    status.id = 'requestStatusSelect';
+    status.innerHTML = '<option value="pending">Belum Di-ACC</option><option value="approved">Disetujui</option><option value="rejected">Ditolak</option><option value="cancelled">Dibatalkan</option><option value="all">Semua Status</option>';
+    const view = document.createElement('div');
+    view.className = 'view-toggle';
+    view.innerHTML = '<button type="button" data-ms-view="card" class="active">Card</button><button type="button" data-ms-view="table">Tabel</button>';
+    tools.appendChild(status);
+    tools.appendChild(view);
+  }
+  const requestStatusSelect = document.getElementById('requestStatusSelect');
+  let requestView = 'card';
+  function esc(value){ return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function reqTypeLabel(req){ return req.inactiveType === 'temporary' ? 'Berjangka' : 'Selamanya'; }
+  function evidenceMarkup(req){
+    if (!req.evidenceUrl) return '<span>Bukti: -</span>';
+    const name = esc(req.evidenceName || 'Bukti');
+    const url = esc(req.evidenceUrl);
+    const isImg = /\.(png|jpg|jpeg|gif|webp|bmp)(\?|$)/i.test(req.evidenceUrl || '') || (req.evidence && req.evidence.kind === 'image');
+    if (isImg) return '<div class="request-evidence-box"><img class="request-thumb" src="'+url+'" alt="'+name+'" data-ms-evidence="open" data-url="'+url+'" data-name="'+name+'"><button class="btn ghost" type="button" data-ms-evidence="open" data-url="'+url+'" data-name="'+name+'">Lihat Bukti</button></div>';
+    return '<a class="btn ghost" href="'+url+'" target="_blank" rel="noopener">Lihat Bukti: '+name+'</a>';
+  }
+  function actionsMarkup(req){
+    if (req.statusKey !== 'pending') return '<span class="helper">Sudah diproses</span>';
+    return '<div class="inline-actions"><button class="btn" type="button" data-ms-action="approve" data-id="'+esc(req.id)+'">Setujui</button><button class="btn warn" type="button" data-ms-action="reject" data-id="'+esc(req.id)+'">Tolak</button></div>';
+  }
+  function renderRequestCards(){
+    if (!requests.length) { requestList.innerHTML = '<div class="request-card">Tidak ada pengajuan sesuai filter.</div>'; return; }
+    requestList.innerHTML = requests.map((req, idx) => '<article class="request-card">'
+      + '<strong>'+(idx+1)+'. '+esc(req.memberName || 'Anggota')+' - Nonaktif</strong>'
+      + '<span>Status: <b>'+esc(req.status || '-')+'</b></span>'
+      + '<span>Jenis Nonaktif: '+esc(reqTypeLabel(req))+'</span>'
+      + '<span>Tanggal Pengajuan: '+esc(formatDate(req.submittedDate))+'</span>'
+      + '<span>Efektif Mulai: '+esc(formatDate(req.effectiveDate))+'</span>'
+      + (req.reactivateDate ? '<span>Aktif Kembali: '+esc(formatDate(req.reactivateDate))+'</span>' : '')
+      + '<span>Alasan: '+esc(req.reason || '-')+'</span>'
+      + '<span>Catatan: '+esc(req.note || '-')+'</span>'
+      + evidenceMarkup(req)
+      + actionsMarkup(req)
+      + '</article>').join('');
+  }
+  function renderRequestTable(){
+    if (!requests.length) { requestList.innerHTML = '<div class="request-card">Tidak ada pengajuan sesuai filter.</div>'; return; }
+    requestList.innerHTML = '<div style="overflow:auto;"><table class="request-table"><thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Jenis</th><th>Mulai</th><th>Aktif Kembali</th><th>Alasan & Catatan</th><th>Bukti</th><th>Aksi</th></tr></thead><tbody>'
+      + requests.map((req, idx) => '<tr><td>'+(idx+1)+'</td><td><b>'+esc(req.memberName || '-')+'</b></td><td>'+esc(req.status || '-')+'</td><td>'+esc(reqTypeLabel(req))+'</td><td>'+esc(formatDate(req.effectiveDate))+'</td><td>'+esc(formatDate(req.reactivateDate))+'</td><td><b>Alasan:</b> '+esc(req.reason || '-')+'<br><b>Catatan:</b> '+esc(req.note || '-')+'</td><td>'+evidenceMarkup(req)+'</td><td>'+actionsMarkup(req)+'</td></tr>').join('')
+      + '</tbody></table></div>';
+  }
+  window.renderRequests = function(){
+    if (requestView === 'table') renderRequestTable(); else renderRequestCards();
+    if (typeof renderStats === 'function') renderStats();
+  };
+  async function loadMembershipRequests(){
+    const params = new URLSearchParams({
+      status: requestStatusSelect ? requestStatusSelect.value : 'pending',
+      search: requestSearchInput ? requestSearchInput.value : '',
+      sort: requestSortSelect ? requestSortSelect.value : 'newest'
+    });
+    try{
+      const res = await fetch('/api/membership/admin/requests?' + params.toString(), {credentials:'same-origin'});
+      const data = await res.json();
+      if(!res.ok || data.ok === false) throw new Error(data.message || 'Gagal memuat pengajuan.');
+      requests = Array.isArray(data.items) ? data.items : [];
+      renderRequests();
+    }catch(err){ requestList.innerHTML = '<div class="request-card">'+esc(err.message || 'Gagal memuat pengajuan.')+'</div>'; }
+  }
+  async function respondRequest(id, action){
+    const label = action === 'approve' ? 'menyetujui' : 'menolak';
+    if(!confirm('Yakin ingin '+label+' pengajuan ini?')) return;
+    const adminNote = action === 'reject' ? (prompt('Catatan penolakan (opsional):') || '') : '';
+    try{
+      const res = await fetch('/api/membership/admin/requests/' + encodeURIComponent(id) + '/respond', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, adminNote})});
+      const data = await res.json();
+      if(!res.ok || data.ok === false) throw new Error(data.message || 'Aksi gagal diproses.');
+      showNotify(data.message || 'Pengajuan berhasil diproses.');
+      await Promise.all([loadMembershipRequests(), loadMembers().then(renderMemberTable)]);
+    }catch(err){ showNotify(err.message || 'Aksi gagal diproses.'); }
+  }
+  function openEvidence(url, name){
+    const modal = document.getElementById('membershipEvidenceModal');
+    const content = document.getElementById('membershipEvidenceContent');
+    if(!modal || !content) return;
+    const safeUrl = esc(url), safeName = esc(name || 'Bukti');
+    if(/\.(png|jpg|jpeg|gif|webp|bmp)(\?|$)/i.test(url || '')) content.innerHTML = '<img src="'+safeUrl+'" alt="'+safeName+'"><p><a href="'+safeUrl+'" target="_blank" rel="noopener">Buka file asli</a></p>';
+    else content.innerHTML = '<p>File bukti: <b>'+safeName+'</b></p><p><a class="btn" href="'+safeUrl+'" target="_blank" rel="noopener">Buka File</a></p>';
+    modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+  }
+  document.getElementById('closeMembershipEvidenceModal')?.addEventListener('click', () => document.getElementById('membershipEvidenceModal').classList.remove('show'));
+  document.getElementById('membershipEvidenceModal')?.addEventListener('click', e => { if(e.target.id === 'membershipEvidenceModal') e.currentTarget.classList.remove('show'); });
+  requestList.addEventListener('click', function(e){
+    const evidence = e.target.closest('[data-ms-evidence]');
+    if(evidence){ e.preventDefault(); e.stopPropagation(); openEvidence(evidence.getAttribute('data-url') || '', evidence.getAttribute('data-name') || 'Bukti'); return; }
+    const btn = e.target.closest('[data-ms-action]');
+    if(!btn) return;
+    e.preventDefault(); e.stopPropagation();
+    respondRequest(btn.getAttribute('data-id') || '', btn.getAttribute('data-ms-action') || '');
+  }, true);
+  requestSearchInput?.addEventListener('input', loadMembershipRequests);
+  requestSortSelect?.addEventListener('change', loadMembershipRequests);
+  requestStatusSelect?.addEventListener('change', loadMembershipRequests);
+  document.querySelectorAll('[data-ms-view]').forEach(btn => btn.addEventListener('click', function(){
+    requestView = btn.getAttribute('data-ms-view') || 'card';
+    document.querySelectorAll('[data-ms-view]').forEach(b => b.classList.toggle('active', b === btn));
+    renderRequests();
+  }));
+  window.loadRequests = loadMembershipRequests;
+  loadMembershipRequests();
+})();
+</script>
+
 <script src="_sidebar-fix.js"></script>
 </body>
 </html>

@@ -1363,9 +1363,14 @@ def refresh_session_user_from_db() -> dict[str, object] | None:
     try:
         conn = mysql_connection()
         cursor = conn.cursor(dictionary=True)
+        try:
+            apply_membership_status_transitions(cursor)
+            conn.commit()
+        except Exception:
+            conn.rollback()
         cursor.execute(
             """
-            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, created_at, updated_at
+            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note, created_at, updated_at
             FROM anggota
             WHERE id = %s
             LIMIT 1
@@ -1407,6 +1412,12 @@ def current_user_context() -> dict[str, str]:
         "alamat": session.get("alamat") or "",
         "tgl_lahir": _date_to_iso(session.get("tgl_lahir") or (row.get("tgl_lahir") if row else "")),
         "status_akun": session.get("status_akun") or "",
+        "inactive_until": _date_to_iso(row.get("inactive_until") if row else ""),
+        "inactive_from": _date_to_iso(row.get("inactive_from") if row else ""),
+        "inactive_type": (row.get("inactive_type") if row else "") or "",
+        "inactive_reason": (row.get("inactive_reason") if row else "") or "",
+        "created_at": row.get("created_at").isoformat() if row and row.get("created_at") else "",
+        "updated_at": row.get("updated_at").isoformat() if row and row.get("updated_at") else "",
     }
 
 def normalize_phone(value: str) -> str:
@@ -1453,6 +1464,10 @@ def member_row_to_dict(row: dict[str, object]) -> dict[str, object]:
         "createdAt": row.get("created_at") or "",
         "updatedAt": row.get("updated_at") or "",
         "inactiveUntil": inactive_until_value or "",
+        "inactiveFrom": _date_to_iso(row.get("inactive_from")),
+        "inactiveType": row.get("inactive_type") or "",
+        "inactiveReason": row.get("inactive_reason") or "",
+        "inactiveNote": row.get("inactive_note") or "",
     }
 
 def read_member_rows() -> list[dict[str, object]]:
@@ -1461,7 +1476,7 @@ def read_member_rows() -> list[dict[str, object]]:
     cursor = conn.cursor(dictionary=True)
     cursor.execute(
         """
-        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until
+        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note
         , created_at, updated_at
         FROM anggota
         ORDER BY id ASC
@@ -2818,12 +2833,12 @@ def get_notifications():
         if user_id:
             target_user_clause = """
               AND (
-                `data` IS NULL OR `data` = ''
-                OR `data` NOT LIKE '%"target_user_id"%'
+                `data` LIKE %s
                 OR `data` LIKE %s
                 OR `data` LIKE %s
                 OR `data` LIKE %s
-                OR `data` LIKE %s
+                OR `target_role` IS NOT NULL
+                OR `type` NOT IN ('tugas','evaluasi','tukar','keanggotaan','peminjaman','kerusakan')
               )
             """
             target_user_params = [
@@ -2833,10 +2848,15 @@ def get_notifications():
                 f'%"target_user_id":{user_id}%',
             ]
 
+        inactive_type_clause = ""
+        if viewer.get("logged_in") and normalize_role_value(role) == "user" and normalize_status(viewer.get("status_akun") or "aktif") == "nonaktif":
+            inactive_type_clause = " AND `type` = 'keanggotaan'"
+
         query = f"""
             SELECT * FROM `notifications`
             WHERE (`target_role` IS NULL OR `target_role` IN ({format_strings}))
             {target_user_clause}
+            {inactive_type_clause}
             ORDER BY `created_at` DESC, `id` DESC LIMIT %s
         """
         params = tuple(target_roles) + tuple(target_user_params) + (limit,)
@@ -2844,7 +2864,39 @@ def get_notifications():
         cursor.execute(query, params)
         rows = cursor.fetchall() or []
         results = []
+        viewer_user_id = normalize_text(viewer.get("user_id")) if viewer.get("logged_in") else ""
+        viewer_created_at = None
+        if viewer_user_id:
+            try:
+                cursor.execute("SELECT created_at FROM anggota WHERE id = %s LIMIT 1", (viewer_user_id,))
+                member_created_row = cursor.fetchone()
+                viewer_created_at = member_created_row.get("created_at") if member_created_row else None
+            except Exception:
+                viewer_created_at = None
+
+        user_scoped_types = {"tugas", "evaluasi", "tukar", "keanggotaan", "peminjaman", "kerusakan"}
         for r in rows:
+            try:
+                payload = json.loads(r.get("data") or "{}")
+            except Exception:
+                payload = {}
+
+            # Filter ulang di Python supaya notifikasi lama/orphan tidak bocor ke user baru.
+            payload_target_user = normalize_text(payload.get("target_user_id"))
+            notif_type = normalize_text(r.get("type"))
+            notif_created = r.get("created_at")
+
+            if viewer_user_id:
+                if payload_target_user and payload_target_user != viewer_user_id:
+                    continue
+                # Notifikasi personal seperti Tugas Baru lama yang belum punya target_user_id
+                # tidak boleh tampil ke semua anggota. Broadcast tetap boleh jika target_role diisi.
+                if notif_type in user_scoped_types and not payload_target_user and not normalize_text(r.get("target_role")):
+                    continue
+                # Jika id user pernah dipakai/akun baru dibuat setelah notifikasi lama, jangan tampilkan.
+                if viewer_created_at and notif_created and notif_created < viewer_created_at and notif_type in user_scoped_types:
+                    continue
+
             is_read = False
             if user_key:
                 cursor.execute("SELECT 1 FROM `notification_reads` WHERE `notification_id` = %s AND `user_key` = %s LIMIT 1", (r["id"], user_key))
@@ -2855,7 +2907,7 @@ def get_notifications():
                 "title": r.get("title"),
                 "body": r.get("body"),
                 "url": r.get("url"),
-                "data": json.loads(r.get("data") or "{}"),
+                "data": payload,
                 "createdAt": r.get("created_at").isoformat() if r.get("created_at") else None,
                 "read": bool(is_read),
             })
@@ -3358,6 +3410,11 @@ def ensure_auth_schema() -> None:
     ensure_column(cursor, "anggota", "alamat", "`alamat` text DEFAULT NULL")
     ensure_column(cursor, "anggota", "status_akun", "`status_akun` varchar(20) NOT NULL DEFAULT 'aktif'")
     ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_from", "`inactive_from` date DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_type", "`inactive_type` varchar(30) DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_reason", "`inactive_reason` varchar(255) DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_note", "`inactive_note` text DEFAULT NULL")
+    ensure_membership_request_schema(cursor)
     ensure_column(cursor, "anggota", "created_at", "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP")
     ensure_column(cursor, "anggota", "updated_at", "`updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
@@ -3541,7 +3598,7 @@ def fetch_member(identifier: str):
     cursor = conn.cursor(dictionary=True)
     cursor.execute(
         """
-        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until
+        SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note
         , created_at, updated_at
         FROM anggota
         ORDER BY id ASC
@@ -3560,6 +3617,206 @@ def fetch_member(identifier: str):
             return row
     return None
 
+
+
+# ===== Membership inactive request helpers =====
+MEMBERSHIP_PENDING = "pending"
+MEMBERSHIP_APPROVED = "approved"
+MEMBERSHIP_REJECTED = "rejected"
+MEMBERSHIP_CANCELLED = "cancelled"
+
+MEMBERSHIP_STATUS_LABELS = {
+    MEMBERSHIP_PENDING: "Menunggu Review Admin",
+    MEMBERSHIP_APPROVED: "Disetujui",
+    MEMBERSHIP_REJECTED: "Ditolak",
+    MEMBERSHIP_CANCELLED: "Dibatalkan",
+}
+
+def membership_status_label(value: str | None) -> str:
+    return MEMBERSHIP_STATUS_LABELS.get(normalize_text(value).lower(), normalize_text(value) or "Menunggu Review Admin")
+
+def membership_status_key(value: str | None) -> str:
+    raw = normalize_text(value).lower()
+    if raw in {"pending", "menunggu", "menunggu review admin"}:
+        return MEMBERSHIP_PENDING
+    if raw in {"approved", "approve", "disetujui", "acc"}:
+        return MEMBERSHIP_APPROVED
+    if raw in {"rejected", "reject", "ditolak"}:
+        return MEMBERSHIP_REJECTED
+    if raw in {"cancelled", "canceled", "dibatalkan", "cancel"}:
+        return MEMBERSHIP_CANCELLED
+    return raw or MEMBERSHIP_PENDING
+
+def ensure_membership_request_schema(cursor) -> None:
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `membership_status_requests` (
+          `id` varchar(100) NOT NULL,
+          `member_id` int(11) NOT NULL,
+          `member_name` varchar(255) DEFAULT NULL,
+          `inactive_type` varchar(30) NOT NULL DEFAULT 'permanent',
+          `reason` varchar(255) NOT NULL,
+          `start_date` date NOT NULL,
+          `return_date` date DEFAULT NULL,
+          `note` text NOT NULL,
+          `evidence_json` longtext DEFAULT NULL,
+          `status` varchar(30) NOT NULL DEFAULT 'pending',
+          `admin_id` int(11) DEFAULT NULL,
+          `admin_name` varchar(255) DEFAULT NULL,
+          `admin_note` text DEFAULT NULL,
+          `decided_at` datetime DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_membership_member` (`member_id`),
+          KEY `idx_membership_status` (`status`),
+          KEY `idx_membership_start` (`start_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+
+def membership_evidence_payload(value) -> dict[str, object]:
+    attachments = normalize_attachment_payload(value)
+    return attachments[0] if attachments else {}
+
+def membership_request_row_to_dict(row: dict[str, object]) -> dict[str, object]:
+    if not row:
+        return {}
+    evidence = membership_evidence_payload(row.get("evidence_json"))
+    status_key = membership_status_key(row.get("status"))
+    start_date = row.get("start_date")
+    return_date = row.get("return_date")
+    created_at = row.get("created_at")
+    updated_at = row.get("updated_at")
+    decided_at = row.get("decided_at")
+    return {
+        "id": row.get("id"),
+        "memberId": row.get("member_id"),
+        "memberName": row.get("member_name") or "Anggota",
+        "requestType": "Nonaktif",
+        "inactiveType": "temporary" if normalize_text(row.get("inactive_type")).lower() == "temporary" else "permanent",
+        "reason": row.get("reason") or "",
+        "effectiveDate": start_date.isoformat() if hasattr(start_date, "isoformat") else normalize_text(start_date),
+        "reactivateDate": return_date.isoformat() if hasattr(return_date, "isoformat") else normalize_text(return_date),
+        "note": row.get("note") or "",
+        "evidence": evidence,
+        "evidenceName": evidence.get("name") or "",
+        "evidenceType": evidence.get("mimeType") or "",
+        "evidenceUrl": evidence.get("url") or "",
+        "evidencePreviewable": bool(evidence.get("previewable")),
+        "statusKey": status_key,
+        "status": membership_status_label(status_key),
+        "adminName": row.get("admin_name") or "",
+        "adminNote": row.get("admin_note") or "",
+        "submittedDate": created_at.date().isoformat() if hasattr(created_at, "date") else normalize_text(created_at)[:10],
+        "createdAt": created_at.isoformat() if hasattr(created_at, "isoformat") else normalize_text(created_at),
+        "updatedAt": updated_at.isoformat() if hasattr(updated_at, "isoformat") else normalize_text(updated_at),
+        "decidedAt": decided_at.isoformat() if hasattr(decided_at, "isoformat") else normalize_text(decided_at),
+    }
+
+def ensure_membership_columns(cursor) -> None:
+    ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_from", "`inactive_from` date DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_type", "`inactive_type` varchar(30) DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_reason", "`inactive_reason` varchar(255) DEFAULT NULL")
+    ensure_column(cursor, "anggota", "inactive_note", "`inactive_note` text DEFAULT NULL")
+    ensure_membership_request_schema(cursor)
+
+def apply_membership_status_transitions(cursor) -> None:
+    """Aktifkan/nonaktifkan otomatis berdasarkan request yang sudah disetujui."""
+    today = datetime.now().date()
+    ensure_membership_columns(cursor)
+
+    # Mulai masa nonaktif yang sudah sampai tanggal efektif.
+    cursor.execute(
+        """
+        SELECT r.*, a.status_akun
+        FROM `membership_status_requests` r
+        JOIN `anggota` a ON a.id = r.member_id
+        WHERE r.status = 'approved'
+          AND r.start_date <= %s
+          AND COALESCE(a.status_akun, 'aktif') <> 'nonaktif'
+          AND (r.return_date IS NULL OR r.return_date > %s)
+        """,
+        (today, today),
+    )
+    for row in cursor.fetchall() or []:
+        cursor.execute(
+            """
+            UPDATE `anggota`
+            SET status_akun = 'nonaktif', inactive_from = %s, inactive_until = %s,
+                inactive_type = %s, inactive_reason = %s, inactive_note = %s
+            WHERE id = %s
+            """,
+            (
+                row.get("start_date"),
+                row.get("return_date"),
+                row.get("inactive_type"),
+                row.get("reason"),
+                row.get("note"),
+                row.get("member_id"),
+            ),
+        )
+        create_notification_once(
+            cursor,
+            "keanggotaan",
+            "Status Keanggotaan Nonaktif",
+            "Pengajuan nonaktif Anda sudah disetujui dan status akun menjadi nonaktif.",
+            "/profil-anggota.html",
+            {"target_user_id": row.get("member_id"), "request_id": row.get("id")},
+            target_role="user",
+            dedupe_key=f"membership-approved-active-{row.get('id')}",
+        )
+
+    # Aktif kembali otomatis untuk nonaktif berjangka.
+    cursor.execute(
+        """
+        SELECT r.*
+        FROM `membership_status_requests` r
+        JOIN `anggota` a ON a.id = r.member_id
+        WHERE r.status = 'approved'
+          AND r.inactive_type = 'temporary'
+          AND r.return_date IS NOT NULL
+          AND r.return_date <= %s
+          AND COALESCE(a.status_akun, 'aktif') = 'nonaktif'
+        """,
+        (today,),
+    )
+    for row in cursor.fetchall() or []:
+        cursor.execute(
+            """
+            UPDATE `anggota`
+            SET status_akun = 'aktif', inactive_until = NULL, inactive_from = NULL,
+                inactive_type = NULL, inactive_reason = NULL, inactive_note = NULL
+            WHERE id = %s
+            """,
+            (row.get("member_id"),),
+        )
+        create_notification_once(
+            cursor,
+            "keanggotaan",
+            "Status Keanggotaan Aktif Kembali",
+            "Masa nonaktif berjangka Anda sudah selesai. Status akun Anda aktif kembali.",
+            "/profil-anggota.html",
+            {"target_user_id": row.get("member_id"), "request_id": row.get("id")},
+            target_role="user",
+            dedupe_key=f"membership-auto-reactivate-{row.get('id')}",
+        )
+
+def current_member_is_inactive() -> bool:
+    return session.get("logged_in") and normalize_role_value(session.get("role") or "user") == "user" and normalize_status(session.get("status_akun") or "aktif") == "nonaktif"
+
+def is_inactive_member_page_allowed(candidate: str) -> bool:
+    allowed = {
+        "dashboard-anggota.html",
+        "profil-anggota.html",
+        "profil.html",
+        "unduh-sertifikat-anggota.html",
+        "log-aktivitas-saya.html",
+        "home.html",
+        "login.html",
+    }
+    return candidate in allowed
 
 def can_manage_members() -> bool:
     return bool(session.get("logged_in")) and (session.get("role") or "") in {"admin", "super_admin"}
@@ -3882,6 +4139,7 @@ def _password_hash_from_payload(incoming_password: str, existing_hash: str | Non
 
 
 def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
+    ensure_notifications_schema()
     actor_role = normalize_role_value(session.get("role") or "")
     actor_id = _session_actor_id()
     if actor_role not in {"admin", "super_admin"}:
@@ -3892,10 +4150,10 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
     try:
         cursor.execute("START TRANSACTION")
 
-        ensure_column(cursor, "anggota", "inactive_until", "`inactive_until` date DEFAULT NULL")
+        ensure_membership_columns(cursor)
         cursor.execute(
             """
-            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, created_at, updated_at
+            SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note, created_at, updated_at
             FROM anggota
             """
         )
@@ -3919,6 +4177,18 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
             birth_date = normalize_text(item.get("birthDate") or item.get("tanggalLahir"))
             status_value = normalize_status(item.get("status") or item.get("status_akun") or "aktif")
             inactive_until = parse_optional_date(item.get("inactiveUntil") or item.get("inactive_until"))
+            inactive_from_value = parse_optional_date(item.get("inactiveFrom") or item.get("inactive_from"))
+            inactive_type_value = normalize_text(item.get("inactiveType") or item.get("inactive_type"))
+            inactive_reason_value = normalize_text(item.get("inactiveReason") or item.get("inactive_reason"))
+            inactive_note_value = normalize_text(item.get("inactiveNote") or item.get("inactive_note"))
+            if status_value == "aktif":
+                inactive_until = None
+                inactive_from_value = None
+                inactive_type_value = ""
+                inactive_reason_value = ""
+                inactive_note_value = ""
+            elif status_value == "nonaktif" and not inactive_from_value:
+                inactive_from_value = datetime.now().date().isoformat()
             requested_role = normalize_role_value(item.get("role") or "user")
 
             raw_id = item.get("id")
@@ -3955,8 +4225,8 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
             cursor.execute(
                 """
                 INSERT INTO anggota
-                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                (id, nama, username, telp, password, role, tgl_lahir, email, alamat, status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 ON DUPLICATE KEY UPDATE
                   updated_at = IF(
                     NOT (
@@ -3969,7 +4239,11 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                       COALESCE(email, '') = COALESCE(VALUES(email), '') AND
                       COALESCE(alamat, '') = COALESCE(VALUES(alamat), '') AND
                       COALESCE(status_akun, '') = COALESCE(VALUES(status_akun), '') AND
-                      COALESCE(inactive_until, '') = COALESCE(VALUES(inactive_until), '')
+                      COALESCE(inactive_until, '') = COALESCE(VALUES(inactive_until), '') AND
+                      COALESCE(inactive_from, '') = COALESCE(VALUES(inactive_from), '') AND
+                      COALESCE(inactive_type, '') = COALESCE(VALUES(inactive_type), '') AND
+                      COALESCE(inactive_reason, '') = COALESCE(VALUES(inactive_reason), '') AND
+                      COALESCE(inactive_note, '') = COALESCE(VALUES(inactive_note), '')
                     ),
                     CURRENT_TIMESTAMP,
                     updated_at
@@ -3983,7 +4257,11 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                   email = VALUES(email),
                   alamat = VALUES(alamat),
                   status_akun = VALUES(status_akun),
-                  inactive_until = VALUES(inactive_until)
+                  inactive_until = VALUES(inactive_until),
+                  inactive_from = VALUES(inactive_from),
+                  inactive_type = VALUES(inactive_type),
+                  inactive_reason = VALUES(inactive_reason),
+                  inactive_note = VALUES(inactive_note)
                 """,
                 (
                     member_id,
@@ -3997,8 +4275,37 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                     normalize_text(item.get("address")),
                     status_value,
                     inactive_until,
+                    inactive_from_value,
+                    inactive_type_value,
+                    inactive_reason_value,
+                    inactive_note_value,
                 ),
             )
+
+            if is_existing:
+                previous_status = normalize_status(existing.get("status_akun") or "aktif")
+                if previous_status == "nonaktif" and status_value == "aktif":
+                    create_notification_once(
+                        cursor,
+                        "keanggotaan",
+                        "Status Keanggotaan Diaktifkan",
+                        "Admin telah mengaktifkan kembali status keanggotaan Anda.",
+                        "/profil-anggota.html",
+                        {"target_user_id": member_id},
+                        target_role="user",
+                        dedupe_key=f"membership-manual-activate-{member_id}-{int(time.time())}",
+                    )
+                elif previous_status == "aktif" and status_value == "nonaktif":
+                    create_notification_once(
+                        cursor,
+                        "keanggotaan",
+                        "Status Keanggotaan Nonaktif",
+                        "Admin telah mengubah status keanggotaan Anda menjadi nonaktif.",
+                        "/profil-anggota.html",
+                        {"target_user_id": member_id},
+                        target_role="user",
+                        dedupe_key=f"membership-manual-inactivate-{member_id}-{int(time.time())}",
+                    )
 
         ids_to_delete = sorted(existing_ids - kept_ids)
         for delete_id in ids_to_delete:
@@ -4306,10 +4613,6 @@ def login():
             flash("Akun tidak ditemukan.", "error")
             return render_template("login.html")
 
-        if (member.get("status_akun") or "aktif").lower() != "aktif":
-            flash("Akun Anda sedang nonaktif.", "error")
-            return render_template("login.html")
-
         if not check_password_hash(member["password"], password):
             flash("Kata sandi salah.", "error")
             return render_template("login.html")
@@ -4364,6 +4667,307 @@ def profil():
     return render_template("profil-admin.html", current_user=current_user_context())
 
 
+
+@app.route("/api/membership/my", methods=["GET"])
+def api_membership_my():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        apply_membership_status_transitions(cursor)
+        conn.commit()
+        user_id = session.get("user_id")
+        cursor.execute("SELECT * FROM `anggota` WHERE id = %s LIMIT 1", (user_id,))
+        member = cursor.fetchone() or {}
+        cursor.execute(
+            """
+            SELECT * FROM `membership_status_requests`
+            WHERE member_id = %s
+            ORDER BY created_at DESC, updated_at DESC
+            LIMIT 1
+            """,
+            (user_id,),
+        )
+        latest = cursor.fetchone()
+        return jsonify({
+            "ok": True,
+            "member": member_row_to_dict(member) if member else {},
+            "request": membership_request_row_to_dict(latest) if latest else None,
+            "currentUser": current_user_context(),
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/membership/inactive-request", methods=["POST"])
+def api_membership_submit_request():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+    if normalize_role_value(session.get("role") or "user") != "user":
+        return jsonify({"ok": False, "message": "Pengajuan status nonaktif hanya untuk anggota biasa."}), 403
+
+    ensure_auth_schema()
+    ensure_notifications_schema()
+    user_id = session.get("user_id")
+    mode = "temporary" if normalize_text(request.form.get("inactiveType") or request.form.get("type")).lower() == "temporary" else "permanent"
+    reason = normalize_text(request.form.get("reason"))
+    start_date = parse_optional_date(request.form.get("effectiveDate") or request.form.get("startDate"))
+    return_date = parse_optional_date(request.form.get("reactivateDate") or request.form.get("returnDate"))
+    note = normalize_text(request.form.get("note"))
+    request_id = normalize_text(request.form.get("id") or request.form.get("requestId"))
+
+    if not reason or not start_date or not note:
+        return jsonify({"ok": False, "message": "Alasan, tanggal mulai, dan catatan tambahan wajib diisi."}), 400
+    if mode == "temporary":
+        if not return_date:
+            return jsonify({"ok": False, "message": "Tanggal aktif kembali wajib diisi untuk nonaktif berjangka."}), 400
+        if return_date <= start_date:
+            return jsonify({"ok": False, "message": "Tanggal aktif kembali harus sesudah tanggal mulai nonaktif."}), 400
+    else:
+        return_date = None
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("START TRANSACTION")
+        ensure_membership_columns(cursor)
+        cursor.execute("SELECT id, nama FROM anggota WHERE id = %s LIMIT 1", (user_id,))
+        member = cursor.fetchone()
+        if not member:
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Data anggota tidak ditemukan."}), 404
+
+        existing = None
+        if request_id:
+            cursor.execute("SELECT * FROM membership_status_requests WHERE id = %s AND member_id = %s LIMIT 1", (request_id, user_id))
+            existing = cursor.fetchone()
+            if existing and membership_status_key(existing.get("status")) != MEMBERSHIP_PENDING:
+                conn.rollback()
+                return jsonify({"ok": False, "message": "Pengajuan yang sudah diproses admin tidak bisa diubah."}), 400
+
+        if not existing:
+            cursor.execute("SELECT * FROM membership_status_requests WHERE member_id = %s AND status = 'pending' ORDER BY created_at DESC LIMIT 1", (user_id,))
+            existing = cursor.fetchone()
+
+        file_storage = request.files.get("evidence") or request.files.get("bukti") or request.files.get("file")
+        evidence_payload = None
+        if file_storage and file_storage.filename:
+            evidence_payload = save_uploaded_attachment(file_storage)
+        elif existing:
+            evidence_payload = membership_evidence_payload(existing.get("evidence_json"))
+
+        if not evidence_payload:
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Bukti pendukung wajib diupload."}), 400
+
+        now = datetime.now()
+        if existing:
+            req_id = existing.get("id")
+            cursor.execute(
+                """
+                UPDATE membership_status_requests
+                SET inactive_type=%s, reason=%s, start_date=%s, return_date=%s, note=%s,
+                    evidence_json=%s, updated_at=CURRENT_TIMESTAMP
+                WHERE id=%s AND member_id=%s AND status='pending'
+                """,
+                (mode, reason, start_date, return_date, note, json.dumps([evidence_payload], ensure_ascii=False), req_id, user_id),
+            )
+            action_label = "diperbarui"
+        else:
+            req_id = f"nonaktif-{int(time.time()*1000)}-{uuid.uuid4().hex[:8]}"
+            cursor.execute(
+                """
+                INSERT INTO membership_status_requests
+                (id, member_id, member_name, inactive_type, reason, start_date, return_date, note, evidence_json, status, created_at, updated_at)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,'pending',%s,%s)
+                """,
+                (req_id, user_id, member.get("nama") or session.get("nama") or "Anggota", mode, reason, start_date, return_date, note, json.dumps([evidence_payload], ensure_ascii=False), now, now),
+            )
+            action_label = "dikirim"
+
+        create_notification(
+            cursor,
+            "keanggotaan",
+            f"Pengajuan Nonaktif: {member.get('nama') or 'Anggota'}",
+            f"{html.escape(member.get('nama') or 'Anggota')} mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.",
+            "/manajemen-anggota.html",
+            {"request_id": req_id},
+            target_role="admin",
+        )
+        conn.commit()
+        cursor.execute("SELECT * FROM membership_status_requests WHERE id = %s", (req_id,))
+        row = cursor.fetchone()
+        return jsonify({"ok": True, "message": f"Pengajuan nonaktif berhasil {action_label}.", "request": membership_request_row_to_dict(row)})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/membership/inactive-request/<request_id>", methods=["DELETE"])
+def api_membership_cancel_request(request_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+    ensure_auth_schema()
+    user_id = session.get("user_id")
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_membership_columns(cursor)
+        cursor.execute("SELECT * FROM membership_status_requests WHERE id=%s AND member_id=%s LIMIT 1", (request_id, user_id))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"ok": False, "message": "Pengajuan tidak ditemukan."}), 404
+        if membership_status_key(row.get("status")) != MEMBERSHIP_PENDING:
+            return jsonify({"ok": False, "message": "Pengajuan yang sudah diproses admin tidak bisa dibatalkan."}), 400
+        cursor.execute("UPDATE membership_status_requests SET status='cancelled', updated_at=CURRENT_TIMESTAMP WHERE id=%s", (request_id,))
+        conn.commit()
+        return jsonify({"ok": True, "message": "Pengajuan nonaktif berhasil dibatalkan."})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/membership/admin/requests", methods=["GET"])
+def api_membership_admin_requests():
+    if not can_manage_members():
+        return jsonify({"ok": False, "message": "Unauthorized"}), 403
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        apply_membership_status_transitions(cursor)
+        conn.commit()
+        status_filter = membership_status_key(request.args.get("status") or "pending")
+        search = normalize_text(request.args.get("search")).lower()
+        sort_mode = normalize_text(request.args.get("sort")) or "newest"
+        params = []
+        where = "WHERE 1=1"
+        if status_filter != "all":
+            where += " AND r.status = %s"
+            params.append(status_filter)
+        if search:
+            where += " AND (LOWER(r.member_name) LIKE %s OR LOWER(r.reason) LIKE %s OR LOWER(r.note) LIKE %s OR LOWER(r.status) LIKE %s)"
+            like = f"%{search}%"
+            params.extend([like, like, like, like])
+        order = "ASC" if sort_mode == "oldest" else "DESC"
+        cursor.execute(f"SELECT r.*, a.email, a.role, a.status_akun FROM membership_status_requests r LEFT JOIN anggota a ON a.id = r.member_id {where} ORDER BY r.created_at {order}, r.updated_at {order}", tuple(params))
+        rows = cursor.fetchall() or []
+        cursor.execute("SELECT status, COUNT(*) AS count FROM membership_status_requests GROUP BY status")
+        counts = {membership_status_key(row.get("status")): int(row.get("count") or 0) for row in cursor.fetchall() or []}
+        return jsonify({"ok": True, "items": [membership_request_row_to_dict(r) for r in rows], "counts": counts})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/membership/admin/requests/<request_id>/respond", methods=["POST"])
+def api_membership_admin_respond(request_id):
+    if not can_manage_members():
+        return jsonify({"ok": False, "message": "Unauthorized"}), 403
+    payload = request.get_json(silent=True) or {}
+    action = normalize_text(payload.get("action")).lower()
+    admin_note = normalize_text(payload.get("adminNote") or payload.get("note"))
+    if action not in {"approve", "reject"}:
+        return jsonify({"ok": False, "message": "Aksi tidak valid."}), 400
+
+    ensure_auth_schema()
+    ensure_notifications_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("START TRANSACTION")
+        ensure_membership_columns(cursor)
+        cursor.execute("SELECT * FROM membership_status_requests WHERE id=%s LIMIT 1", (request_id,))
+        req = cursor.fetchone()
+        if not req:
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Pengajuan tidak ditemukan."}), 404
+        if membership_status_key(req.get("status")) != MEMBERSHIP_PENDING:
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Pengajuan sudah diproses."}), 400
+
+        new_status = MEMBERSHIP_APPROVED if action == "approve" else MEMBERSHIP_REJECTED
+        cursor.execute(
+            """
+            UPDATE membership_status_requests
+            SET status=%s, admin_id=%s, admin_name=%s, admin_note=%s, decided_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP
+            WHERE id=%s
+            """,
+            (new_status, session.get("user_id"), session.get("nama") or session.get("username"), admin_note, request_id),
+        )
+
+        member_id = req.get("member_id")
+        if action == "approve":
+            today = datetime.now().date()
+            start_date = req.get("start_date")
+            return_date = req.get("return_date")
+            if start_date and start_date <= today and (not return_date or return_date > today):
+                cursor.execute(
+                    """
+                    UPDATE anggota
+                    SET status_akun='nonaktif', inactive_from=%s, inactive_until=%s, inactive_type=%s,
+                        inactive_reason=%s, inactive_note=%s
+                    WHERE id=%s
+                    """,
+                    (req.get("start_date"), req.get("return_date"), req.get("inactive_type"), req.get("reason"), req.get("note"), member_id),
+                )
+            create_notification_once(
+                cursor,
+                "keanggotaan",
+                "Pengajuan Nonaktif Disetujui",
+                "Pengajuan status nonaktif Anda telah disetujui oleh admin.",
+                "/profil-anggota.html",
+                {"target_user_id": member_id, "request_id": request_id},
+                target_role="user",
+                dedupe_key=f"membership-approved-{request_id}",
+            )
+        else:
+            create_notification_once(
+                cursor,
+                "keanggotaan",
+                "Pengajuan Nonaktif Ditolak",
+                "Pengajuan status nonaktif Anda ditolak oleh admin." + (f" Catatan: {html.escape(admin_note)}" if admin_note else ""),
+                "/profil-anggota.html",
+                {"target_user_id": member_id, "request_id": request_id},
+                target_role="user",
+                dedupe_key=f"membership-rejected-{request_id}",
+            )
+        conn.commit()
+        return jsonify({"ok": True, "message": "Pengajuan berhasil diproses."})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/membership/admin/pending-actions", methods=["GET"])
+def api_membership_admin_pending_actions():
+    if not can_manage_members():
+        return jsonify({"ok": False, "items": []}), 403
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_membership_columns(cursor)
+        cursor.execute(
+            """
+            SELECT * FROM membership_status_requests
+            WHERE status = 'pending'
+            ORDER BY created_at ASC
+            LIMIT 10
+            """
+        )
+        return jsonify({"ok": True, "items": [membership_request_row_to_dict(r) for r in cursor.fetchall() or []]})
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route("/api/anggota", methods=["GET"])
 def api_anggota_list():
     if not can_manage_members():
@@ -4388,6 +4992,54 @@ def api_anggota_sync():
     except Exception as exc:
         return jsonify({"ok": False, "message": str(exc)}), 400
     return jsonify({"ok": True, "members": read_members_for_admin()})
+
+
+@app.route("/api/profile/me", methods=["GET"])
+def api_profile_me():
+    """Ambil profil anggota/admin yang sedang login langsung dari DB.
+
+    Endpoint ini dipakai halaman profil agar tidak lagi bergantung pada cache
+    localStorage/session browser lama saat user berganti akun.
+    """
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        user_id = session.get("user_id")
+        cursor.execute(
+            """
+            SELECT id, nama, username, telp, role, tgl_lahir, email, alamat,
+                   status_akun, inactive_until, inactive_from, inactive_type,
+                   inactive_reason, inactive_note, created_at, updated_at
+            FROM anggota
+            WHERE id = %s
+            LIMIT 1
+            """,
+            (user_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            session.clear()
+            return jsonify({"ok": False, "message": "Akun login tidak ditemukan. Silakan login ulang."}), 404
+
+        # Sinkronkan session supaya render template berikutnya memakai akun yang benar.
+        session["user_id"] = row.get("id")
+        session["username"] = row.get("username") or ""
+        session["nama"] = row.get("nama") or ""
+        session["role"] = normalize_role_value(row.get("role") or "user")
+        session["telp"] = row.get("telp") or ""
+        session["email"] = row.get("email") or ""
+        session["alamat"] = row.get("alamat") or ""
+        session["tgl_lahir"] = _date_to_iso(row.get("tgl_lahir"))
+        session["status_akun"] = row.get("status_akun") or "aktif"
+
+        user = current_user_context()
+        return jsonify({"ok": True, "user": user, "member": member_row_to_dict(row)})
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route("/api/profile/update", methods=["POST"])
@@ -4507,6 +5159,9 @@ def render_mockup_page(page: str):
             return redirect(url_for("dashboard_anggota"))
         if candidate == "dashboard-anggota.html" and current_role != "user":
             return redirect(url_for("dashboard"))
+
+    if session.get("logged_in") and current_member_is_inactive() and not is_inactive_member_page_allowed(candidate):
+        return redirect(url_for("dashboard_anggota", inactive="1"))
 
     if template_exists(candidate):
         extra_context = {"current_user": current_user_context()}

@@ -1442,6 +1442,21 @@
       }
     }
 
+    function notificationBelongsToCurrentUser(item) {
+      const currentId = String(sessionUser.user_id || '');
+      const data = item && item.data ? item.data : {};
+      const targetId = data.target_user_id != null ? String(data.target_user_id) : '';
+      if (targetId && currentId && targetId !== currentId) return false;
+      const personalTypes = ['tugas', 'evaluasi', 'tukar', 'keanggotaan', 'peminjaman', 'kerusakan'];
+      if (personalTypes.includes(String(item.type || '')) && !targetId && !data.broadcast) return false;
+      if (sessionUser.created_at && item.createdAt && personalTypes.includes(String(item.type || ''))) {
+        const createdNotif = new Date(item.createdAt).getTime();
+        const createdUser = new Date(sessionUser.created_at).getTime();
+        if (!Number.isNaN(createdNotif) && !Number.isNaN(createdUser) && createdNotif < createdUser) return false;
+      }
+      return true;
+    }
+
     function notificationTypeLabel(type) {
       if (type === "tugas") return "Notifikasi Pengingat Tugas";
       if (type === "tukar") return "Notifikasi Tukar Jadwal";
@@ -1462,6 +1477,9 @@
       const items = await fetchNotifications();
 
       const filtered = items.filter(function (item) {
+        if (!notificationBelongsToCurrentUser(item)) {
+          return false;
+        }
         if (item.data && item.data.target_user_id) {
             if (String(item.data.target_user_id) !== String(sessionUser.user_id)) {
                 return false; 
@@ -1941,5 +1959,35 @@
     });
   </script>
 <script src="_sidebar-fix.js"></script>
+
+<script>
+(function(){
+  const user = window.CREMBO_CURRENT_USER || {};
+  const inactive = String(user.status_akun || '').toLowerCase() === 'nonaktif';
+  if(!inactive) return;
+  const allowed = ['dashboard-anggota.html','/dashboard-anggota','profil-anggota.html','/profil','unduh-sertifikat-anggota.html','log-aktivitas-saya.html','home.html','home.html?session=active','/logout'];
+  function isAllowedHref(href){
+    if(!href) return true;
+    if(href.startsWith('#')) return true;
+    return allowed.some(a => href === a || href.endsWith('/'+a) || href.includes(a));
+  }
+  document.querySelectorAll('.sidebar a, .cta, a.btn').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    if(!isAllowedHref(href)){
+      a.classList.add('disabled-nonaktif');
+      a.setAttribute('aria-disabled','true');
+      a.addEventListener('click', function(e){ e.preventDefault(); alert('Akun Anda sedang nonaktif. Akses dibatasi ke Dashboard Utama, Profil Saya, Unduh Sertifikat, dan Log Aktivitas.'); });
+    }
+  });
+  const style = document.createElement('style');
+  style.textContent = '.disabled-nonaktif{opacity:.45;filter:grayscale(1);cursor:not-allowed!important}.inactive-alert{border:1px solid #f59e0b;background:#fffbeb;color:#7c2d12;border-radius:12px;padding:12px;margin:0 0 14px;font-weight:700;}';
+  document.head.appendChild(style);
+  const main = document.querySelector('.main');
+  if(main && !document.querySelector('.inactive-alert')){
+    main.insertAdjacentHTML('afterbegin','<div class="inactive-alert">Status akun Anda sedang nonaktif. Menu pelayanan dikunci sampai admin mengaktifkan kembali akun Anda atau masa nonaktif berjangka selesai.</div>');
+  }
+})();
+</script>
+
 </body>
 </html>
