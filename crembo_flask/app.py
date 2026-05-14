@@ -7178,6 +7178,207 @@ def get_session_context():
     return response
 
 
+# --- SEARCH ENDPOINT ---
+
+@app.route("/api/search", methods=["GET"])
+def api_search():
+    """
+    Global search endpoint. Mencari di: pengumuman (news), agenda, jadwal streaming, profil.
+    Query params:
+        q      : kata kunci pencarian
+        type   : filter tipe (Pengumuman | Agenda | Jadwal | Profil) — kosong = semua
+        sort   : newest | oldest | az | za
+        page   : halaman (mulai 1)
+        per_page: jumlah per halaman (default 10)
+    """
+    query   = (request.args.get("q") or "").strip().lower()
+    ftype   = (request.args.get("type") or "").strip()
+    sort    = (request.args.get("sort") or "newest").strip()
+    page    = max(1, int(request.args.get("page") or 1))
+    per_page = min(50, max(1, int(request.args.get("per_page") or 10)))
+
+    results = []
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # ── 1. Pengumuman (news) ─────────────────────────────────────────────────
+        if not ftype or ftype == "Pengumuman":
+            try:
+                cursor.execute("""
+                    SELECT id, title, summary, content, published_at, created_at, status
+                    FROM `news`
+                    WHERE status = 'published'
+                    ORDER BY published_at DESC, created_at DESC
+                """)
+                for row in (cursor.fetchall() or []):
+                    title_val   = (row.get("title") or "")
+                    summary_val = (row.get("summary") or "")
+                    content_raw = re.sub(r'<[^>]+>', ' ', row.get("content") or "")
+                    haystack    = (title_val + " " + summary_val + " " + content_raw).lower()
+                    if query and query not in haystack:
+                        continue
+                    snippet = (summary_val or content_raw[:200]).strip()
+                    date_val = row.get("published_at") or row.get("created_at")
+                    date_str = date_val.strftime("%d %b %Y") if date_val else ""
+                    results.append({
+                        "type":    "Pengumuman",
+                        "title":   title_val,
+                        "snippet": snippet[:220] if snippet else "",
+                        "date":    date_str,
+                        "date_ts": date_val.timestamp() if date_val else 0,
+                        "url":     f"/pengumuman/{row['id']}",
+                        "thumb":   "",
+                    })
+            except Exception as e:
+                pass  # Tabel belum ada atau error, skip
+
+        # ── 2. Agenda ────────────────────────────────────────────────────────────
+        if not ftype or ftype == "Agenda":
+            try:
+                cursor.execute("""
+                    SELECT id, title, description, start_date, location, status, image_url
+                    FROM `agendas`
+                    WHERE status = 'active'
+                    ORDER BY start_date DESC
+                """)
+                for row in (cursor.fetchall() or []):
+                    title_val   = (row.get("title") or "")
+                    desc_val    = re.sub(r'<[^>]+>', ' ', row.get("description") or "")
+                    loc_val     = (row.get("location") or "")
+                    haystack    = (title_val + " " + desc_val + " " + loc_val).lower()
+                    if query and query not in haystack:
+                        continue
+                    date_val = row.get("start_date")
+                    date_str = date_val.strftime("%d %b %Y") if hasattr(date_val, "strftime") else str(date_val or "")
+                    import datetime as _dt
+                    date_ts = _dt.datetime.combine(date_val, _dt.time.min).timestamp() if isinstance(date_val, _dt.date) else 0
+                    snippet = desc_val[:220].strip() if desc_val.strip() else loc_val
+                    results.append({
+                        "type":    "Agenda",
+                        "title":   title_val,
+                        "snippet": snippet,
+                        "date":    date_str,
+                        "date_ts": date_ts,
+                        "url":     f"/agenda/{row['id']}",
+                        "thumb":   row.get("image_url") or "",
+                    })
+            except Exception:
+                pass
+
+        # ── 3. Jadwal Streaming ──────────────────────────────────────────────────
+        if not ftype or ftype == "Jadwal":
+            try:
+                cursor.execute("""
+                    SELECT DISTINCT YEAR(date) AS yr, MONTH(date) AS mo,
+                           MIN(date) AS sample_date,
+                           GROUP_CONCAT(DISTINCT mass_name ORDER BY date SEPARATOR ', ') AS mass_names
+                    FROM `streaming_schedules`
+                    WHERE status = 'Published'
+                    GROUP BY YEAR(date), MONTH(date)
+                    ORDER BY yr DESC, mo DESC
+                    LIMIT 24
+                """)
+                import calendar as _cal
+                MONTHS_ID = ["","Januari","Februari","Maret","April","Mei","Juni",
+                              "Juli","Agustus","September","Oktober","November","Desember"]
+                for row in (cursor.fetchall() or []):
+                    yr, mo = row.get("yr"), row.get("mo")
+                    mass_names = row.get("mass_names") or ""
+                    title_val = f"Jadwal Streaming {MONTHS_ID[mo] if mo else ''} {yr}"
+                    haystack  = (title_val + " " + mass_names).lower()
+                    if query and query not in haystack:
+                        continue
+                    sample_date = row.get("sample_date")
+                    date_ts = sample_date.timestamp() if hasattr(sample_date, "timestamp") else 0
+                    results.append({
+                        "type":    "Jadwal",
+                        "title":   title_val,
+                        "snippet": f"Jadwal pelayanan multimedia bulan {MONTHS_ID[mo] if mo else ''} {yr}. {mass_names[:120]}",
+                        "date":    f"Bulan {MONTHS_ID[mo] if mo else ''} {yr}",
+                        "date_ts": date_ts,
+                        "url":     f"/jadwal-streaming.html?bulan={mo}&tahun={yr}",
+                        "thumb":   "",
+                    })
+            except Exception:
+                pass
+
+        # ── 4. Profil Organisasi ─────────────────────────────────────────────────
+        if not ftype or ftype == "Profil":
+            try:
+                cursor.execute("""
+                    SELECT id, title, description, updated_at
+                    FROM `organization_profiles`
+                    WHERE is_visible = 1
+                    ORDER BY order_index ASC
+                """)
+                for row in (cursor.fetchall() or []):
+                    title_val = (row.get("title") or "")
+                    desc_raw  = re.sub(r'<[^>]+>', ' ', row.get("description") or "")
+                    haystack  = (title_val + " " + desc_raw).lower()
+                    if query and query not in haystack:
+                        continue
+                    upd = row.get("updated_at")
+                    date_ts = upd.timestamp() if hasattr(upd, "timestamp") else 0
+                    slug_id = str(row.get("id") or "").replace("profile-", "").lower()
+                    safe_id = re.sub(r'[^a-z0-9\-]', '-', title_val.lower())
+                    results.append({
+                        "type":    "Profil",
+                        "title":   title_val,
+                        "snippet": desc_raw[:220].strip(),
+                        "date":    "–",
+                        "date_ts": date_ts,
+                        "url":     f"/profil.html?profil={row['id']}",
+                        "thumb":   "",
+                    })
+            except Exception:
+                pass
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    # ── Sorting ──────────────────────────────────────────────────────────────────
+    if sort == "az":
+        results.sort(key=lambda r: (r["title"] or "").lower())
+    elif sort == "za":
+        results.sort(key=lambda r: (r["title"] or "").lower(), reverse=True)
+    elif sort == "oldest":
+        results.sort(key=lambda r: r["date_ts"])
+    else:  # newest (default)
+        results.sort(key=lambda r: r["date_ts"], reverse=True)
+
+    # Hitung count per tipe (SEBELUM pagination)
+    counts = {"Pengumuman": 0, "Agenda": 0, "Jadwal": 0, "Profil": 0}
+    for r in results:
+        t = r.get("type", "")
+        if t in counts:
+            counts[t] += 1
+    total = len(results)
+
+    # ── Pagination ───────────────────────────────────────────────────────────────
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    start = (page - 1) * per_page
+    paged = results[start: start + per_page]
+
+    # Bersihkan date_ts dari output
+    for r in paged:
+        r.pop("date_ts", None)
+
+    return jsonify({
+        "query":       (request.args.get("q") or "").strip(),
+        "type":        ftype,
+        "sort":        sort,
+        "page":        page,
+        "per_page":    per_page,
+        "total":       total,
+        "total_pages": total_pages,
+        "counts":      counts,
+        "results":     paged,
+    })
+
+
 # --- AGENDA ENDPOINTS ---
 
 def agenda_row_to_dict(row):

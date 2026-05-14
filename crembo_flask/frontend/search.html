@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
 	<meta charset="utf-8">
@@ -501,236 +501,121 @@
 	const searchCountDisplay = document.getElementById("searchCountDisplay");
 	const resultsList = document.getElementById("resultsList");
 
-	// ─── DUMMY DATA ───────────────────────────────────────────────────────────────
-	const DUMMY_RESULTS = [
-		{ type:"Pengumuman", title:"Open Recruitment Anggota Baru Crembo Media 2026", snippet:"Crembo Media membuka kesempatan bergabung bagi umat Paroki Kristus Raja Baciro yang berminat melayani di bidang <em>multimedia</em>.", date:"01 Apr 2026", url:"pengumuman-detail.html?id=pengumuman-5" },
-		{ type:"Pengumuman", title:"Jadwal Misa Perayaan Paskah 2026 — Paroki Kristus Raja Baciro", snippet:"Informasi lengkap jadwal misa Paskah meliputi Misa Malam Paskah, Misa Pagi, dan rangkaian ibadat Pekan Suci beserta pembagian tugas petugas.", date:"15 Mar 2026", url:"pengumuman-detail.html?id=pengumuman-2" },
-		{ type:"Agenda", title:"Briefing Petugas Pekan Suci", snippet:"Agenda briefing internal untuk persiapan pelayanan <em>multimedia</em> selama rangkaian Pekan Suci. Pastikan semua petugas hadir.", date:"30 Mar 2026", url:"agenda-detail.html" },
-		{ type:"Agenda", title:"Pelatihan Operator Streaming", snippet:"Pendalaman teknis kamera, audio, dan live switch untuk tim operator baru dan lama. Wajib dihadiri oleh seluruh anggota aktif.", date:"03 Apr 2026", url:"agenda-detail.html" },
-		{ type:"Jadwal", title:"Jadwal Streaming Bulan April 2026", snippet:"Jadwal pelayanan misa reguler dan misa besar (Pekan Suci) tim Crembo Media April 2026. Termasuk Misa Kamis Putih, Jumat Agung, dan Paskah.", date:"Bulan April 2026", url:"jadwal-streaming.html" },
-		{ type:"Profil", title:"Tentang Crembo Media", snippet:"Crembo Media adalah tim pelayanan <em>multimedia</em> Paroki Kristus Raja Baciro yang bertugas mendokumentasikan dan menyiarkan perayaan liturgi.", date:"–", url:"profil.html?profil=tentang-crembo" },
-		{ type:"Profil", title:"Visi dan Misi Crembo Media", snippet:"Visi: Menjadi tim multimedia paroki yang profesional dan melayani dengan hati. Misi: Mendokumentasikan seluruh kegiatan liturgi secara berkualitas.", date:"–", url:"profil.html?profil=visi-misi" },
-		{ type:"Pengumuman", title:"Rekap Pelayanan Multimedia Bulan Maret 2026", snippet:"Ringkasan statistik streaming, jumlah kamera aktif, dan catatan teknis pelayanan <em>multimedia</em> selama bulan Maret 2026.", date:"02 Apr 2026", url:"pengumuman-detail.html?id=pengumuman-4" },
-	];
+	let currentQuery = "", currentType = "", currentSort = "newest", currentPage = 1;
+	const PER_PAGE = 10;
+	let isLoading = false;
 
-	let currentQuery = "";
-	let currentType  = "";
-	let currentSort  = "newest";
+	const paginationWrap = document.createElement("nav");
+	paginationWrap.id = "paginationWrap";
+	paginationWrap.setAttribute("aria-label","Navigasi halaman");
+	paginationWrap.style.cssText = "display:flex;justify-content:center;gap:8px;margin-top:28px;flex-wrap:wrap;";
+	resultsList.parentNode.appendChild(paginationWrap);
 
-	function esc(str){ return String(str||""); }
+	const pgStyle = document.createElement("style");
+	pgStyle.textContent = `.page-btn{min-width:38px;height:38px;padding:0 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-secondary);font-size:.88rem;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:var(--transition)}.page-btn:hover:not([disabled]):not(.active){border-color:var(--primary);color:var(--primary);background:var(--hover)}.page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}.page-btn[disabled]{opacity:.4;cursor:not-allowed}`;
+	document.head.appendChild(pgStyle);
 
-	function highlight(text, query) {
-		if (!query) return text;
-		const re = new RegExp("(" + query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + ")", "gi");
-		return String(text).replace(re, "<em>$1</em>");
+	function esc(s){return String(s||"");}
+	function highlight(t,q){if(!q)return esc(t);return esc(t).replace(new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi"),"<em>$1</em>");}
+	function typeColor(t){return{Pengumuman:"var(--primary)",Agenda:"#166534",Jadwal:"#1e3a8a",Profil:"#7c3aed"}[t]||"var(--primary)";}
+	function thumbGrad(t){return{Pengumuman:"linear-gradient(135deg,#3a0000,#800000)",Agenda:"linear-gradient(135deg,#1a3a1a,#2d6a2d)",Jadwal:"linear-gradient(135deg,#1a1a3a,#2d2d6a)",Profil:"linear-gradient(135deg,#2a0a3a,#5a1a6a)"}[t]||"linear-gradient(135deg,var(--primary-deeper),var(--primary))";}
+
+	async function fetchSearch(){
+		if(isLoading)return;
+		isLoading=true;
+		resultsList.innerHTML=`<div class="empty-state" style="border:none"><div class="empty-icon">⏳</div><h3>Memuat hasil...</h3><p>Sedang mengambil data dari server.</p></div>`;
+		paginationWrap.innerHTML="";
+		try{
+			const p=new URLSearchParams({q:currentQuery,type:currentType,sort:currentSort,page:currentPage,per_page:PER_PAGE});
+			const r=await fetch("/api/search?"+p,{credentials:"same-origin"});
+			if(!r.ok)throw new Error("HTTP "+r.status);
+			renderResults(await r.json());
+		}catch(e){
+			resultsList.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Gagal memuat hasil</h3><p>Pastikan server aktif lalu muat ulang halaman. (${esc(e.message)})</p></div>`;
+		}finally{isLoading=false;}
 	}
 
-	function getTypeColor(type) {
-		const map = { Pengumuman:"var(--primary)", Agenda:"#166534", Jadwal:"#1e3a8a", Profil:"#7c3aed" };
-		return map[type] || "var(--primary)";
-	}
-
-	function getThumbGradient(type) {
-		const map = {
-			Pengumuman:"linear-gradient(135deg,#3a0000,#800000)",
-			Agenda:"linear-gradient(135deg,#1a3a1a,#2d6a2d)",
-			Jadwal:"linear-gradient(135deg,#1a1a3a,#2d2d6a)",
-			Profil:"linear-gradient(135deg,#2a0a3a,#5a1a6a)"
-		};
-		return map[type] || "linear-gradient(135deg,var(--primary-deeper),var(--primary))";
-	}
-
-	function filterResults(query, type) {
-		let data = DUMMY_RESULTS.slice();
-		if (type) data = data.filter(r => r.type === type);
-		if (query) {
-			const q = query.toLowerCase();
-			data = data.filter(r => r.title.toLowerCase().includes(q) || r.snippet.toLowerCase().includes(q));
+	function renderResults(data){
+		const results=data.results||[],counts=data.counts||{},total=data.total||0,totalPages=data.total_pages||1,page=data.page||1;
+		if(currentQuery){searchQueryDisplay.innerHTML='Hasil pencarian untuk: <em>"'+esc(currentQuery)+'"</em>';}
+		else{searchQueryDisplay.textContent=currentType?currentType:"Semua hasil tersedia";}
+		searchCountDisplay.textContent=total+" hasil ditemukan"+(currentType?" dalam kategori "+currentType:"");
+		const el0=document.getElementById("cntSemua");if(el0)el0.textContent=Object.values(counts).reduce((a,b)=>a+b,0);
+		["Pengumuman","Agenda","Jadwal","Profil"].forEach(t=>{const e=document.getElementById("cnt"+t);if(e)e.textContent=counts[t]||0;});
+		if(!results.length){resultsList.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><h3>Tidak ada hasil ditemukan</h3><p>Coba kata kunci lain atau pilih kategori yang berbeda.</p></div>`;paginationWrap.innerHTML="";return;}
+		resultsList.innerHTML=results.map(r=>{
+			const thumb=r.thumb?`<a href="${esc(r.url)}"><div class="result-thumb" style="background:url('${esc(r.thumb)}') center/cover;min-height:120px;"></div></a>`:`<a href="${esc(r.url)}"><div class="result-thumb" style="background:${thumbGrad(r.type)};min-height:120px;"></div></a>`;
+			return`<article class="result-card" style="border-left-color:${typeColor(r.type)}">${thumb}<div class="result-body"><span class="result-type" style="color:${typeColor(r.type)};background:${typeColor(r.type)}18;">${esc(r.type)}</span><h3 class="result-title"><a href="${esc(r.url)}">${highlight(r.title,currentQuery)}</a></h3><p class="result-snippet">${highlight(r.snippet,currentQuery)}</p><div class="result-meta"><span>${esc(r.date)}</span></div></div></article>`;
+		}).join("");
+		if(totalPages<=1){paginationWrap.innerHTML="";return;}
+		const btns=[];
+		btns.push(`<button type="button" class="page-btn" data-page="${page-1}" ${page===1?"disabled":""}>←</button>`);
+		for(let p=1;p<=totalPages;p++){
+			if(totalPages>7&&Math.abs(p-page)>2&&p!==1&&p!==totalPages){if(p===2||p===totalPages-1)btns.push(`<span style="padding:0 4px;line-height:38px;color:var(--muted)">…</span>`);continue;}
+			btns.push(`<button type="button" class="page-btn${p===page?" active":""}" data-page="${p}">${p}</button>`);
 		}
-		// Sort
-		if (currentSort === "az") data.sort((a,b) => a.title.localeCompare(b.title, "id"));
-		else if (currentSort === "za") data.sort((a,b) => b.title.localeCompare(a.title, "id"));
-		else if (currentSort === "oldest") {} // already in original order as oldest
-		// "newest" = reverse of original order
-		else data.reverse();
-		return data;
-	}
-
-	function countByType(query) {
-		const counts = {};
-		DUMMY_RESULTS.forEach(r => {
-			if (!query || r.title.toLowerCase().includes(query.toLowerCase()) || r.snippet.toLowerCase().includes(query.toLowerCase())) {
-				counts[r.type] = (counts[r.type] || 0) + 1;
-			}
+		btns.push(`<button type="button" class="page-btn" data-page="${page+1}" ${page===totalPages?"disabled":""}>→</button>`);
+		paginationWrap.innerHTML=btns.join("");
+		paginationWrap.querySelectorAll(".page-btn:not([disabled])").forEach(btn=>{
+			btn.addEventListener("click",()=>{const pg=parseInt(btn.dataset.page);if(!isNaN(pg)&&pg>=1&&pg<=totalPages){currentPage=pg;updateURL();fetchSearch();window.scrollTo({top:0,behavior:"smooth"});}});
 		});
-		return counts;
 	}
 
-	function renderResults() {
-		const results = filterResults(currentQuery, currentType);
-		const counts  = countByType(currentQuery);
-		const total   = Object.values(counts).reduce((a,b) => a+b, 0);
+	function setTypeFilter(type){currentType=type;currentPage=1;document.querySelectorAll(".type-btn,.qf-btn").forEach(b=>b.classList.toggle("active",b.dataset.type===type));updateURL();fetchSearch();}
+	function updateURL(){const u=new URL(window.location.href);if(currentQuery)u.searchParams.set("q",currentQuery);else u.searchParams.delete("q");if(currentType)u.searchParams.set("type",currentType);else u.searchParams.delete("type");if(currentSort!=="newest")u.searchParams.set("sort",currentSort);else u.searchParams.delete("sort");if(currentPage>1)u.searchParams.set("page",currentPage);else u.searchParams.delete("page");window.history.replaceState(null,"",u.toString());}
 
-		// Update query label
-		if (currentQuery) {
-			searchQueryDisplay.innerHTML = 'Hasil pencarian untuk: <em>"' + esc(currentQuery) + '"</em>';
-		} else {
-			searchQueryDisplay.textContent = currentType ? currentType : "Semua hasil tersedia";
-		}
-		searchCountDisplay.textContent = results.length + " hasil ditemukan" + (currentType ? " dalam kategori " + currentType : "");
-
-		// Update counts in sidebar
-		document.getElementById("cntSemua").textContent = total;
-		["Pengumuman","Agenda","Jadwal","Profil"].forEach(t => {
-			const el = document.getElementById("cnt" + t); if (el) el.textContent = counts[t] || 0;
-		});
-
-		if (!results.length) {
-			resultsList.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>Tidak ada hasil ditemukan</h3><p>Coba kata kunci lain atau pilih kategori yang berbeda.</p></div>`;
-			return;
-		}
-
-		resultsList.innerHTML = results.map(r => `
-			<article class="result-card" style="border-left-color:${getTypeColor(r.type)}">
-				<div class="result-thumb" style="background:${getThumbGradient(r.type)}; min-height:120px;">Preview</div>
-				<div class="result-body">
-					<span class="result-type" style="color:${getTypeColor(r.type)};background:${getTypeColor(r.type)}18;">${esc(r.type)}</span>
-					<h3 class="result-title"><a href="${esc(r.url)}">${highlight(esc(r.title), currentQuery)}</a></h3>
-					<p class="result-snippet">${r.snippet}</p>
-					<div class="result-meta"><span>${esc(r.date)}</span></div>
-				</div>
-			</article>
-		`).join("");
-	}
-
-	function setTypeFilter(type) {
-		currentType = type;
-		document.querySelectorAll(".type-btn").forEach(b => b.classList.toggle("active", b.dataset.type === type));
-		document.querySelectorAll(".qf-btn").forEach(b => b.classList.toggle("active", b.dataset.type === type));
-		renderResults();
-	}
-
-	// ─── INIT ─────────────────────────────────────────────────────────────────────
-	(function init() {
-		const params = new URLSearchParams(window.location.search);
-		currentQuery = params.get("q") || "";
-		if (currentQuery) {
-			document.getElementById("searchInputHero").value = currentQuery;
-			document.getElementById("searchInputNav").value  = currentQuery;
-		}
-		renderResults();
+	(function init(){
+		const p=new URLSearchParams(window.location.search);
+		currentQuery=p.get("q")||"";currentType=p.get("type")||"";currentSort=p.get("sort")||"newest";currentPage=parseInt(p.get("page")||"1")||1;
+		if(currentQuery){const hi=document.getElementById("searchInputHero");const ni=document.getElementById("searchInputNav");if(hi)hi.value=currentQuery;if(ni)ni.value=currentQuery;}
+		document.querySelectorAll(".type-btn,.qf-btn").forEach(b=>b.classList.toggle("active",b.dataset.type===currentType));
+		document.querySelectorAll(".sort-btn").forEach(b=>b.classList.toggle("active",b.dataset.sort===currentSort));
+		fetchSearch();
 	})();
 
-	document.getElementById("searchFormHero").addEventListener("submit", function(e) {
-		e.preventDefault();
-		currentQuery = document.getElementById("searchInputHero").value.trim();
-		const url = new URL(window.location.href);
-		url.searchParams.set("q", currentQuery);
-		window.history.replaceState(null,"",url.toString());
-		renderResults();
-	});
+	document.getElementById("searchFormHero").addEventListener("submit",function(e){e.preventDefault();currentQuery=(document.getElementById("searchInputHero").value||"").trim();currentPage=1;updateURL();fetchSearch();});
+	document.getElementById("searchFormNav").addEventListener("submit",function(e){e.preventDefault();window.location.href="/search.html?q="+encodeURIComponent((document.getElementById("searchInputNav").value||"").trim());});
+	document.querySelectorAll(".type-btn").forEach(b=>b.addEventListener("click",()=>setTypeFilter(b.dataset.type)));
+	document.querySelectorAll(".qf-btn").forEach(b=>b.addEventListener("click",()=>setTypeFilter(b.dataset.type)));
+	document.querySelectorAll(".sort-btn").forEach(b=>b.addEventListener("click",function(){currentSort=b.dataset.sort;currentPage=1;document.querySelectorAll(".sort-btn").forEach(s=>s.classList.toggle("active",s.dataset.sort===currentSort));updateURL();fetchSearch();}));
 
-	document.getElementById("searchFormNav").addEventListener("submit", function(e) {
-		e.preventDefault();
-		const q = document.getElementById("searchInputNav").value.trim();
-		window.location.href = "search.html?q=" + encodeURIComponent(q);
-	});
-
-	document.querySelectorAll(".type-btn").forEach(b => b.addEventListener("click", () => setTypeFilter(b.dataset.type)));
-	document.querySelectorAll(".qf-btn").forEach(b => b.addEventListener("click", () => setTypeFilter(b.dataset.type)));
-
-	document.querySelectorAll(".sort-btn").forEach(b => b.addEventListener("click", function() {
-		currentSort = b.dataset.sort;
-		document.querySelectorAll(".sort-btn").forEach(s => s.classList.toggle("active", s.dataset.sort === currentSort));
-		renderResults();
-	}));
-
-	function syncStickyOffset() {
-		const h = topHeader ? topHeader.offsetHeight : 104;
-		document.documentElement.style.setProperty("--header-h", h + "px");
+	function syncSticky(){const h=topHeader?topHeader.offsetHeight:104;document.documentElement.style.setProperty("--header-h",h+"px");}
+	syncSticky();window.addEventListener("resize",syncSticky);
+	if(menuToggle&&mainNav){
+		menuToggle.addEventListener("click",function(){const o=mainNav.classList.toggle("open");menuToggle.setAttribute("aria-expanded",String(o));});
+		mainNav.querySelectorAll("a").forEach(l=>l.addEventListener("click",function(){if(l.classList.contains("profile-parent-link")&&window.matchMedia("(max-width: 760px)").matches)return;if(mainNav.classList.contains("open")){mainNav.classList.remove("open");menuToggle.setAttribute("aria-expanded","false");}}));
 	}
-	syncStickyOffset();
-	window.addEventListener("resize", syncStickyOffset);
-
-	menuToggle.addEventListener("click", function() {
-		const isOpen = mainNav.classList.toggle("open");
-		menuToggle.setAttribute("aria-expanded", String(isOpen));
-	});
-
-	mainNav.querySelectorAll("a").forEach(function(link) {
-		link.addEventListener("click", function() {
-			if (link.classList.contains("profile-parent-link") && window.matchMedia("(max-width: 760px)").matches) {
-				return;
-			}
-			if (mainNav.classList.contains("open")) {
-				mainNav.classList.remove("open");
-				menuToggle.setAttribute("aria-expanded", "false");
-			}
-		});
-	});
-
-	// Profile dropdown
-	(function() {
-		const DEFAULT_MENU = [{id:"sejarah",label:"Sejarah"},{id:"tentang-crembo",label:"Tentang Crembo"},{id:"struktur",label:"Struktur"},{id:"visi-misi",label:"Visi & Misi"}];
-		function getMenu() { try { const r=localStorage.getItem("crembo-profile-menu"); if(!r) return DEFAULT_MENU; const p=JSON.parse(r); return Array.isArray(p)&&p.length?p.map(i=>typeof i==="string"?{id:i.toLowerCase().replace(/\s+/g,"-"),label:i}:i):DEFAULT_MENU; } catch(e){return DEFAULT_MENU;} }
-		const nav=document.querySelector(".nav-row nav ul"), anchor=nav&&nav.querySelector('a[href="profil.html"]');
-		if (!anchor) return;
-		const li = anchor.closest("li");
-		const mobileQuery = window.matchMedia("(max-width: 760px)");
+	(function(){
+		const DM=[{id:"sejarah",label:"Sejarah"},{id:"tentang-crembo",label:"Tentang Crembo"},{id:"struktur",label:"Struktur"},{id:"visi-misi",label:"Visi & Misi"}];
+		function gm(){try{const r=localStorage.getItem("crembo-profile-menu");if(!r)return DM;const p=JSON.parse(r);return Array.isArray(p)&&p.length?p.map(i=>typeof i==="string"?{id:i.toLowerCase().replace(/\s+/g,"-"),label:i}:i):DM;}catch(e){return DM;}}
+		const nav=document.querySelector(".nav-row nav ul"),anchor=nav&&nav.querySelector('a[href="profil.html"]');
+		if(!anchor)return;
+		const li=anchor.closest("li"),mq=window.matchMedia("(max-width: 760px)");
 		li.classList.add("nav-dropdown-enhanced");
-		if (!anchor.hasAttribute("data-profile-menu-label")) {
-			anchor.setAttribute("data-profile-menu-label", "true");
-			anchor.textContent = anchor.textContent.trim() + " ▾";
-		}
-		anchor.classList.add("profile-parent-link");
-		anchor.setAttribute("aria-expanded", "false");
-		const dd = document.createElement("div");
-		function applyDesktopDropdownStyle(){
-			li.style.position="relative";
-			Object.assign(dd.style,{position:"absolute",top:"calc(100% - 1px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});
-		}
-		function applyMobileDropdownStyle(){
-			li.style.position="static";
-			Object.assign(dd.style,{position:"static",top:"auto",left:"auto",minWidth:"0",width:"100%",border:"1px solid rgba(128,0,0,0.15)",background:"var(--bg)",boxShadow:"none",padding:"6px",display:"none",zIndex:"1300",borderRadius:"8px",marginTop:"6px"});
-		}
-		function syncDropdownMode(){
-			if (mobileQuery.matches) applyMobileDropdownStyle();
-			else applyDesktopDropdownStyle();
-			anchor.setAttribute("aria-expanded", "false");
-		}
-		dd.innerHTML=getMenu().map(i=>'<a href="profil.html?profil='+encodeURIComponent(i.id)+'" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">'+i.label+'</a>').join("");
+		if(!anchor.hasAttribute("data-profile-menu-label")){anchor.setAttribute("data-profile-menu-label","true");anchor.textContent=anchor.textContent.trim()+" ▾";}
+		anchor.classList.add("profile-parent-link");anchor.setAttribute("aria-expanded","false");
+		const dd=document.createElement("div");
+		function aD(){li.style.position="relative";Object.assign(dd.style,{position:"absolute",top:"calc(100% - 1px)",left:"0",minWidth:"200px",width:"auto",border:"1px solid rgba(128,0,0,0.15)",background:"#fff",boxShadow:"0 10px 30px rgba(128,0,0,0.12)",padding:"6px",display:"none",zIndex:"1300",borderRadius:"12px",marginTop:"0"});}
+		function aM(){li.style.position="static";Object.assign(dd.style,{position:"static",top:"auto",left:"auto",minWidth:"0",width:"100%",border:"1px solid rgba(128,0,0,0.15)",background:"var(--bg)",boxShadow:"none",padding:"6px",display:"none",zIndex:"1300",borderRadius:"8px",marginTop:"6px"});}
+		function sM(){if(mq.matches)aM();else aD();anchor.setAttribute("aria-expanded","false");}
+		dd.innerHTML=gm().map(i=>'<a href="profil.html?profil='+encodeURIComponent(i.id)+'" style="display:block;padding:8px 12px;font-size:0.87rem;border-radius:8px;color:#4a4a4a;margin-bottom:2px;transition:all 0.2s;">'+i.label+'</a>').join("");
 		dd.addEventListener("mouseover",e=>{const l=e.target.closest("a");if(l){l.style.background="rgba(128,0,0,0.06)";l.style.color="#800000";}});
 		dd.addEventListener("mouseout",e=>{const l=e.target.closest("a");if(l){l.style.background="transparent";l.style.color="#4a4a4a";}});
 		li.appendChild(dd);
-		anchor.addEventListener("click", function(event){
-			if (!mobileQuery.matches) return;
-			event.preventDefault();
-			const isOpen = dd.style.display !== "block";
-			dd.style.display = isOpen ? "block" : "none";
-			anchor.setAttribute("aria-expanded", String(isOpen));
-		});
-		dd.querySelectorAll("a").forEach(function(link){
-			link.addEventListener("click", function(){
-				dd.style.display = "none";
-				anchor.setAttribute("aria-expanded", "false");
-			});
-		});
-		li.addEventListener("mouseenter",()=>{ if(!mobileQuery.matches) dd.style.display="block"; });
-		li.addEventListener("mouseleave",()=>{ if(!mobileQuery.matches) dd.style.display="none"; });
-		window.addEventListener("resize", syncDropdownMode);
-		syncDropdownMode();
+		anchor.addEventListener("click",function(ev){if(!mq.matches)return;ev.preventDefault();const o=dd.style.display!=="block";dd.style.display=o?"block":"none";anchor.setAttribute("aria-expanded",String(o));});
+		dd.querySelectorAll("a").forEach(l=>{l.addEventListener("click",()=>{dd.style.display="none";anchor.setAttribute("aria-expanded","false");});});
+		li.addEventListener("mouseenter",()=>{if(!mq.matches)dd.style.display="block";});
+		li.addEventListener("mouseleave",()=>{if(!mq.matches)dd.style.display="none";});
+		window.addEventListener("resize",sM);sM();
 	})();
-			// === Scroll To Top ===
-		(function() {
-			var btn = document.getElementById("scrollTopBtn");
-			if (!btn) return;
-			function updateScrollBtn() { btn.classList.toggle("show", window.scrollY > 300); }
-			window.addEventListener("scroll", updateScrollBtn, { passive: true });
-			window.addEventListener("resize", updateScrollBtn);
-			btn.addEventListener("click", function() { window.scrollTo({ top: 0, behavior: "smooth" }); });
-			updateScrollBtn();
-		})();
+	(function(){
+		const btn=document.getElementById("scrollTopBtn");if(!btn)return;
+		function u(){btn.classList.toggle("show",window.scrollY>300);}
+		window.addEventListener("scroll",u,{passive:true});window.addEventListener("resize",u);
+		btn.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));u();
+	})();
 	</script>
 <script src="_public-nav-sync.js"></script>
 </body>
 </html>
+
