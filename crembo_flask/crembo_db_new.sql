@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 14 Bulan Mei 2026 pada 01.19
+-- Waktu pembuatan: 14 Bulan Mei 2026 pada 09.03
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -1978,7 +1978,7 @@ INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES
 ('yt-1777497242761', 'https://youtu.be/tPIDedX3zQ4?si=VHukpSDtC64xZ49s', 2, 1),
 ('yt-1777497264044', 'https://youtu.be/PWkkMvsp4Ws?si=SvjcHAqsgWNJ3518', 4, 1),
 ('yt-1777504238859', 'https://youtu.be/d5mZ5SKWIx4?si=uguT4CisV_sxs6la', 5, 1),
-('yt-1777640091613', 'https://www.youtube.com/watch?v=4hQmwBd70eI&list=PLK7ZkEoQFKXKbArZITSM5ZFH4N9zNcdKS', 1, 1);
+('yt-1777640091613', 'https://www.youtube.com/watch?v=qQwGd9PxqpA&list=PLK7ZkEoQFKXKbArZITSM5ZFH4N9zNcdKS', 1, 1);
 
 --
 -- Indexes for dumped tables

@@ -3470,12 +3470,20 @@ def ensure_auth_schema() -> None:
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS `youtube_embeds` (
           `id` varchar(100) NOT NULL,
-          `url` varchar(255) NOT NULL,
+          `url` text NOT NULL,
+          `embed_type` varchar(30) NOT NULL DEFAULT 'video',
+          `title` varchar(255) DEFAULT NULL,
           `order_index` int(11) DEFAULT 0,
           `is_visible` tinyint(1) DEFAULT 1,
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     ''')
+    ensure_column(cursor, "youtube_embeds", "embed_type", "`embed_type` varchar(30) NOT NULL DEFAULT 'video'")
+    ensure_column(cursor, "youtube_embeds", "title", "`title` varchar(255) DEFAULT NULL")
+    try:
+        cursor.execute("ALTER TABLE `youtube_embeds` MODIFY COLUMN `url` text NOT NULL")
+    except Exception:
+        pass
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS `google_maps_embed` (
@@ -4138,6 +4146,11 @@ def save_instagram_posts_payload(payload: list[dict[str, object]]) -> int:
         cursor.close()
         conn.close()
 
+def normalize_youtube_embed_type(value: str | None) -> str:
+    kind = normalize_text(value).lower()
+    return "playlist" if kind == "playlist" else "video"
+
+
 def load_youtube_videos():
     try:
         conn = mysql_connection()
@@ -4145,7 +4158,16 @@ def load_youtube_videos():
         cursor.execute("SELECT * FROM `youtube_embeds` WHERE `is_visible`=1 ORDER BY `order_index` ASC")
         rows = cursor.fetchall() or []
         conn.close()
-        return [{"id": r["id"], "url": r["url"], "order": r["order_index"]} for r in rows]
+        return [
+            {
+                "id": r["id"],
+                "url": r["url"],
+                "type": normalize_youtube_embed_type(r.get("embed_type")),
+                "title": r.get("title") or "",
+                "order": r["order_index"],
+            }
+            for r in rows
+        ]
     except Exception:
         return []
 
@@ -4698,21 +4720,63 @@ def get_youtube():
     cursor.execute("SELECT * FROM `youtube_embeds` ORDER BY `order_index` ASC")
     rows = cursor.fetchall() or []
     conn.close()
-    return jsonify([{"id": r["id"], "url": r["url"], "order": r["order_index"], "active": bool(r["is_visible"])} for r in rows])
+    return jsonify([
+        {
+            "id": r["id"],
+            "url": r["url"],
+            "type": normalize_youtube_embed_type(r.get("embed_type")),
+            "title": r.get("title") or "",
+            "order": r["order_index"],
+            "active": bool(r["is_visible"]),
+        }
+        for r in rows
+    ])
 
 @app.route("/api/youtube/sync", methods=["POST"])
 def sync_youtube():
     ensure_auth_schema()
-    payload = request.json
+    payload = request.json or []
+    if not isinstance(payload, list):
+        return jsonify({"success": False, "error": "Payload YouTube tidak valid."}), 400
+
     conn = mysql_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM `youtube_embeds`")
-    for item in payload:
-        cursor.execute("INSERT INTO `youtube_embeds` (`id`, `url`, `order_index`, `is_visible`) VALUES (%s, %s, %s, %s)",
-                       (item.get("id"), item.get("url"), item.get("order"), 1 if item.get("active") else 0))
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
+    try:
+        ensure_column(cursor, "youtube_embeds", "embed_type", "`embed_type` varchar(30) NOT NULL DEFAULT 'video'")
+        ensure_column(cursor, "youtube_embeds", "title", "`title` varchar(255) DEFAULT NULL")
+        try:
+            cursor.execute("ALTER TABLE `youtube_embeds` MODIFY COLUMN `url` text NOT NULL")
+        except Exception:
+            pass
+
+        cursor.execute("DELETE FROM `youtube_embeds`")
+        for idx, item in enumerate(payload, start=1):
+            if not isinstance(item, dict):
+                continue
+            item_id = normalize_text(item.get("id")) or f"yt-{uuid.uuid4().hex[:12]}"
+            item_url = normalize_text(item.get("url"))
+            if not item_url:
+                continue
+            item_type = normalize_youtube_embed_type(item.get("type") or item.get("embed_type"))
+            item_title = normalize_text(item.get("title"))[:255]
+            item_order = parse_required_int(item.get("order"), idx)
+            item_active = 1 if item.get("active", True) else 0
+            cursor.execute(
+                """
+                INSERT INTO `youtube_embeds`
+                (`id`, `url`, `embed_type`, `title`, `order_index`, `is_visible`)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (item_id, item_url, item_type, item_title, item_order, item_active),
+            )
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route("/api/gmaps", methods=["GET"])
 def api_get_gmaps():

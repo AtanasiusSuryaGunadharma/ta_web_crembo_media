@@ -264,7 +264,7 @@
     .field { display: grid; gap: 6px; }
     .field label { font-size: 0.84rem; color: #515151; }
 
-    input[type="text"] {
+    input[type="text"], select {
       width: 100%; border: 1px solid #bdbdbd; border-radius: 10px;
       padding: 8px 10px; font-size: 0.86rem; font-family: inherit; background: #fff;
     }
@@ -359,25 +359,26 @@
 
       <header class="topbar">
         <div>
-          <h2 class="headline">Kelola Video YouTube Section Home</h2>
-          <p class="subhead">Admin dan Super Admin dapat menambah, mengedit, mengubah urutan, dan menghapus video YouTube di section home.</p>
+          <h2 class="headline">Kelola Video & Playlist YouTube Section Home</h2>
+          <p class="subhead">Admin dan Super Admin dapat menambah video tunggal atau playlist livestream YouTube, lalu mengatur urutannya di section home.</p>
         </div>
         <span id="roleChip" class="role-chip">Role: -</span>
       </header>
 
       <section class="panel" aria-label="Form tambah video youtube">
         <header class="panel-head">
-          <h2>Tambah Video YouTube Baru</h2>
+          <h2>Tambah Video / Playlist YouTube Baru</h2>
         </header>
         <div class="panel-body">
           <div class="form-grid">
             <div class="field full">
-              <label for="ytUrl">URL YouTube atau Embed Link</label>
-              <input type="text" id="ytUrl" placeholder="Masukkan Link YouTube (contoh: https://youtu.be/...)">
+              <label for="ytUrl">URL Video YouTube, Playlist, atau Embed Link</label>
+              <input type="text" id="ytUrl" placeholder="Contoh video: https://youtu.be/... atau playlist: https://youtube.com/playlist?list=...">
+              <small style="color:#666;">Untuk playlist livestream, tempel link playlist YouTube yang berisi live streaming Crembo Media. Home akan menampilkan player playlist tersebut.</small>
             </div>
           </div>
           <div class="form-actions">
-            <button id="addYtBtn" class="btn primary">+ Tambah Video</button>
+            <button id="addYtBtn" class="btn primary">+ Tambah Video / Playlist</button>
             <span id="mediaStatus" class="status" style="margin-bottom:0; display:none; padding: 6px 12px; margin-left:10px;"></span>
           </div>
         </div>
@@ -385,16 +386,17 @@
 
       <section class="panel" aria-label="Daftar video youtube">
         <header class="panel-head">
-          <h2>Daftar Carousel Video YouTube</h2>
+          <h2>Daftar Carousel Video / Playlist YouTube</h2>
         </header>
         <div class="panel-body">
-          <p style="font-size:0.86rem; color:#616161; margin-top: 0;">Sistem akan menyimpan data otomatis (Auto-save) setiap ada perubahan. Drag (tarik) simbol "::" untuk mengatur urutan video.</p>
+          <p style="font-size:0.86rem; color:#616161; margin-top: 0;">Sistem akan menyimpan data otomatis (Auto-save) setiap ada perubahan. Drag (tarik) simbol "::" untuk mengatur urutan video/playlist.</p>
           <div class="table-wrap">
             <table id="ytTable">
               <thead>
                 <tr>
                   <th>Urut</th>
                   <th>Preview</th>
+                  <th>Jenis</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
@@ -456,6 +458,64 @@
       setTimeout(() => { mediaStatus.style.display = "none"; }, 3000);
     }
 
+
+    function parseYoutubeSource(rawUrl) {
+      const url = String(rawUrl || "").trim();
+      if (!url) return null;
+      let normalizedUrl = url;
+      if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = "https://" + normalizedUrl;
+      let parsed = null;
+      try { parsed = new URL(normalizedUrl); } catch (error) { parsed = null; }
+
+      const listId = parsed ? (parsed.searchParams.get("list") || "") : ((url.match(/[?&]list=([^&]+)/i) || [])[1] || "");
+      if (listId) {
+        return {
+          type: "playlist",
+          id: listId,
+          label: "Playlist",
+          badge: "PLAYLIST",
+          embedUrl: "https://www.youtube.com/embed/videoseries?list=" + encodeURIComponent(listId) + "&rel=0"
+        };
+      }
+
+      const liveChannelMatch = url.match(/youtube\.com\/embed\/live_stream\?channel=([^&]+)/i);
+      if (liveChannelMatch && liveChannelMatch[1]) {
+        return {
+          type: "live",
+          id: liveChannelMatch[1],
+          label: "Live Channel",
+          badge: "LIVE",
+          embedUrl: "https://www.youtube.com/embed/live_stream?channel=" + encodeURIComponent(liveChannelMatch[1]) + "&rel=0"
+        };
+      }
+
+      const videoMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|shorts\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
+      if (videoMatch && videoMatch[1]) {
+        return {
+          type: "video",
+          id: videoMatch[1],
+          label: "Video",
+          badge: "VIDEO",
+          thumb: "https://img.youtube.com/vi/" + videoMatch[1] + "/hqdefault.jpg",
+          embedUrl: "https://www.youtube.com/embed/" + encodeURIComponent(videoMatch[1]) + "?rel=0"
+        };
+      }
+
+      return null;
+    }
+
+    function normalizeYoutubeItem(item, index) {
+      const source = parseYoutubeSource(item && item.url);
+      return {
+        id: item && item.id ? String(item.id) : "yt-" + Date.now() + "-" + index,
+        url: item && item.url ? String(item.url) : "",
+        type: item && item.type ? String(item.type) : (source ? source.type : "video"),
+        title: item && item.title ? String(item.title) : "",
+        order: Number(item && item.order ? item.order : index + 1),
+        active: item && item.active !== false
+      };
+    }
+
     // FUNGSI AUTO-SAVE KE DATABASE
     async function saveYtSync(successMsg) {
         try {
@@ -477,7 +537,8 @@
     async function loadYt() {
         try {
             const res = await fetch("/api/youtube");
-            ytItems = await res.json();
+            const rawItems = await res.json();
+            ytItems = Array.isArray(rawItems) ? rawItems.map(normalizeYoutubeItem) : [];
             renderYt();
         } catch (err) {
             console.error("Gagal load YouTube:", err);
@@ -492,20 +553,27 @@
         }
         emptyState.hidden = true;
 
-        ytItems.sort((a,b) => a.order - b.order).forEach(item => {
-            const match = item.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
-            const thumb = match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : "";
+        ytItems.sort((a,b) => Number(a.order || 0) - Number(b.order || 0)).forEach(function(item, index) {
+            const source = parseYoutubeSource(item.url);
+            const itemType = source ? source.type : (item.type || "video");
+            const typeLabel = source ? source.label : (itemType === "playlist" ? "Playlist" : "Video");
+            const badgeLabel = source ? source.badge : (itemType === "playlist" ? "PLAYLIST" : "VIDEO");
+            const thumb = source && source.thumb ? source.thumb : "";
+            item.type = itemType;
+            item.order = index + 1;
             
             const tr = document.createElement("tr");
             tr.setAttribute("data-video-id", item.id);
             tr.innerHTML = `
                 <td data-label="Urut"><span class="drag-handle" title="Drag untuk ubah urutan">::</span></td>
                 <td data-label="Preview">
-                    <div style="position:relative; width:140px; height:80px; background:#000; overflow:hidden; border-radius:8px;">
-                        <img src="${escapeHtml(thumb)}" style="width:100%; height:100%; object-fit:cover; opacity: 0.8;">
-                        <span style="background:red; color:white; padding: 2px 4px; font-size:10px; border-radius:4px; position:absolute; bottom:5px; right:5px; z-index:10;">VIDEO</span>
+                    <div style="position:relative; width:160px; height:90px; background:linear-gradient(135deg,#5c0000,#b32626); overflow:hidden; border-radius:8px; display:grid; place-items:center; color:#fff; text-align:center; font-weight:800;">
+                        ${thumb ? `<img src="${escapeHtml(thumb)}" style="width:100%; height:100%; object-fit:cover; opacity:0.82;">` : `<span style="font-size:0.8rem; padding:8px;">YouTube<br>${escapeHtml(typeLabel)}</span>`}
+                        <span style="background:${itemType === 'playlist' ? '#d4a017' : '#d90000'}; color:${itemType === 'playlist' ? '#3a0000' : '#fff'}; padding:2px 5px; font-size:10px; border-radius:4px; position:absolute; bottom:5px; right:5px; z-index:10;">${escapeHtml(badgeLabel)}</span>
                     </div>
+                    <small style="display:block;margin-top:4px;color:#666;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.url)}</small>
                 </td>
+                <td data-label="Jenis"><span class="state-pill active">${escapeHtml(typeLabel)}</span></td>
                 <td data-label="Status"><span class="state-pill ${item.active ? 'active' : ''}">${item.active ? 'Aktif' : 'Nonaktif'}</span></td>
                 <td data-label="Aksi">
                     <div class="action-stack">
@@ -564,16 +632,16 @@
         const url = ytUrlInput.value.trim();
         if(!url) return;
         
-        let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
-        if(!match) {
-            alert("URL YouTube tidak valid.");
+        const source = parseYoutubeSource(url);
+        if(!source) {
+            alert("URL YouTube tidak valid. Tempel link video, playlist, atau embed live stream YouTube.");
             return;
         }
 
-        ytItems.push({ id: "yt-" + Date.now(), url: url, order: ytItems.length + 1, active: true });
+        ytItems.push({ id: "yt-" + Date.now(), url: url, type: source.type, order: ytItems.length + 1, active: true });
         ytUrlInput.value = "";
         renderYt();
-        saveYtSync("Video berhasil ditambahkan!"); 
+        saveYtSync(source.type === "playlist" ? "Playlist berhasil ditambahkan!" : "Video berhasil ditambahkan!"); 
     });
 
     window.toggleYt = function(id) {
@@ -598,16 +666,17 @@
         const target = ytItems.find(i => String(i.id) === String(id));
         if(!target) return;
         
-        const newUrl = prompt("Ganti Link YouTube:", target.url);
+        const newUrl = prompt("Ganti Link YouTube / Playlist:", target.url);
         if(newUrl !== null && newUrl.trim() !== "") { 
-            let match = newUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
-            if(!match) {
-                alert("URL YouTube tidak valid.");
+            const source = parseYoutubeSource(newUrl);
+            if(!source) {
+                alert("URL YouTube tidak valid. Tempel link video, playlist, atau embed live stream YouTube.");
                 return;
             }
-            target.url = newUrl.trim(); 
+            target.url = newUrl.trim();
+            target.type = source.type;
             renderYt(); 
-            saveYtSync("Video berhasil diperbarui!"); 
+            saveYtSync(source.type === "playlist" ? "Playlist berhasil diperbarui!" : "Video berhasil diperbarui!"); 
         }
     }
 

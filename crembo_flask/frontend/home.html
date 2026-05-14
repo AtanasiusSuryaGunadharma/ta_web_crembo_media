@@ -2417,6 +2417,8 @@
 							return {
 								id: item && item.id ? String(item.id) : '',
 								url: item && item.url ? String(item.url) : '',
+								type: item && item.type ? String(item.type) : '',
+								title: item && item.title ? String(item.title) : '',
 								order: Number(item && item.order ? item.order : 0),
 								active: item && item.active !== false
 							};
@@ -2661,6 +2663,44 @@
 			}, 5000);
 		}
 
+		function parseYoutubeHomeSource(rawUrl) {
+			const url = String(rawUrl || "").trim();
+			if (!url) return null;
+			let normalizedUrl = url;
+			if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = "https://" + normalizedUrl;
+			let parsed = null;
+			try { parsed = new URL(normalizedUrl); } catch (error) { parsed = null; }
+
+			const listId = parsed ? (parsed.searchParams.get("list") || "") : ((url.match(/[?&]list=([^&]+)/i) || [])[1] || "");
+			if (listId) {
+				return {
+					type: "playlist",
+					id: listId,
+					embedUrl: "https://www.youtube.com/embed/videoseries?list=" + encodeURIComponent(listId) + "&rel=0",
+				};
+			}
+
+			const liveChannelMatch = url.match(/youtube\.com\/embed\/live_stream\?channel=([^&]+)/i);
+			if (liveChannelMatch && liveChannelMatch[1]) {
+				return {
+					type: "live",
+					id: liveChannelMatch[1],
+					embedUrl: "https://www.youtube.com/embed/live_stream?channel=" + encodeURIComponent(liveChannelMatch[1]) + "&rel=0",
+				};
+			}
+
+			const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|shorts\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
+			if (match && match[1]) {
+				return {
+					type: "video",
+					id: match[1],
+					embedUrl: "https://www.youtube.com/embed/" + encodeURIComponent(match[1]) + "?rel=0",
+				};
+			}
+
+			return null;
+		}
+
 		function renderYtCarousel() {
 			if (!ytVideos || !ytVideos.length) {
 				ytStage.innerHTML = '<div style="display:grid; place-items:center; height:100%; width:100%; color:#888; background:#f4f4f4;">Belum ada video YouTube aktif.</div>';
@@ -2695,12 +2735,12 @@
 			ytCurrentIndex = (index + ytVideos.length) % ytVideos.length;
 			
 			const video = ytVideos[ytCurrentIndex];
-			const match = video.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^\/&\?]{11})/);
+			const source = parseYoutubeHomeSource(video.url);
 			
-			if (match && match[1]) {
-				ytStage.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + match[1] + '?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>';
+			if (source && source.embedUrl) {
+				ytStage.innerHTML = '<iframe width="100%" height="100%" src="' + source.embedUrl + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>';
 			} else {
-                ytStage.innerHTML = '<div style="display:grid; place-items:center; height:100%; width:100%; background:#f4f4f4;">URL Tidak Valid</div>';
+                ytStage.innerHTML = '<div style="display:grid; place-items:center; height:100%; width:100%; background:#f4f4f4;">URL YouTube / playlist tidak valid</div>';
             }
 
 			const dots = ytMediaDots.querySelectorAll(".about-dot");
