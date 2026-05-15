@@ -687,15 +687,31 @@
       if (!todoList) return;
 
       try {
-        const [resLoan, resDamage, resExchange] = await Promise.all([
-          fetch('/api/pengajuan'),
-          fetch('/api/form-kerusakan/history'),
-          fetch('/api/task-exchanges/pending-actions?limit=8', { credentials: 'same-origin' })
+        // Ambil prioritas satu-per-satu secara aman.
+        // Jika salah satu endpoint sedang error/403/404, prioritas lain tetap tampil
+        // dan tidak menampilkan pesan "Gagal memuat prioritas" palsu.
+        async function safePriorityJson(url, fallback) {
+          try {
+            const res = await fetch(url, { credentials: 'same-origin' });
+            const text = await res.text();
+            let data = fallback;
+            try { data = text ? JSON.parse(text) : fallback; } catch (_) { data = fallback; }
+            if (!res.ok) {
+              console.warn('Prioritas dilewati:', url, data && (data.message || data.error || res.status));
+              return fallback;
+            }
+            return data || fallback;
+          } catch (err) {
+            console.warn('Prioritas gagal dimuat:', url, err);
+            return fallback;
+          }
+        }
+
+        const [dataLoan, dataDamage, dataExchange] = await Promise.all([
+          safePriorityJson('/api/pengajuan', { success:false, items:[] }),
+          safePriorityJson('/api/form-kerusakan/history', { success:false, items:[] }),
+          safePriorityJson('/api/task-exchanges/pending-actions?limit=8', { success:false, items:[] })
         ]);
-        
-        const dataLoan = await resLoan.json();
-        const dataDamage = await resDamage.json();
-        const dataExchange = await resExchange.json().catch(() => ({ success:false, items:[] }));
         
         let htmlList = "";
 
@@ -1243,12 +1259,16 @@
     if(!id || !confirm('Yakin ingin '+(action === 'approve' ? 'menyetujui' : 'menolak')+' pengajuan nonaktif ini?')) return;
     const adminNote = action === 'reject' ? (prompt('Catatan penolakan (opsional):') || '') : '';
     try{
+      btn.disabled = true;
       const res = await fetch('/api/membership/admin/requests/' + encodeURIComponent(id) + '/respond', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, adminNote})});
-      const data = await res.json().catch(()=>({}));
+      const text = await res.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; } catch (_) { data = {}; }
       if(!res.ok || data.ok === false) throw new Error(data.message || 'Aksi gagal diproses.');
       await window.loadPrioritasHariIni();
       if(typeof renderNotifications === 'function') await renderNotifications();
     }catch(err){ alert(err.message || 'Aksi gagal diproses.'); }
+    finally { btn.disabled = false; }
   });
   window.loadPrioritasHariIni();
 })();

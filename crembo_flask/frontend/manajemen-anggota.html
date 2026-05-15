@@ -1008,25 +1008,21 @@
     }
 
     function loadMembers() {
-      // Try server-injected data first (Jinja2)
+      // Data anggota harus selalu diambil dari API supaya perubahan approve/reject
+      // status nonaktif langsung terlihat tanpa refresh dan tidak tertimpa
+      // window.CREMBO_MEMBER_ROWS yang hanya snapshot awal halaman.
       const serverRows = Array.isArray(window.CREMBO_MEMBER_ROWS) ? window.CREMBO_MEMBER_ROWS : [];
-      if (serverRows.length > 0) {
-        members = serverRows.map(normalizeMember);
-        return Promise.resolve();
-      }
-      // If no server rows injected, fetch from API
-      return fetch("/api/anggota")
+      return fetch("/api/anggota", { credentials: "same-origin" })
         .then(function(res) { return res.json(); })
         .then(function(data) {
           if (data.ok && Array.isArray(data.members)) {
             members = data.members.map(normalizeMember);
             return;
           }
-          members = [];
+          members = serverRows.length > 0 ? serverRows.map(normalizeMember) : [];
         })
         .catch(function() {
-          // On API error, just show empty
-          members = [];
+          members = serverRows.length > 0 ? serverRows.map(normalizeMember) : [];
         });
     }
 
@@ -1892,7 +1888,9 @@
       const data = await res.json();
       if(!res.ok || data.ok === false) throw new Error(data.message || 'Aksi gagal diproses.');
       showNotify(data.message || 'Pengajuan berhasil diproses.');
-      await Promise.all([loadMembershipRequests(), loadMembers().then(renderMemberTable)]);
+      await loadMembershipRequests();
+      await loadMembers();
+      renderAll();
     }catch(err){ showNotify(err.message || 'Aksi gagal diproses.'); }
   }
   function openEvidence(url, name){

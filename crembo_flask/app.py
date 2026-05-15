@@ -5736,7 +5736,34 @@ def api_membership_admin_respond(request_id):
             today = datetime.now().date()
             start_date = req.get("start_date")
             return_date = req.get("return_date")
-            if start_date and start_date <= today and (not return_date or return_date > today):
+            inactive_type = normalize_text(req.get("inactive_type")).lower() or "permanent"
+
+            # Jika pengajuan sudah disetujui, status anggota harus sinkron dari endpoint yang sama
+            # baik diproses lewat Dashboard Admin maupun lewat Manajemen Anggota.
+            # Untuk request berjangka yang tanggal aktif kembalinya sudah lewat/sama hari ini,
+            # akun langsung dianggap aktif kembali; selain itu akun menjadi nonaktif.
+            already_finished = bool(inactive_type == "temporary" and return_date and return_date <= today)
+            if already_finished:
+                cursor.execute(
+                    """
+                    UPDATE anggota
+                    SET status_akun='aktif', inactive_from=NULL, inactive_until=NULL, inactive_type=NULL,
+                        inactive_reason=NULL, inactive_note=NULL
+                    WHERE id=%s
+                    """,
+                    (member_id,),
+                )
+                cursor.execute(
+                    """
+                    UPDATE membership_status_requests
+                    SET applied_at = COALESCE(applied_at, CURRENT_TIMESTAMP),
+                        manual_reactivated_at = COALESCE(manual_reactivated_at, CURRENT_TIMESTAMP),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    """,
+                    (request_id,),
+                )
+            else:
                 cursor.execute(
                     """
                     UPDATE anggota
@@ -5744,7 +5771,7 @@ def api_membership_admin_respond(request_id):
                         inactive_reason=%s, inactive_note=%s
                     WHERE id=%s
                     """,
-                    (req.get("start_date"), req.get("return_date"), req.get("inactive_type"), req.get("reason"), req.get("note"), member_id),
+                    (start_date or today, return_date, inactive_type, req.get("reason"), req.get("note"), member_id),
                 )
                 cursor.execute(
                     """
@@ -5776,7 +5803,26 @@ def api_membership_admin_respond(request_id):
                 dedupe_key=f"membership-rejected-{request_id}",
             )
         conn.commit()
-        return jsonify({"ok": True, "message": "Pengajuan berhasil diproses."})
+        updated_member = None
+        if member_id:
+            fresh_conn = mysql_connection()
+            fresh_cursor = fresh_conn.cursor(dictionary=True)
+            try:
+                fresh_cursor.execute(
+                    """
+                    SELECT id, nama, username, telp, password, role, tgl_lahir, email, alamat,
+                           status_akun, inactive_until, inactive_from, inactive_type, inactive_reason, inactive_note,
+                           created_at, updated_at
+                    FROM anggota WHERE id = %s LIMIT 1
+                    """,
+                    (member_id,),
+                )
+                updated_row = fresh_cursor.fetchone()
+                updated_member = member_row_to_dict(updated_row) if updated_row else None
+            finally:
+                fresh_cursor.close()
+                fresh_conn.close()
+        return jsonify({"ok": True, "message": "Pengajuan berhasil diproses.", "member": updated_member})
     except Exception as exc:
         conn.rollback()
         return jsonify({"ok": False, "message": str(exc)}), 400
