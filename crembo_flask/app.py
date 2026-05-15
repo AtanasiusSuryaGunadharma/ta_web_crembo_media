@@ -3163,6 +3163,200 @@ def get_notifications():
         conn.close()
 
 
+def dashboard_period_bounds(range_value: str) -> tuple[object, object]:
+    """Return inclusive start/end dates for dashboard range."""
+    now = datetime.now()
+    mode = normalize_text(range_value).lower() or "month"
+    if mode == "year":
+        return datetime(now.year, 1, 1).date(), datetime(now.year, 12, 31).date()
+    if mode == "week":
+        start_dt = now - timedelta(days=now.weekday())
+        start = datetime(start_dt.year, start_dt.month, start_dt.day).date()
+        return start, start + timedelta(days=6)
+    start = datetime(now.year, now.month, 1).date()
+    end = datetime(now.year, now.month, calendar.monthrange(now.year, now.month)[1]).date()
+    return start, end
+
+
+def dashboard_series_template(range_value: str) -> tuple[list[str], list[object]]:
+    now = datetime.now()
+    mode = normalize_text(range_value).lower() or "month"
+    month_names = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
+    if mode == "year":
+        labels = month_names[:]
+        keys = [(now.year, month) for month in range(1, 13)]
+        return labels, keys
+    if mode == "week":
+        start, _ = dashboard_period_bounds("week")
+        labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]
+        keys = [(start + timedelta(days=idx)).isoformat() for idx in range(7)]
+        return labels, keys
+    start, end = dashboard_period_bounds("month")
+    labels = []
+    keys = []
+    total_days = end.day
+    for day in range(1, total_days + 1):
+        labels.append(str(day) if day == 1 or day == total_days or day % 3 == 0 else "")
+        keys.append(datetime(now.year, now.month, day).date().isoformat())
+    return labels, keys
+
+
+def dashboard_count_schedules_by_range(cursor, range_value: str) -> int:
+    start, end = dashboard_period_bounds(range_value)
+    schedules = eval_all_schedules(cursor, start, end, "all")
+    return len(schedules)
+
+
+def dashboard_schedule_series(cursor, range_value: str) -> dict[str, object]:
+    mode = normalize_text(range_value).lower() or "month"
+    start, end = dashboard_period_bounds(mode)
+    labels, keys = dashboard_series_template(mode)
+    counts = {key: 0 for key in keys}
+    schedules = eval_all_schedules(cursor, start, end, "all")
+    for item in schedules:
+        date_text = normalize_text(item.get("date"))
+        if not date_text:
+            continue
+        if mode == "year":
+            try:
+                parsed = datetime.strptime(date_text, "%Y-%m-%d")
+                key = (parsed.year, parsed.month)
+            except Exception:
+                continue
+        else:
+            key = date_text
+        if key in counts:
+            counts[key] += 1
+    return {"range": mode, "labels": labels, "values": [counts.get(key, 0) for key in keys]}
+
+
+def dashboard_loan_series(cursor, range_value: str) -> dict[str, object]:
+    mode = normalize_text(range_value).lower() or "year"
+    start, end = dashboard_period_bounds(mode)
+    labels, keys = dashboard_series_template(mode)
+    counts = {key: 0 for key in keys}
+    cursor.execute(
+        """
+        SELECT DATE(COALESCE(`tanggal_pengajuan`, `created_at`)) AS item_date, COUNT(*) AS total
+        FROM `loan_requests`
+        WHERE DATE(COALESCE(`tanggal_pengajuan`, `created_at`)) BETWEEN %s AND %s
+        GROUP BY DATE(COALESCE(`tanggal_pengajuan`, `created_at`))
+        """,
+        (start.isoformat(), end.isoformat()),
+    )
+    for row in cursor.fetchall() or []:
+        raw_date = row.get("item_date") if isinstance(row, dict) else None
+        date_text = raw_date.isoformat() if hasattr(raw_date, "isoformat") else normalize_text(raw_date)
+        if not date_text:
+            continue
+        if mode == "year":
+            try:
+                parsed = datetime.strptime(date_text, "%Y-%m-%d")
+                key = (parsed.year, parsed.month)
+            except Exception:
+                continue
+        else:
+            key = date_text
+        if key in counts:
+            counts[key] = int(row.get("total") or 0)
+    return {"range": mode, "labels": labels, "values": [counts.get(key, 0) for key in keys]}
+
+
+def dashboard_pending_evaluation_count(cursor) -> int:
+    now = datetime.now()
+    start, end = dashboard_period_bounds("month")
+    schedules = eval_all_schedules(cursor, start, end, "all")
+    evaluation_map = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+    pending = 0
+    for schedule in schedules:
+        schedule_dt = eval_datetime_from_parts(schedule.get("date"), schedule.get("time"))
+        if not schedule_dt or schedule_dt > now:
+            continue
+        if not eval_schedule_has_staff(schedule):
+            continue
+        key = (normalize_text(schedule.get("kind")), normalize_text(schedule.get("scheduleKey")))
+        if key not in evaluation_map:
+            pending += 1
+    return pending
+
+
+@app.route("/api/dashboard/admin-overview", methods=["GET"])
+def api_dashboard_admin_overview():
+    role = normalize_role_value(session.get("role") or "")
+    if not session.get("logged_in") or role not in {"admin", "super_admin"}:
+        return jsonify({"success": False, "error": "Akses ditolak."}), 403
+
+    metric_range = normalize_text(request.args.get("scheduleRange") or "week")
+    schedule_chart_range = normalize_text(request.args.get("scheduleChartRange") or "week")
+    loan_chart_range = normalize_text(request.args.get("loanChartRange") or "year")
+    if metric_range not in {"week", "month", "year"}:
+        metric_range = "week"
+    if schedule_chart_range not in {"week", "month", "year"}:
+        schedule_chart_range = "week"
+    if loan_chart_range not in {"week", "month", "year"}:
+        loan_chart_range = "year"
+
+    # Beberapa ensure_* memakai koneksi sendiri, jadi jalankan sebelum query utama.
+    ensure_agenda_schema()
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_loan_schema(cursor)
+        ensure_activity_log_schema(cursor)
+        ensure_streaming_evaluation_schema(cursor)
+        conn.commit()
+
+        schedule_total = dashboard_count_schedules_by_range(cursor, metric_range)
+        schedule_chart = dashboard_schedule_series(cursor, schedule_chart_range)
+        loan_chart = dashboard_loan_series(cursor, loan_chart_range)
+
+        cursor.execute("SELECT COUNT(*) AS total FROM `loan_requests` WHERE `status` = 'pending'")
+        loan_pending = int(fetch_scalar_value(cursor.fetchone(), 0) or 0)
+
+        evaluation_pending = dashboard_pending_evaluation_count(cursor)
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM `agendas`
+            WHERE LOWER(COALESCE(`status`, 'active')) = 'active'
+              AND COALESCE(`end_date`, `start_date`) >= CURDATE()
+            """
+        )
+        agenda_active = int(fetch_scalar_value(cursor.fetchone(), 0) or 0)
+
+        scope_sql, scope_params = activity_scope_where("l")
+        cursor.execute(
+            f"""
+            SELECT l.*
+            FROM `activity_logs` l
+            WHERE {scope_sql}
+            ORDER BY l.`created_at` DESC, l.`id` DESC
+            LIMIT 5
+            """,
+            tuple(scope_params),
+        )
+        logs = [activity_log_row_to_dict(row) for row in cursor.fetchall() or []]
+
+        return jsonify({
+            "success": True,
+            "metrics": {
+                "schedule": {"range": metric_range, "total": schedule_total},
+                "loanPending": loan_pending,
+                "evaluationPending": evaluation_pending,
+                "agendaActive": agenda_active,
+            },
+            "scheduleChart": schedule_chart,
+            "loanChart": loan_chart,
+            "logs": logs,
+            "currentUser": current_user_context(),
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route("/api/notifications/<notif_id>/mark_read", methods=["POST"])
 def mark_notification_read(notif_id):
     ensure_notifications_schema()

@@ -899,6 +899,52 @@
       flex-wrap: wrap;
     }
 
+    .notification-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px;
+      border-top: 1px solid #dbe2ef;
+      background: #fff;
+    }
+
+    .notification-pagination-info {
+      font-size: 0.82rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .notification-page-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .notification-page-btn {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #1f2937;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .notification-page-btn:hover:not(:disabled) {
+      background: #f3f4f6;
+      border-color: #1f2937;
+    }
+
+    .notification-page-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
     .mobile-menu {
       display: none;
       border: 1px solid #cbd5e1;
@@ -1259,7 +1305,6 @@
               <option value="news">Notifikasi Pengumuman</option>
               <option value="keanggotaan">Notifikasi Status Keanggotaan</option>
               <option value="evaluasi">Notifikasi Evaluasi Streaming</option>
-            <option value="evaluasi">Notifikasi Evaluasi Streaming</option>
             </select>
             <select id="notificationStatusFilter" aria-label="Filter status notifikasi">
               <option value="all">Semua Status</option>
@@ -1268,6 +1313,7 @@
             </select>
           </div>
           <div id="notificationList" class="notification-list"></div>
+          <div id="notificationPagination" class="notification-pagination" hidden></div>
         </section>
       </div>
     </main>
@@ -1361,7 +1407,9 @@
     const notificationTypeFilter = document.getElementById("notificationTypeFilter");
     const notificationStatusFilter = document.getElementById("notificationStatusFilter");
     const notificationList = document.getElementById("notificationList");
+    const notificationPagination = document.getElementById("notificationPagination");
     const notificationTabs = Array.from(document.querySelectorAll("[data-notif-tab]"));
+    const NOTIFICATION_PAGE_SIZE = 5;
 
     const TASK_REQUEST_STORAGE_KEY = "crembo-member-task-requests";
     const MEMBER_TASK_STORAGE_KEY = "crembo-member-registered-tasks";
@@ -1370,6 +1418,7 @@
     let taskFilterMonth = "04";
     let taskFilterYear = "2026";
     let notificationTab = "all";
+    let notificationPage = 1;
 
     function titleByRange(range) {
       if (range === "week") {
@@ -1433,7 +1482,7 @@
 
     async function fetchNotifications() {
       try {
-        const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+        const res = await fetch('/api/notifications?limit=200', { credentials: 'same-origin' });
         if (!res.ok) throw new Error('Gagal memuat notifikasi');
         const data = await res.json();
         return Array.isArray(data) ? data : [];
@@ -1470,6 +1519,24 @@
       return "Notifikasi";
     }
 
+    function renderNotificationPagination(totalItems, totalPages) {
+      if (!notificationPagination) return;
+      if (!totalItems || totalItems <= NOTIFICATION_PAGE_SIZE) {
+        notificationPagination.hidden = true;
+        notificationPagination.innerHTML = "";
+        return;
+      }
+      notificationPagination.hidden = false;
+      const start = (notificationPage - 1) * NOTIFICATION_PAGE_SIZE + 1;
+      const end = Math.min(totalItems, notificationPage * NOTIFICATION_PAGE_SIZE);
+      notificationPagination.innerHTML = '<span class="notification-pagination-info">Menampilkan ' + start + '-' + end + ' dari ' + totalItems + ' notifikasi</span>'
+        + '<div class="notification-page-actions">'
+        + '<button class="notification-page-btn" type="button" data-notif-page="prev"' + (notificationPage <= 1 ? ' disabled' : '') + '>Sebelumnya</button>'
+        + '<span class="notification-pagination-info">Halaman ' + notificationPage + ' / ' + totalPages + '</span>'
+        + '<button class="notification-page-btn" type="button" data-notif-page="next"' + (notificationPage >= totalPages ? ' disabled' : '') + '>Berikutnya</button>'
+        + '</div>';
+    }
+
     async function renderNotifications() {
       const keyword = String(notificationSearch.value || "").trim().toLowerCase();
       const typeFilter = notificationTypeFilter.value;
@@ -1477,44 +1544,41 @@
       const items = await fetchNotifications();
 
       const filtered = items.filter(function (item) {
-        if (!notificationBelongsToCurrentUser(item)) {
-          return false;
-        }
+        if (!notificationBelongsToCurrentUser(item)) return false;
         if (item.data && item.data.target_user_id) {
-            if (String(item.data.target_user_id) !== String(sessionUser.user_id)) {
-                return false; 
-            }
+          if (String(item.data.target_user_id) !== String(sessionUser.user_id)) return false;
         }
 
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
         const itemStatus = item.read ? "read" : "unread";
         const matchesStatus = statusFilter === "all" || itemStatus === statusFilter;
-        
         const text = [item.title, item.body, notificationTypeLabel(item.type), item.createdAt].join(" ").toLowerCase();
         const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
-        
         return matchesTab && matchesType && matchesStatus && matchesKeyword;
       });
 
-      // Show the number of unread notifications within the filtered panel
       const unreadInPanel = filtered.filter(function (it) { return !it.read; }).length;
       notificationCount.textContent = String(unreadInPanel);
-      if (notificationCountChip) {
-        notificationCountChip.textContent = String(unreadInPanel);
-      }
+      if (notificationCountChip) notificationCountChip.textContent = String(unreadInPanel);
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / NOTIFICATION_PAGE_SIZE));
+      if (notificationPage > totalPages) notificationPage = totalPages;
+      if (notificationPage < 1) notificationPage = 1;
 
       if (!filtered.length) {
         notificationList.innerHTML = '<div class="empty">Tidak ada notifikasi sesuai filter.</div>';
+        renderNotificationPagination(0, 1);
         return;
       }
 
-      notificationList.innerHTML = filtered.map(function (item) {
+      const pageItems = filtered.slice((notificationPage - 1) * NOTIFICATION_PAGE_SIZE, notificationPage * NOTIFICATION_PAGE_SIZE);
+      notificationList.innerHTML = pageItems.map(function (item) {
         const isUnread = !item.read;
         const badgeClass = isUnread ? 'status-warn' : 'status-ok';
         const openClass = isUnread ? ' unread' : '';
         const dateText = item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '';
-        
+
         return '<article class="notification-item' + openClass + '">'
           + '<div class="notification-top">'
           + '<div>'
@@ -1531,24 +1595,19 @@
           + '</div>'
           + '</article>';
       }).join('');
+      renderNotificationPagination(filtered.length, totalPages);
 
       Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
-        btn.addEventListener('click', async function(e) {
+        btn.addEventListener('click', async function() {
           const action = btn.getAttribute('data-notif-action');
           const nid = btn.getAttribute('data-notif-id');
           if (action === 'open') {
             const url = btn.getAttribute('data-notif-url') || '';
-            try {
-              await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' });
-            } catch (e) {}
-            if (url) { 
-              window.open(url, '_blank'); 
-            }
-            else { renderNotifications(); }
+            try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
+            if (url) window.open(url, '_blank');
+            else renderNotifications();
           } else if (action === 'toggle') {
-            try {
-              await fetch('/api/notifications/' + encodeURIComponent(nid) + '/toggle_read', { method: 'POST', credentials: 'same-origin' });
-            } catch (e) {}
+            try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/toggle_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
             renderNotifications();
           }
         });
@@ -1615,6 +1674,7 @@
 
     function activateNotificationTab(tabValue) {
       notificationTab = tabValue || "all";
+      notificationPage = 1;
       notificationTabs.forEach(function (tabButton) {
         tabButton.classList.toggle("active", tabButton.getAttribute("data-notif-tab") === notificationTab);
       });
@@ -1944,12 +2004,22 @@
       notificationPanel.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
-    notificationSearch.addEventListener("input", renderNotifications);
+    notificationSearch.addEventListener("input", function () { notificationPage = 1; renderNotifications(); });
     notificationTypeFilter.addEventListener("change", function (event) {
+      notificationPage = 1;
       activateNotificationTab(event.target.value === "all" ? "all" : event.target.value);
       notificationTypeFilter.value = event.target.value;
     });
-    notificationStatusFilter.addEventListener("change", renderNotifications);
+    notificationStatusFilter.addEventListener("change", function () { notificationPage = 1; renderNotifications(); });
+    if (notificationPagination) {
+      notificationPagination.addEventListener("click", function (event) {
+        const btn = event.target.closest('[data-notif-page]');
+        if (!btn || btn.disabled) return;
+        const action = btn.getAttribute('data-notif-page');
+        notificationPage += action === 'next' ? 1 : -1;
+        renderNotifications();
+      });
+    }
     notificationTabs.forEach(function (tabButton) {
       tabButton.addEventListener("click", function () {
         const tabValue = tabButton.getAttribute("data-notif-tab") || "all";

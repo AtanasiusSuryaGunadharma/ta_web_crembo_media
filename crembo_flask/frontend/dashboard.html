@@ -179,6 +179,8 @@
     .mini-btn.ghost{border:1.5px solid var(--line);background:#fff;color:var(--primary);}
     .mini-btn.ghost:hover{border-color:var(--primary);background:rgba(128,0,0,0.04);}
     .notification-empty{border:1px dashed var(--line);border-radius:var(--radius-sm);padding:14px;font-size:0.84rem;color:var(--muted);background:#fff;text-align:center;}
+    .notification-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-top:1px solid var(--line-soft);flex-wrap:wrap;}
+    .notification-pager-info{font-size:0.8rem;color:var(--muted);font-weight:600;}
 
     .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(12,18,32,0.36);backdrop-filter:blur(1px);z-index:25;}
     .sidebar-backdrop.show{display:block;}
@@ -338,15 +340,15 @@
         </article>
         <article class="metric">
           <p>Permintaan peminjaman</p>
-          <h3>6</h3>
+          <h3 id="metricLoanValue">-</h3>
         </article>
         <article class="metric">
           <p>Evaluasi belum diisi</p>
-          <h3>3</h3>
+          <h3 id="metricEvalValue">-</h3>
         </article>
         <article class="metric">
           <p>Agenda aktif</p>
-          <h3>4</h3>
+          <h3 id="metricAgendaValue">-</h3>
         </article>
       </section>
 
@@ -485,6 +487,7 @@
           </select>
         </div>
         <div id="notificationList" class="notification-list"></div>
+        <div id="notificationPager" class="notification-pager"></div>
       </section>
     </main>
   </div>
@@ -539,6 +542,8 @@
     const notificationList = document.getElementById("notificationList");
     const notificationTabs = Array.from(document.querySelectorAll("[data-admin-notif-tab]"));
     let notificationTab = "all";
+    let notificationPage = 1;
+    const notificationPerPage = 10;
 
     function escapeHtml(text) {
       return String(text || "")
@@ -820,80 +825,79 @@
       const typeFilter = notificationTypeFilter.value;
       const statusFilter = notificationStatusFilter.value;
       const items = await fetchNotifications();
-      
-      // PERBAIKAN: Ambil ID admin yang sedang login
       const currentUserId = window.CREMBO_CURRENT_USER ? String(window.CREMBO_CURRENT_USER.user_id) : "";
 
       const filtered = items.filter(function (item) {
-        // PERBAIKAN: Jangan tampilkan notif penugasan personal jika bukan untuk dirinya sendiri
         if (item.data && item.data.target_user_id) {
-            if (String(item.data.target_user_id) !== currentUserId) {
-                return false; 
-            }
+            if (String(item.data.target_user_id) !== currentUserId) return false;
         }
-
         const matchesTab = notificationTab === "all" || item.type === notificationTab;
         const matchesType = typeFilter === "all" || item.type === typeFilter;
         const itemStatus = item.read ? "read" : "unread";
         const matchesStatus = statusFilter === "all" || itemStatus === statusFilter;
-        
         const text = [item.title, item.body, notificationTypeLabel(item.type), item.createdAt].join(" ").toLowerCase();
         const matchesKeyword = !keyword || text.indexOf(keyword) !== -1;
-        
         return matchesTab && matchesType && matchesStatus && matchesKeyword;
       });
 
-      // Show the number of unread notifications within the filtered panel
       const unreadInPanel = filtered.filter(function (it) { return !it.read; }).length;
       notificationCount.textContent = String(unreadInPanel);
 
-      if (!filtered.length) {
+      const total = filtered.length;
+      const maxPage = Math.max(1, Math.ceil(total / notificationPerPage));
+      if (notificationPage > maxPage) notificationPage = maxPage;
+      const start = (notificationPage - 1) * notificationPerPage;
+      const paginated = filtered.slice(start, start + notificationPerPage);
+
+      if (!paginated.length) {
         notificationList.innerHTML = '<div class="notification-empty">Tidak ada notifikasi sesuai filter.</div>';
+        document.getElementById('notificationPager').innerHTML = '';
         return;
       }
 
-      notificationList.innerHTML = filtered.map(function (item) {
+      notificationList.innerHTML = paginated.map(function (item) {
         const isUnread = !item.read;
-        const badgeClass = isUnread ? 'status' : 'status';
         const badgeLabel = isUnread ? 'Baru' : 'Dibaca';
         const openClass = isUnread ? ' unread' : '';
         const dateText = item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '';
-        
         return '<article class="notification-item' + openClass + '">'
-          + '<div class="notification-top">'
-          + '<div>'
-          + '<h4>' + (item.title || '') + '</h4>'
-          + '<small>' + notificationTypeLabel(item.type) + '</small>'
-          + '</div>'
-          + '<span class="' + badgeClass + '">' + badgeLabel + '</span>'
-          + '</div>'
+          + '<div class="notification-top"><div><h4>' + (item.title || '') + '</h4><small>' + notificationTypeLabel(item.type) + '</small></div>'
+          + '<span class="status">' + badgeLabel + '</span></div>'
           + '<div>' + (item.body || '') + '</div>'
           + '<div class="notification-meta"><span>' + dateText + '</span></div>'
           + '<div class="notification-actions">'
           + '<button class="mini-btn ghost" type="button" data-notif-action="open" data-notif-id="' + (item.id || '') + '" data-notif-url="' + (item.url || '') + '">Buka</button>'
           + '<button class="mini-btn ghost" type="button" data-notif-action="toggle" data-notif-id="' + (item.id || '') + '">' + (isUnread ? 'Tandai Dibaca' : 'Tandai Baru') + '</button>'
-          + '</div>'
-          + '</article>';
+          + '</div></article>';
       }).join("");
 
       Array.from(notificationList.querySelectorAll('[data-notif-action]')).forEach(function(btn) {
-        btn.addEventListener('click', async function(e) {
+        btn.addEventListener('click', async function() {
           const action = btn.getAttribute('data-notif-action');
           const nid = btn.getAttribute('data-notif-id');
           if (action === 'open') {
             const url = btn.getAttribute('data-notif-url') || '';
             try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/mark_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
-            if (url) { 
-              window.open(url, '_blank'); 
-            } else { 
-              renderNotifications(); 
-            }
+            if (url) window.open(url, '_blank'); else renderNotifications();
           } else if (action === 'toggle') {
             try { await fetch('/api/notifications/' + encodeURIComponent(nid) + '/toggle_read', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
             renderNotifications();
           }
         });
       });
+
+      const pager = document.getElementById('notificationPager');
+      if (total <= notificationPerPage) {
+        pager.innerHTML = total > 0 ? '<span class="notification-pager-info">' + total + ' notifikasi ditemukan</span>' : '';
+      } else {
+        pager.innerHTML = '<button class="mini-btn ghost" type="button" id="prevNotif" ' + (notificationPage <= 1 ? 'disabled' : '') + '>← Sebelumnya</button>'
+          + '<span class="notification-pager-info">Halaman ' + notificationPage + ' dari ' + maxPage + ' · ' + total + ' notifikasi</span>'
+          + '<button class="mini-btn ghost" type="button" id="nextNotif" ' + (notificationPage >= maxPage ? 'disabled' : '') + '>Berikutnya →</button>';
+        const prevBtn = document.getElementById('prevNotif');
+        const nextBtn = document.getElementById('nextNotif');
+        if (prevBtn) prevBtn.addEventListener('click', function() { if (notificationPage > 1) { notificationPage--; renderNotifications(); } });
+        if (nextBtn) nextBtn.addEventListener('click', function() { if (notificationPage < maxPage) { notificationPage++; renderNotifications(); } });
+      }
     }
 
     function activateNotificationTab(tabValue) {
@@ -950,16 +954,28 @@
       }
     }
 
-    function renderLogs(currentRole) {
-      if (currentRole !== "super_admin") return;
-
-      const extra = document.createElement("tr");
-      extra.innerHTML = "<td data-label='Waktu'>15:05</td><td data-label='Pengguna'>admin_maria</td><td data-label='Modul'>Anggota</td><td data-label='Aktivitas'>Mengubah status anggota menjadi aktif</td>";
-      logRows.appendChild(extra);
-
-      const extra2 = document.createElement("tr");
-      extra2.innerHTML = "<td data-label='Waktu'>16:40</td><td data-label='Pengguna'>super_admin_lia</td><td data-label='Modul'>Log Sistem</td><td data-label='Aktivitas'>Mengekspor audit aktivitas bulanan</td>";
-      logRows.appendChild(extra2);
+    async function renderLogs(currentRole) {
+      logRows.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:0.82rem;">Memuat aktivitas terbaru...</td></tr>';
+      try {
+        const res = await fetch('/api/activity-logs?limit=10&per_page=10&sort=newest', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('Gagal');
+        const data = await res.json();
+        const logs = Array.isArray(data.logs) ? data.logs : [];
+        if (!logs.length) {
+          logRows.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:0.82rem;">Belum ada aktivitas tercatat.</td></tr>';
+          return;
+        }
+        logRows.innerHTML = logs.slice(0, 5).map(function(log) {
+          const t = log.createdAt ? new Date(log.createdAt) : null;
+          const timeStr = t ? String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0') : '-';
+          const name = escapeHtml(log.actorName || log.actorUsername || '-');
+          const mod = escapeHtml(log.module || '-');
+          const desc = escapeHtml(log.description || '-');
+          return '<tr><td data-label="Waktu">' + timeStr + '</td><td data-label="Pengguna">' + name + '</td><td data-label="Modul">' + mod + '</td><td data-label="Aktivitas">' + desc + '</td></tr>';
+        }).join('');
+      } catch(e) {
+        logRows.innerHTML = '<tr><td colspan="4" style="color:var(--muted);">Gagal memuat aktivitas.</td></tr>';
+      }
     }
 
     roleBadge.textContent = "Role: " + formatRole(role);
@@ -969,6 +985,111 @@
       logActivityLink.href = "log-aktivitas.html?" + query.toString();
     }
     
+    // ===== Dashboard Metrics dari API =====
+    async function loadDashboardMetrics() {
+      async function safeGet(url, fallback) {
+        try { const r = await fetch(url, {credentials:'same-origin'}); return r.ok ? await r.json() : fallback; }
+        catch(e) { return fallback; }
+      }
+
+      // Metric: Peminjaman pending
+      safeGet('/api/pengajuan', {success:false,items:[]}).then(function(d) {
+        const pending = (d.items||[]).filter(function(i){return i.status==='pending';}).length;
+        const el = document.getElementById('metricLoanValue');
+        if (el) el.textContent = String(pending);
+      });
+
+      // Metric: Evaluasi belum diisi (ambil dari admin results)
+      safeGet('/api/evaluasi-streaming/admin/results', {success:false,metrics:{}}).then(function(d) {
+        const val = (d.metrics && d.metrics.missed != null) ? d.metrics.missed : '-';
+        const el = document.getElementById('metricEvalValue');
+        if (el) el.textContent = String(val);
+      });
+
+      // Metric: Agenda aktif
+      safeGet('/api/agendas', []).then(function(d) {
+        const list = Array.isArray(d) ? d : (d.items || []);
+        const el = document.getElementById('metricAgendaValue');
+        if (el) el.textContent = String(list.length);
+      });
+    }
+
+    // ===== Grafik Jadwal dari API real =====
+    async function fetchScheduleCount(range) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      try {
+        const res = await fetch('/api/streaming/schedule?month=' + month + '&year=' + year, {credentials:'same-origin'});
+        if (!res.ok) return null;
+        const data = await res.json();
+        const schedule = Array.isArray(data.schedule) ? data.schedule : [];
+        if (range === 'week') {
+          const dayStart = new Date(now); dayStart.setDate(now.getDate() - now.getDay() + 1);
+          const dayEnd = new Date(dayStart); dayEnd.setDate(dayStart.getDate() + 6);
+          const ds = dayStart.toISOString().slice(0,10); const de = dayEnd.toISOString().slice(0,10);
+          return schedule.filter(function(s){return s.date >= ds && s.date <= de;}).length;
+        }
+        if (range === 'month') return schedule.length;
+        return schedule.length; // year: bisa di-extend nanti
+      } catch(e) { return null; }
+    }
+
+    async function renderScheduleMetricReal() {
+      const range = metricScheduleRange.value;
+      const series = buildScheduleSeries(range);
+      const total = series.values.reduce(function(s,v){return s+v;},0);
+      metricScheduleLabel.textContent = 'Jadwal ' + titleByRange(range);
+      const apiCount = await fetchScheduleCount(range);
+      metricScheduleValue.textContent = String(apiCount != null ? apiCount : total);
+    }
+
+    // ===== Grafik Peminjaman dari API =====
+    async function buildBorrowingSeriesReal(range) {
+      const now = new Date(); const year = now.getFullYear(); const month = now.getMonth() + 1;
+      const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      try {
+        const res = await fetch('/api/pengajuan', {credentials:'same-origin'});
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (range === 'year') {
+          const counts = new Array(12).fill(0);
+          items.forEach(function(item){
+            const d = new Date(item.createdAt || item.tanggalPengajuan || '');
+            if (!isNaN(d) && d.getFullYear() === year) counts[d.getMonth()]++;
+          });
+          return { labels: monthNames, values: counts };
+        }
+        if (range === 'month') {
+          const days = new Date(year, month, 0).getDate();
+          const counts = new Array(days).fill(0);
+          items.forEach(function(item){
+            const d = new Date(item.createdAt || item.tanggalPengajuan || '');
+            if (!isNaN(d) && d.getFullYear()===year && d.getMonth()+1===month) counts[d.getDate()-1]++;
+          });
+          const labels = Array.from({length:days},function(_,i){return (i===0||i===days-1||i%3===0)?String(i+1):'';});
+          return { labels: labels, values: counts };
+        }
+        // week
+        const dayNames = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+        const counts = [0,0,0,0,0,0,0];
+        const dayStart = new Date(now); dayStart.setDate(now.getDate()-now.getDay()+1);
+        items.forEach(function(item){
+          const d = new Date(item.createdAt || item.tanggalPengajuan || '');
+          if (!isNaN(d)) { const diff = Math.floor((d - dayStart)/(86400000)); if (diff>=0&&diff<7) counts[diff]++; }
+        });
+        return { labels: dayNames, values: counts };
+      } catch(e) { return buildBorrowingSeries(range); }
+    }
+
+    async function renderBorrowingChartReal() {
+      const range = peminjamanChartRange.value;
+      const series = await buildBorrowingSeriesReal(range);
+      peminjamanChartTitle.textContent = 'Grafik Peminjaman ' + titleByRange(range);
+      renderLineChart('peminjamanChart', series.labels, series.values, '#6a6a6a');
+    }
+
     // Inisialisasi
     renderMemberMenu(role);
     renderContentMenu(role);
@@ -977,6 +1098,7 @@
     applyMenuAccessByPermission();
     renderNotifications();
     loadPrioritasHariIni();
+    loadDashboardMetrics();
 
     function updateLiveDateTime() {
       const now = new Date();
@@ -1174,26 +1296,28 @@
       renderLineChart("peminjamanChart", series.labels, series.values, "#6a6a6a");
     }
 
-    renderScheduleMetric();
+    renderScheduleMetricReal();
     renderScheduleChart();
-    renderBorrowingChart();
+    renderBorrowingChartReal();
 
-    metricScheduleRange.addEventListener("change", renderScheduleMetric);
+    metricScheduleRange.addEventListener("change", renderScheduleMetricReal);
     jadwalChartRange.addEventListener("change", renderScheduleChart);
-    peminjamanChartRange.addEventListener("change", renderBorrowingChart);
+    peminjamanChartRange.addEventListener("change", renderBorrowingChartReal);
 
     notificationBtn.addEventListener("click", function () {
       notificationPanel.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
-    notificationSearch.addEventListener("input", renderNotifications);
+    notificationSearch.addEventListener("input", function(){ notificationPage=1; renderNotifications(); });
     notificationTypeFilter.addEventListener("change", function (event) {
+      notificationPage = 1;
       activateNotificationTab(event.target.value === "all" ? "all" : event.target.value);
       notificationTypeFilter.value = event.target.value;
     });
-    notificationStatusFilter.addEventListener("change", renderNotifications);
+    notificationStatusFilter.addEventListener("change", function(){ notificationPage=1; renderNotifications(); });
     notificationTabs.forEach(function (tabButton) {
       tabButton.addEventListener("click", function () {
+        notificationPage = 1;
         const tabValue = tabButton.getAttribute("data-admin-notif-tab") || "all";
         notificationTypeFilter.value = tabValue === "all" ? "all" : tabValue;
         activateNotificationTab(tabValue);
