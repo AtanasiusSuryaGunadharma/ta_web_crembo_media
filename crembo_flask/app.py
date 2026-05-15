@@ -4079,6 +4079,7 @@ def is_inactive_member_page_allowed(candidate: str) -> bool:
         "profil.html",
         "unduh-sertifikat-anggota.html",
         "log-aktivitas-saya.html",
+        "log-aktivitas.html",
         "home.html",
         "login.html",
     }
@@ -5205,6 +5206,14 @@ def api_password_forgot():
         subject, text_body, html_body = build_reset_otp_email(member, reset_data["otp"], reset_data["expires_at"])
         send_email_message(email_value, normalize_text(member.get("nama")), subject, text_body, html_body)
         conn.commit()
+        record_activity_for_member(
+            member.get("id"),
+            "REQUEST",
+            "Autentikasi",
+            "Meminta kode OTP reset password",
+            "password.forgot",
+            meta={"identifier": identifier, "email": mask_email_address(email_value)},
+        )
 
         return jsonify(password_reset_response_payload(
             reset_data["reset_id"],
@@ -5398,6 +5407,13 @@ def api_password_reset():
             (now_utc(), reset_id),
         )
         conn.commit()
+        record_activity_for_member(
+            reset_row.get("member_id"),
+            "RESET",
+            "Autentikasi",
+            "Reset password berhasil melalui OTP",
+            "password.reset",
+        )
 
         return jsonify({"ok": True, "message": "Password berhasil diperbarui. Silakan login dengan password baru."})
     except Exception as exc:
@@ -5410,6 +5426,10 @@ def api_password_reset():
 
 @app.route("/logout")
 def logout():
+    try:
+        record_activity("LOGOUT", "Autentikasi", "Logout dari sistem", "logout", method="GET")
+    except Exception:
+        pass
     session.clear()
     return redirect(url_for("login"))
 
@@ -6249,6 +6269,10 @@ def render_mockup_page(page: str):
             return redirect(url_for("dashboard_anggota"))
         if candidate == "dashboard-anggota.html" and current_role != "user":
             return redirect(url_for("dashboard"))
+
+    if candidate in {"log-aktivitas.html", "log-aktivitas-saya.html"}:
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
 
     if candidate == "kelola-data-admin.html":
         if not session.get("logged_in"):
@@ -14674,6 +14698,758 @@ def api_streaming_evaluation_reminders_run():
         return jsonify({"success": False, "error": str(exc)}), 400
 
 
+
+# ===== Activity Log Backend =====
+ACTIVITY_ROLE_LABELS = {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "user": "Anggota",
+}
+
+ACTIVITY_MODULE_BY_PATH = [
+    ("/api/password", "Autentikasi"),
+    ("/login", "Autentikasi"),
+    ("/logout", "Autentikasi"),
+    ("/api/anggota", "Keanggotaan"),
+    ("/api/admin", "Keanggotaan"),
+    ("/api/membership", "Keanggotaan"),
+    ("/api/sertifikat", "Sertifikat"),
+    ("/api/streaming", "Tugas Streaming"),
+    ("/api/misa-besar", "Tugas Streaming"),
+    ("/api/request-tugas", "Request Tugas"),
+    ("/api/cancel-tugas", "Pembatalan Tugas"),
+    ("/api/task-exchanges", "Tukar Jadwal"),
+    ("/api/evaluasi-streaming", "Evaluasi Streaming"),
+    ("/api/monitoring", "Monitoring Tugas"),
+    ("/api/inventory", "Inventaris"),
+    ("/api/pengajuan", "Peminjaman"),
+    ("/api/loan", "Peminjaman"),
+    ("/api/kerusakan", "Kerusakan Barang"),
+    ("/api/news", "Pengumuman"),
+    ("/api/agenda", "Agenda"),
+    ("/api/forms", "Form Pendaftaran"),
+    ("/api/form", "Form Pendaftaran"),
+    ("/api/tentang", "Konten Website"),
+    ("/api/youtube", "Konten Website"),
+    ("/api/google", "Konten Website"),
+    ("/api/instagram", "Konten Website"),
+    ("/api/carousel", "Konten Website"),
+]
+
+def ensure_activity_log_schema(cursor=None) -> None:
+    own_conn = None
+    own_cursor = cursor
+    if own_cursor is None:
+        own_conn = mysql_connection()
+        own_cursor = own_conn.cursor()
+    own_cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `activity_logs` (
+          `id` bigint(20) NOT NULL AUTO_INCREMENT,
+          `actor_id` int(11) DEFAULT NULL,
+          `actor_name` varchar(255) DEFAULT NULL,
+          `actor_username` varchar(150) DEFAULT NULL,
+          `actor_role` varchar(50) DEFAULT NULL,
+          `action` varchar(50) NOT NULL,
+          `module` varchar(120) NOT NULL,
+          `description` text DEFAULT NULL,
+          `route` varchar(255) DEFAULT NULL,
+          `method` varchar(12) DEFAULT NULL,
+          `target_user_id` int(11) DEFAULT NULL,
+          `target_label` varchar(255) DEFAULT NULL,
+          `meta` longtext DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_activity_actor` (`actor_id`),
+          KEY `idx_activity_role` (`actor_role`),
+          KEY `idx_activity_action` (`action`),
+          KEY `idx_activity_module` (`module`),
+          KEY `idx_activity_created_at` (`created_at`),
+          KEY `idx_activity_target_user` (`target_user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """
+    )
+    for col, definition in {
+        "actor_id": "`actor_id` int(11) DEFAULT NULL",
+        "actor_name": "`actor_name` varchar(255) DEFAULT NULL",
+        "actor_username": "`actor_username` varchar(150) DEFAULT NULL",
+        "actor_role": "`actor_role` varchar(50) DEFAULT NULL",
+        "action": "`action` varchar(50) NOT NULL DEFAULT 'ACTION'",
+        "module": "`module` varchar(120) NOT NULL DEFAULT 'Sistem'",
+        "description": "`description` text DEFAULT NULL",
+        "route": "`route` varchar(255) DEFAULT NULL",
+        "method": "`method` varchar(12) DEFAULT NULL",
+        "target_user_id": "`target_user_id` int(11) DEFAULT NULL",
+        "target_label": "`target_label` varchar(255) DEFAULT NULL",
+        "meta": "`meta` longtext DEFAULT NULL",
+        "created_at": "`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    }.items():
+        ensure_column(own_cursor, "activity_logs", col, definition)
+    if own_conn is not None:
+        own_conn.commit()
+        own_cursor.close()
+        own_conn.close()
+
+def activity_role_label(role_value: str) -> str:
+    return ACTIVITY_ROLE_LABELS.get(normalize_role_value(role_value), "Anggota")
+
+def activity_current_role() -> str:
+    return normalize_role_value(session.get("role") or "user")
+
+def activity_current_user_id() -> int | None:
+    try:
+        if session.get("user_id") in (None, ""):
+            return None
+        return int(session.get("user_id"))
+    except (TypeError, ValueError):
+        return None
+
+def activity_visible_role_values(current_role: str | None = None) -> list[str]:
+    role = normalize_role_value(current_role or session.get("role") or "user")
+    if role == "super_admin":
+        return ["super_admin", "admin", "user"]
+    if role == "admin":
+        return ["admin", "user"]
+    return ["user"]
+
+def activity_scope_where(alias: str = "l") -> tuple[str, list[object]]:
+    role = activity_current_role()
+    actor_id = activity_current_user_id()
+    prefix = f"{alias}." if alias else ""
+    if role == "super_admin":
+        return "1=1", []
+    if role == "admin":
+        return f"({prefix}`actor_role` = 'user' OR {prefix}`actor_id` = %s)", [actor_id or 0]
+    return f"{prefix}`actor_id` = %s", [actor_id or 0]
+
+def activity_normalize_sort(sort_value: str) -> str:
+    raw = normalize_text(sort_value).lower()
+    if raw in {"oldest", "terlama", "date_asc", "asc"}:
+        return "oldest"
+    return "newest"
+
+def activity_month_year_defaults() -> tuple[int, int]:
+    now = datetime.now()
+    return now.month, now.year
+
+def activity_period_bounds_from_args(args) -> tuple[datetime, datetime, int | str, int]:
+    default_month, default_year = activity_month_year_defaults()
+    raw_month = normalize_text(args.get("month"))
+    raw_year = normalize_text(args.get("year"))
+    year = parse_required_int(raw_year, default_year) or default_year
+    if raw_month.lower() in {"all", "semua", "0"}:
+        start = datetime(year, 1, 1)
+        end = datetime(year + 1, 1, 1)
+        return start, end, "all", year
+    month = parse_required_int(raw_month, default_month) or default_month
+    month = min(max(month, 1), 12)
+    start = datetime(year, month, 1)
+    if month == 12:
+        end = datetime(year + 1, 1, 1)
+    else:
+        end = datetime(year, month + 1, 1)
+    return start, end, month, year
+
+def activity_module_from_path(path_value: str) -> str:
+    path_lower = normalize_text(path_value).lower()
+    for prefix, module_name in ACTIVITY_MODULE_BY_PATH:
+        if path_lower.startswith(prefix):
+            return module_name
+    return "Sistem"
+
+def activity_action_from_request(method: str, path_value: str, endpoint_name: str | None = None) -> str:
+    method = (method or "").upper()
+    path_lower = normalize_text(path_value).lower()
+    endpoint_lower = normalize_text(endpoint_name).lower()
+    if path_lower.startswith("/login") and method == "POST":
+        return "LOGIN"
+    if path_lower.startswith("/logout"):
+        return "LOGOUT"
+    if "approve" in path_lower or "setujui" in path_lower or "approve" in endpoint_lower:
+        return "APPROVE"
+    if "reject" in path_lower or "tolak" in path_lower or "reject" in endpoint_lower:
+        return "REJECT"
+    if "cancel" in path_lower or "batal" in path_lower or "cancel" in endpoint_lower:
+        return "CANCEL"
+    if "export" in path_lower or "download" in path_lower:
+        return "EXPORT"
+    if "reset" in path_lower:
+        return "RESET"
+    if method == "POST":
+        return "CREATE"
+    if method in {"PUT", "PATCH"}:
+        return "UPDATE"
+    if method == "DELETE":
+        return "DELETE"
+    return "ACCESS"
+
+def activity_description_from_request(action: str, module_name: str, path_value: str) -> str:
+    if action == "LOGIN":
+        return "Login ke sistem"
+    if action == "LOGOUT":
+        return "Logout dari sistem"
+    if action == "EXPORT":
+        return f"Mengekspor data {module_name}"
+    if action == "CREATE":
+        return f"Menambahkan atau mengirim data pada modul {module_name}"
+    if action == "UPDATE":
+        return f"Memperbarui data pada modul {module_name}"
+    if action == "DELETE":
+        return f"Menghapus data pada modul {module_name}"
+    if action == "APPROVE":
+        return f"Menyetujui data pada modul {module_name}"
+    if action == "REJECT":
+        return f"Menolak data pada modul {module_name}"
+    if action == "CANCEL":
+        return f"Membatalkan data pada modul {module_name}"
+    if action == "RESET":
+        return f"Melakukan reset pada modul {module_name}"
+    return f"Aktivitas pada modul {module_name}"
+
+def activity_log_row_to_dict(row: dict[str, object]) -> dict[str, object]:
+    created = row.get("created_at")
+    created_iso = created.isoformat() if hasattr(created, "isoformat") else normalize_text(created)
+    role_value = normalize_role_value(row.get("actor_role") or "user")
+    return {
+        "id": row.get("id"),
+        "createdAt": created_iso,
+        "timestamp": created_iso,
+        "actorId": row.get("actor_id"),
+        "actorName": row.get("actor_name") or "Pengguna",
+        "actorUsername": row.get("actor_username") or "",
+        "actorRole": role_value,
+        "actorRoleLabel": activity_role_label(role_value),
+        "action": row.get("action") or "-",
+        "module": row.get("module") or "-",
+        "description": row.get("description") or "-",
+        "route": row.get("route") or "-",
+        "method": row.get("method") or "",
+        "targetUserId": row.get("target_user_id"),
+        "targetLabel": row.get("target_label") or "",
+        "meta": safe_json_loads(row.get("meta"), {}),
+    }
+
+def insert_activity_log(
+    cursor,
+    *,
+    actor_id=None,
+    actor_name: str | None = None,
+    actor_username: str | None = None,
+    actor_role: str | None = None,
+    action: str = "ACTION",
+    module: str = "Sistem",
+    description: str = "",
+    route: str | None = None,
+    method: str | None = None,
+    target_user_id=None,
+    target_label: str | None = None,
+    meta: dict | None = None,
+):
+    ensure_activity_log_schema(cursor)
+    cursor.execute(
+        """
+        INSERT INTO `activity_logs`
+          (`actor_id`, `actor_name`, `actor_username`, `actor_role`, `action`, `module`, `description`,
+           `route`, `method`, `target_user_id`, `target_label`, `meta`)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            actor_id,
+            normalize_text(actor_name) or None,
+            normalize_text(actor_username) or None,
+            normalize_role_value(actor_role or "user"),
+            normalize_text(action).upper() or "ACTION",
+            normalize_text(module) or "Sistem",
+            normalize_text(description),
+            normalize_text(route) or None,
+            normalize_text(method).upper() or None,
+            target_user_id,
+            normalize_text(target_label) or None,
+            json.dumps(meta or {}, ensure_ascii=False),
+        ),
+    )
+
+def record_activity(
+    action: str,
+    module: str,
+    description: str,
+    route: str | None = None,
+    *,
+    method: str | None = None,
+    target_user_id=None,
+    target_label: str | None = None,
+    meta: dict | None = None,
+    actor: dict[str, object] | None = None,
+):
+    if actor is None:
+        if not session.get("logged_in"):
+            return
+        actor = {
+            "id": activity_current_user_id(),
+            "nama": session.get("nama") or session.get("username") or "Pengguna",
+            "username": session.get("username") or "",
+            "role": activity_current_role(),
+        }
+    conn = None
+    cursor = None
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor()
+        insert_activity_log(
+            cursor,
+            actor_id=actor.get("id"),
+            actor_name=actor.get("nama") or actor.get("name") or "Pengguna",
+            actor_username=actor.get("username") or "",
+            actor_role=actor.get("role") or "user",
+            action=action,
+            module=module,
+            description=description,
+            route=route,
+            method=method or (request.method if request else ""),
+            target_user_id=target_user_id,
+            target_label=target_label,
+            meta=meta,
+        )
+        conn.commit()
+    except Exception as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        print(f"[WARN] Gagal mencatat log aktivitas: {exc}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+def record_activity_for_member(member_id, action: str, module: str, description: str, route: str | None = None, *, meta: dict | None = None):
+    conn = None
+    cursor = None
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, nama, username, role FROM anggota WHERE id = %s LIMIT 1", (member_id,))
+        member = cursor.fetchone()
+        if not member:
+            return
+        insert_activity_log(
+            cursor,
+            actor_id=member.get("id"),
+            actor_name=member.get("nama") or "Pengguna",
+            actor_username=member.get("username") or "",
+            actor_role=member.get("role") or "user",
+            action=action,
+            module=module,
+            description=description,
+            route=route,
+            method=request.method if request else None,
+            meta=meta,
+        )
+        conn.commit()
+    except Exception as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        print(f"[WARN] Gagal mencatat log aktivitas member: {exc}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+def activity_should_auto_log(response) -> bool:
+    try:
+        if response.status_code >= 400:
+            return False
+        path = request.path or ""
+        if path.startswith("/static/") or path.startswith("/uploads/") or path == "/favicon.ico":
+            return False
+        if path.startswith("/api/activity-logs"):
+            return False
+        if path.startswith("/api/monitoring-kewajiban-tugas/"):
+            return False
+        if path == "/api/evaluasi-streaming/reminders/run":
+            return False
+        if not session.get("logged_in"):
+            return False
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            return True
+        if path in {"/logout"}:
+            return True
+        return False
+    except Exception:
+        return False
+
+@app.after_request
+def activity_auto_logger(response):
+    if not activity_should_auto_log(response):
+        return response
+    try:
+        action = activity_action_from_request(request.method, request.path, request.endpoint)
+        module_name = activity_module_from_path(request.path)
+        description = activity_description_from_request(action, module_name, request.path)
+        record_activity(
+            action,
+            module_name,
+            description,
+            route=request.endpoint or request.path,
+            method=request.method,
+            meta={
+                "path": request.path,
+                "query": request.query_string.decode("utf-8", errors="ignore"),
+                "status": response.status_code,
+            },
+        )
+    except Exception as exc:
+        print(f"[WARN] activity_auto_logger skipped: {exc}")
+    return response
+
+def require_activity_log_auth():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+    return None
+
+def activity_visible_users(cursor) -> list[dict[str, object]]:
+    role = activity_current_role()
+    actor_id = activity_current_user_id()
+    if role == "super_admin":
+        cursor.execute(
+            """
+            SELECT id, nama, username, role
+            FROM anggota
+            ORDER BY FIELD(role, 'super_admin', 'admin', 'user'), nama ASC, username ASC
+            """
+        )
+    elif role == "admin":
+        cursor.execute(
+            """
+            SELECT id, nama, username, role
+            FROM anggota
+            WHERE role = 'user' OR id = %s
+            ORDER BY FIELD(role, 'admin', 'user'), nama ASC, username ASC
+            """,
+            (actor_id or 0,),
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT id, nama, username, role
+            FROM anggota
+            WHERE id = %s
+            LIMIT 1
+            """,
+            (actor_id or 0,),
+        )
+    rows = cursor.fetchall() or []
+    return [
+        {
+            "id": row.get("id"),
+            "name": row.get("nama") or row.get("username") or "Pengguna",
+            "username": row.get("username") or "",
+            "role": normalize_role_value(row.get("role") or "user"),
+            "roleLabel": activity_role_label(row.get("role") or "user"),
+            "label": f"{row.get('nama') or row.get('username') or 'Pengguna'} ({row.get('username') or '-'}) - {activity_role_label(row.get('role') or 'user')}",
+        }
+        for row in rows
+    ]
+
+def activity_filter_query(args, *, include_pagination: bool = True) -> tuple[str, list[object], dict[str, object]]:
+    ensure_auth_schema()
+    start, end, month, year = activity_period_bounds_from_args(args)
+    where_clauses = []
+    params: list[object] = []
+
+    scope_sql, scope_params = activity_scope_where("l")
+    where_clauses.append(scope_sql)
+    params.extend(scope_params)
+
+    where_clauses.append("l.`created_at` >= %s AND l.`created_at` < %s")
+    params.extend([start, end])
+
+    search = normalize_text(args.get("search"))
+    if search:
+        like = f"%{search}%"
+        where_clauses.append(
+            """
+            (
+              l.`actor_name` LIKE %s OR l.`actor_username` LIKE %s OR l.`actor_role` LIKE %s OR
+              l.`action` LIKE %s OR l.`module` LIKE %s OR l.`description` LIKE %s OR l.`route` LIKE %s
+            )
+            """
+        )
+        params.extend([like, like, like, like, like, like, like])
+
+    user_id_raw = normalize_text(args.get("user_id") or args.get("userId") or args.get("actor_id") or args.get("account"))
+    if user_id_raw and user_id_raw.lower() != "all":
+        try:
+            user_id = int(user_id_raw)
+            where_clauses.append("l.`actor_id` = %s")
+            params.append(user_id)
+        except ValueError:
+            pass
+
+    role_raw = normalize_text(args.get("role"))
+    if role_raw and role_raw.lower() != "all":
+        role_value = normalize_role_value(role_raw)
+        where_clauses.append("l.`actor_role` = %s")
+        params.append(role_value)
+
+    action_raw = normalize_text(args.get("action"))
+    if action_raw and action_raw.lower() != "all":
+        where_clauses.append("l.`action` = %s")
+        params.append(action_raw.upper())
+
+    module_raw = normalize_text(args.get("module"))
+    if module_raw and module_raw.lower() != "all":
+        where_clauses.append("l.`module` = %s")
+        params.append(module_raw)
+
+    sort_mode = activity_normalize_sort(args.get("sort"))
+    order_sql = "l.`created_at` ASC, l.`id` ASC" if sort_mode == "oldest" else "l.`created_at` DESC, l.`id` DESC"
+
+    page = max(1, parse_required_int(args.get("page"), 1))
+    per_page = parse_required_int(args.get("limit") or args.get("per_page") or args.get("perPage"), 20)
+    if per_page not in {10, 20, 50}:
+        per_page = 20
+
+    metadata = {
+        "page": page,
+        "perPage": per_page,
+        "sort": sort_mode,
+        "month": month,
+        "year": year,
+        "start": start,
+        "end": end,
+    }
+    where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+    sql = f"""
+        FROM `activity_logs` l
+        WHERE {where_sql}
+    """
+    return sql, params, metadata | {"orderSql": order_sql}
+
+@app.route("/api/activity-logs/context", methods=["GET"])
+def api_activity_logs_context():
+    denied = require_activity_log_auth()
+    if denied:
+        return denied
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_activity_log_schema(cursor)
+        current = current_user_context()
+        users = activity_visible_users(cursor)
+        scope_label = "Semua pengguna" if activity_current_role() == "super_admin" else ("Admin sendiri + anggota" if activity_current_role() == "admin" else "Diri sendiri")
+        role_values = activity_visible_role_values()
+        module_scope, module_params = activity_scope_where("l")
+        cursor.execute(f"SELECT DISTINCT `module` FROM `activity_logs` l WHERE {module_scope} ORDER BY `module` ASC", tuple(module_params))
+        modules = [row.get("module") for row in cursor.fetchall() or [] if row.get("module")]
+        cursor.execute(f"SELECT DISTINCT `action` FROM `activity_logs` l WHERE {module_scope} ORDER BY `action` ASC", tuple(module_params))
+        actions = [row.get("action") for row in cursor.fetchall() or [] if row.get("action")]
+        default_month, default_year = activity_month_year_defaults()
+        return jsonify({
+            "ok": True,
+            "currentUser": current,
+            "scopeLabel": scope_label,
+            "users": users,
+            "roles": [{"value": value, "label": activity_role_label(value)} for value in role_values],
+            "modules": modules,
+            "actions": actions,
+            "defaultMonth": default_month,
+            "defaultYear": default_year,
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/activity-logs", methods=["GET"])
+def api_activity_logs():
+    denied = require_activity_log_auth()
+    if denied:
+        return denied
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_activity_log_schema(cursor)
+        base_sql, params, meta = activity_filter_query(request.args)
+        cursor.execute(f"SELECT COUNT(*) AS total {base_sql}", tuple(params))
+        total = fetch_scalar_value(cursor.fetchone(), 0) or 0
+        offset = (meta["page"] - 1) * meta["perPage"]
+        cursor.execute(
+            f"""
+            SELECT l.*
+            {base_sql}
+            ORDER BY {meta["orderSql"]}
+            LIMIT %s OFFSET %s
+            """,
+            tuple(params + [meta["perPage"], offset]),
+        )
+        logs = [activity_log_row_to_dict(row) for row in cursor.fetchall() or []]
+        return jsonify({
+            "ok": True,
+            "logs": logs,
+            "total": total,
+            "page": meta["page"],
+            "perPage": meta["perPage"],
+            "totalPages": max(1, (int(total) + meta["perPage"] - 1) // meta["perPage"]),
+            "period": {
+                "month": meta["month"],
+                "year": meta["year"],
+                "start": meta["start"].isoformat(),
+                "end": meta["end"].isoformat(),
+            },
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+def activity_export_rows(logs: list[dict[str, object]]) -> tuple[list[str], list[list[str]]]:
+    headers = ["No", "Waktu", "Pengguna", "Username", "Role", "Aksi", "Modul", "Deskripsi", "Route", "Method"]
+    rows: list[list[str]] = []
+    for idx, row in enumerate(logs, start=1):
+        rows.append([
+            str(idx),
+            normalize_text(row.get("createdAt") or row.get("timestamp")),
+            normalize_text(row.get("actorName")),
+            normalize_text(row.get("actorUsername")),
+            normalize_text(row.get("actorRoleLabel")),
+            normalize_text(row.get("action")),
+            normalize_text(row.get("module")),
+            normalize_text(row.get("description")),
+            normalize_text(row.get("route")),
+            normalize_text(row.get("method")),
+        ])
+    return headers, rows
+
+def fetch_activity_logs_for_export(cursor, args) -> list[dict[str, object]]:
+    base_sql, params, meta = activity_filter_query(args, include_pagination=False)
+    cursor.execute(
+        f"""
+        SELECT l.*
+        {base_sql}
+        ORDER BY {meta["orderSql"]}
+        """,
+        tuple(params),
+    )
+    return [activity_log_row_to_dict(row) for row in cursor.fetchall() or []]
+
+@app.route("/api/activity-logs/export.xlsx", methods=["GET"])
+def api_activity_logs_export_xlsx():
+    denied = require_activity_log_auth()
+    if denied:
+        return denied
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_activity_log_schema(cursor)
+        logs = fetch_activity_logs_for_export(cursor, request.args)
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Log Aktivitas"
+        headers, rows = activity_export_rows(logs)
+        ws.append(headers)
+        for row in rows:
+            ws.append(row)
+        fill = PatternFill("solid", fgColor="800000")
+        font = Font(color="FFFFFF", bold=True)
+        for cell in ws[1]:
+            cell.fill = fill
+            cell.font = font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        for row_cells in ws.iter_rows(min_row=2):
+            for cell in row_cells:
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+        for column_cells in ws.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+            for cell in column_cells:
+                max_length = max(max_length, len(str(cell.value or "")))
+            ws.column_dimensions[column_letter].width = min(max(max_length + 2, 10), 45)
+
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        record_activity("EXPORT", "Log Aktivitas", "Mengekspor log aktivitas ke Excel", "activity_logs.export_xlsx", method="GET")
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f"log-aktivitas-{datetime.now().strftime('%Y%m%d%H%M')}.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/activity-logs/export.pdf", methods=["GET"])
+def api_activity_logs_export_pdf():
+    denied = require_activity_log_auth()
+    if denied:
+        return denied
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        ensure_activity_log_schema(cursor)
+        logs = fetch_activity_logs_for_export(cursor, request.args)
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+
+        def p(value, style):
+            return Paragraph(html.escape(normalize_text(value) or "-").replace("\n", "<br/>"), style)
+
+        headers, rows = activity_export_rows(logs)
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=8 * mm, leftMargin=8 * mm, topMargin=10 * mm, bottomMargin=10 * mm)
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("activity-title", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=16, textColor=colors.HexColor("#800000"), alignment=1)
+        cell_style = ParagraphStyle("activity-cell", parent=styles["BodyText"], fontSize=7, leading=9)
+        header_style = ParagraphStyle("activity-header", parent=cell_style, fontName="Helvetica-Bold", textColor=colors.white)
+
+        data = [[p(h, header_style) for h in headers]]
+        for row in rows:
+            data.append([p(cell, cell_style) for cell in row])
+
+        table = Table(data, repeatRows=1, colWidths=[10*mm, 34*mm, 30*mm, 28*mm, 20*mm, 20*mm, 26*mm, 72*mm, 42*mm, 16*mm])
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#800000")),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e9d5d5")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#fff7f7")]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]))
+        story = [
+            Paragraph("Laporan Log Aktivitas", title_style),
+            Spacer(1, 6),
+            Paragraph(f"Total log: {len(rows)}", styles["Normal"]),
+            Spacer(1, 8),
+            table,
+        ]
+        doc.build(story)
+        buffer.seek(0)
+        record_activity("EXPORT", "Log Aktivitas", "Mengekspor log aktivitas ke PDF", "activity_logs.export_pdf", method="GET")
+        return send_file(
+            buffer,
+            as_attachment=False,
+            download_name=f"log-aktivitas-{datetime.now().strftime('%Y%m%d%H%M')}.pdf",
+            mimetype="application/pdf",
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+
 _EVAL_REMINDER_AUTO_RUN_DATE: str | None = None
 
 
@@ -14708,6 +15484,7 @@ if __name__ == "__main__":
         ensure_news_schema()
         ensure_agenda_schema()
         ensure_notifications_schema()
+        ensure_activity_log_schema()
         ensure_misa_besar_schema()
     except Exception as exc:
         print(f"[WARN] MySQL bootstrap skipped: {exc}")

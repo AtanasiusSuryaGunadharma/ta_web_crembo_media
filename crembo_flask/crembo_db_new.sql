@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 14 Bulan Mei 2026 pada 20.06
+-- Waktu pembuatan: 15 Bulan Mei 2026 pada 02.45
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -20,6 +20,54 @@ SET time_zone = "+00:00";
 --
 -- Database: `crembo_db_new`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `activity_logs`
+--
+
+CREATE TABLE `activity_logs` (
+  `id` bigint(20) NOT NULL,
+  `actor_id` int(11) DEFAULT NULL,
+  `actor_name` varchar(255) DEFAULT NULL,
+  `actor_username` varchar(150) DEFAULT NULL,
+  `actor_role` varchar(50) DEFAULT NULL,
+  `action` varchar(50) NOT NULL,
+  `module` varchar(120) NOT NULL,
+  `description` text DEFAULT NULL,
+  `route` varchar(255) DEFAULT NULL,
+  `method` varchar(12) DEFAULT NULL,
+  `target_user_id` int(11) DEFAULT NULL,
+  `target_label` varchar(255) DEFAULT NULL,
+  `meta` longtext DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `actor_id`, `actor_name`, `actor_username`, `actor_role`, `action`, `module`, `description`, `route`, `method`, `target_user_id`, `target_label`, `meta`, `created_at`) VALUES
+(1, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 07:29:18'),
+(2, 21, 'Aura', 'Aura', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 07:29:51'),
+(3, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 07:30:00'),
+(4, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'EXPORT', 'Log Aktivitas', 'Mengekspor log aktivitas ke PDF', 'activity_logs.export_pdf', 'GET', NULL, NULL, '{}', '2026-05-15 07:30:36'),
+(5, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'EXPORT', 'Log Aktivitas', 'Mengekspor log aktivitas ke Excel', 'activity_logs.export_xlsx', 'GET', NULL, NULL, '{}', '2026-05-15 07:30:44'),
+(6, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 07:33:30'),
+(7, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 07:35:19'),
+(8, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'CREATE', 'Sistem', 'Menambahkan atau mengirim data pada modul Sistem', 'api_profile_password', 'POST', NULL, NULL, '{\"path\": \"/api/profile/password\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:35:48'),
+(9, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_submit_request', 'POST', NULL, NULL, '{\"path\": \"/api/membership/inactive-request\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:37:10'),
+(10, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_admin_respond', 'POST', NULL, NULL, '{\"path\": \"/api/membership/admin/requests/nonaktif-1778805430147-74e0ca8b/respond\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:37:21'),
+(11, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_anggota_sync', 'POST', NULL, NULL, '{\"path\": \"/api/anggota/sync\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:38:34'),
+(12, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_submit_request', 'POST', NULL, NULL, '{\"path\": \"/api/membership/inactive-request\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:39:04'),
+(13, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_admin_respond', 'POST', NULL, NULL, '{\"path\": \"/api/membership/admin/requests/nonaktif-1778805544189-9c90dbeb/respond\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:39:11'),
+(14, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_submit_request', 'POST', NULL, NULL, '{\"path\": \"/api/membership/inactive-request\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:42:01'),
+(15, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_admin_respond', 'POST', NULL, NULL, '{\"path\": \"/api/membership/admin/requests/nonaktif-1778805721163-dd4d50eb/respond\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:42:05'),
+(16, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_submit_request', 'POST', NULL, NULL, '{\"path\": \"/api/membership/inactive-request\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:43:33'),
+(17, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_admin_respond', 'POST', NULL, NULL, '{\"path\": \"/api/membership/admin/requests/nonaktif-1778805813364-28d59023/respond\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:43:37'),
+(18, 78, 'TesNonaktif', 'TesNonaktif', 'user', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_submit_request', 'POST', NULL, NULL, '{\"path\": \"/api/membership/inactive-request\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:44:48'),
+(19, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Keanggotaan', 'Menambahkan atau mengirim data pada modul Keanggotaan', 'api_membership_admin_respond', 'POST', NULL, NULL, '{\"path\": \"/api/membership/admin/requests/nonaktif-1778805888928-a9ec9df9/respond\", \"query\": \"\", \"status\": 200}', '2026-05-15 07:45:02');
 
 -- --------------------------------------------------------
 
@@ -148,13 +196,13 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (30, 'Jossefina', 'Jose', '0895321245610', 'scrypt:32768:8:1$TnitTZEy6j78SsFn$cea859177bafa0ec3e2499c60729dc5ad9fe6b18ef0155c8eadc13cf75822c2b09fbcc0d57b79c5c028ad0a97029440398d1feab7b5182fdb7ba66ea3cbf7f60', 'user', '2010-02-23', 'veronicajossefinaf@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:50:46', NULL, NULL, '', '', ''),
 (31, 'Kanes', 'Kanes', '089675333345', 'scrypt:32768:8:1$jzhfgo7Sr1Lueftt$675a2469c4a4636c037565cb8b18b4586f88a98a81fefe979ff2e2ac27a57f3fb80af2b5a3b1024b5b8db0447f4961214fcf3604d3c39322a95283ef2ce826ab', 'user', '2009-10-11', 'teresharekyan@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:23:23', NULL, NULL, '', '', ''),
 (32, 'Kinan', 'Kinan', '081239902121', 'scrypt:32768:8:1$MiUAKrxwhsdO5gES$4736c7dbc71b0ed9acfb6cc1a45403afd6a3b31cd6e6e64909f4e525708be15b2c0edc3bf98197aae393b4c6f28c1b2eb1a3423a43e24b4d86f4341078acd9e8', 'user', '2008-06-06', 'kinanthiwhanisdatu@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:12:55', NULL, NULL, '', '', ''),
-(33, 'Veny', 'Veny', '082271499065', 'scrypt:32768:8:1$HTAwll6LRFjM3Jlo$a2f7cfde57033414d36b38fcbce69516dcad40ae02bc4e84d1367e877d9856c145210dcbf1af83733c77f2ad827f2327ac5cf045f65adb20bbd0adf1007c17a0', 'user', '2026-05-08', 'veny@example.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-14 15:16:07', NULL, '2026-05-14', '', '', ''),
+(33, 'Veny', 'Veny', '082271499065', 'scrypt:32768:8:1$HTAwll6LRFjM3Jlo$a2f7cfde57033414d36b38fcbce69516dcad40ae02bc4e84d1367e877d9856c145210dcbf1af83733c77f2ad827f2327ac5cf045f65adb20bbd0adf1007c17a0', 'user', '2026-05-08', 'veny@example.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-15 07:38:34', NULL, '2026-05-15', '', '', ''),
 (34, 'Juven', 'Juven', '082247972976', 'scrypt:32768:8:1$hQ1x54n6LWot5VYV$a2ba1bf9b1c6babdf603fb99addb241900fd5604b314ee7c1c9751446da06b715d8cdf6d44671db9c8740dae9a52ba7ac3e47ab9a2cf14057cd0dd3d5ec77d0e', 'user', '', 'anggota@example.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (35, 'Chris', 'Chris', '081213430315', 'scrypt:32768:8:1$R1dD1KBC9u9PKfNy$701279e4f400341c73b34290165e86e8879fbfb4a4daa9d59ccd734a84c7bbd80e5fed1f02ed18d0a4334ad46ab2b32dd56f7a3826d42087eff4a7828801e788', 'user', '2006-11-14', 'offline01@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:59:10', NULL, NULL, '', '', ''),
 (36, 'Alta', 'Alta', '081229910550', 'scrypt:32768:8:1$z99rBAe6O6BmRrCg$ba572b8ef08c050dbcb7032417b2740f8ebb29efa76c91cada77c5cc225dfc65641d9cd4b57982a5fe0742d9daff02dd31875d51f7e336afdb1509dc4a65aab2', 'user', '2010-10-10', 'altatrinitty@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:41:20', NULL, NULL, '', '', ''),
 (37, 'Rikha', 'Rikha', '081254106511', 'scrypt:32768:8:1$qQh5HoIuf3oqRplz$5c332edd766cbed1b458d0d71f611c850d0a809d3ee5722af4183226a26141dc755eca74ca87b5e88d54fd27b9f14abc04d67d92e5d63ae6e2cd515e584d55cf', 'user', '2003-11-16', 'rikhanoversa2003@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:44:20', NULL, NULL, '', '', ''),
 (38, 'Michi', 'Michel', '081772854812', 'scrypt:32768:8:1$ZYiCgWAD2KeMwFGq$ec99d80b98d65745df18255daedc79b4a4402e4285ff850549c8eba0cddf5f5096835bc882c127f55b9c91788c4c9b6d92875b050b07c17e21ea8819b2cfc632', 'user', '2007-09-06', 'michellpatriadarpha@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:43:35', NULL, NULL, '', '', ''),
-(39, 'Michelle', 'Michelle', '083838025077', 'scrypt:32768:8:1$S7szxLHJBy7K7bLi$bd8bc8dbc11217c65eea78ded7c9912fb2f22801963bb5c20dc3a01a606f9c5c0c7c2c542dc06fa6873550af41fc882815e74dba5904a1f77d8ade5d80ac1fb0', 'user', '2004-01-12', 'michellegraciawidiyanti@gmail.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-14 18:09:44', NULL, '2026-05-14', '', '', ''),
+(39, 'Michelle', 'Michelle', '083838025077', 'scrypt:32768:8:1$S7szxLHJBy7K7bLi$bd8bc8dbc11217c65eea78ded7c9912fb2f22801963bb5c20dc3a01a606f9c5c0c7c2c542dc06fa6873550af41fc882815e74dba5904a1f77d8ade5d80ac1fb0', 'user', '2004-01-12', 'michellegraciawidiyanti@gmail.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-15 07:38:34', NULL, '2026-05-15', '', '', ''),
 (40, 'Naresh', 'Naresh', '085879271256', 'scrypt:32768:8:1$DQMapYNxMGqcRtHa$8143d5aca1985488b61a218bf23fdef3c267f10a714f012d6457f42d375aeef02fbd89f351c1925cf791cf0b00b47332d43dbd61837d2b1aabe6509943b7a237', 'user', '2009-10-01', 'nareswari325@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:21:17', NULL, NULL, '', '', ''),
 (41, 'Nesto', 'Nesto', '082122760357', 'scrypt:32768:8:1$HvsT0YViHYwCn8Tn$00674242159227cf6dce2295513d9b74597154cd84f49498472029693112499dc2de14f2483761a05215d1ada40bbf8f8fb2303d0f92aa6483bd1854403c685b', 'user', '2008-09-03', 'manueltokan4@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:52:15', NULL, NULL, '', '', ''),
 (42, 'Noel', 'Noel', '081568261411', 'scrypt:32768:8:1$EIx5tRRMYa5ng11G$f8ba9a40a7fd536d48b95eeece57b5d47c7b2c23a9e0cf1b1b3336a1cbaf85640b140ff5c2e6e13732bf23c51efde894c881325ab25f95836bfdb74070becde7', 'user', '2026-04-29', 'ttimungoreng@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:38:42', NULL, NULL, '', '', ''),
@@ -167,7 +215,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (49, 'Tyas', 'Tyas', '088985826095', 'scrypt:32768:8:1$rbhGaMjTfmgzPkVY$6fa412ca61b11f8cb4530b5b25a32cf75e5770e99f0b741405a33ae139fbaa3414d9c9155f987bde4461cd3568f886fecdee0f02c4436e4b8ebaea7958304183', 'user', '2007-01-07', 'angelasuryaningtyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:05:04', NULL, NULL, '', '', ''),
 (50, 'Atanasius Surya', 'Ata Surya', '081350751753', 'scrypt:32768:8:1$8b9BLjJFuzpyufFw$17a61d32b78de05dd90bf122abd0e4570ebcc1518fe0e09112961fdb246ff962faedbf3007826e8e6296a06faff2f80c4d74d932c8a4a0777d0de00cda48c56a', 'super_admin', '2004-05-13', 'atanasiussurya@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 22:25:06', NULL, NULL, '', '', ''),
 (51, 'Rafael', 'Rafael', '081390333758', 'scrypt:32768:8:1$XTjB22QBETTUwjPH$2a4f5f9da5660c3b8f94f928ea8e76ddebf18f576c1f36a5c526c01dd032081466edf3f2cb14ad766d1dc3820f5f763d18ae13d63bdae711d422759b31339168', 'user', '2009-11-09', 'rafaelweharima@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:13:32', NULL, NULL, '', '', ''),
-(52, 'Frugal123', 'Frugal123', '081398307591', 'scrypt:32768:8:1$D03o2WrlrPCX74Bo$72cdb406fc98e86d38df12ce1c8a48663dc428ef7bb713c088fd8bf266b87db957219d003b0f939d6c82dfe5f7d6d3bf652a0a591caf0352b323a636e5505c7b', 'user', '2026-04-15', 'frugal@gmail.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-14 15:16:07', NULL, '2026-05-14', '', '', ''),
+(52, 'Frugal123', 'Frugal123', '081398307591', 'scrypt:32768:8:1$D03o2WrlrPCX74Bo$72cdb406fc98e86d38df12ce1c8a48663dc428ef7bb713c088fd8bf266b87db957219d003b0f939d6c82dfe5f7d6d3bf652a0a591caf0352b323a636e5505c7b', 'user', '2026-04-15', 'frugal@gmail.com', 'Alamat belum diisi', 'nonaktif', '2026-05-08 14:16:48', '2026-05-15 07:38:34', NULL, '2026-05-15', '', '', ''),
 (53, 'Daflo', 'Daflo', '082157663661', 'scrypt:32768:8:1$Zc9dxqOoPHloMykh$13e8ea993a03223c84fad9e790ae501da432fc9d2004a4ad3c72d1dacf53ac733920e844e26ec2fb63796f4b01e8d2e6f7dea93aaf83c30bda1e32b533dc0a59', 'user', '2002-07-31', 'germanusdaflo@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:15:39', NULL, NULL, '', '', ''),
 (54, 'Aurel Keisha', 'Orel', '083865646354', 'scrypt:32768:8:1$qs2s3KqRqZw1eETw$c9fcfd8727fe0cbfe0424bad9a58c4d5fc9e881d9152e37a39ba68d554468d566760eeb272b6c561419881f8e10fdf97b3370138fd5bb0fb06924a0389e13aaa', 'user', '2006-06-19', 'orel@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 17:55:25', NULL, NULL, '', '', ''),
 (55, 'Jeje', 'Jeje', '085171503299', 'scrypt:32768:8:1$vdKYr7PknsBZp06Q$c4f882227a43d10bb74b4e0b8add4d85cdc28b5f0272c701ac55ff48accb0f56c9fbb1a826c9e4cd3788585e2e896485617861a1dcf920749389ef54f8edb2cc', 'user', '2000-09-23', 'offline@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-14 18:19:48', NULL, NULL, '', '', ''),
@@ -189,7 +237,7 @@ INSERT INTO `anggota` (`id`, `nama`, `username`, `telp`, `password`, `role`, `tg
 (74, 'Luciana Tyas', 'Luciana Tyas', '0895630325989', 'scrypt:32768:8:1$G8tPh3OwDuLnwYYe$b75e000738a948ec413c8d092d2761b6cf1ba990c2f38b3686ecfb16b875dd5ba510348cab7f763fddbce1fdae2863829ad267dffc94d42c6aab89d15625f174', 'user', '', 'lucianaxaverinetyas@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (75, 'Callista', 'Callista', '087836461101', 'scrypt:32768:8:1$Tx9b068Kbha1DNhD$7ed5c89ddd38db5955dc7d40ac96539c974f0197189167725b0f96828fb3d97437c1cd41981f42bc04b1636419e567f6f7f634695e7b2de25afc032ff6b98a96', 'user', '', 'lumodocalista@gmail.com', 'Alamat belum diisi', 'aktif', '2026-05-08 14:16:48', '2026-05-08 14:16:48', NULL, NULL, '', '', ''),
 (77, 'Ista', 'Ista', '08123431231', 'scrypt:32768:8:1$8HoPuTRVbkm5JiKN$f274e7b3357c9c3025e3cbe0235ac948fb06ab3af4f92367d0125b7bc0a69a46e8d5ab653962b908ef129c14fbc31c2e32446de0b84411001943b985d2b7c238', 'user', '2026-05-01', 'ista@gmail.com', '-', 'aktif', '2026-05-13 09:52:08', '2026-05-13 09:52:52', NULL, NULL, '', '', ''),
-(78, 'TesNonaktif', 'TesNonaktif', '08123123123', 'scrypt:32768:8:1$ivVcwILMZIhgQpWz$2f68eabc19cb8fffa188835ecc77188e54e50aa0157df6a7417a7029ca60bfd1230008ca8985a3dda3db459a103a50ec12f5b4fb6ed9930259b3b57b7ef646a7', 'user', '2026-05-01', 'TesNonaktif@gmail.com', 'aasdadaasdasdasd', 'aktif', '2026-05-14 15:51:00', '2026-05-15 00:22:20', NULL, NULL, NULL, NULL, NULL);
+(78, 'TesNonaktif', 'TesNonaktif', '08123123123', 'scrypt:32768:8:1$3zkGfltNGSqgqHQX$1c3d86fc0df0fd0bc45d9f544c86bc2a937a2767942dc0fa8295dd89ed9639371896446153bb6045c58c5b8aa6369fa26c6f7b6c8eb2b30cc045d69373f0c056', 'user', '2026-05-01', 'TesNonaktif@gmail.com', 'aasdadaasdasdasd', 'nonaktif', '2026-05-14 15:51:00', '2026-05-15 07:45:02', NULL, '2026-05-14', 'permanent', 'Fokus Akademik', 'Tes nonaktif selamanya');
 
 -- --------------------------------------------------------
 
@@ -442,7 +490,9 @@ CREATE TABLE `membership_status_requests` (
 
 INSERT INTO `membership_status_requests` (`id`, `member_id`, `member_name`, `inactive_type`, `reason`, `start_date`, `return_date`, `note`, `evidence_json`, `status`, `admin_id`, `admin_name`, `admin_note`, `decided_at`, `applied_at`, `manual_reactivated_at`, `created_at`, `updated_at`) VALUES
 ('nonaktif-1778753696952-8c4d6eca', 78, 'TesNonaktif', 'temporary', 'Fokus Akademik', '2026-05-13', '2026-05-15', 'Tes Aktif Tanggal 15', '[{\"url\": \"/uploads/logo_crembo_hitam_a339e6d373e84ba9b4f8cf5690dd26f0.png\", \"name\": \"logo_crembo_hitam.png\", \"mimeType\": \"image/png\", \"size\": 119503, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-14 17:15:20', '2026-05-14 17:15:20', '2026-05-14 17:15:37', '2026-05-14 17:14:56', '2026-05-14 17:15:37'),
-('nonaktif-1778753814211-dc236615', 78, 'TesNonaktif', 'temporary', 'Kesehatan', '2026-05-14', '2026-05-15', 'Tes nonaktif sehari', '[{\"url\": \"/uploads/logo_crembo_hitam_a26ddd898f3d47819460aedaf3b4df52.png\", \"name\": \"logo_crembo_hitam.png\", \"mimeType\": \"image/png\", \"size\": 119503, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-14 17:17:13', '2026-05-14 17:17:13', NULL, '2026-05-14 17:16:54', '2026-05-14 17:17:13');
+('nonaktif-1778753814211-dc236615', 78, 'TesNonaktif', 'temporary', 'Kesehatan', '2026-05-14', '2026-05-15', 'Tes nonaktif sehari', '[{\"url\": \"/uploads/logo_crembo_hitam_a26ddd898f3d47819460aedaf3b4df52.png\", \"name\": \"logo_crembo_hitam.png\", \"mimeType\": \"image/png\", \"size\": 119503, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-14 17:17:13', '2026-05-14 17:17:13', NULL, '2026-05-14 17:16:54', '2026-05-14 17:17:13'),
+('nonaktif-1778805430147-74e0ca8b', 78, 'TesNonaktif', 'temporary', 'Fokus Akademik', '2026-05-15', '2026-05-16', 'Off sehari', '[{\"url\": \"/uploads/fake-signature-word-vector_7fd71ed2c49c4f1a8d7e8493d8f4ce59.jpg\", \"name\": \"fake-signature-word-vector.jpg\", \"mimeType\": \"image/jpeg\", \"size\": 21672, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-15 07:37:21', '2026-05-15 07:37:21', NULL, '2026-05-15 07:37:10', '2026-05-15 07:37:21'),
+('nonaktif-1778805888928-a9ec9df9', 78, 'TesNonaktif', 'permanent', 'Fokus Akademik', '2026-05-14', NULL, 'Tes nonaktif selamanya', '[{\"url\": \"/uploads/screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40_0eb37424c6054b8da2c4307225b8d6dd.png\", \"name\": \"screencapture-input-ta-ampta-wuaze-2026-04-07-11_07_40.png\", \"mimeType\": \"image/png\", \"size\": 215530, \"previewable\": true, \"kind\": \"image\"}]', 'approved', 50, 'Atanasius Surya', '', '2026-05-15 07:45:02', '2026-05-15 07:45:02', NULL, '2026-05-15 07:44:48', '2026-05-15 07:45:02');
 
 -- --------------------------------------------------------
 
@@ -1561,7 +1611,17 @@ INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `crea
 ('notif-1778779346430-751db5', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>2</b> tugas dari target minimum <b>3</b>; masih kurang <b>1</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"12\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 2, \"shortage\": 1, \"dedupe_key\": \"monthly-monitoring:2026-05:12:daily_current:2026-05-15:target3\"}', '2026-05-15 00:22:26', 'user'),
 ('notif-1778779346434-4d46a8', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>1</b> tugas dari target minimum <b>3</b>; masih kurang <b>2</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"13\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 1, \"shortage\": 2, \"dedupe_key\": \"monthly-monitoring:2026-05:13:daily_current:2026-05-15:target3\"}', '2026-05-15 00:22:26', 'user'),
 ('notif-1778779346436-5a022b', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"15\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:15:daily_current:2026-05-15:target3\"}', '2026-05-15 00:22:26', 'user'),
-('notif-1778779346439-396303', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"18\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:18:daily_current:2026-05-15:target3\"}', '2026-05-15 00:22:26', 'user');
+('notif-1778779346439-396303', 'tugas', 'Pengingat target tugas bulan ini', 'Target tugas Misa Biasa bulan <b>Mei 2026</b> belum terpenuhi. Saat ini Anda memiliki <b>0</b> tugas dari target minimum <b>3</b>; masih kurang <b>3</b> tugas. Silakan mengambil/request jadwal yang masih kosong.', '/request-tugas-anggota.html', '{\"target_user_id\": \"18\", \"notification_kind\": \"monthly_task_requirement\", \"period_year\": 2026, \"period_month\": 5, \"target_minimum\": 3, \"current_total\": 0, \"shortage\": 3, \"dedupe_key\": \"monthly-monitoring:2026-05:18:daily_current:2026-05-15:target3\"}', '2026-05-15 00:22:26', 'user'),
+('notif-1778805430148-15766e', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778805430147-74e0ca8b\"}', '2026-05-15 07:37:10', 'admin'),
+('notif-1778805441868-c245c9', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778805430147-74e0ca8b\", \"dedupe_key\": \"membership-approved-nonaktif-1778805430147-74e0ca8b\"}', '2026-05-15 07:37:21', 'user'),
+('notif-1778805544190-3fa21c', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778805544189-9c90dbeb\"}', '2026-05-15 07:39:04', 'admin'),
+('notif-1778805551956-fdb547', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778805544189-9c90dbeb\", \"dedupe_key\": \"membership-approved-nonaktif-1778805544189-9c90dbeb\"}', '2026-05-15 07:39:11', 'user'),
+('notif-1778805721163-9928ed', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778805721163-dd4d50eb\"}', '2026-05-15 07:42:01', 'admin'),
+('notif-1778805725763-a6a8c1', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778805721163-dd4d50eb\", \"dedupe_key\": \"membership-approved-nonaktif-1778805721163-dd4d50eb\"}', '2026-05-15 07:42:05', 'user'),
+('notif-1778805813365-3711a8', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778805813364-28d59023\"}', '2026-05-15 07:43:33', 'admin'),
+('notif-1778805817842-c5acd3', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778805813364-28d59023\", \"dedupe_key\": \"membership-approved-nonaktif-1778805813364-28d59023\"}', '2026-05-15 07:43:37', 'user'),
+('notif-1778805888929-d91d64', 'keanggotaan', 'Pengajuan Nonaktif: TesNonaktif', 'TesNonaktif mengajukan status nonaktif. Mohon tinjau di Manajemen Anggota.', '/manajemen-anggota.html', '{\"request_id\": \"nonaktif-1778805888928-a9ec9df9\"}', '2026-05-15 07:44:48', 'admin'),
+('notif-1778805902531-a164fc', 'keanggotaan', 'Pengajuan Nonaktif Disetujui', 'Pengajuan status nonaktif Anda telah disetujui oleh admin.', '/profil-anggota.html', '{\"target_user_id\": 78, \"request_id\": \"nonaktif-1778805888928-a9ec9df9\", \"dedupe_key\": \"membership-approved-nonaktif-1778805888928-a9ec9df9\"}', '2026-05-15 07:45:02', 'user');
 
 -- --------------------------------------------------------
 
@@ -2213,6 +2273,18 @@ INSERT INTO `youtube_embeds` (`id`, `url`, `embed_type`, `title`, `order_index`,
 --
 
 --
+-- Indeks untuk tabel `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_activity_actor` (`actor_id`),
+  ADD KEY `idx_activity_role` (`actor_role`),
+  ADD KEY `idx_activity_action` (`action`),
+  ADD KEY `idx_activity_module` (`module`),
+  ADD KEY `idx_activity_created_at` (`created_at`),
+  ADD KEY `idx_activity_target_user` (`target_user_id`);
+
+--
 -- Indeks untuk tabel `admin_module_permissions`
 --
 ALTER TABLE `admin_module_permissions`
@@ -2464,6 +2536,12 @@ ALTER TABLE `youtube_embeds`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar`
