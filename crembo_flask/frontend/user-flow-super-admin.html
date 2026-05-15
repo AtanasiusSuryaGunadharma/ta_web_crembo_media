@@ -1,396 +1,769 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>User Flow Super Admin - Crembo Media</title>
+  <title>User Flow Pengujian Akhir - Super Admin</title>
   <style>
-    :root {
-      --bg-a: #f4f7ff;
-      --bg-b: #eefcf7;
-      --ink: #0f172a;
-      --muted: #475569;
-      --card: #ffffff;
-      --line: #cbd5e1;
-      --accent: #1d4ed8;
-      --accent-2: #0f766e;
-      --shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
-      --radius: 14px;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      color: var(--ink);
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background:
-        radial-gradient(circle at 8% 12%, #dbeafe 0%, transparent 35%),
-        radial-gradient(circle at 90% 20%, #d1fae5 0%, transparent 32%),
-        linear-gradient(160deg, var(--bg-a) 0%, var(--bg-b) 100%);
-    }
-
-    .wrap {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .hero {
-      border: 1px solid #bfdbfe;
-      background: linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      padding: 16px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .hero h1 {
-      margin: 0;
-      font-size: clamp(1.2rem, 2.7vw, 2rem);
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .legend {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .pill {
-      border: 1px solid #93c5fd;
-      border-radius: 999px;
-      padding: 5px 10px;
-      background: #fff;
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: #1e3a8a;
-    }
-
-    .flow-switch {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .flow-switch a {
-      text-decoration: none;
-      border: 1px solid #93c5fd;
-      background: #ffffff;
-      color: #1e3a8a;
-      border-radius: 999px;
-      padding: 6px 11px;
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .flow-switch a.active {
-      background: #1d4ed8;
-      border-color: #1d4ed8;
-      color: #ffffff;
-    }
-
-    .lane {
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.92);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .lane-head {
-      padding: 10px 12px;
-      border-bottom: 1px solid #dbeafe;
-      background: linear-gradient(180deg, #f8fbff 0%, #f1f7ff 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .lane-head h2 {
-      margin: 0;
-      font-size: 0.95rem;
-    }
-
-    .lane-head small {
-      color: #475569;
-      font-size: 0.76rem;
-      font-weight: 600;
-    }
-
-    .flow {
-      padding: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: stretch;
-    }
-
-    .node {
-      flex: 1 1 220px;
-      min-width: 200px;
-      border: 1px solid #bfdbfe;
-      border-radius: 12px;
-      background: #ffffff;
-      padding: 10px;
-      display: grid;
-      gap: 6px;
-    }
-
-    .node strong {
-      font-size: 0.86rem;
-      color: #0b3b8a;
-    }
-
-    .node p {
-      margin: 0;
-      font-size: 0.77rem;
-      color: #334155;
-      line-height: 1.4;
-    }
-
-    .node a {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.75rem;
-    }
-
-    .arrow {
-      align-self: center;
-      font-size: 1.05rem;
-      color: #1e40af;
-      font-weight: 900;
-      padding: 0 2px;
-    }
-
-    .grid-2 {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(2, minmax(280px, 1fr));
-    }
-
-    .checklist {
-      border: 1px solid #99f6e4;
-      background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%);
-      border-radius: 14px;
-      padding: 12px;
-      font-size: 0.8rem;
-      color: #134e4a;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 900px) {
-      .grid-2 { grid-template-columns: 1fr; }
-      .arrow { display: none; }
-      .node { min-width: 100%; }
-    }
-  </style>
+:root{
+  --bg:#f7eeee;
+  --surface:#fff;
+  --line:#ead1d1;
+  --ink:#111827;
+  --muted:#6b7280;
+  --primary:#8b0000;
+  --primary-dark:#5c0000;
+  --primary-2:#b11f1f;
+  --gold:#d4a017;
+  --green:#166534;
+  --green-bg:#eaf8ee;
+  --yellow:#8a6d00;
+  --yellow-bg:#fff7db;
+  --red-bg:#fff1f1;
+  --blue:#1d4ed8;
+  --radius:16px;
+  --shadow:0 14px 32px rgba(128,0,0,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,"Segoe UI",Tahoma,Verdana,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 4%, rgba(177,31,31,.12), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(212,160,23,.12), transparent 25%),
+    var(--bg);
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:22px;display:grid;gap:16px}
+.hero{
+  color:#fff;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-2));
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  display:grid;
+  gap:12px;
+}
+.hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.hero h1{margin:0;font-size:clamp(1.35rem,2.6vw,2.1rem);font-weight:900;letter-spacing:-.03em}
+.hero p{margin:0;color:rgba(255,255,255,.88);line-height:1.55}
+.badges,.nav-pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge,.nav-pills a{
+  display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.32);
+  background:rgba(255,255,255,.13);
+  padding:7px 11px;font-weight:800;font-size:.78rem
+}
+.nav-pills a{background:#fff;color:var(--primary);border-color:#f0b8b8}
+.nav-pills a.active{background:var(--gold);border-color:var(--gold);color:#431407}
+.top-tabs{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:8px;flex-wrap:wrap;
+  background:rgba(247,238,238,.94);
+  backdrop-filter:blur(10px);
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 8px 20px rgba(128,0,0,.08);
+}
+.top-tabs a{
+  border:1px solid var(--line);background:#fff;color:var(--primary);
+  border-radius:999px;padding:8px 12px;font-weight:800;font-size:.82rem;
+}
+.section{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.section-head{
+  padding:16px 18px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(180deg,#fff,#fff8f8);
+}
+.section-head h2{margin:0;font-size:1.12rem}
+.section-head small{color:var(--muted);font-weight:700}
+.section-body{padding:16px 18px;display:grid;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px}
+.field{display:grid;gap:7px}
+label,.label{font-size:.78rem;font-weight:900;color:#7f1d1d;text-transform:uppercase;letter-spacing:.04em}
+input,select,textarea{
+  width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+  font:inherit;background:#fff;color:var(--ink);outline:none
+}
+textarea{min-height:92px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(177,31,31,.09)}
+.info{
+  border:1px solid #f1d28a;background:#fff9e8;border-left:5px solid var(--gold);
+  border-radius:12px;padding:12px;color:#5c3f00;line-height:1.5
+}
+.flow-lane{display:grid;gap:10px}
+.lane-title{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.lane-title h3{margin:0;font-size:1rem;color:var(--primary)}
+.lane-title span{font-size:.78rem;color:var(--muted);font-weight:800}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}
+.card{
+  border:1px solid var(--line);border-radius:14px;background:#fff;
+  padding:13px;display:grid;gap:9px;position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(var(--primary),var(--gold))}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card h4{margin:0;color:#111827;font-size:.96rem}
+.code{font-size:.72rem;font-weight:900;color:var(--primary);background:#fff3f3;border:1px solid #f3baba;border-radius:999px;padding:4px 8px;white-space:nowrap}
+.card p{margin:0;color:#374151;font-size:.84rem;line-height:1.5}
+.meta-list{display:grid;gap:4px;font-size:.8rem;color:#4b5563}
+.meta-list b{color:#7f1d1d}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.links a{border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:.74rem;font-weight:800;color:var(--primary);background:#fff}
+.done{display:flex;gap:8px;align-items:center;font-size:.82rem;color:#374151;text-transform:none;font-weight:800;letter-spacing:0}
+.done input{width:auto}
+.sus-table{width:100%;border-collapse:separate;border-spacing:0 10px}
+.sus-table th{font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:#7f1d1d;text-align:center}
+.sus-table th:first-child{text-align:left}
+.sus-item{
+  border:1px solid var(--line);background:#fff;border-radius:13px;box-shadow:0 4px 12px rgba(128,0,0,.05)
+}
+.sus-item td{padding:13px 10px;vertical-align:middle}
+.sus-item td:first-child{border-radius:13px 0 0 13px}
+.sus-item td:last-child{border-radius:0 13px 13px 0}
+.sus-question{font-weight:800;line-height:1.45}
+.scale-cell{text-align:center;min-width:48px}
+.scale-cell input{width:18px;height:18px;accent-color:var(--primary)}
+.scale-help{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.8rem;margin-top:-6px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{
+  border:0;border-radius:12px;background:var(--primary);color:#fff;
+  padding:11px 14px;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(128,0,0,.18)
+}
+.btn.secondary{background:#fff;color:var(--primary);border:1px solid var(--line);box-shadow:none}
+.btn.gold{background:var(--gold);color:#431407}
+.result-card{
+  border:1px solid var(--line);border-left:5px solid var(--primary);
+  border-radius:14px;background:#fff;padding:14px;display:grid;gap:7px
+}
+.result-score{font-size:2rem;font-weight:950;color:var(--primary);line-height:1}
+.footer-note{font-size:.82rem;color:var(--muted);line-height:1.5}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.blackbox-table{width:100%;border-collapse:collapse;background:#fff;min-width:1180px}
+.blackbox-table th,.blackbox-table td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top;text-align:left;font-size:.83rem}
+.blackbox-table th{position:sticky;top:0;background:#fff4f4;color:#7f1d1d;font-weight:900;text-transform:uppercase;font-size:.74rem;z-index:2}
+.blackbox-table select{min-width:140px;padding:8px;border-radius:9px}
+.blackbox-table textarea{min-width:220px;min-height:54px;padding:8px;border-radius:9px}
+.status-chip{display:inline-flex;border-radius:999px;padding:4px 9px;font-weight:900;font-size:.72rem}
+.status-valid{background:var(--green-bg);color:var(--green);border:1px solid #95d5a6}
+.status-invalid{background:var(--red-bg);color:#991b1b;border:1px solid #fecaca}
+.status-pending{background:var(--yellow-bg);color:var(--yellow);border:1px solid #f1d28a}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
+.summary-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;display:grid;gap:5px}
+.summary-card span{color:var(--muted);font-size:.8rem;font-weight:800}
+.summary-card b{font-size:1.55rem}
+@media(max-width:900px){
+  .wrap{padding:14px}
+  .grid,.grid-3,.cards,.summary{grid-template-columns:1fr}
+  .top-tabs{position:static}
+  .section-head{align-items:flex-start}
+  .sus-table{display:block;overflow:auto}
+  .scale-cell{min-width:44px}
+}
+</style>
 </head>
-<body>
-  <div class="wrap">
+<body data-flow="super-admin">
+  <main class="wrap">
     <header class="hero">
-      <h1>User Flow Pengujian - Super Admin</h1>
-      <p>Flow ini dipakai untuk test keseluruhan fungsi wireframe dari perspektif Super Admin. Semua node bisa dibuka manual dari File Explorer. Setiap lane adalah task scenario, jadi penguji tinggal mengikuti input dummy dan aksi klik/update/hapus/download yang tertulis di node.</p>
-      <div class="legend">
-        <span class="pill">Role: Super Admin</span>
-        <span class="pill">Cakupan: Semua Modul</span>
-        <span class="pill">Tujuan: Skenario Pengujian End-to-End</span>
+      <div class="hero-row">
+        <div>
+          <h1>User Flow Pengujian Akhir - Super Admin</h1>
+          <p>Skenario ini digunakan untuk pengujian usability akhir dari sisi Super Admin setelah redesign. Penguji menjalankan task publik terlebih dahulu, lalu masuk sebagai Super Admin untuk menguji modul pengelolaan penuh.</p>
+        </div>
+        <div class="badges">
+          <span class="badge">Role: Super Admin</span>
+          <span class="badge">Cakupan: Semua Modul</span>
+          <span class="badge">SUS: Post-Redesign</span>
+        </div>
       </div>
-      <div class="flow-switch" aria-label="Navigasi antar user flow">
-        <a class="active" href="user-flow-super-admin.html">Flow Super Admin</a>
-        <a href="user-flow-admin.html">Flow Admin</a>
-        <a href="user-flow-anggota.html">Flow Anggota</a>
+      
+      <div class="nav-pills" aria-label="Navigasi user flow">
+        <a class="active" href="user-flow-super-admin.html">Super Admin</a>
+        <a class="" href="user-flow-admin.html">Admin</a>
+        <a class="" href="user-flow-anggota.html">Anggota</a>
+        <a href="blackbox-testing.html">Black Box Testing</a>
       </div>
+    
     </header>
 
-    <section class="lane uf-identity-lane">
-      <div class="lane-head">
-        <h2>Identitas Penguji</h2>
-        <small>Wajib diisi sebelum menilai flow</small>
+    <nav class="top-tabs">
+      <a href="#identitas">1. Identitas</a>
+      <a href="#task">2. Task Scenario</a>
+      <a href="#sus">3. SUS Akhir</a>
+      <a href="#tambahan">4. Pertanyaan Tambahan</a>
+      <a href="#rekap">5. Rekap</a>
+    </nav>
+
+    <section id="identitas" class="section">
+      <div class="section-head">
+        <h2>Bagian 1 - Identitas Penguji</h2>
+        <small>Diisi sebelum menjalankan task scenario</small>
       </div>
-      <div class="flow" style="display:block; padding-bottom:12px;">
-        <div class="uf-grid">
-          <input id="testerFullName" type="text" placeholder="Nama lengkap penguji" required>
-          <input id="testerOrg" type="text" placeholder="Instansi / Kelas / Unit">
-          <select id="testerDevice" required>
-            <option value="" selected disabled>Pilih device yang digunakan</option>
-            <option value="PC/Laptop">PC/Laptop</option>
-            <option value="Handphone">Handphone</option>
-          </select>
-          <select id="testerBrowser" required>
-            <option value="" selected disabled>Pilih browser yang digunakan</option>
-            <option value="Google Chrome">Google Chrome</option>
-            <option value="Microsoft Edge">Microsoft Edge</option>
-            <option value="Mozilla Firefox">Mozilla Firefox</option>
-            <option value="Safari">Safari</option>
-            <option value="Opera">Opera</option>
-            <option value="Brave">Brave</option>
-            <option value="Lainnya">Lainnya</option>
-          </select>
-          <input id="testerEmail" type="email" placeholder="Email penguji (opsional)">
-          <input id="testerPhone" type="text" placeholder="No HP penguji (opsional)">
+      <div class="section-body">
+        <div class="grid">
+          <div class="field"><label>Nama Penguji *</label><input id="testerName" type="text" placeholder="Nama lengkap responden"></div>
+          <div class="field"><label>Peran Pengujian</label><input id="testerRole" type="text" value="Super Admin" readonly></div>
+          <div class="field"><label>Instansi / Unit / Kelas</label><input id="testerOrg" type="text" placeholder="Contoh: CREMBO Media / UAJY"></div>
+          <div class="field"><label>Tanggal Pengujian</label><input id="testDate" type="text" value="15/05/2026" readonly></div>
+          <div class="field"><label>Perangkat *</label><select id="testerDevice"><option value="">Pilih perangkat</option><option>PC/Laptop</option><option>Handphone</option><option>Tablet</option></select></div>
+          <div class="field"><label>Browser *</label><select id="testerBrowser"><option value="">Pilih browser</option><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Safari</option><option>Opera</option><option>Brave</option><option>Lainnya</option></select></div>
+        </div>
+        <div class="info">
+          <b>Petunjuk:</b> Jalankan task scenario secara berurutan. Setelah selesai mencoba fitur, lanjutkan mengisi SUS akhir pada halaman yang sama ini. Skala SUS memakai 1 = sangat tidak setuju sampai 5 = sangat setuju.
         </div>
       </div>
     </section>
 
-    <section class="lane">
-      <div class="lane-head">
-        <h2>1) Autentikasi & Masuk Dashboard</h2>
-        <small>Start flow</small>
+    <section id="task" class="section">
+      <div class="section-head">
+        <h2>Bagian 2 - Task Scenario Pengujian</h2>
+        <small>Termasuk fitur publik/no-login dan fitur role Super Admin</small>
       </div>
-      <div class="flow">
-        <div class="node"><strong>Home / Entry</strong><p>Silakan buka home.html terlebih dahulu, lalu klik Login di kanan atas untuk memulai pengujian Super Admin.</p><a target="_blank" rel="noopener noreferrer" href="home.html">Buka home.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Login</strong><p>Setelah berada di halaman login, masukkan username dan password, lalu pilih akun Super Admin untuk masuk ke dashboard.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>OTP + Reset Password</strong><p>Jika menguji recovery akun, mulai dari forgot-password.html untuk input email, lanjut ke otp-verification.html untuk verifikasi kode, lalu ke reset-password.html untuk set password baru dan validasi bisa login lagi.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Dashboard Super Admin</strong><p>Setelah berhasil login, periksa dashboard Super Admin dan pastikan semua ringkasan utama tampil dengan benar.</p></div>
+      <div class="section-body">
+        <div class="flow-lane">
+          <div class="lane-title"><h3>A. Task No-Login / Pengguna Publik</h3><span>Wajib dicoba sebelum login</span></div>
+          <div class="cards">
+    <article class="card">
+      <div class="card-head">
+        <h4>Beranda Publik dan Navigasi Utama</h4>
+        <span class="code">PUB-01</span>
       </div>
-    </section>
+      <p>Buka halaman home, cek carousel/hero, menu Profil, Jadwal Streaming, Agenda, Pengumuman, Form Pendaftaran, dan tombol Login.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a></div>
+        <span><b>Hasil diharapkan:</b> Menu utama terbuka, komponen home tampil rapi, dan pengguna tidak perlu login untuk membaca informasi publik.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="PUB-01"> Task selesai diuji</label>
+    </article>
+    
 
-    <section class="lane">
-      <div class="lane-head">
-        <h2>2) Manajemen User & Keanggotaan</h2>
-        <small>Kontrol akun dan akses</small>
+    <article class="card">
+      <div class="card-head">
+        <h4>Pencarian Informasi Publik</h4>
+        <span class="code">PUB-02</span>
       </div>
-      <div class="flow">
-        <div class="node"><strong>Profil Admin</strong><p>Dari dashboard, buka profil admin untuk mengecek dan memperbarui data profil role admin atau super admin.</p><a target="_blank" rel="noopener noreferrer" href="profil-admin.html">profil-admin.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Manajemen Anggota</strong><p>Setelah profil dicek, buka manajemen anggota untuk melihat, menambah, mengubah, dan memvalidasi status keaktifan anggota.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Kelola Data Admin</strong><p>Masih dari bagian manajemen user, lanjutkan ke kelola data admin untuk menambah, mengedit, dan mengatur hak akses admin.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Setting Sertifikat</strong><p>Setelah data user dikelola, buka setting sertifikat untuk mengatur template sertifikat anggota.</p></div>
+      <p>Gunakan kolom pencarian dengan kata kunci seperti “misa”, “agenda”, “pengumuman”, atau nama kegiatan.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="search.html" target="_blank" rel="noopener noreferrer">search.html</a></div>
+        <span><b>Hasil diharapkan:</b> Halaman hasil pencarian menampilkan konten relevan dan dapat dibuka ke detailnya.</span>
       </div>
-    </section>
+      <label class="done"><input type="checkbox" data-task="PUB-02"> Task selesai diuji</label>
+    </article>
+    
 
-    <section class="lane">
-      <div class="lane-head">
-        <h2>3) Operasional Streaming</h2>
-        <small>Jadwal, tugas, evaluasi</small>
+    <article class="card">
+      <div class="card-head">
+        <h4>Jadwal Streaming Publik</h4>
+        <span class="code">PUB-03</span>
       </div>
-      <div class="flow">
-        <div class="node"><strong>Jadwal Streaming Admin</strong><p>Mulai dari dashboard, buka jadwal streaming untuk mengelola alur tugas misa atau streaming.</p><a target="_blank" rel="noopener noreferrer" href="jadwal-tugas-streaming-admin.html">jadwal-tugas-streaming-admin.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Registrasi Misa Besar</strong><p>Setelah jadwal dibuat, lanjut ke registrasi misa besar untuk menetapkan kebutuhan dan struktur tim.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Penugasan Petugas</strong><p>Setelah registrasi tersedia, lanjutkan ke penugasan petugas untuk assign anggota ke role operasional.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Monitoring & Hasil Evaluasi</strong><p>Setelah penugasan, buka monitoring-tugas-anggota.html untuk cek status tugas per anggota, lanjut ke hasil-evaluasi-streaming.html untuk melihat nilai/evaluasi, lalu verifikasi pertanyaan aktif di setting-pertanyaan-evaluasi-streaming.html.</p></div>
+      <p>Buka jadwal streaming, coba filter bulan/tahun, jenis misa, dan lihat tampilan card/tabel jadwal.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="jadwal-streaming.html" target="_blank" rel="noopener noreferrer">jadwal-streaming.html</a></div>
+        <span><b>Hasil diharapkan:</b> Jadwal Misa Biasa dan Misa Besar tampil sesuai filter tanpa data petugas internal yang tidak perlu.</span>
       </div>
-    </section>
+      <label class="done"><input type="checkbox" data-task="PUB-03"> Task selesai diuji</label>
+    </article>
+    
 
-    <section class="lane">
-      <div class="lane-head">
-        <h2>4) Inventaris & Peminjaman</h2>
-        <small>Barang dan approval</small>
+    <article class="card">
+      <div class="card-head">
+        <h4>Agenda dan Detail Agenda</h4>
+        <span class="code">PUB-04</span>
       </div>
-      <div class="flow">
-        <div class="node"><strong>Data Inventaris</strong><p>Masih dari dashboard, buka data inventaris untuk memeriksa master barang dan kondisinya.</p><a target="_blank" rel="noopener noreferrer" href="data-inventaris-barang.html">data-inventaris-barang.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Persetujuan Peminjaman</strong><p>Setelah data barang dicek, lanjutkan ke persetujuan peminjaman untuk approve atau reject pengajuan barang.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Riwayat Pinjam-Kembali</strong><p>Setelah approval, buka riwayat pinjam-kembali untuk memastikan transaksi tercatat dengan benar.</p></div>
+      <p>Buka daftar agenda, pilih salah satu agenda, lalu cek halaman detailnya.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="agenda.html" target="_blank" rel="noopener noreferrer">agenda.html</a><a href="agenda-detail.html" target="_blank" rel="noopener noreferrer">agenda-detail.html</a></div>
+        <span><b>Hasil diharapkan:</b> Agenda tampil lengkap dengan tanggal, deskripsi, dan detail kegiatan.</span>
       </div>
-    </section>
+      <label class="done"><input type="checkbox" data-task="PUB-04"> Task selesai diuji</label>
+    </article>
+    
 
-    <section class="lane">
-      <div class="lane-head">
-        <h2>4A) Kerusakan Barang</h2>
-        <small>Form, hasil, dan riwayat</small>
+    <article class="card">
+      <div class="card-head">
+        <h4>Pengumuman dan Informasi Publik</h4>
+        <span class="code">PUB-05</span>
       </div>
-      <div class="flow">
-        <div class="node"><strong>Hasil Laporan Kerusakan</strong><p>Setelah inventaris, buka hasil-form-kerusakan-barang.html untuk meninjau seluruh laporan kerusakan yang dikirim dari sisi anggota.</p><a target="_blank" rel="noopener noreferrer" href="hasil-form-kerusakan-barang.html">hasil-form-kerusakan-barang.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Audit Penanganan Kerusakan</strong><p>Dari halaman hasil laporan, uji alur audit data kerusakan, konsistensi informasi, dan kesiapan data untuk monitoring lintas modul.</p></div>
+      <p>Buka pengumuman/berita, baca detail, lalu kembali ke daftar.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="pengumuman.html" target="_blank" rel="noopener noreferrer">pengumuman.html</a><a href="pengumuman-detail.html" target="_blank" rel="noopener noreferrer">pengumuman-detail.html</a></div>
+        <span><b>Hasil diharapkan:</b> Informasi publik dapat dibaca dengan alur navigasi yang jelas.</span>
       </div>
-    </section>
+      <label class="done"><input type="checkbox" data-task="PUB-05"> Task selesai diuji</label>
+    </article>
+    
 
-    <div class="grid-2">
-      <section class="lane">
-        <div class="lane-head"><h2>5) Informasi & Publikasi</h2><small>Konten publik</small></div>
-        <div class="flow">
-          <div class="node"><strong>Kelola Profil Organisasi</strong><p>Buka manajemen-profil.html untuk update data utama organisasi, simpan perubahan, lalu lanjut ke kelola-tentang-crembo.html untuk sinkronkan narasi profil/tentang agar konsisten di halaman publik.</p><a target="_blank" rel="noopener noreferrer" href="manajemen-profil.html">manajemen-profil.html</a> | <a target="_blank" rel="noopener noreferrer" href="kelola-tentang-crembo.html">kelola-tentang-crembo.html</a></div>
-          <div class="node"><strong>Berita / Pengumuman</strong><p>Mulai dari kelola-berita.html untuk melihat daftar berita, atur kategori di kelola-kategori-berita.html, buat/edit konten di form-berita.html, lalu cek hasil publikasi di pengumuman.html dan validasi detail konten di pengumuman-detail.html.</p></div>
-          <div class="node"><strong>Agenda Publik</strong><p>Buka manajemen-agenda.html untuk daftar agenda, lanjut buat/edit di form-agenda.html, lalu uji tampilan publik di agenda.html dan pastikan detail kegiatan tampil lengkap di agenda-detail.html.</p></div>
-        </div>
-      </section>
+    <article class="card">
+      <div class="card-head">
+        <h4>Form Pendaftaran Publik</h4>
+        <span class="code">PUB-06</span>
+      </div>
+      <p>Buka Form Pendaftaran, pilih form aktif, isi data dummy, dan cek validasi isian wajib.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="form-pendaftaran.html" target="_blank" rel="noopener noreferrer">form-pendaftaran.html</a><a href="form-pendaftaran-detail.html" target="_blank" rel="noopener noreferrer">form-pendaftaran-detail.html</a><a href="isi-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">isi-form-pendaftaran.html</a></div>
+        <span><b>Hasil diharapkan:</b> Form dapat dibuka oleh pengguna publik dan memberikan pesan validasi yang mudah dipahami.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="PUB-06"> Task selesai diuji</label>
+    </article>
+    
 
-      <section class="lane">
-        <div class="lane-head"><h2>6) Konten Utama Website</h2><small>Landing management</small></div>
-        <div class="flow">
-          <div class="node"><strong>Carousel Home</strong><p>Setelah konten publik, buka carousel home untuk mengatur hero atau slider halaman utama.</p><a target="_blank" rel="noopener noreferrer" href="kelola-carousel-home.html">kelola-carousel-home.html</a></div>
-          <div class="node"><strong>Embed Media</strong><p>Setelah carousel, buka kelola-embed-youtube.html untuk cek video utama, lanjut kelola-embed-instagram.html untuk feed sosial, lalu kelola-embed-google-maps.html untuk lokasi; pastikan semuanya muncul benar di halaman home.</p></div>
-          <div class="node"><strong>Pencarian + Profil Publik</strong><p>Uji search.html dengan beberapa kata kunci untuk memastikan hasil relevan, lalu buka profil.html untuk memverifikasi data profil publik sudah mengikuti perubahan modul sebelumnya.</p></div>
-        </div>
-      </section>
+    <article class="card">
+      <div class="card-head">
+        <h4>Form Evaluasi Streaming No-Login</h4>
+        <span class="code">PUB-07</span>
+      </div>
+      <p>Buka form evaluasi streaming, pilih jadwal yang sudah lewat dan belum diisi, lalu cek struktur form evaluasi.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="form-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">form-evaluasi-streaming.html</a></div>
+        <span><b>Hasil diharapkan:</b> Form evaluasi hanya menampilkan jadwal yang valid untuk dievaluasi dan pilihan petugas sesuai sesi jadwal.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="PUB-07"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Profil, Embed YouTube, Maps, dan Sosial Media</h4>
+        <span class="code">PUB-08</span>
+      </div>
+      <p>Buka profil/tentang dan scroll ke bagian embed YouTube/Maps/Instagram pada home.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="profil.html" target="_blank" rel="noopener noreferrer">profil.html</a><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a></div>
+        <span><b>Hasil diharapkan:</b> Konten organisasi, embed video, lokasi, dan sosial media tampil jelas.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="PUB-08"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Login dan Lupa Password</h4>
+        <span class="code">PUB-09</span>
+      </div>
+      <p>Klik Login, coba alur lupa password sampai OTP dan reset password menggunakan akun uji.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="login.html" target="_blank" rel="noopener noreferrer">login.html</a><a href="forgot-password.html" target="_blank" rel="noopener noreferrer">forgot-password.html</a><a href="otp-verification.html" target="_blank" rel="noopener noreferrer">otp-verification.html</a><a href="reset-password.html" target="_blank" rel="noopener noreferrer">reset-password.html</a></div>
+        <span><b>Hasil diharapkan:</b> Login dan recovery password memberi feedback yang jelas sesuai input.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="PUB-09"> Task selesai diuji</label>
+    </article>
     </div>
-
-    <section class="lane">
-      <div class="lane-head">
-        <h2>7) Form Pendaftaran Kegiatan</h2>
-        <small>Builder hingga pendaftar</small>
-      </div>
-      <div class="flow">
-        <div class="node"><strong>Builder Form</strong><p>Setelah modul konten selesai, buka builder form untuk merancang struktur pendaftaran kegiatan dari awal.</p><a target="_blank" rel="noopener noreferrer" href="builder-form-pendaftaran.html">builder-form-pendaftaran.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Manajemen Form</strong><p>Setelah form dibuat, lanjutkan ke manajemen form untuk publish atau menutup form yang aktif.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Form Publik</strong><p>Setelah form dipublish, buka form-pendaftaran.html untuk simulasi pengisian awal, lanjut ke form-pendaftaran-detail.html untuk cek field detail dan validasi submit end-to-end.</p></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Pendaftar</strong><p>Setelah form diisi, review daftar pendaftar dari sisi admin untuk memastikan data tersimpan.</p></div>
-      </div>
-    </section>
-
-    <section class="lane">
-      <div class="lane-head">
-        <h2>8) Log Aktivitas & Penutupan Sesi</h2>
-        <small>Audit dan exit</small>
-      </div>
-      <div class="flow">
-        <div class="node"><strong>Log Aktivitas</strong><p>Setelah semua modul selesai, buka log aktivitas untuk menguji filter, sorting, export, dan preview PDF pada cakupan Super Admin.</p><a target="_blank" rel="noopener noreferrer" href="log-aktivitas.html?role=super_admin&user=super.admin">log-aktivitas.html?role=super_admin</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Kembali ke Home</strong><p>Validasi kembali ke beranda publik.</p><a target="_blank" rel="noopener noreferrer" href="home.html">home.html</a></div>
-        <div class="arrow">&rarr;</div>
-        <div class="node"><strong>Logout</strong><p>Akhiri sesi pengujian role super admin.</p></div>
-      </div>
-    </section>
-
-    <section id="ufQuestionnaire" class="lane" data-flow-slug="super-admin">
-      <div class="lane-head">
-        <h2>9) Form Kuesioner Pengujian</h2>
-        <small>Kartu pertanyaan muncul di setiap kotak flow, submit ada di bawah</small>
-      </div>
-      <form id="ufForm" class="uf-form" autocomplete="off">
-        <div class="uf-submit-row">
-          <button id="ufSubmitBtn" class="uf-btn" type="submit">Submit Hasil Pengujian</button>
         </div>
-        <div id="ufSubmitInfo" class="uf-submit-info">Silakan isi kuesioner berdasarkan hasil pengujian Anda.</div>
-      </form>
+        <div class="flow-lane">
+          <div class="lane-title"><h3>B. Task Role Super Admin</h3><span>Disesuaikan dengan menu yang dapat dibuka role ini</span></div>
+          <div class="cards">
+    <article class="card">
+      <div class="card-head">
+        <h4>Login Super Admin dan Dashboard Utama</h4>
+        <span class="code">SA-01</span>
+      </div>
+      <p>Login sebagai Super Admin, buka dashboard, cek ringkasan, prioritas, notifikasi, globe, dan sidebar lengkap.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="login.html" target="_blank" rel="noopener noreferrer">login.html</a><a href="dashboard.html" target="_blank" rel="noopener noreferrer">dashboard.html</a></div>
+        <span><b>Hasil diharapkan:</b> Super Admin masuk ke dashboard utama dengan akses seluruh modul.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-01"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Kelola Data Admin dan Permission Modul</h4>
+        <span class="code">SA-02</span>
+      </div>
+      <p>Tambah/edit admin, atur hak akses modul, coba admin tanpa permission pada menu tertentu.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="kelola-data-admin.html" target="_blank" rel="noopener noreferrer">kelola-data-admin.html</a></div>
+        <span><b>Hasil diharapkan:</b> Admin baru tersimpan dan permission membatasi menu sesuai modul yang dicentang.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-02"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Manajemen Anggota dan Status Keanggotaan</h4>
+        <span class="code">SA-03</span>
+      </div>
+      <p>Tambah/edit anggota, ubah status aktif/nonaktif, proses pengajuan nonaktif, cek bukti dan notifikasi.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="manajemen-anggota.html" target="_blank" rel="noopener noreferrer">manajemen-anggota.html</a></div>
+        <span><b>Hasil diharapkan:</b> Data anggota, status keanggotaan, dan request nonaktif berjalan sesuai keputusan admin.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-03"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Setting Sertifikat Anggota</h4>
+        <span class="code">SA-04</span>
+      </div>
+      <p>Atur template/parameter sertifikat, preview/download, dan cek sertifikat anggota.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="setting-sertifikat-anggota.html" target="_blank" rel="noopener noreferrer">setting-sertifikat-anggota.html</a><a href="sertifikat-anggota.html" target="_blank" rel="noopener noreferrer">sertifikat-anggota.html</a></div>
+        <span><b>Hasil diharapkan:</b> Sertifikat tampil sesuai data anggota dan setting yang dipilih.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-04"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Jadwal Streaming dan Registrasi Misa Besar</h4>
+        <span class="code">SA-05</span>
+      </div>
+      <p>Kelola jadwal streaming, tambah Misa Besar, publish/draft, dan validasi tampil di publik.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="jadwal-tugas-streaming-admin.html" target="_blank" rel="noopener noreferrer">jadwal-tugas-streaming-admin.html</a><a href="registrasi-tugas-misa-besar.html" target="_blank" rel="noopener noreferrer">registrasi-tugas-misa-besar.html</a></div>
+        <span><b>Hasil diharapkan:</b> Jadwal dan registrasi Misa Besar tersimpan serta tampil sesuai status publikasi.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-05"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Penugasan Petugas dan Monitoring Anggota</h4>
+        <span class="code">SA-06</span>
+      </div>
+      <p>Isi slot operator/kameramen/SPV, simpan penugasan, lalu cek monitoring tugas anggota.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="penugasan-petugas-misa.html" target="_blank" rel="noopener noreferrer">penugasan-petugas-misa.html</a><a href="monitoring-tugas-anggota.html" target="_blank" rel="noopener noreferrer">monitoring-tugas-anggota.html</a></div>
+        <span><b>Hasil diharapkan:</b> Penugasan tersimpan, status slot sesuai, dan monitoring menampilkan data akurat.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-06"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Evaluasi Streaming Admin</h4>
+        <span class="code">SA-07</span>
+      </div>
+      <p>Atur pertanyaan evaluasi, cek hasil evaluasi, detail modal, export Excel/PDF, dan daftar misa terlewat.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="setting-pertanyaan-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">setting-pertanyaan-evaluasi-streaming.html</a><a href="hasil-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">hasil-evaluasi-streaming.html</a></div>
+        <span><b>Hasil diharapkan:</b> Evaluasi streaming lengkap, pertanyaan dinamis muncul, dan laporan dapat diekspor.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-07"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Inventaris dan Peminjaman</h4>
+        <span class="code">SA-08</span>
+      </div>
+      <p>Tambah/edit barang, upload foto, proses persetujuan peminjaman, pengambilan, pengembalian, dan riwayat.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="data-inventaris-barang.html" target="_blank" rel="noopener noreferrer">data-inventaris-barang.html</a><a href="persetujuan-peminjaman.html" target="_blank" rel="noopener noreferrer">persetujuan-peminjaman.html</a><a href="riwayat-peminjaman-pengembalian.html" target="_blank" rel="noopener noreferrer">riwayat-peminjaman-pengembalian.html</a></div>
+        <span><b>Hasil diharapkan:</b> Stok barang, status transaksi, dan riwayat berubah sesuai aksi.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-08"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Laporan Kerusakan Barang</h4>
+        <span class="code">SA-09</span>
+      </div>
+      <p>Cek laporan kerusakan dari anggota, lihat bukti, update status, dan filter hasil.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="hasil-form-kerusakan-barang.html" target="_blank" rel="noopener noreferrer">hasil-form-kerusakan-barang.html</a></div>
+        <span><b>Hasil diharapkan:</b> Laporan kerusakan dapat dipantau dan diproses oleh pengelola.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-09"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Publikasi: Profil, Berita, Agenda, Pengumuman</h4>
+        <span class="code">SA-10</span>
+      </div>
+      <p>Ubah profil organisasi, tambah/edit berita, agenda, dan pengumuman, lalu validasi tampil di publik.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="manajemen-profil.html" target="_blank" rel="noopener noreferrer">manajemen-profil.html</a><a href="kelola-berita.html" target="_blank" rel="noopener noreferrer">kelola-berita.html</a><a href="form-berita.html" target="_blank" rel="noopener noreferrer">form-berita.html</a><a href="manajemen-agenda.html" target="_blank" rel="noopener noreferrer">manajemen-agenda.html</a><a href="form-agenda.html" target="_blank" rel="noopener noreferrer">form-agenda.html</a></div>
+        <span><b>Hasil diharapkan:</b> Konten publikasi tersimpan dan muncul pada halaman publik.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-10"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Konten Utama Website dan Embed</h4>
+        <span class="code">SA-11</span>
+      </div>
+      <p>Kelola carousel home, embed YouTube playlist/live, Instagram, dan Google Maps.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="kelola-carousel-home.html" target="_blank" rel="noopener noreferrer">kelola-carousel-home.html</a><a href="kelola-embed-youtube.html" target="_blank" rel="noopener noreferrer">kelola-embed-youtube.html</a><a href="kelola-embed-instagram.html" target="_blank" rel="noopener noreferrer">kelola-embed-instagram.html</a><a href="kelola-embed-google-maps.html" target="_blank" rel="noopener noreferrer">kelola-embed-google-maps.html</a></div>
+        <span><b>Hasil diharapkan:</b> Konten home dan embed tampil sinkron setelah disimpan.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-11"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Builder dan Manajemen Form Pendaftaran</h4>
+        <span class="code">SA-12</span>
+      </div>
+      <p>Buat field form, publish/tutup form, isi dari publik, lalu cek daftar pendaftar.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="builder-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">builder-form-pendaftaran.html</a><a href="manajemen-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">manajemen-form-pendaftaran.html</a><a href="pendaftar-form.html" target="_blank" rel="noopener noreferrer">pendaftar-form.html</a></div>
+        <span><b>Hasil diharapkan:</b> Form dinamis dapat dibuat, dipublikasikan, diisi, dan datanya terbaca.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-12"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Log Aktivitas Seluruh Role</h4>
+        <span class="code">SA-13</span>
+      </div>
+      <p>Buka log aktivitas, filter semua role/pengguna/modul/periode, export Excel, dan preview PDF.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="log-aktivitas.html" target="_blank" rel="noopener noreferrer">log-aktivitas.html</a></div>
+        <span><b>Hasil diharapkan:</b> Super Admin dapat melihat log seluruh pengguna sesuai filter.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-13"> Task selesai diuji</label>
+    </article>
+    
+
+    <article class="card">
+      <div class="card-head">
+        <h4>Logout dan Validasi Akses</h4>
+        <span class="code">SA-14</span>
+      </div>
+      <p>Logout, buka ulang halaman admin tanpa sesi, lalu pastikan diarahkan ke login/ditolak.</p>
+      <div class="meta-list">
+        <span><b>Halaman:</b></span>
+        <div class="links"><a href="dashboard.html" target="_blank" rel="noopener noreferrer">dashboard.html</a></div>
+        <span><b>Hasil diharapkan:</b> Sesi berakhir aman dan akses tanpa login tidak dibuka.</span>
+      </div>
+      <label class="done"><input type="checkbox" data-task="SA-14"> Task selesai diuji</label>
+    </article>
+    </div>
+        </div>
+      </div>
     </section>
 
-    <aside class="checklist">
-      <strong>Checklist Uji Cepat Super Admin:</strong><br>
-      1. Semua node dapat dibuka dari File Explorer.<br>
-      2. Flow lintas modul tidak terputus (streaming, inventaris, konten, anggota).<br>
-      3. Hak akses tertinggi tervalidasi di halaman log aktivitas.<br>
-      4. Export laporan (CSV/PDF preview) bisa di-trigger saat test.
-    </aside>
-  </div>
-  <script src="user-flow-submit.js"></script>
+    <section id="sus" class="section">
+      <div class="section-head">
+        <h2>Bagian 3 - System Usability Scale (SUS) Akhir</h2>
+        <small>Diisi setelah menyelesaikan task scenario</small>
+      </div>
+      <div class="section-body">
+        <div class="info">
+          Berikan penilaian berdasarkan pengalaman menggunakan website Crembo Media setelah redesign. Nilai 1 berarti <b>Sangat Tidak Setuju</b> dan nilai 5 berarti <b>Sangat Setuju</b>.
+        </div>
+        <div class="scale-help"><span>1 = Sangat Tidak Setuju</span><span>5 = Sangat Setuju</span></div>
+        <div class="table-wrap">
+          <table class="sus-table">
+            <thead><tr><th>Pernyataan</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
+            <tbody><tr class="sus-item"><td><div class="sus-question">1. Saya rasa saya akan sering menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus1" value="1" aria-label="SUS 1 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus1" value="2" aria-label="SUS 1 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus1" value="3" aria-label="SUS 1 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus1" value="4" aria-label="SUS 1 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus1" value="5" aria-label="SUS 1 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">2. Saya merasa website Crembo Media ini terlalu rumit untuk digunakan.</div></td><td class="scale-cell"><input type="radio" name="sus2" value="1" aria-label="SUS 2 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus2" value="2" aria-label="SUS 2 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus2" value="3" aria-label="SUS 2 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus2" value="4" aria-label="SUS 2 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus2" value="5" aria-label="SUS 2 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">3. Saya merasa website Crembo Media ini mudah digunakan.</div></td><td class="scale-cell"><input type="radio" name="sus3" value="1" aria-label="SUS 3 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus3" value="2" aria-label="SUS 3 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus3" value="3" aria-label="SUS 3 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus3" value="4" aria-label="SUS 3 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus3" value="5" aria-label="SUS 3 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">4. Saya membutuhkan bantuan teknis dari orang lain untuk dapat menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus4" value="1" aria-label="SUS 4 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus4" value="2" aria-label="SUS 4 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus4" value="3" aria-label="SUS 4 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus4" value="4" aria-label="SUS 4 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus4" value="5" aria-label="SUS 4 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">5. Saya merasa berbagai fitur pada website Crembo Media ini berjalan dengan baik dan saling terintegrasi.</div></td><td class="scale-cell"><input type="radio" name="sus5" value="1" aria-label="SUS 5 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus5" value="2" aria-label="SUS 5 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus5" value="3" aria-label="SUS 5 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus5" value="4" aria-label="SUS 5 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus5" value="5" aria-label="SUS 5 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">6. Saya merasa ada terlalu banyak hal yang tidak konsisten pada website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus6" value="1" aria-label="SUS 6 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus6" value="2" aria-label="SUS 6 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus6" value="3" aria-label="SUS 6 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus6" value="4" aria-label="SUS 6 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus6" value="5" aria-label="SUS 6 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">7. Saya membayangkan sebagian besar orang akan cepat belajar menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus7" value="1" aria-label="SUS 7 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus7" value="2" aria-label="SUS 7 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus7" value="3" aria-label="SUS 7 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus7" value="4" aria-label="SUS 7 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus7" value="5" aria-label="SUS 7 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">8. Saya merasa website Crembo Media ini sangat rumit untuk digunakan.</div></td><td class="scale-cell"><input type="radio" name="sus8" value="1" aria-label="SUS 8 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus8" value="2" aria-label="SUS 8 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus8" value="3" aria-label="SUS 8 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus8" value="4" aria-label="SUS 8 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus8" value="5" aria-label="SUS 8 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">9. Saya merasa percaya diri saat menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus9" value="1" aria-label="SUS 9 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus9" value="2" aria-label="SUS 9 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus9" value="3" aria-label="SUS 9 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus9" value="4" aria-label="SUS 9 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus9" value="5" aria-label="SUS 9 nilai 5"></td></tr>
+<tr class="sus-item"><td><div class="sus-question">10. Saya perlu mempelajari banyak hal terlebih dahulu sebelum dapat menggunakan website Crembo Media ini dengan baik.</div></td><td class="scale-cell"><input type="radio" name="sus10" value="1" aria-label="SUS 10 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus10" value="2" aria-label="SUS 10 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus10" value="3" aria-label="SUS 10 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus10" value="4" aria-label="SUS 10 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus10" value="5" aria-label="SUS 10 nilai 5"></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tambahan" class="section">
+      <div class="section-head">
+        <h2>Bagian 4 - Pertanyaan Tambahan</h2>
+        <small>Umpan balik kualitatif untuk Bab 4/5</small>
+      </div>
+      <div class="section-body">
+        <div class="grid">
+          <div class="field"><label>1. Fitur yang paling sering/bermanfaat</label><textarea id="open1" placeholder="Menurut Anda, fitur apa yang paling sering atau paling bermanfaat digunakan?"></textarea></div>
+          <div class="field"><label>2. Fitur yang sulit atau membingungkan</label><textarea id="open2" placeholder="Fitur apa yang masih sulit digunakan atau tidak berfungsi sebagaimana mestinya?"></textarea></div>
+          <div class="field"><label>3. Tampilan yang perlu diperbaiki</label><textarea id="open3" placeholder="Bagian tampilan apa yang perlu diperbaiki atau disederhanakan?"></textarea></div>
+          <div class="field"><label>4. Saran tambahan</label><textarea id="open4" placeholder="Saran tambahan untuk meningkatkan usability website Crembo Media."></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rekap" class="section">
+      <div class="section-head">
+        <h2>Bagian 5 - Rekap Frontend</h2>
+        <small>Frontend only: tersimpan di localStorage/browser</small>
+      </div>
+      <div class="section-body">
+        <div class="actions">
+          <button class="btn" type="button" id="calcBtn">Hitung Skor SUS</button>
+          <button class="btn gold" type="button" id="saveBtn">Simpan Lokal</button>
+          <button class="btn secondary" type="button" id="exportBtn">Export JSON</button>
+          <button class="btn secondary" type="button" onclick="window.print()">Print / PDF</button>
+          <button class="btn secondary" type="button" id="resetBtn">Reset Jawaban</button>
+        </div>
+        <div id="resultBox" class="result-card">
+          <span class="footer-note">Skor SUS akan tampil setelah semua 10 pertanyaan SUS diisi.</span>
+        </div>
+        <p class="footer-note">Catatan: halaman ini belum memakai backend. Data hanya tersimpan pada browser penguji sampai Anda mengaktifkan integrasi database atau Google Form.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const flowSlug = document.body.dataset.flow || "flow";
+    const storageKey = "crembo_sus_final_" + flowSlug;
+
+    function byId(id){ return document.getElementById(id); }
+    function selected(name){ const el = document.querySelector('input[name="'+name+'"]:checked'); return el ? Number(el.value) : null; }
+    function detectDefaults(){
+      const ua = navigator.userAgent || "";
+      const dev = /android|iphone|ipad|mobile/i.test(ua) ? "Handphone" : "PC/Laptop";
+      if (byId("testerDevice") && !byId("testerDevice").value) byId("testerDevice").value = dev;
+      let browser = "Lainnya";
+      if (/Edg\//.test(ua)) browser = "Microsoft Edge";
+      else if (/Firefox\//.test(ua)) browser = "Mozilla Firefox";
+      else if (/OPR\//.test(ua)) browser = "Opera";
+      else if (/Chrome\//.test(ua)) browser = "Google Chrome";
+      else if (/Safari\//.test(ua)) browser = "Safari";
+      if (byId("testerBrowser") && !byId("testerBrowser").value) byId("testerBrowser").value = browser;
+    }
+    function getPayload(){
+      const sus = [];
+      for(let i=1;i<=10;i++) sus.push(selected("sus"+i));
+      const tasks = Array.from(document.querySelectorAll("[data-task]")).map(el=>({ code: el.dataset.task, done: el.checked }));
+      return {
+        flow: flowSlug,
+        role: byId("testerRole").value,
+        savedAt: new Date().toISOString(),
+        tester: {
+          name: byId("testerName").value.trim(),
+          org: byId("testerOrg").value.trim(),
+          device: byId("testerDevice").value,
+          browser: byId("testerBrowser").value,
+          date: byId("testDate").value
+        },
+        tasks,
+        sus,
+        openEnded: {
+          fitur_bermanfaat: byId("open1").value.trim(),
+          fitur_sulit: byId("open2").value.trim(),
+          tampilan_diperbaiki: byId("open3").value.trim(),
+          saran: byId("open4").value.trim()
+        },
+        score: calculateScore(false)
+      };
+    }
+    function calculateScore(render=true){
+      let answers = [];
+      for(let i=1;i<=10;i++) answers.push(selected("sus"+i));
+      const missing = answers.map((v,i)=>v?null:i+1).filter(Boolean);
+      if(missing.length){
+        if(render) byId("resultBox").innerHTML = '<b style="color:#991b1b">Masih ada pertanyaan SUS yang belum diisi:</b> nomor ' + missing.join(", ");
+        return null;
+      }
+      let sum = 0;
+      answers.forEach((v, idx)=>{ sum += ((idx+1)%2===1) ? (v-1) : (5-v); });
+      const score = +(sum * 2.5).toFixed(2);
+      let label = "Marginal";
+      if(score >= 85) label = "Excellent";
+      else if(score >= 68) label = "Acceptable";
+      else label = "Not Acceptable";
+      if(render){
+        byId("resultBox").innerHTML = '<span>Skor SUS Akhir</span><div class="result-score">' + score + '</div><b>Kategori: ' + label + '</b><span class="footer-note">Target penelitian: skor akhir diharapkan > 68 atau kategori Acceptable.</span>';
+      }
+      return { score, category: label };
+    }
+    function restore(){
+      try{
+        const raw = localStorage.getItem(storageKey);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        if(data.tester){
+          byId("testerName").value = data.tester.name || "";
+          byId("testerOrg").value = data.tester.org || "";
+          byId("testerDevice").value = data.tester.device || byId("testerDevice").value;
+          byId("testerBrowser").value = data.tester.browser || byId("testerBrowser").value;
+        }
+        (data.sus || []).forEach((v,idx)=>{ if(v) { const r=document.querySelector('input[name="sus'+(idx+1)+'"][value="'+v+'"]'); if(r) r.checked=true; } });
+        (data.tasks || []).forEach(t=>{ const el=document.querySelector('[data-task="'+t.code+'"]'); if(el) el.checked=!!t.done; });
+        if(data.openEnded){
+          byId("open1").value = data.openEnded.fitur_bermanfaat || "";
+          byId("open2").value = data.openEnded.fitur_sulit || "";
+          byId("open3").value = data.openEnded.tampilan_diperbaiki || "";
+          byId("open4").value = data.openEnded.saran || "";
+        }
+        calculateScore(true);
+      }catch(e){}
+    }
+    byId("calcBtn").addEventListener("click", ()=>calculateScore(true));
+    byId("saveBtn").addEventListener("click", ()=>{
+      const data = getPayload();
+      if(!data.tester.name) { byId("resultBox").innerHTML = '<b style="color:#991b1b">Nama penguji wajib diisi sebelum menyimpan.</b>'; return; }
+      localStorage.setItem(storageKey, JSON.stringify(data));
+      byId("resultBox").innerHTML = '<b style="color:#166534">Data berhasil disimpan lokal.</b><span class="footer-note">Key: '+storageKey+'</span>';
+    });
+    byId("exportBtn").addEventListener("click", ()=>{
+      const data = getPayload();
+      const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "sus-final-" + flowSlug + ".json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    byId("resetBtn").addEventListener("click", ()=>{
+      if(!confirm("Reset semua jawaban pada halaman ini?")) return;
+      localStorage.removeItem(storageKey);
+      document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(el=>el.checked=false);
+      document.querySelectorAll('textarea').forEach(el=>el.value="");
+      byId("testerName").value="";
+      byId("testerOrg").value="";
+      byId("resultBox").innerHTML='<span class="footer-note">Jawaban sudah direset.</span>';
+    });
+    document.addEventListener("change", e=>{ if(e.target.matches('input,select,textarea')) localStorage.setItem(storageKey, JSON.stringify(getPayload())); });
+    document.addEventListener("input", e=>{ if(e.target.matches('input,select,textarea')) localStorage.setItem(storageKey, JSON.stringify(getPayload())); });
+    detectDefaults();
+    restore();
+  })();
+  </script>
 </body>
 </html>
-
-

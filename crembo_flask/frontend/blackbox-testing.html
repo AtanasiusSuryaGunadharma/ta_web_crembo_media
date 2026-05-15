@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Black Box Testing - Crembo Media</title>
+  <style>
+:root{
+  --bg:#f7eeee;
+  --surface:#fff;
+  --line:#ead1d1;
+  --ink:#111827;
+  --muted:#6b7280;
+  --primary:#8b0000;
+  --primary-dark:#5c0000;
+  --primary-2:#b11f1f;
+  --gold:#d4a017;
+  --green:#166534;
+  --green-bg:#eaf8ee;
+  --yellow:#8a6d00;
+  --yellow-bg:#fff7db;
+  --red-bg:#fff1f1;
+  --blue:#1d4ed8;
+  --radius:16px;
+  --shadow:0 14px 32px rgba(128,0,0,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,"Segoe UI",Tahoma,Verdana,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 4%, rgba(177,31,31,.12), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(212,160,23,.12), transparent 25%),
+    var(--bg);
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:22px;display:grid;gap:16px}
+.hero{
+  color:#fff;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-2));
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  display:grid;
+  gap:12px;
+}
+.hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.hero h1{margin:0;font-size:clamp(1.35rem,2.6vw,2.1rem);font-weight:900;letter-spacing:-.03em}
+.hero p{margin:0;color:rgba(255,255,255,.88);line-height:1.55}
+.badges,.nav-pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge,.nav-pills a{
+  display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.32);
+  background:rgba(255,255,255,.13);
+  padding:7px 11px;font-weight:800;font-size:.78rem
+}
+.nav-pills a{background:#fff;color:var(--primary);border-color:#f0b8b8}
+.nav-pills a.active{background:var(--gold);border-color:var(--gold);color:#431407}
+.top-tabs{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:8px;flex-wrap:wrap;
+  background:rgba(247,238,238,.94);
+  backdrop-filter:blur(10px);
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 8px 20px rgba(128,0,0,.08);
+}
+.top-tabs a{
+  border:1px solid var(--line);background:#fff;color:var(--primary);
+  border-radius:999px;padding:8px 12px;font-weight:800;font-size:.82rem;
+}
+.section{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.section-head{
+  padding:16px 18px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(180deg,#fff,#fff8f8);
+}
+.section-head h2{margin:0;font-size:1.12rem}
+.section-head small{color:var(--muted);font-weight:700}
+.section-body{padding:16px 18px;display:grid;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px}
+.field{display:grid;gap:7px}
+label,.label{font-size:.78rem;font-weight:900;color:#7f1d1d;text-transform:uppercase;letter-spacing:.04em}
+input,select,textarea{
+  width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+  font:inherit;background:#fff;color:var(--ink);outline:none
+}
+textarea{min-height:92px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(177,31,31,.09)}
+.info{
+  border:1px solid #f1d28a;background:#fff9e8;border-left:5px solid var(--gold);
+  border-radius:12px;padding:12px;color:#5c3f00;line-height:1.5
+}
+.flow-lane{display:grid;gap:10px}
+.lane-title{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.lane-title h3{margin:0;font-size:1rem;color:var(--primary)}
+.lane-title span{font-size:.78rem;color:var(--muted);font-weight:800}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}
+.card{
+  border:1px solid var(--line);border-radius:14px;background:#fff;
+  padding:13px;display:grid;gap:9px;position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(var(--primary),var(--gold))}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card h4{margin:0;color:#111827;font-size:.96rem}
+.code{font-size:.72rem;font-weight:900;color:var(--primary);background:#fff3f3;border:1px solid #f3baba;border-radius:999px;padding:4px 8px;white-space:nowrap}
+.card p{margin:0;color:#374151;font-size:.84rem;line-height:1.5}
+.meta-list{display:grid;gap:4px;font-size:.8rem;color:#4b5563}
+.meta-list b{color:#7f1d1d}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.links a{border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:.74rem;font-weight:800;color:var(--primary);background:#fff}
+.done{display:flex;gap:8px;align-items:center;font-size:.82rem;color:#374151;text-transform:none;font-weight:800;letter-spacing:0}
+.done input{width:auto}
+.sus-table{width:100%;border-collapse:separate;border-spacing:0 10px}
+.sus-table th{font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:#7f1d1d;text-align:center}
+.sus-table th:first-child{text-align:left}
+.sus-item{
+  border:1px solid var(--line);background:#fff;border-radius:13px;box-shadow:0 4px 12px rgba(128,0,0,.05)
+}
+.sus-item td{padding:13px 10px;vertical-align:middle}
+.sus-item td:first-child{border-radius:13px 0 0 13px}
+.sus-item td:last-child{border-radius:0 13px 13px 0}
+.sus-question{font-weight:800;line-height:1.45}
+.scale-cell{text-align:center;min-width:48px}
+.scale-cell input{width:18px;height:18px;accent-color:var(--primary)}
+.scale-help{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.8rem;margin-top:-6px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{
+  border:0;border-radius:12px;background:var(--primary);color:#fff;
+  padding:11px 14px;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(128,0,0,.18)
+}
+.btn.secondary{background:#fff;color:var(--primary);border:1px solid var(--line);box-shadow:none}
+.btn.gold{background:var(--gold);color:#431407}
+.result-card{
+  border:1px solid var(--line);border-left:5px solid var(--primary);
+  border-radius:14px;background:#fff;padding:14px;display:grid;gap:7px
+}
+.result-score{font-size:2rem;font-weight:950;color:var(--primary);line-height:1}
+.footer-note{font-size:.82rem;color:var(--muted);line-height:1.5}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.blackbox-table{width:100%;border-collapse:collapse;background:#fff;min-width:1180px}
+.blackbox-table th,.blackbox-table td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top;text-align:left;font-size:.83rem}
+.blackbox-table th{position:sticky;top:0;background:#fff4f4;color:#7f1d1d;font-weight:900;text-transform:uppercase;font-size:.74rem;z-index:2}
+.blackbox-table select{min-width:140px;padding:8px;border-radius:9px}
+.blackbox-table textarea{min-width:220px;min-height:54px;padding:8px;border-radius:9px}
+.status-chip{display:inline-flex;border-radius:999px;padding:4px 9px;font-weight:900;font-size:.72rem}
+.status-valid{background:var(--green-bg);color:var(--green);border:1px solid #95d5a6}
+.status-invalid{background:var(--red-bg);color:#991b1b;border:1px solid #fecaca}
+.status-pending{background:var(--yellow-bg);color:var(--yellow);border:1px solid #f1d28a}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
+.summary-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;display:grid;gap:5px}
+.summary-card span{color:var(--muted);font-size:.8rem;font-weight:800}
+.summary-card b{font-size:1.55rem}
+@media(max-width:900px){
+  .wrap{padding:14px}
+  .grid,.grid-3,.cards,.summary{grid-template-columns:1fr}
+  .top-tabs{position:static}
+  .section-head{align-items:flex-start}
+  .sus-table{display:block;overflow:auto}
+  .scale-cell{min-width:44px}
+}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="hero-row">
+        <div>
+          <h1>Black Box Testing - Website Crembo Media</h1>
+          <p>Halaman frontend-only untuk checklist pengujian fungsional seluruh fitur sistem. Halaman ini dipakai oleh peneliti/penguji internal, bukan responden SUS.</p>
+        </div>
+        <div class="badges">
+          <span class="badge">Jenis: Black Box Testing</span>
+          <span class="badge">Mode: Checklist Manual</span>
+          <span class="badge">Output: CSV / Print PDF</span>
+        </div>
+      </div>
+      <div class="nav-pills">
+        <a href="user-flow-super-admin.html">User Flow Super Admin</a>
+        <a href="user-flow-admin.html">User Flow Admin</a>
+        <a href="user-flow-anggota.html">User Flow Anggota</a>
+        <a class="active" href="blackbox-testing.html">Black Box Testing</a>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Ringkasan Status Pengujian</h2>
+        <small>Data disimpan lokal di browser</small>
+      </div>
+      <div class="section-body">
+        <div class="summary">
+          <div class="summary-card"><span>Total Skenario</span><b id="sumTotal">0</b></div>
+          <div class="summary-card"><span>Valid</span><b id="sumValid">0</b></div>
+          <div class="summary-card"><span>Tidak Valid</span><b id="sumInvalid">0</b></div>
+          <div class="summary-card"><span>Belum Diuji</span><b id="sumPending">0</b></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Cari Skenario</label><input id="searchBox" type="search" placeholder="Cari modul, fitur, skenario..."></div>
+          <div class="field"><label>Filter Modul</label><select id="moduleFilter"><option value="all">Semua Modul</option></select></div>
+          <div class="field"><label>Filter Status</label><select id="statusFilter"><option value="all">Semua Status</option><option value="pending">Belum Diuji</option><option value="valid">Valid</option><option value="invalid">Tidak Valid</option></select></div>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" id="saveBtn">Simpan Lokal</button>
+          <button class="btn gold" type="button" id="exportCsvBtn">Export CSV</button>
+          <button class="btn secondary" type="button" onclick="window.print()">Preview / Print PDF</button>
+          <button class="btn secondary" type="button" id="resetBtn">Reset Status</button>
+        </div>
+        <div class="info">
+          <b>Aturan hasil:</b> pilih <b>Valid</b> jika fungsi berjalan sesuai hasil yang diharapkan, pilih <b>Tidak Valid</b> jika ada bug/error, dan isi catatan beserta bukti screenshot bila diperlukan.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Daftar Checklist Fungsionalitas</h2>
+        <small id="visibleInfo">Menampilkan semua skenario</small>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table class="blackbox-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Kode</th>
+                <th>Modul</th>
+                <th>Fitur</th>
+                <th>Skenario Pengujian</th>
+                <th>Input / Aksi</th>
+                <th>Hasil yang Diharapkan</th>
+                <th>Status</th>
+                <th>Catatan / Bug</th>
+                <th>Bukti</th>
+              </tr>
+            </thead>
+            <tbody id="caseBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const CASES = [{"id": "PUB-01", "module": "Publik / No Login", "feature": "Home", "scenario": "Membuka halaman beranda publik", "input": "Akses home.html tanpa login", "expected": "Hero, navigasi, carousel, embed, dan footer tampil normal."}, {"id": "PUB-02", "module": "Publik / No Login", "feature": "Navigasi Header", "scenario": "Klik menu Profil/Jadwal/Agenda/Pengumuman/Form Pendaftaran", "input": "Klik setiap menu header", "expected": "Semua menu menuju halaman yang sesuai tanpa error."}, {"id": "PUB-03", "module": "Publik / No Login", "feature": "Search", "scenario": "Mencari konten publik", "input": "Input kata kunci: misa, agenda, pengumuman", "expected": "Hasil pencarian relevan dan dapat dibuka."}, {"id": "PUB-04", "module": "Publik / No Login", "feature": "Profil Publik", "scenario": "Membuka profil organisasi", "input": "Akses profil.html", "expected": "Profil, kontak, dan deskripsi organisasi tampil."}, {"id": "PUB-05", "module": "Publik / No Login", "feature": "Jadwal Streaming Publik", "scenario": "Filter jadwal Misa Biasa/Misa Besar", "input": "Pilih bulan/tahun/jenis misa", "expected": "Jadwal sesuai filter tampil."}, {"id": "PUB-06", "module": "Publik / No Login", "feature": "Agenda", "scenario": "Melihat daftar dan detail agenda", "input": "Buka agenda.html lalu agenda-detail.html", "expected": "Agenda tampil lengkap dengan detail."}, {"id": "PUB-07", "module": "Publik / No Login", "feature": "Pengumuman", "scenario": "Melihat pengumuman dan detail", "input": "Buka pengumuman.html lalu detail", "expected": "Konten pengumuman terbaca."}, {"id": "PUB-08", "module": "Publik / No Login", "feature": "Form Pendaftaran Publik", "scenario": "Mengisi form kegiatan publik", "input": "Pilih form aktif lalu submit data dummy", "expected": "Data tervalidasi dan submit berhasil."}, {"id": "PUB-09", "module": "Publik / No Login", "feature": "Form Evaluasi Streaming", "scenario": "Mengisi evaluasi tanpa login", "input": "Pilih jadwal valid, isi rating dan kendala", "expected": "Evaluasi tersimpan dan jadwal tidak bisa diisi ulang jika sudah ada."}, {"id": "PUB-10", "module": "Publik / No Login", "feature": "Embed Media", "scenario": "Menampilkan YouTube/Maps/Instagram", "input": "Scroll bagian embed home", "expected": "Embed tampil dan tidak merusak layout."}, {"id": "AUTH-01", "module": "Autentikasi", "feature": "Login", "scenario": "Login dengan role anggota/admin/super admin", "input": "Input username/email/no HP + password", "expected": "Redirect sesuai role."}, {"id": "AUTH-02", "module": "Autentikasi", "feature": "Login Validasi", "scenario": "Login kredensial salah", "input": "Input password salah", "expected": "Muncul pesan gagal login."}, {"id": "AUTH-03", "module": "Autentikasi", "feature": "Forgot Password", "scenario": "Request OTP reset password", "input": "Input username/email/no HP terdaftar", "expected": "OTP terkirim ke email terdaftar."}, {"id": "AUTH-04", "module": "Autentikasi", "feature": "OTP", "scenario": "Verifikasi kode OTP valid dan expired", "input": "Input kode benar, salah, dan lewat 5 menit", "expected": "Kode benar lanjut reset, salah/expired ditolak."}, {"id": "AUTH-05", "module": "Autentikasi", "feature": "Reset Password", "scenario": "Menyimpan password baru", "input": "Input password dan konfirmasi valid", "expected": "Password baru aktif untuk login."}, {"id": "AUTH-06", "module": "Autentikasi", "feature": "Logout", "scenario": "Keluar dari sistem", "input": "Klik Logout", "expected": "Sesi ditutup dan halaman login/home muncul."}, {"id": "AG-01", "module": "Anggota", "feature": "Dashboard Anggota", "scenario": "Memuat statistik dashboard anggota", "input": "Login anggota lalu buka dashboard-anggota.html", "expected": "Statistik, grafik, tugas perlu diambil, dan notifikasi tampil sesuai akun."}, {"id": "AG-02", "module": "Anggota", "feature": "Profil Anggota", "scenario": "Mengubah profil anggota", "input": "Edit nama, WA, alamat, tanggal lahir", "expected": "Data profil tersimpan dan tampil ulang."}, {"id": "AG-03", "module": "Anggota", "feature": "Ganti Password", "scenario": "Mengganti password dari profil", "input": "Isi password lama, baru, konfirmasi", "expected": "Password berubah dan validasi bekerja."}, {"id": "AG-04", "module": "Anggota", "feature": "Pengajuan Nonaktif", "scenario": "Mengajukan status nonaktif", "input": "Pilih jenis, tanggal, alasan, catatan, bukti", "expected": "Request pending tercatat dan bisa diedit/cancel sebelum diproses."}, {"id": "AG-05", "module": "Anggota", "feature": "Akses Nonaktif", "scenario": "Membatasi menu anggota nonaktif", "input": "Login anggota nonaktif lalu buka menu tugas/peminjaman", "expected": "Menu terlarang ditolak, profil/dashboard tetap bisa dibuka."}, {"id": "AG-06", "module": "Anggota", "feature": "Sertifikat", "scenario": "Download sertifikat anggota", "input": "Buka sertifikat-anggota.html", "expected": "Sertifikat tampil/download sesuai data."}, {"id": "AG-07", "module": "Anggota", "feature": "Log Aktivitas Pribadi", "scenario": "Melihat log diri sendiri", "input": "Buka log-aktivitas.html sebagai anggota", "expected": "Hanya log anggota tersebut yang tampil."}, {"id": "AGT-01", "module": "Tugas Anggota", "feature": "Jadwal Tugas Anggota", "scenario": "Melihat jadwal card/tabel", "input": "Filter bulan/tahun/jenis", "expected": "Jadwal dan tag Jadwal Saya sesuai user."}, {"id": "AGT-02", "module": "Tugas Anggota", "feature": "Request Tugas", "scenario": "Mengambil slot tugas kosong", "input": "Pilih slot tersedia dan submit request", "expected": "Request tercatat dan slot/status berubah sesuai aturan."}, {"id": "AGT-03", "module": "Tugas Anggota", "feature": "Pembatalan Tugas", "scenario": "Membatalkan tugas H-3", "input": "Pilih tugas yang masih H-3", "expected": "Pembatalan diterima; tugas lewat H-3 tidak bisa dibatalkan."}, {"id": "AGT-04", "module": "Tugas Anggota", "feature": "Penukaran Jadwal", "scenario": "Mengajukan tukar jadwal", "input": "Pilih jadwal asal dan jadwal tujuan", "expected": "Request tukar tersimpan."}, {"id": "AGT-05", "module": "Tugas Anggota", "feature": "Riwayat Tugas", "scenario": "Melihat riwayat tugas", "input": "Filter bulan/tahun/jenis", "expected": "Riwayat pribadi tampil sesuai filter."}, {"id": "AGT-06", "module": "Tugas Anggota", "feature": "Monitoring Kewajiban", "scenario": "Cek progress target tugas", "input": "Pilih bulan/tahun", "expected": "Target minimum, total tugas, kekurangan, dan progress akurat."}, {"id": "EV-01", "module": "Evaluasi Streaming", "feature": "Form Evaluasi No Login", "scenario": "Pengisi evaluasi hanya petugas sesi", "input": "Ubah petugas aktual/hadir/tidak hadir", "expected": "Dropdown pengisi hanya memuat petugas hadir/aktual."}, {"id": "EV-02", "module": "Evaluasi Streaming", "feature": "Evaluasi Anggota", "scenario": "Anggota isi evaluasi dari panel", "input": "Pilih jadwal sudah lewat dan isi rating", "expected": "Evaluasi tersimpan dengan pesan berhasil."}, {"id": "EV-03", "module": "Evaluasi Streaming", "feature": "Catatan Performa Opsional", "scenario": "Submit tanpa catatan performa", "input": "Isi rating per petugas tanpa catatan", "expected": "Submit tetap diterima."}, {"id": "EV-04", "module": "Evaluasi Streaming", "feature": "Checklist Pelayanan Opsional", "scenario": "Submit tanpa centang checklist", "input": "Kosongkan checklist kondisi pelayanan", "expected": "Submit tetap diterima."}, {"id": "EV-05", "module": "Evaluasi Streaming", "feature": "Setting Pertanyaan", "scenario": "Tambah/edit/hapus/kosongkan pertanyaan tambahan", "input": "Simpan konfigurasi kosong dan berisi", "expected": "Konfigurasi kosong valid, pertanyaan tampil dinamis."}, {"id": "EV-06", "module": "Evaluasi Streaming", "feature": "Hasil Evaluasi", "scenario": "Filter dan detail evaluasi", "input": "Pilih jenis/periode/sort lalu klik Detail", "expected": "Tabel sesuai filter dan modal detail lengkap."}, {"id": "EV-07", "module": "Evaluasi Streaming", "feature": "Export Evaluasi", "scenario": "Download Excel/PDF evaluasi", "input": "Klik Excel dan PDF preview", "expected": "Kolom evaluasi lengkap muncul pada file."}, {"id": "EV-08", "module": "Evaluasi Streaming", "feature": "Reminder Evaluasi", "scenario": "Notifikasi reminder evaluasi belum diisi", "input": "Jadwal lewat H+1 belum diisi", "expected": "Petugas sesi menerima notifikasi sampai satu evaluasi masuk."}, {"id": "STR-01", "module": "Admin Streaming", "feature": "Jadwal Streaming Admin", "scenario": "CRUD jadwal Misa Biasa", "input": "Tambah/edit/hapus jadwal", "expected": "Data jadwal tersimpan dan tampil publik."}, {"id": "STR-02", "module": "Admin Streaming", "feature": "Registrasi Misa Besar", "scenario": "CRUD dan publish Misa Besar", "input": "Tambah role, required count, publish", "expected": "Misa Besar tampil sesuai status publish."}, {"id": "STR-03", "module": "Admin Streaming", "feature": "Penugasan Petugas", "scenario": "Assign petugas per role", "input": "Pilih operator/kameramen/SPV dan simpan", "expected": "Slot terisi dan status lengkap/kurang akurat."}, {"id": "STR-04", "module": "Admin Streaming", "feature": "Monitoring Tugas Anggota Admin", "scenario": "Melihat rekap anggota", "input": "Filter bulan/tahun/status", "expected": "Rekap tugas anggota tampil akurat."}, {"id": "INV-01", "module": "Inventaris", "feature": "Data Inventaris", "scenario": "Tambah/edit barang dan foto", "input": "Isi kode, nama, kategori, unit, foto", "expected": "Barang tersimpan dan foto bisa preview."}, {"id": "INV-02", "module": "Inventaris", "feature": "Unit Barang", "scenario": "Mengatur unit multiple dan status unit", "input": "Set unit tersedia/dipinjam/rusak", "expected": "Jumlah stok berubah sesuai unit."}, {"id": "INV-03", "module": "Inventaris", "feature": "Pengajuan Peminjaman Anggota", "scenario": "Anggota mengajukan peminjaman", "input": "Pilih barang, tanggal, catatan", "expected": "Request peminjaman tercatat."}, {"id": "INV-04", "module": "Inventaris", "feature": "Persetujuan Peminjaman", "scenario": "Admin setujui/tolak peminjaman", "input": "Klik setujui/tolak", "expected": "Status request dan notifikasi berubah."}, {"id": "INV-05", "module": "Inventaris", "feature": "Input Pengambilan", "scenario": "Anggota konfirmasi barang diambil", "input": "Input pengambilan setelah approved", "expected": "Status menjadi diambil/dipinjam."}, {"id": "INV-06", "module": "Inventaris", "feature": "Input Pengembalian", "scenario": "Anggota mengembalikan barang", "input": "Isi kondisi dan bukti bila perlu", "expected": "Stok kembali dan riwayat tertutup."}, {"id": "INV-07", "module": "Inventaris", "feature": "Riwayat Peminjaman", "scenario": "Admin/anggota melihat riwayat", "input": "Filter periode/status", "expected": "Riwayat tampil sesuai role."}, {"id": "INV-08", "module": "Inventaris", "feature": "Kerusakan Barang", "scenario": "Laporan kerusakan barang", "input": "Anggota submit laporan + bukti", "expected": "Admin dapat melihat dan memproses laporan."}, {"id": "MEM-01", "module": "Keanggotaan", "feature": "Manajemen Anggota", "scenario": "Tambah/edit/hapus anggota", "input": "Input data anggota baru", "expected": "Data tersimpan dan login dapat digunakan."}, {"id": "MEM-02", "module": "Keanggotaan", "feature": "Status Aktif/Nonaktif Manual", "scenario": "Admin mengubah status anggota", "input": "Set status nonaktif lalu aktif kembali", "expected": "Status tersimpan setelah refresh."}, {"id": "MEM-03", "module": "Keanggotaan", "feature": "Approve/Reject Nonaktif", "scenario": "Memproses request anggota", "input": "Klik Setujui/Tolak request pending", "expected": "Status anggota dan notifikasi sesuai keputusan."}, {"id": "MEM-04", "module": "Keanggotaan", "feature": "Bukti Request Nonaktif", "scenario": "Preview bukti pendukung", "input": "Klik thumbnail bukti", "expected": "Modal preview gambar/PDF terbuka."}, {"id": "MEM-05", "module": "Keanggotaan", "feature": "Setting Sertifikat", "scenario": "Atur sertifikat anggota", "input": "Ubah template dan preview", "expected": "Sertifikat sesuai template."}, {"id": "MEM-06", "module": "Keanggotaan", "feature": "Kelola Data Admin", "scenario": "Super Admin tambah/edit/hapus admin", "input": "Atur profil admin dan permission", "expected": "Admin tersimpan dengan hak akses modul."}, {"id": "PUBADM-01", "module": "Publikasi", "feature": "Manajemen Profil Organisasi", "scenario": "Update profil organisasi", "input": "Edit kontak/deskripsi/alamat", "expected": "Profil publik ikut berubah."}, {"id": "PUBADM-02", "module": "Publikasi", "feature": "Berita/Pengumuman", "scenario": "CRUD berita dan pengumuman", "input": "Tambah/edit/hapus konten", "expected": "Konten publik tampil sesuai status."}, {"id": "PUBADM-03", "module": "Publikasi", "feature": "Kategori Berita", "scenario": "Kelola kategori berita", "input": "Tambah/edit/hapus kategori", "expected": "Kategori bisa dipilih di form berita."}, {"id": "PUBADM-04", "module": "Publikasi", "feature": "Agenda Admin", "scenario": "CRUD agenda", "input": "Tambah/edit/hapus agenda", "expected": "Agenda tampil di halaman publik."}, {"id": "PUBADM-05", "module": "Form Kegiatan", "feature": "Builder Form Pendaftaran", "scenario": "Membuat field dinamis", "input": "Tambah pertanyaan, tipe input, wajib/tidak", "expected": "Form tersimpan dan bisa dipublish."}, {"id": "PUBADM-06", "module": "Form Kegiatan", "feature": "Manajemen Pendaftar", "scenario": "Melihat data pendaftar", "input": "Buka pendaftar-form.html", "expected": "Data pendaftar sesuai form."}, {"id": "CNT-01", "module": "Konten Utama", "feature": "Carousel Home", "scenario": "CRUD slide home", "input": "Tambah/edit/hapus slide", "expected": "Hero home berubah."}, {"id": "CNT-02", "module": "Konten Utama", "feature": "Embed YouTube", "scenario": "Mengatur video/playlist YouTube", "input": "Input link video/playlist", "expected": "Embed tampil di home."}, {"id": "CNT-03", "module": "Konten Utama", "feature": "Embed Google Maps", "scenario": "Mengatur lokasi maps", "input": "Input iframe/link maps", "expected": "Maps tampil di home."}, {"id": "CNT-04", "module": "Konten Utama", "feature": "Embed Instagram", "scenario": "Mengatur feed Instagram", "input": "Input embed/link IG", "expected": "Feed tampil atau fallback aman."}, {"id": "NTF-01", "module": "Notifikasi", "feature": "Notifikasi Dashboard Anggota", "scenario": "Filter dan tandai baca", "input": "Buka dashboard anggota, filter kategori", "expected": "Notifikasi sesuai filter dan status baca berubah."}, {"id": "NTF-02", "module": "Notifikasi", "feature": "Notifikasi Admin", "scenario": "Prioritas hari ini dan request pending", "input": "Ada request nonaktif/peminjaman/evaluasi", "expected": "Admin menerima notifikasi/prioritas."}, {"id": "NTF-03", "module": "Email", "feature": "OTP SMTP", "scenario": "Email OTP reset password", "input": "Request reset password", "expected": "Email dikirim dengan logo dan kode berlaku 5 menit."}, {"id": "LOG-01", "module": "Log Aktivitas", "feature": "Log Super Admin", "scenario": "Filter semua role/pengguna/modul/periode", "input": "Login super admin dan buka log", "expected": "Semua log sesuai filter tampil."}, {"id": "LOG-02", "module": "Log Aktivitas", "feature": "Log Admin", "scenario": "Cakupan log admin", "input": "Login admin dan filter role", "expected": "Admin melihat dirinya + anggota, bukan admin lain."}, {"id": "LOG-03", "module": "Log Aktivitas", "feature": "Log Anggota", "scenario": "Cakupan log anggota", "input": "Login anggota buka log", "expected": "Hanya log diri sendiri tampil."}, {"id": "LOG-04", "module": "Laporan", "feature": "Export Log Excel/PDF", "scenario": "Download laporan log", "input": "Klik Excel dan PDF preview", "expected": "File laporan sesuai filter/periode."}, {"id": "PERM-01", "module": "Permission", "feature": "Forbidden Admin Permission", "scenario": "Admin tanpa permission membuka modul terlarang", "input": "Akses URL modul yang tidak dicentang", "expected": "Akses ditolak/forbidden."}, {"id": "PERM-02", "module": "Permission", "feature": "Super Admin Full Access", "scenario": "Super Admin membuka semua modul", "input": "Klik seluruh menu admin", "expected": "Semua menu terbuka."}, {"id": "PERM-03", "module": "Permission", "feature": "Anggota Nonaktif", "scenario": "Anggota nonaktif membuka fitur tugas/peminjaman", "input": "Klik menu selain profil/dashboard", "expected": "Akses ditolak dengan pesan jelas."}, {"id": "RESP-01", "module": "Responsif", "feature": "Tampilan Mobile Admin", "scenario": "Buka dashboard/admin pages di mobile", "input": "Gunakan devtools mobile", "expected": "Sidebar berubah menjadi menu kecil dan layout tidak overflow."}, {"id": "RESP-02", "module": "Responsif", "feature": "Tampilan Mobile Anggota", "scenario": "Buka dashboard anggota/profil/evaluasi di mobile", "input": "Gunakan devtools mobile", "expected": "Layout responsif dan tombol tetap bisa diklik."}, {"id": "RESP-03", "module": "Responsif", "feature": "Scroll Top dan Header", "scenario": "Scroll halaman panjang lalu klik scroll top", "input": "Klik tombol panah atas", "expected": "Halaman kembali ke atas dan header tetap rapi."}];
+    const KEY = "crembo_blackbox_testing_final";
+    const state = loadState();
+
+    function esc(text){ return String(text ?? "").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+    function byId(id){ return document.getElementById(id); }
+    function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}") || {}; }catch(e){ return {}; } }
+    function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); updateSummary(); }
+    function getRowState(id){ if(!state[id]) state[id] = {status:"pending", note:"", evidence:""}; return state[id]; }
+    function modules(){
+      return Array.from(new Set(CASES.map(c=>c.module))).sort();
+    }
+    function statusLabel(status){
+      if(status==="valid") return "Valid";
+      if(status==="invalid") return "Tidak Valid";
+      return "Belum Diuji";
+    }
+    function statusClass(status){
+      if(status==="valid") return "status-valid";
+      if(status==="invalid") return "status-invalid";
+      return "status-pending";
+    }
+    function currentFiltered(){
+      const q = byId("searchBox").value.trim().toLowerCase();
+      const mod = byId("moduleFilter").value;
+      const st = byId("statusFilter").value;
+      return CASES.filter(c=>{
+        const row = getRowState(c.id);
+        const hay = [c.id,c.module,c.feature,c.scenario,c.input,c.expected,row.note,row.evidence].join(" ").toLowerCase();
+        return (mod==="all" || c.module===mod) && (st==="all" || row.status===st) && (!q || hay.includes(q));
+      });
+    }
+    function renderModules(){
+      byId("moduleFilter").innerHTML = '<option value="all">Semua Modul</option>' + modules().map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join("");
+    }
+    function renderRows(){
+      const rows = currentFiltered();
+      byId("visibleInfo").textContent = "Menampilkan " + rows.length + " dari " + CASES.length + " skenario";
+      byId("caseBody").innerHTML = rows.map((c,idx)=>{
+        const row = getRowState(c.id);
+        return `<tr data-id="${esc(c.id)}">
+          <td>${idx+1}</td>
+          <td><b>${esc(c.id)}</b></td>
+          <td>${esc(c.module)}</td>
+          <td>${esc(c.feature)}</td>
+          <td>${esc(c.scenario)}</td>
+          <td>${esc(c.input)}</td>
+          <td>${esc(c.expected)}</td>
+          <td>
+            <span class="status-chip ${statusClass(row.status)}">${statusLabel(row.status)}</span>
+            <select data-field="status">
+              <option value="pending" ${row.status==="pending"?"selected":""}>Belum Diuji</option>
+              <option value="valid" ${row.status==="valid"?"selected":""}>Valid</option>
+              <option value="invalid" ${row.status==="invalid"?"selected":""}>Tidak Valid</option>
+            </select>
+          </td>
+          <td><textarea data-field="note" placeholder="Catatan hasil uji / bug...">${esc(row.note)}</textarea></td>
+          <td><textarea data-field="evidence" placeholder="Nama file screenshot / link bukti...">${esc(row.evidence)}</textarea></td>
+        </tr>`;
+      }).join("");
+      updateSummary();
+    }
+    function updateSummary(){
+      const values = CASES.map(c=>getRowState(c.id).status);
+      byId("sumTotal").textContent = CASES.length;
+      byId("sumValid").textContent = values.filter(v=>v==="valid").length;
+      byId("sumInvalid").textContent = values.filter(v=>v==="invalid").length;
+      byId("sumPending").textContent = values.filter(v=>v!=="valid" && v!=="invalid").length;
+    }
+    function csvEscape(v){ return '"' + String(v ?? "").replace(/"/g,'""') + '"'; }
+    function exportCsv(){
+      const header = ["No","Kode","Modul","Fitur","Skenario","Input/Aksi","Hasil Diharapkan","Status","Catatan","Bukti"];
+      const lines = [header.map(csvEscape).join(",")];
+      CASES.forEach((c,idx)=>{
+        const row = getRowState(c.id);
+        lines.push([idx+1,c.id,c.module,c.feature,c.scenario,c.input,c.expected,statusLabel(row.status),row.note,row.evidence].map(csvEscape).join(","));
+      });
+      const blob = new Blob(["\ufeff" + lines.join("\n")], {type:"text/csv;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "blackbox-testing-crembo-media.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    document.addEventListener("input", e=>{
+      const tr = e.target.closest("tr[data-id]");
+      if(tr && e.target.dataset.field){
+        getRowState(tr.dataset.id)[e.target.dataset.field] = e.target.value;
+        saveState();
+      }
+      if(e.target.id==="searchBox") renderRows();
+    });
+    document.addEventListener("change", e=>{
+      const tr = e.target.closest("tr[data-id]");
+      if(tr && e.target.dataset.field){
+        getRowState(tr.dataset.id)[e.target.dataset.field] = e.target.value;
+        saveState();
+        renderRows();
+      }
+      if(e.target.id==="moduleFilter" || e.target.id==="statusFilter") renderRows();
+    });
+    byId("saveBtn").addEventListener("click", ()=>{ saveState(); alert("Data black box testing berhasil disimpan lokal."); });
+    byId("exportCsvBtn").addEventListener("click", exportCsv);
+    byId("resetBtn").addEventListener("click", ()=>{
+      if(!confirm("Reset semua status dan catatan black box testing?")) return;
+      localStorage.removeItem(KEY);
+      Object.keys(state).forEach(k=>delete state[k]);
+      renderRows();
+    });
+    renderModules();
+    renderRows();
+  })();
+  </script>
+</body>
+</html>

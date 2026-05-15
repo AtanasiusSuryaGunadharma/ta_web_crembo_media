@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 15 Bulan Mei 2026 pada 03.57
+-- Waktu pembuatan: 15 Bulan Mei 2026 pada 05.36
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -98,7 +98,24 @@ INSERT INTO `activity_logs` (`id`, `actor_id`, `actor_name`, `actor_username`, `
 (47, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 08:51:14'),
 (48, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 08:51:21'),
 (49, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 08:57:20'),
-(50, 17, 'Panji', 'Panji', 'admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 08:57:26');
+(50, 17, 'Panji', 'Panji', 'admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 08:57:26'),
+(51, 17, 'Panji', 'Panji', 'admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 09:35:14'),
+(52, 6, 'Pria', 'Pria', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 09:35:51'),
+(53, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 09:42:23'),
+(54, 49, 'Tyas', 'Tyas', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 09:42:32'),
+(55, 49, 'Tyas', 'Tyas', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 09:43:32'),
+(56, 49, 'Tyas', 'Tyas', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 09:43:55'),
+(57, 49, 'Tyas', 'Tyas', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 09:43:58'),
+(58, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 09:44:03'),
+(59, 6, 'Pria', 'Pria', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 09:44:22'),
+(60, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 09:44:28'),
+(61, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:10:17'),
+(62, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 10:10:24'),
+(63, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:34:15'),
+(64, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 10:34:31'),
+(65, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:35:38'),
+(66, 49, 'Tyas', 'Tyas', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 10:35:44'),
+(67, 49, 'Tyas', 'Tyas', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:36:05');
 
 -- --------------------------------------------------------
 
@@ -2592,7 +2609,7 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar`
