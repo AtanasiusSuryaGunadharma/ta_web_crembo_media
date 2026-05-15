@@ -4069,6 +4069,111 @@ def apply_membership_status_transitions(cursor) -> None:
             dedupe_key=f"membership-auto-reactivate-{row.get('id')}",
         )
 
+
+def _effective_membership_request_for_member(cursor, member_id):
+    """Ambil pengajuan nonaktif approved yang masih aktif untuk 1 anggota.
+
+    Helper ini dipakai untuk menjaga agar status anggota di Manajemen Anggota
+    tidak tertimpa kembali menjadi aktif setelah request nonaktif disetujui.
+    """
+    try:
+        member_id_int = int(member_id)
+    except (TypeError, ValueError):
+        return None
+
+    today = datetime.now().date()
+    ensure_membership_columns(cursor)
+    cursor.execute(
+        """
+        SELECT *
+        FROM membership_status_requests
+        WHERE member_id = %s
+          AND status = 'approved'
+          AND start_date <= %s
+          AND (return_date IS NULL OR return_date > %s)
+          AND manual_reactivated_at IS NULL
+        ORDER BY start_date DESC, decided_at DESC, updated_at DESC, created_at DESC
+        LIMIT 1
+        """,
+        (member_id_int, today, today),
+    )
+    return cursor.fetchone()
+
+
+def force_apply_effective_membership_status(cursor, member_id):
+    """Paksa sinkron status_akun anggota dari request nonaktif yang approved.
+
+    Kasus bug sebelumnya:
+    - Approve dari Dashboard Admin aman.
+    - Approve dari Manajemen Anggota bisa terlihat tetap Aktif karena data anggota
+      yang dirender/sinkron masih stale.
+    Fungsi ini memastikan sumber kebenaran tetap tabel membership_status_requests.
+    """
+    req = _effective_membership_request_for_member(cursor, member_id)
+    if not req:
+        return None
+
+    cursor.execute(
+        """
+        UPDATE anggota
+        SET status_akun = 'nonaktif',
+            inactive_from = %s,
+            inactive_until = %s,
+            inactive_type = %s,
+            inactive_reason = %s,
+            inactive_note = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+        """,
+        (
+            req.get("start_date"),
+            req.get("return_date"),
+            req.get("inactive_type") or "permanent",
+            req.get("reason") or "",
+            req.get("note") or "",
+            req.get("member_id"),
+        ),
+    )
+    cursor.execute(
+        """
+        UPDATE membership_status_requests
+        SET applied_at = COALESCE(applied_at, CURRENT_TIMESTAMP),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+        """,
+        (req.get("id"),),
+    )
+    return req
+
+
+def repair_effective_membership_statuses_for_admin(cursor) -> None:
+    """Sinkron ulang status anggota untuk halaman admin/manajemen anggota."""
+    today = datetime.now().date()
+    ensure_membership_columns(cursor)
+
+    # Jalankan transisi otomatis lebih dulu untuk request yang belum applied
+    # dan request temporary yang sudah melewati tanggal aktif kembali.
+    apply_membership_status_transitions(cursor)
+
+    # Perbaiki juga data lama yang sudah approved/applied tetapi status anggota
+    # sempat tertimpa aktif oleh proses sync halaman Manajemen Anggota.
+    cursor.execute(
+        """
+        SELECT DISTINCT member_id
+        FROM membership_status_requests
+        WHERE status = 'approved'
+          AND start_date <= %s
+          AND (return_date IS NULL OR return_date > %s)
+          AND manual_reactivated_at IS NULL
+        """,
+        (today, today),
+    )
+    member_ids = [row.get("member_id") if isinstance(row, dict) else row[0] for row in (cursor.fetchall() or [])]
+    for member_id in member_ids:
+        force_apply_effective_membership_status(cursor, member_id)
+
+
+
 def current_member_is_inactive() -> bool:
     return session.get("logged_in") and normalize_role_value(session.get("role") or "user") == "user" and normalize_status(session.get("status_akun") or "aktif") == "nonaktif"
 
@@ -4348,6 +4453,19 @@ def registration_submission_payload_to_rows(form: dict[str, object], answers_pay
 
 
 def read_members_for_admin() -> list[dict[str, object]]:
+    # Khusus halaman admin/manajemen anggota, sinkronkan dulu request nonaktif
+    # yang sudah approved agar tabel anggota tidak menampilkan status stale.
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        repair_effective_membership_statuses_for_admin(cursor)
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        print(f"[WARN] Failed to repair membership status before admin read: {exc}")
+    finally:
+        cursor.close()
+        conn.close()
     return read_member_rows()
 
 
@@ -4464,6 +4582,7 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
             elif status_value == "nonaktif" and not inactive_from_value:
                 inactive_from_value = datetime.now().date().isoformat()
             requested_role = normalize_role_value(item.get("role") or "user")
+            explicit_status_change = bool(item.get("manualStatusChange") or item.get("_manualStatusChange"))
 
             raw_id = item.get("id")
             try:
@@ -4493,6 +4612,20 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                 if not allowed:
                     raise PermissionError(message)
                 hashed_password = hash_member_password(normalize_text(item.get("password")), birth_date)
+
+            # Jika ada pengajuan nonaktif approved yang sedang berlaku, jangan biarkan
+            # payload stale dari halaman Manajemen Anggota menimpa status menjadi Aktif.
+            # Status Aktif hanya boleh dipakai sebagai aktivasi manual bila perubahan
+            # status memang berasal dari submit form edit anggota.
+            if is_existing:
+                effective_req = _effective_membership_request_for_member(cursor, member_id)
+                if effective_req and status_value == "aktif" and not explicit_status_change:
+                    status_value = "nonaktif"
+                    inactive_from_value = _date_to_iso(effective_req.get("start_date")) or datetime.now().date().isoformat()
+                    inactive_until = _date_to_iso(effective_req.get("return_date")) or None
+                    inactive_type_value = normalize_text(effective_req.get("inactive_type")) or "permanent"
+                    inactive_reason_value = normalize_text(effective_req.get("reason"))
+                    inactive_note_value = normalize_text(effective_req.get("note"))
 
             kept_ids.add(member_id)
 
@@ -4570,7 +4703,7 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
 
             if is_existing:
                 previous_status = normalize_status(existing.get("status_akun") or "aktif")
-                if previous_status == "nonaktif" and status_value == "aktif":
+                if previous_status == "nonaktif" and status_value == "aktif" and explicit_status_change:
                     cursor.execute(
                         """
                         UPDATE membership_status_requests
@@ -5781,6 +5914,9 @@ def api_membership_admin_respond(request_id):
                     """,
                     (request_id,),
                 )
+                # Verifikasi ulang dari tabel request agar status anggota tidak tetap Aktif
+                # ketika approve dilakukan dari halaman Manajemen Anggota.
+                force_apply_effective_membership_status(cursor, member_id)
             create_notification_once(
                 cursor,
                 "keanggotaan",
@@ -6111,7 +6247,10 @@ def api_admin_users_delete(admin_id: int):
 def api_anggota_list():
     if not can_manage_members():
         return jsonify({"ok": False, "message": "Unauthorized"}), 403
-    return jsonify({"ok": True, "members": read_members_for_admin()})
+    response = jsonify({"ok": True, "members": read_members_for_admin()})
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 @app.route("/api/anggota/sync", methods=["POST"])

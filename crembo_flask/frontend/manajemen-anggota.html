@@ -1012,7 +1012,7 @@
       // status nonaktif langsung terlihat tanpa refresh dan tidak tertimpa
       // window.CREMBO_MEMBER_ROWS yang hanya snapshot awal halaman.
       const serverRows = Array.isArray(window.CREMBO_MEMBER_ROWS) ? window.CREMBO_MEMBER_ROWS : [];
-      return fetch("/api/anggota", { credentials: "same-origin" })
+      return fetch("/api/anggota?_=" + Date.now(), { credentials: "same-origin", cache: "no-store" })
         .then(function(res) { return res.json(); })
         .then(function(data) {
           if (data.ok && Array.isArray(data.members)) {
@@ -1037,6 +1037,8 @@
       // Sync full member list to DB
       return fetch("/api/anggota/sync", {
         method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ members: members })
       }).then(function(res) { return res.json(); })
@@ -1490,6 +1492,9 @@
           ? normalizeRegisteredAt(members[existingIndex].registeredAt || members[existingIndex].createdAt)
           : new Date().toISOString()
       };
+      payload.manualStatusChange = existingIndex >= 0
+        ? String(memberStatusInput.value || "") !== String(members[existingIndex].status || "")
+        : false;
 
       if (!payload.name || !payload.username || !payload.email || !payload.phone || !payload.address || !payload.birthDate) {
         showNotify("Nama, username, email, nomor WA, alamat, dan tanggal lahir wajib diisi.");
@@ -1888,6 +1893,11 @@
       const data = await res.json();
       if(!res.ok || data.ok === false) throw new Error(data.message || 'Aksi gagal diproses.');
       showNotify(data.message || 'Pengajuan berhasil diproses.');
+      if (data.member && data.member.id) {
+        const freshMember = normalizeMember(data.member);
+        const idx = members.findIndex(function(item){ return String(item.id) === String(freshMember.id); });
+        if (idx >= 0) members[idx] = freshMember; else members.push(freshMember);
+      }
       await loadMembershipRequests();
       await loadMembers();
       renderAll();
