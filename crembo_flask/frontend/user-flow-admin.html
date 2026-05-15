@@ -1545,16 +1545,47 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
   <script>
   // Dual-open helper untuk link halaman sistem Crembo:
   // setiap klik link .html pada task scenario akan membuka 2 tab:
-  // 1) file lokal XAMPP frontend, 2) route Flask localhost.
+  // 1) route Flask localhost 127.0.0.1, 2) route frontend Vercel.
+  // Catatan: versi Vercel memakai clean URL, contoh home.html => /home.
   (function(){
-    const LOCAL_FILE_BASE = "file:///C:/xampp/htdocs/code_ta_crembo_6/crembo_flask/frontend/";
     const LOCALHOST_BASE = "http://127.0.0.1:5000/";
+    const VERCEL_BASE = "https://ta-web-crembo-media-89mkf2n8l-atanasius-suryas-projects.vercel.app/";
+
+    function splitUrlParts(raw){
+      const match = String(raw || "").trim().match(/^([^?#]*)([?#].*)?$/);
+      return {
+        path: match ? match[1] : "",
+        suffix: match && match[2] ? match[2] : ""
+      };
+    }
 
     function normalizePage(href){
-      let page = (href || "").trim()
-        .replace(/^\.?\//, "")
-        .replace(/^index\.html(?=$|[?#])/i, "home.html");
-      return page;
+      const parts = splitUrlParts(href);
+      let pagePath = parts.path
+        .replace(/^\.\//, "")
+        .replace(/^\//, "")
+        .replace(/^index\.html$/i, "home.html");
+      return pagePath + parts.suffix;
+    }
+
+    function toVercelPath(page){
+      const parts = splitUrlParts(page);
+      let path = parts.path
+        .replace(/^\.\//, "")
+        .replace(/^\//, "")
+        .replace(/^index\.html$/i, "home.html")
+        .replace(/\.html$/i, "");
+      if(!path) path = "home";
+      return path + parts.suffix;
+    }
+
+    function openSystemPage(page){
+      const localhostUrl = LOCALHOST_BASE + page.replace(/^\//, "");
+      const vercelUrl = VERCEL_BASE + toVercelPath(page).replace(/^\//, "");
+
+      // Buka Vercel terlebih dahulu supaya tetap jalan walaupun server Flask lokal belum aktif.
+      window.open(vercelUrl, "_blank", "noopener");
+      window.open(localhostUrl, "_blank", "noopener");
     }
 
     document.addEventListener("click", function(event){
@@ -1562,27 +1593,37 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
       if(!link) return;
 
       const rawHref = link.getAttribute("href") || "";
-      if(
-        !rawHref ||
-        rawHref.startsWith("#") ||
-        rawHref.startsWith("mailto:") ||
-        rawHref.startsWith("tel:") ||
-        rawHref.startsWith("http://") ||
-        rawHref.startsWith("https://") ||
-        rawHref.startsWith("file://")
-      ){
-        return;
+      if(!rawHref || rawHref.startsWith("#") || rawHref.startsWith("mailto:") || rawHref.startsWith("tel:")) return;
+
+      // Link antar halaman user-flow tetap navigasi biasa supaya tidak membuka tab pengujian sistem.
+      const normalizedForFlow = normalizePage(rawHref);
+      if(/^user-flow-/i.test(normalizedForFlow)) return;
+
+      let page = "";
+
+      if(/^https?:\/\//i.test(rawHref)){
+        try{
+          const parsed = new URL(rawHref);
+          const isLocalhost = parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
+          const isVercel = parsed.hostname.endsWith("vercel.app");
+          if(!isLocalhost && !isVercel) return;
+          page = normalizePage(parsed.pathname + parsed.search + parsed.hash);
+        }catch(err){
+          return;
+        }
+      }else if(rawHref.startsWith("file://")){
+        page = normalizePage(rawHref.split("/").pop() || "");
+      }else{
+        page = normalizePage(rawHref);
       }
 
-      const page = normalizePage(rawHref);
-      if(!/\.html(?:[?#].*)?$/i.test(page)) return;
-
-      // Link antar halaman user-flow tetap navigasi biasa supaya tidak membuka 2 tab.
-      if(/^user-flow-/i.test(page)) return;
+      const pagePath = splitUrlParts(page).path;
+      const isHtmlPage = /\.html$/i.test(pagePath);
+      const isCleanPage = !pagePath.includes(".") && pagePath.length > 0;
+      if(!isHtmlPage && !isCleanPage) return;
 
       event.preventDefault();
-      window.open(LOCAL_FILE_BASE + page, "_blank");
-      window.open(LOCALHOST_BASE + page, "_blank");
+      openSystemPage(page);
     });
   })();
   </script>
