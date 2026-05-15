@@ -226,7 +226,7 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
             </div>
             <h4>Home / Beranda Publik</h4>
             <p class="desc">Penguji membuka halaman utama, menelusuri carousel, menu header, profil user di kanan atas jika sudah login, footer, dan tombol scroll to top.</p>
-            <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a><a href="index.html" target="_blank" rel="noopener noreferrer">index.html</a></div>
+            <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a></div>
             <div class="mini-grid">
               <div><b>Data Dummy</b><span>Keyword pencarian: misa / agenda / pendaftaran. Browser: Chrome/Edge.</span></div>
               <div><b>Aksi yang Diuji</b><span>Scroll halaman, klik menu header, klik tombol detail carousel, cek hover/dropdown profil bila sesi login aktif.</span></div>
@@ -1442,5 +1442,51 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
     updateSummary();
   })();
   </script>
+
+  <script>
+  // Dual-open helper untuk link halaman sistem Crembo:
+  // setiap klik link .html pada task scenario akan membuka 2 tab:
+  // 1) file lokal XAMPP frontend, 2) route Flask localhost.
+  (function(){
+    const LOCAL_FILE_BASE = "file:///C:/xampp/htdocs/code_ta_crembo_6/crembo_flask/frontend/";
+    const LOCALHOST_BASE = "http://127.0.0.1:5000/";
+
+    function normalizePage(href){
+      let page = (href || "").trim()
+        .replace(/^\.?\//, "")
+        .replace(/^index\.html(?=$|[?#])/i, "home.html");
+      return page;
+    }
+
+    document.addEventListener("click", function(event){
+      const link = event.target.closest("a[href]");
+      if(!link) return;
+
+      const rawHref = link.getAttribute("href") || "";
+      if(
+        !rawHref ||
+        rawHref.startsWith("#") ||
+        rawHref.startsWith("mailto:") ||
+        rawHref.startsWith("tel:") ||
+        rawHref.startsWith("http://") ||
+        rawHref.startsWith("https://") ||
+        rawHref.startsWith("file://")
+      ){
+        return;
+      }
+
+      const page = normalizePage(rawHref);
+      if(!/\.html(?:[?#].*)?$/i.test(page)) return;
+
+      // Link antar halaman user-flow tetap navigasi biasa supaya tidak membuka 2 tab.
+      if(/^user-flow-/i.test(page)) return;
+
+      event.preventDefault();
+      window.open(LOCAL_FILE_BASE + page, "_blank");
+      window.open(LOCALHOST_BASE + page, "_blank");
+    });
+  })();
+  </script>
+
 </body>
 </html>
