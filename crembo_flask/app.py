@@ -3280,6 +3280,345 @@ def dashboard_pending_evaluation_count(cursor) -> int:
     return pending
 
 
+
+
+# -----------------------------------------------------------------------------
+# Dashboard Anggota: ringkasan backend real-time untuk panel anggota
+# -----------------------------------------------------------------------------
+
+def member_dashboard_schedule_dt(date_text: str, time_text: str = "00:00") -> datetime:
+    try:
+        return datetime.strptime(f"{normalize_text(date_text)} {format_time_hhmm(time_text)}", "%Y-%m-%d %H:%M")
+    except Exception:
+        try:
+            return datetime.strptime(normalize_text(date_text), "%Y-%m-%d")
+        except Exception:
+            return datetime(1970, 1, 1)
+
+
+def member_dashboard_type_filter(value: str) -> str:
+    raw = normalize_text(value).lower()
+    if raw in {"biasa", "misa_biasa"}:
+        return "biasa"
+    if raw in {"besar", "misa_besar"}:
+        return "besar"
+    return "all"
+
+
+def member_dashboard_kind_label(kind: str) -> str:
+    return "Misa Besar" if kind == "besar" else "Misa Biasa"
+
+
+def member_dashboard_registered_tasks(cursor, member_id: object, *, month: int, year: int, kind_filter: str = "all") -> list[dict[str, object]]:
+    """Ambil tugas terdaftar user untuk tabel dashboard anggota.
+
+    Data dibangun dari assignment aktif. Tugas yang sudah dibatalkan tidak muncul
+    lagi di tabel ini karena histori pembatalan sudah tersedia di Riwayat Tugas.
+    """
+    kind_filter = member_dashboard_type_filter(kind_filter)
+    start_date = f"{year:04d}-{month:02d}-01"
+    end_date = f"{year:04d}-{month:02d}-{calendar.monthrange(year, month)[1]:02d}"
+    evaluation_map = {}
+    try:
+        evaluation_map = eval_evaluation_map(cursor, start_date, end_date)
+    except Exception as exc:
+        print(f"[WARN] Dashboard anggota gagal membaca evaluasi: {exc}")
+
+    now = datetime.now()
+    rows: list[dict[str, object]] = []
+
+    if kind_filter in {"all", "biasa"}:
+        cursor.execute(
+            """
+            SELECT sa.id AS assignment_id,
+                   DATE_FORMAT(sa.schedule_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(sa.schedule_time, '%H:%i') AS time,
+                   sa.role_name AS role,
+                   COALESCE(sa.request_source, 'admin') AS request_source,
+                   COALESCE(cfg.mass_name, 'Misa Biasa') AS mass_name
+            FROM streaming_assignments sa
+            LEFT JOIN streaming_weekly_config cfg
+              ON cfg.day_name = CASE WEEKDAY(sa.schedule_date)
+                WHEN 0 THEN 'Senin' WHEN 1 THEN 'Selasa' WHEN 2 THEN 'Rabu'
+                WHEN 3 THEN 'Kamis' WHEN 4 THEN 'Jumat' WHEN 5 THEN 'Sabtu'
+                ELSE 'Minggu' END
+              AND DATE_FORMAT(cfg.start_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            LEFT JOIN streaming_cancelled sc
+              ON sc.mass_date = sa.schedule_date
+             AND DATE_FORMAT(sc.mass_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            LEFT JOIN misa_besar mb
+              ON mb.status = 'published'
+             AND mb.misa_date = sa.schedule_date
+             AND DATE_FORMAT(mb.misa_time, '%H:%i') = DATE_FORMAT(sa.schedule_time, '%H:%i')
+            WHERE sa.member_id = %s
+              AND MONTH(sa.schedule_date) = %s
+              AND YEAR(sa.schedule_date) = %s
+              AND sc.id IS NULL
+              AND mb.id IS NULL
+            ORDER BY sa.schedule_date DESC, sa.schedule_time DESC, sa.id DESC
+            """,
+            (member_id, month, year),
+        )
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("date"))
+            time_text = format_time_hhmm(row.get("time"))
+            schedule_dt = member_dashboard_schedule_dt(date_text, time_text)
+            schedule_key = f"biasa:{date_text}:{time_text}"
+            evaluated = ("misa_biasa", schedule_key) in evaluation_map
+            can_cancel = schedule_dt > now and cancel_task_can_cancel(date_text)
+            rows.append({
+                "id": f"biasa:{row.get('assignment_id')}",
+                "type": "biasa",
+                "typeLabel": "Misa Biasa",
+                "assignmentId": row.get("assignment_id"),
+                "misaId": None,
+                "roleId": None,
+                "misaName": normalize_text(row.get("mass_name")) or "Misa Biasa",
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": request_task_day_name(date_text),
+                "time": time_text,
+                "role": normalize_text(row.get("role")) or "Role",
+                "status": "Selesai" if schedule_dt < now else "Terdaftar",
+                "evaluation": "Sudah Diisi" if evaluated else "Belum Diisi",
+                "evaluated": evaluated,
+                "source": normalize_text(row.get("request_source")) or "admin",
+                "sourceLabel": "Request Mandiri" if normalize_text(row.get("request_source")) == "member_request" else "Ditugaskan Admin",
+                "canCancel": bool(can_cancel),
+                "cancelDeadlineLabel": cancel_task_rule_label(date_text),
+            })
+
+    if kind_filter in {"all", "besar"}:
+        cursor.execute(
+            """
+            SELECT a.id AS assignment_id, mb.id AS misa_id, n.id AS role_id,
+                   mb.misa_name,
+                   DATE_FORMAT(mb.misa_date, '%Y-%m-%d') AS date,
+                   DATE_FORMAT(mb.misa_time, '%H:%i') AS time,
+                   n.role_name AS role,
+                   COALESCE(a.request_source, 'admin') AS request_source
+            FROM misa_besar_assignments a
+            JOIN misa_besar_names n ON n.id = a.role_id
+            JOIN misa_besar mb ON mb.id = n.misa_id
+            WHERE a.member_id = %s
+              AND mb.status = 'published'
+              AND MONTH(mb.misa_date) = %s
+              AND YEAR(mb.misa_date) = %s
+            ORDER BY mb.misa_date DESC, mb.misa_time DESC, a.id DESC
+            """,
+            (member_id, month, year),
+        )
+        for row in cursor.fetchall() or []:
+            date_text = normalize_text(row.get("date"))
+            time_text = format_time_hhmm(row.get("time"))
+            schedule_dt = member_dashboard_schedule_dt(date_text, time_text)
+            schedule_key = f"besar:{row.get('misa_id')}"
+            evaluated = ("misa_besar", schedule_key) in evaluation_map
+            can_cancel = schedule_dt > now and cancel_task_can_cancel(date_text)
+            rows.append({
+                "id": f"besar:{row.get('assignment_id')}",
+                "type": "besar",
+                "typeLabel": "Misa Besar",
+                "assignmentId": row.get("assignment_id"),
+                "misaId": row.get("misa_id"),
+                "roleId": row.get("role_id"),
+                "misaName": normalize_text(row.get("misa_name")) or "Misa Besar",
+                "date": date_text,
+                "dateLabel": request_task_format_date(date_text),
+                "dayName": request_task_day_name(date_text),
+                "time": time_text,
+                "role": normalize_text(row.get("role")) or "Role",
+                "status": "Selesai" if schedule_dt < now else "Terdaftar",
+                "evaluation": "Sudah Diisi" if evaluated else "Belum Diisi",
+                "evaluated": evaluated,
+                "source": normalize_text(row.get("request_source")) or "admin",
+                "sourceLabel": "Request Mandiri" if normalize_text(row.get("request_source")) == "member_request" else "Ditugaskan Admin",
+                "canCancel": bool(can_cancel),
+                "cancelDeadlineLabel": cancel_task_rule_label(date_text),
+            })
+
+    rows.sort(key=lambda item: member_dashboard_schedule_dt(item.get("date"), item.get("time")), reverse=True)
+    return rows
+
+
+def member_dashboard_request_chart(cursor, member_id: object, range_value: str) -> dict[str, object]:
+    mode = normalize_text(range_value).lower() or "month"
+    if mode not in {"week", "month", "year"}:
+        mode = "month"
+    start, end = dashboard_period_bounds(mode)
+    labels, keys = dashboard_series_template(mode)
+    counts = {key: 0 for key in keys}
+
+    def add_rows(table_sql: str, params: tuple[object, ...]):
+        cursor.execute(table_sql, params)
+        for row in cursor.fetchall() or []:
+            raw_date = row.get("item_date") if isinstance(row, dict) else None
+            date_text = raw_date.isoformat() if hasattr(raw_date, "isoformat") else normalize_text(raw_date)
+            if not date_text:
+                continue
+            if mode == "year":
+                try:
+                    parsed = datetime.strptime(date_text, "%Y-%m-%d")
+                    key = (parsed.year, parsed.month)
+                except Exception:
+                    continue
+            else:
+                key = date_text
+            if key in counts:
+                counts[key] += parse_required_int(row.get("total") if isinstance(row, dict) else 0, 0)
+
+    add_rows(
+        """
+        SELECT DATE(COALESCE(created_at, schedule_date)) AS item_date, COUNT(*) AS total
+        FROM streaming_assignments
+        WHERE member_id = %s
+          AND COALESCE(request_source, '') = 'member_request'
+          AND DATE(COALESCE(created_at, schedule_date)) BETWEEN %s AND %s
+        GROUP BY DATE(COALESCE(created_at, schedule_date))
+        """,
+        (member_id, start.isoformat(), end.isoformat()),
+    )
+    add_rows(
+        """
+        SELECT DATE(COALESCE(a.created_at, mb.misa_date)) AS item_date, COUNT(*) AS total
+        FROM misa_besar_assignments a
+        JOIN misa_besar_names n ON n.id = a.role_id
+        JOIN misa_besar mb ON mb.id = n.misa_id
+        WHERE a.member_id = %s
+          AND COALESCE(a.request_source, '') = 'member_request'
+          AND DATE(COALESCE(a.created_at, mb.misa_date)) BETWEEN %s AND %s
+        GROUP BY DATE(COALESCE(a.created_at, mb.misa_date))
+        """,
+        (member_id, start.isoformat(), end.isoformat()),
+    )
+    return {"range": mode, "labels": labels, "values": [counts.get(key, 0) for key in keys]}
+
+
+def member_dashboard_recommended_tasks(cursor, member_id: object, *, target_minimum: int, regular_count: int) -> list[dict[str, object]]:
+    if regular_count >= target_minimum:
+        return []
+    now = datetime.now()
+    items = request_task_regular_items(cursor, now.month, now.year, str(member_id))
+    result: list[dict[str, object]] = []
+    for item in items:
+        if not item.get("canRequest"):
+            continue
+        schedule_dt = member_dashboard_schedule_dt(item.get("date"), item.get("time"))
+        if schedule_dt < now:
+            continue
+        roles = item.get("roles") or []
+        filled_count = sum(1 for role in roles if isinstance(role, dict) and role.get("filled"))
+        total_roles = len(roles)
+        open_roles = [normalize_text(role.get("role")) for role in (item.get("openRoles") or []) if isinstance(role, dict) and normalize_text(role.get("role"))]
+        first_role = open_roles[0] if open_roles else "Role kosong"
+        result.append({
+            "id": item.get("id"),
+            "type": "biasa",
+            "typeLabel": "Misa Biasa",
+            "misaName": item.get("misaName"),
+            "date": item.get("date"),
+            "dateLabel": item.get("dateLabel"),
+            "dayName": item.get("dayName"),
+            "time": item.get("time"),
+            "role": first_role,
+            "openRoles": open_roles,
+            "filledCount": filled_count,
+            "totalRoles": total_roles,
+            "href": f"request-tugas-anggota.html?jenis=biasa&month={now.month}&year={now.year}",
+        })
+        if len(result) >= 3:
+            break
+    return result
+
+
+@app.route("/api/dashboard/anggota-overview", methods=["GET"])
+def api_dashboard_anggota_overview():
+    ensure_auth_schema()
+    ensure_task_request_schema()
+    ensure_task_cancellation_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    try:
+        ensure_monthly_monitoring_schema(cursor)
+        ensure_streaming_evaluation_schema(cursor)
+        member, error = member_monitoring_current_user(cursor)
+        if error:
+            return error
+        member_id = member.get("id")
+        now = datetime.now()
+
+        schedule_range = normalize_text(request.args.get("scheduleRange") or "week").lower()
+        done_range = normalize_text(request.args.get("doneRange") or "month").lower()
+        chart_range = normalize_text(request.args.get("chartRange") or "month").lower()
+        if schedule_range not in {"week", "month", "year"}:
+            schedule_range = "week"
+        if done_range not in {"week", "month", "year"}:
+            done_range = "month"
+        if chart_range not in {"week", "month", "year"}:
+            chart_range = "month"
+
+        task_month = min(12, max(1, parse_required_int(request.args.get("taskMonth"), now.month)))
+        task_year = parse_required_int(request.args.get("taskYear"), now.year)
+        task_type = member_dashboard_type_filter(request.args.get("taskType") or "all")
+
+        # Metric 1: semua jadwal tersedia pada periode terpilih.
+        schedule_start, schedule_end = dashboard_period_bounds(schedule_range)
+        available_schedule_count = len(eval_all_schedules(cursor, schedule_start, schedule_end, "all"))
+
+        # Target minimum berlaku untuk Misa Biasa bulan berjalan.
+        target_minimum = monitoring_get_target_minimum(cursor)
+        current_regular_count = member_monitoring_regular_count_for_period(cursor, member_id, now.year, now.month)
+        pending_minimum = max(0, target_minimum - current_regular_count)
+
+        # Metric tugas akan datang selalu bulan berjalan, semua jenis tugas.
+        current_month_tasks = member_monitoring_fetch_all_tasks(cursor, member_id, month=str(now.month), year=str(now.year), include_big=True)
+        upcoming_count = sum(1 for task in current_month_tasks if member_dashboard_schedule_dt(task.get("date"), task.get("time")) > now)
+
+        # Metric selesai mengikuti select Minggu/Bulan/Tahun, semua jenis tugas.
+        done_start, done_end = dashboard_period_bounds(done_range)
+        done_tasks = member_monitoring_fetch_all_tasks(cursor, member_id, month="all", year=str(now.year), include_big=True)
+        done_count = 0
+        for task in done_tasks:
+            task_dt = member_dashboard_schedule_dt(task.get("date"), task.get("time"))
+            if done_start <= task_dt.date() <= done_end and task_dt <= now:
+                done_count += 1
+
+        request_chart = member_dashboard_request_chart(cursor, member_id, chart_range)
+        recommendations = member_dashboard_recommended_tasks(cursor, member_id, target_minimum=target_minimum, regular_count=current_regular_count)
+        registered_tasks = member_dashboard_registered_tasks(cursor, member_id, month=task_month, year=task_year, kind_filter=task_type)
+
+        conn.commit()
+        return jsonify({
+            "success": True,
+            "currentUser": current_user_context_from_row({
+                "id": member.get("id"),
+                "nama": member.get("name"),
+                "username": member.get("username") or "",
+                "role": member.get("role") or "user",
+                "status_akun": member.get("status_akun") or "aktif",
+            }),
+            "metrics": {
+                "availableSchedules": {"range": schedule_range, "total": available_schedule_count},
+                "targetMinimum": target_minimum,
+                "regularTasksThisMonth": current_regular_count,
+                "pendingMinimum": pending_minimum,
+                "upcomingThisMonth": upcoming_count,
+                "doneTasks": {"range": done_range, "total": done_count},
+            },
+            "requestChart": request_chart,
+            "tasksToTake": recommendations,
+            "registeredTasks": registered_tasks,
+            "filters": {"taskMonth": task_month, "taskYear": task_year, "taskType": task_type},
+        })
+    except Exception as exc:
+        conn.rollback()
+        print(f"[ERROR] Dashboard anggota gagal memuat data: {exc}")
+        return jsonify({"success": False, "error": f"Gagal memuat dashboard anggota: {exc}"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route("/api/dashboard/admin-overview", methods=["GET"])
 def api_dashboard_admin_overview():
     role = normalize_role_value(session.get("role") or "")

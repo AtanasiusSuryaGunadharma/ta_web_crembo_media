@@ -2028,6 +2028,320 @@
       });
     });
   </script>
+
+
+<script>
+(function(){
+  const api = {
+    currentMonth: String(new Date().getMonth() + 1).padStart(2, "0"),
+    currentYear: String(new Date().getFullYear()),
+    lastData: null,
+    loading: false
+  };
+
+  const els = {
+    metricScheduleRange: document.getElementById("metricScheduleRange"),
+    metricScheduleLabel: document.getElementById("metricScheduleLabel"),
+    metricScheduleValue: document.getElementById("metricScheduleValue"),
+    pendingTaskValue: document.getElementById("pendingTaskValue"),
+    upcomingTaskValue: document.getElementById("upcomingTaskValue"),
+    metricDoneRange: document.getElementById("metricDoneRange"),
+    metricDoneLabel: document.getElementById("metricDoneLabel"),
+    metricDoneValue: document.getElementById("metricDoneValue"),
+    requestChartRange: document.getElementById("requestChartRange"),
+    requestChartTitle: document.getElementById("requestChartTitle"),
+    requestChartNote: document.getElementById("requestChartNote"),
+    requestChartSvg: document.getElementById("requestTugasChart"),
+    taskFilterMonth: document.getElementById("taskFilterMonth"),
+    taskFilterYear: document.getElementById("taskFilterYear"),
+    registeredTaskRows: document.getElementById("registeredTaskRows"),
+    recommendedGrid: null,
+    metricQuickLabel: document.getElementById("metricQuickLabel")
+  };
+
+  const taskPanel = document.querySelector('section[aria-label="Tugas yang perlu diambil"]');
+  if (taskPanel) {
+    els.recommendedGrid = taskPanel.querySelector(".task-grid");
+    if (els.recommendedGrid) els.recommendedGrid.id = "recommendedTaskGrid";
+  }
+
+  function addDashboardStyles(){
+    if (document.getElementById("dashboardBackendPatchStyles")) return;
+    const style = document.createElement("style");
+    style.id = "dashboardBackendPatchStyles";
+    style.textContent = `
+      .task-grid{grid-template-columns:repeat(3,minmax(190px,1fr));}
+      .task-card.backend-card{border-color:#f0d978;background:linear-gradient(135deg,#fffaf0,#fff);}
+      .task-card.backend-card .open-roles{color:#374151;font-weight:700;}
+      .dashboard-empty{grid-column:1/-1;border:1px dashed #e6caca;background:#fffafa;border-radius:12px;padding:16px;color:#6b7280;text-align:center;font-weight:600;}
+      .dashboard-loading{opacity:.72;}
+      .muted-action{display:inline-block;color:#6b7280;font-size:.74rem;font-weight:700;}
+      .dashboard-filter-type{border:1px solid #b8b8b8;border-radius:6px;padding:4px 8px;font-size:.8rem;font-family:inherit;}
+      @media (max-width:980px){.task-grid{grid-template-columns:1fr;}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function escapeHtml(value){
+    return String(value == null ? "" : value)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function rangeLabel(range){
+    if (range === "week") return "Minggu Ini";
+    if (range === "year") return "Tahun Ini";
+    return "Bulan Ini";
+  }
+
+  function monthName(monthValue){
+    const names = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const idx = Math.max(1, Math.min(12, parseInt(monthValue || "1", 10))) - 1;
+    return names[idx] || "Bulan";
+  }
+
+  function ensureTaskTypeFilter(){
+    if (document.getElementById("taskFilterType")) return document.getElementById("taskFilterType");
+    const filterBar = els.taskFilterYear ? els.taskFilterYear.closest("div") : null;
+    if (!filterBar) return null;
+    const label = document.createElement("label");
+    label.style.cssText = "display:flex;align-items:center;gap:4px;font-size:0.8rem;";
+    label.innerHTML = 'Jenis: <select id="taskFilterType" class="dashboard-filter-type" aria-label="Filter jenis misa tugas terdaftar"><option value="all" selected>Misa Biasa & Besar</option><option value="biasa">Misa Biasa</option><option value="besar">Misa Besar</option></select>';
+    filterBar.appendChild(label);
+    return document.getElementById("taskFilterType");
+  }
+
+  const taskFilterType = ensureTaskTypeFilter();
+
+  function setDefaultPeriodFilters(){
+    if (els.taskFilterMonth) els.taskFilterMonth.value = api.currentMonth;
+    if (els.taskFilterYear) {
+      const hasCurrentYear = Array.from(els.taskFilterYear.options).some(opt => opt.value === api.currentYear);
+      if (!hasCurrentYear) {
+        const opt = document.createElement("option");
+        opt.value = api.currentYear;
+        opt.textContent = api.currentYear;
+        els.taskFilterYear.appendChild(opt);
+      }
+      els.taskFilterYear.value = api.currentYear;
+    }
+    if (taskFilterType) taskFilterType.value = "all";
+  }
+
+  async function readJsonResponse(response){
+    const text = await response.text();
+    try { return JSON.parse(text); }
+    catch (error) { throw new Error(text && text.trim().startsWith("<") ? "Endpoint mengembalikan HTML, bukan JSON. Cek route backend dashboard anggota." : (text || "Respons backend tidak valid.")); }
+  }
+
+  async function fetchDashboardData(){
+    const params = new URLSearchParams({
+      scheduleRange: els.metricScheduleRange ? els.metricScheduleRange.value : "week",
+      doneRange: els.metricDoneRange ? els.metricDoneRange.value : "month",
+      chartRange: els.requestChartRange ? els.requestChartRange.value : "month",
+      taskMonth: String(parseInt((els.taskFilterMonth && els.taskFilterMonth.value) || api.currentMonth, 10)),
+      taskYear: (els.taskFilterYear && els.taskFilterYear.value) || api.currentYear,
+      taskType: (taskFilterType && taskFilterType.value) || "all"
+    });
+    const response = await fetch("/api/dashboard/anggota-overview?" + params.toString(), { credentials: "same-origin" });
+    const data = await readJsonResponse(response);
+    if (!response.ok || data.success === false) throw new Error(data.error || "Gagal mengambil data dashboard anggota.");
+    api.lastData = data;
+    return data;
+  }
+
+  function renderMetrics(data){
+    const metrics = data.metrics || {};
+    const scheduleRange = (metrics.availableSchedules && metrics.availableSchedules.range) || (els.metricScheduleRange && els.metricScheduleRange.value) || "week";
+    const doneRange = (metrics.doneTasks && metrics.doneTasks.range) || (els.metricDoneRange && els.metricDoneRange.value) || "month";
+    if (els.metricScheduleLabel) els.metricScheduleLabel.textContent = "Jadwal Tersedia " + rangeLabel(scheduleRange);
+    if (els.metricScheduleValue) els.metricScheduleValue.textContent = String((metrics.availableSchedules && metrics.availableSchedules.total) || 0);
+    if (els.pendingTaskValue) els.pendingTaskValue.textContent = String(metrics.pendingMinimum || 0);
+    if (els.upcomingTaskValue) els.upcomingTaskValue.textContent = String(metrics.upcomingThisMonth || 0);
+    if (els.metricDoneLabel) els.metricDoneLabel.textContent = "Tugas Selesai " + rangeLabel(doneRange);
+    if (els.metricDoneValue) els.metricDoneValue.textContent = String((metrics.doneTasks && metrics.doneTasks.total) || 0);
+    const quickRangeChip = document.querySelector(".quick-filter .chip:first-child");
+    if (quickRangeChip) quickRangeChip.innerHTML = '<strong id="metricQuickLabel">Jadwal:</strong> ' + rangeLabel(scheduleRange);
+  }
+
+  function renderChart(data){
+    const chart = data.requestChart || { labels: [], values: [] };
+    const range = chart.range || (els.requestChartRange && els.requestChartRange.value) || "month";
+    if (els.requestChartTitle) els.requestChartTitle.textContent = "Grafik Request Tugas " + rangeLabel(range);
+    if (els.requestChartNote) els.requestChartNote.textContent = range === "year" ? "12 Bulan" : (range === "week" ? "7 Hari" : "Harian Bulan Ini");
+    const labels = Array.isArray(chart.labels) && chart.labels.length ? chart.labels : [""];
+    const values = Array.isArray(chart.values) && chart.values.length ? chart.values : [0];
+    if (typeof renderLineChart === "function" && els.requestChartSvg) {
+      renderLineChart("requestTugasChart", labels, values, "#8b0000");
+    } else if (els.requestChartSvg) {
+      els.requestChartSvg.innerHTML = "";
+    }
+  }
+
+  function renderRecommendedTasks(data){
+    if (!els.recommendedGrid) return;
+    const tasks = Array.isArray(data.tasksToTake) ? data.tasksToTake : [];
+    const metrics = data.metrics || {};
+    const shortage = Number(metrics.pendingMinimum || 0);
+    if (!shortage) {
+      els.recommendedGrid.innerHTML = '<div class="dashboard-empty">Target minimum Misa Biasa bulan ini sudah terpenuhi. Tidak ada tugas yang perlu diambil.</div>';
+      return;
+    }
+    if (!tasks.length) {
+      els.recommendedGrid.innerHTML = '<div class="dashboard-empty">Belum ada slot Misa Biasa kosong yang akan datang pada bulan berjalan. Silakan cek kembali ketika jadwal berikutnya dibuka.</div>';
+      return;
+    }
+    els.recommendedGrid.innerHTML = tasks.slice(0, 3).map(function(item){
+      const openRoles = Array.isArray(item.openRoles) ? item.openRoles.join(", ") : (item.role || "-");
+      const filled = Number(item.filledCount || 0);
+      const total = Number(item.totalRoles || 0);
+      return '<article class="task-card backend-card">'
+        + '<span class="pill">Slot Tersedia</span>'
+        + '<h3>' + escapeHtml(item.misaName || "Misa Biasa") + ' - ' + escapeHtml(item.role || "Role") + '</h3>'
+        + '<p>' + escapeHtml(item.dayName || "-") + ', ' + escapeHtml(item.dateLabel || item.date || "-") + ' - ' + escapeHtml(item.time || "-") + ' WIB</p>'
+        + '<div class="task-meta"><span>Petugas terisi: ' + filled + '/' + total + '</span><span class="open-roles">Role kosong: ' + escapeHtml(openRoles || "-") + '</span></div>'
+        + '<a class="btn" href="' + escapeHtml(item.href || "request-tugas-anggota.html?jenis=biasa") + '">Ambil Tugas</a>'
+        + '</article>';
+    }).join("");
+  }
+
+  function statusHtml(item){
+    const status = String(item.status || "");
+    if (status === "Selesai") return '<span class="status-ok">Selesai</span>';
+    if (status === "Dibatalkan") return '<span class="status-danger">Dibatalkan</span>';
+    return '<span class="status-ok">Aktif</span>';
+  }
+
+  function evaluationHtml(item){
+    return item.evaluated
+      ? '<span class="status-ok">Sudah Diisi</span>'
+      : '<span class="status-warn">Belum Diisi</span>';
+  }
+
+  function renderRegisteredTasks(data){
+    if (!els.registeredTaskRows) return;
+    const rows = Array.isArray(data.registeredTasks) ? data.registeredTasks : [];
+    if (!rows.length) {
+      const month = els.taskFilterMonth ? monthName(els.taskFilterMonth.value) : "bulan ini";
+      const year = els.taskFilterYear ? els.taskFilterYear.value : "";
+      els.registeredTaskRows.innerHTML = '<tr><td colspan="5">Belum ada tugas terdaftar untuk ' + escapeHtml(month + ' ' + year) + '.</td></tr>';
+      return;
+    }
+    els.registeredTaskRows.innerHTML = rows.map(function(item){
+      const scheduleLabel = escapeHtml(item.typeLabel || "Misa") + ' - <strong>' + escapeHtml(item.misaName || "Misa") + '</strong><br><small>' + escapeHtml(item.dayName || "-") + ', ' + escapeHtml(item.dateLabel || item.date || "-") + ' jam ' + escapeHtml(item.time || "-") + ' WIB</small>';
+      let actionHtml = '<a class="mini-btn ghost" href="riwayat-tugas-saya.html">Lihat Histori</a>';
+      if (item.status !== "Selesai") {
+        if (item.canCancel) {
+          actionHtml = '<button class="mini-btn danger" type="button" data-dashboard-cancel="1"'
+            + ' data-type="' + escapeHtml(item.type || "biasa") + '"'
+            + ' data-assignment-id="' + escapeHtml(item.assignmentId || "") + '"'
+            + ' data-misa-id="' + escapeHtml(item.misaId || "") + '"'
+            + ' data-role-id="' + escapeHtml(item.roleId || "") + '"'
+            + ' data-date="' + escapeHtml(item.date || "") + '"'
+            + ' data-time="' + escapeHtml(item.time || "") + '"'
+            + ' data-role="' + escapeHtml(item.role || "") + '">Batalkan</button>';
+        } else {
+          actionHtml = '<span class="muted-action">Lewat batas H-3 / belum bisa dibatalkan</span>';
+        }
+      }
+      return '<tr>'
+        + '<td>' + scheduleLabel + '</td>'
+        + '<td>' + escapeHtml(item.role || "-") + '</td>'
+        + '<td>' + statusHtml(item) + '</td>'
+        + '<td>' + evaluationHtml(item) + '</td>'
+        + '<td>' + actionHtml + '</td>'
+        + '</tr>';
+    }).join("");
+  }
+
+  function renderError(message){
+    if (els.metricScheduleValue) els.metricScheduleValue.textContent = "0";
+    if (els.pendingTaskValue) els.pendingTaskValue.textContent = "0";
+    if (els.upcomingTaskValue) els.upcomingTaskValue.textContent = "0";
+    if (els.metricDoneValue) els.metricDoneValue.textContent = "0";
+    if (els.recommendedGrid) els.recommendedGrid.innerHTML = '<div class="dashboard-empty">' + escapeHtml(message) + '</div>';
+    if (els.registeredTaskRows) els.registeredTaskRows.innerHTML = '<tr><td colspan="5">' + escapeHtml(message) + '</td></tr>';
+  }
+
+  async function loadDashboardBackend(){
+    if (api.loading) return;
+    api.loading = true;
+    if (els.recommendedGrid) els.recommendedGrid.classList.add("dashboard-loading");
+    try {
+      const data = await fetchDashboardData();
+      renderMetrics(data);
+      renderChart(data);
+      renderRecommendedTasks(data);
+      renderRegisteredTasks(data);
+    } catch (error) {
+      renderError(error.message || "Gagal memuat dashboard anggota.");
+    } finally {
+      api.loading = false;
+      if (els.recommendedGrid) els.recommendedGrid.classList.remove("dashboard-loading");
+    }
+  }
+
+  async function cancelDashboardTask(button){
+    const payload = {
+      type: button.dataset.type || "biasa",
+      assignmentId: button.dataset.assignmentId ? Number(button.dataset.assignmentId) : undefined,
+      misaId: button.dataset.misaId ? Number(button.dataset.misaId) : undefined,
+      roleId: button.dataset.roleId ? Number(button.dataset.roleId) : undefined,
+      date: button.dataset.date || "",
+      time: button.dataset.time || "",
+      role: button.dataset.role || ""
+    };
+    if (!window.confirm("Batalkan tugas ini? Pembatalan hanya bisa dilakukan sesuai aturan H-3.")) return;
+    button.disabled = true;
+    button.textContent = "Memproses...";
+    try {
+      const response = await fetch("/api/cancel-tugas/cancel", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await readJsonResponse(response);
+      if (!response.ok || data.success === false) throw new Error(data.error || "Gagal membatalkan tugas.");
+      await loadDashboardBackend();
+      if (typeof renderNotifications === "function") renderNotifications();
+      alert(data.message || "Tugas berhasil dibatalkan.");
+    } catch (error) {
+      alert(error.message || "Gagal membatalkan tugas.");
+      button.disabled = false;
+      button.textContent = "Batalkan";
+    }
+  }
+
+  function wireEvents(){
+    [els.metricScheduleRange, els.metricDoneRange, els.requestChartRange, els.taskFilterMonth, els.taskFilterYear, taskFilterType]
+      .filter(Boolean)
+      .forEach(function(select){
+        select.addEventListener("change", loadDashboardBackend);
+      });
+
+    if (els.registeredTaskRows) {
+      els.registeredTaskRows.addEventListener("click", function(event){
+        const button = event.target.closest("[data-dashboard-cancel]");
+        if (!button) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+        cancelDashboardTask(button);
+      }, true);
+    }
+  }
+
+  addDashboardStyles();
+  setDefaultPeriodFilters();
+  wireEvents();
+  loadDashboardBackend();
+})();
+</script>
+
 <script src="_sidebar-fix.js"></script>
 
 <script>
