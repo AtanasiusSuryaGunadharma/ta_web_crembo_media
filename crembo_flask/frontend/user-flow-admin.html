@@ -3,26 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>User Flow Pengujian Akhir - Admin</title>
+  <title>User Flow Black Box & SUS - Admin</title>
   <style>
 :root{
   --bg:#f7eeee;
   --surface:#fff;
   --line:#ead1d1;
   --ink:#111827;
-  --muted:#6b7280;
+  --muted:#64748b;
   --primary:#8b0000;
   --primary-dark:#5c0000;
   --primary-2:#b11f1f;
   --gold:#d4a017;
   --green:#166534;
   --green-bg:#eaf8ee;
-  --yellow:#8a6d00;
-  --yellow-bg:#fff7db;
+  --red:#991b1b;
   --red-bg:#fff1f1;
-  --blue:#1d4ed8;
-  --radius:16px;
+  --yellow-bg:#fff7db;
   --shadow:0 14px 32px rgba(128,0,0,.12);
+  --radius:16px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -36,169 +35,140 @@ body{
     var(--bg);
 }
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1280px;margin:0 auto;padding:22px;display:grid;gap:16px}
+.wrap{max-width:1360px;margin:0 auto;padding:22px;display:grid;gap:16px}
 .hero{
-  color:#fff;
-  background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-2));
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:18px;
-  display:grid;
-  gap:12px;
+  color:#fff;background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-2));
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:12px
 }
 .hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.hero h1{margin:0;font-size:clamp(1.35rem,2.6vw,2.1rem);font-weight:900;letter-spacing:-.03em}
-.hero p{margin:0;color:rgba(255,255,255,.88);line-height:1.55}
+.hero h1{margin:0;font-size:clamp(1.35rem,2.8vw,2.15rem);font-weight:900;letter-spacing:-.03em}
+.hero p{margin:.4rem 0 0;color:rgba(255,255,255,.9);line-height:1.55;max-width:880px}
 .badges,.nav-pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .badge,.nav-pills a{
-  display:inline-flex;align-items:center;gap:6px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.32);
-  background:rgba(255,255,255,.13);
-  padding:7px 11px;font-weight:800;font-size:.78rem
+  display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid rgba(255,255,255,.32);
+  background:rgba(255,255,255,.13);padding:7px 11px;font-weight:800;font-size:.78rem
 }
 .nav-pills a{background:#fff;color:var(--primary);border-color:#f0b8b8}
 .nav-pills a.active{background:var(--gold);border-color:var(--gold);color:#431407}
 .top-tabs{
-  position:sticky;top:0;z-index:10;
-  display:flex;gap:8px;flex-wrap:wrap;
-  background:rgba(247,238,238,.94);
-  backdrop-filter:blur(10px);
-  padding:10px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  box-shadow:0 8px 20px rgba(128,0,0,.08);
+  position:sticky;top:0;z-index:10;display:flex;gap:8px;flex-wrap:wrap;
+  background:rgba(247,238,238,.94);backdrop-filter:blur(10px);
+  padding:10px;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 20px rgba(128,0,0,.08)
 }
-.top-tabs a{
-  border:1px solid var(--line);background:#fff;color:var(--primary);
-  border-radius:999px;padding:8px 12px;font-weight:800;font-size:.82rem;
+.top-tabs a{border:1px solid var(--line);background:#fff;color:var(--primary);border-radius:999px;padding:8px 12px;font-weight:800;font-size:.82rem}
+.section,.test-section{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden
 }
-.section{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  overflow:hidden;
+.section-head,.test-head{
+  padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(180deg,#fff,#fff8f8)
 }
-.section-head{
-  padding:16px 18px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  background:linear-gradient(180deg,#fff,#fff8f8);
-}
-.section-head h2{margin:0;font-size:1.12rem}
-.section-head small{color:var(--muted);font-weight:700}
+.section-head h2,.test-head h3{margin:0;font-size:1.12rem}
+.section-head small,.test-head p{margin:.25rem 0 0;color:var(--muted);font-weight:700;font-size:.86rem}
 .section-body{padding:16px 18px;display:grid;gap:14px}
+.count-pill{border:1px solid #f1d28a;background:#fff9e8;color:#6b4b00;border-radius:999px;padding:6px 10px;font-size:.78rem;font-weight:900}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px}
-.grid-3{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px}
 .field{display:grid;gap:7px}
 label,.label{font-size:.78rem;font-weight:900;color:#7f1d1d;text-transform:uppercase;letter-spacing:.04em}
 input,select,textarea{
-  width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
-  font:inherit;background:#fff;color:var(--ink);outline:none
+  width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:inherit;background:#fff;color:var(--ink);outline:none
 }
 textarea{min-height:92px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(177,31,31,.09)}
-.info{
-  border:1px solid #f1d28a;background:#fff9e8;border-left:5px solid var(--gold);
-  border-radius:12px;padding:12px;color:#5c3f00;line-height:1.5
+.info{border:1px solid #f1d28a;background:#fff9e8;border-left:5px solid var(--gold);border-radius:12px;padding:12px;color:#5c3f00;line-height:1.5}
+.test-section{scroll-margin-top:90px}
+.test-head{align-items:flex-start}
+.cards{padding:16px 18px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+.cards-1{grid-template-columns:minmax(310px,1fr)}
+.cards-2{grid-template-columns:repeat(2,minmax(310px,1fr))}
+.cards-3{grid-template-columns:repeat(3,minmax(280px,1fr))}
+.scenario-card{
+  border:1px solid var(--line);border-radius:16px;background:#fff;padding:14px;display:grid;gap:10px;position:relative;overflow:hidden
 }
-.flow-lane{display:grid;gap:10px}
-.lane-title{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.lane-title h3{margin:0;font-size:1rem;color:var(--primary)}
-.lane-title span{font-size:.78rem;color:var(--muted);font-weight:800}
-.cards{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}
-.card{
-  border:1px solid var(--line);border-radius:14px;background:#fff;
-  padding:13px;display:grid;gap:9px;position:relative;overflow:hidden;
+.scenario-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(var(--primary),var(--gold))}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card-number{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:999px;background:var(--primary);color:#fff;font-weight:900}
+.code{font-size:.72rem;font-weight:900;color:var(--primary);background:#fff3f3;border:1px solid #f3baba;border-radius:999px;padding:5px 9px}
+.scenario-card h4{margin:0;color:#111827;font-size:1rem}
+.desc{margin:0;color:#334155;line-height:1.5;font-size:.88rem}
+.links{display:flex;gap:7px;flex-wrap:wrap}
+.links a{display:inline-flex;border:1px solid #f3baba;border-radius:999px;padding:5px 9px;color:var(--primary);font-weight:800;font-size:.76rem;background:#fffafa}
+.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mini-grid div{border:1px solid #ead1d1;border-radius:12px;background:#fffafa;padding:9px;display:grid;gap:5px}
+.mini-grid b{color:#7f1d1d;text-transform:uppercase;font-size:.72rem;letter-spacing:.04em}
+.mini-grid span{font-size:.82rem;color:#334155;line-height:1.45}
+details{border:1px solid #ead1d1;border-radius:12px;padding:9px;background:#fff}
+summary{cursor:pointer;font-weight:900;color:#7f1d1d}
+ol{margin:8px 0 0 18px;padding:0;color:#334155;font-size:.84rem;line-height:1.55}
+.checks{border:1px dashed #e3b9b9;border-radius:12px;padding:10px;display:grid;gap:8px;background:#fffdfd}
+.checks strong{color:#111827;font-size:.86rem}
+.check-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;border-top:1px solid #f4e2e2;padding-top:8px;font-size:.84rem}
+.check-row:first-of-type{border-top:0;padding-top:0}
+.check-row label{text-transform:none;letter-spacing:0;color:#111827;font-size:.8rem;display:flex;gap:5px;align-items:center}
+.sus-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.sus-table{width:100%;border-collapse:collapse;background:#fff}
+.sus-table th,.sus-table td{border-bottom:1px solid var(--line);padding:11px;text-align:left;vertical-align:middle}
+.sus-table th{background:#fff4f4;color:#7f1d1d;text-transform:uppercase;font-size:.74rem}
+.scale-cell{text-align:center!important;min-width:64px}
+.scale-cell label{display:grid;place-items:center;gap:4px;color:#111827;text-transform:none;letter-spacing:0;font-size:.8rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{
+  border:1px solid #f0b8b8;border-radius:12px;background:#fff;color:var(--primary);
+  padding:10px 14px;font-weight:900;cursor:pointer;box-shadow:0 8px 20px rgba(128,0,0,.08)
 }
-.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(var(--primary),var(--gold))}
-.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.card h4{margin:0;color:#111827;font-size:.96rem}
-.code{font-size:.72rem;font-weight:900;color:var(--primary);background:#fff3f3;border:1px solid #f3baba;border-radius:999px;padding:4px 8px;white-space:nowrap}
-.card p{margin:0;color:#374151;font-size:.84rem;line-height:1.5}
-.meta-list{display:grid;gap:4px;font-size:.8rem;color:#4b5563}
-.meta-list b{color:#7f1d1d}
-.links{display:flex;gap:6px;flex-wrap:wrap}
-.links a{border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:.74rem;font-weight:800;color:var(--primary);background:#fff}
-.done{display:flex;gap:8px;align-items:center;font-size:.82rem;color:#374151;text-transform:none;font-weight:800;letter-spacing:0}
-.done input{width:auto}
-.sus-table{width:100%;border-collapse:separate;border-spacing:0 10px}
-.sus-table th{font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:#7f1d1d;text-align:center}
-.sus-table th:first-child{text-align:left}
-.sus-item{
-  border:1px solid var(--line);background:#fff;border-radius:13px;box-shadow:0 4px 12px rgba(128,0,0,.05)
-}
-.sus-item td{padding:13px 10px;vertical-align:middle}
-.sus-item td:first-child{border-radius:13px 0 0 13px}
-.sus-item td:last-child{border-radius:0 13px 13px 0}
-.sus-question{font-weight:800;line-height:1.45}
-.scale-cell{text-align:center;min-width:48px}
-.scale-cell input{width:18px;height:18px;accent-color:var(--primary)}
-.scale-help{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.8rem;margin-top:-6px}
-.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{
-  border:0;border-radius:12px;background:var(--primary);color:#fff;
-  padding:11px 14px;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(128,0,0,.18)
-}
-.btn.secondary{background:#fff;color:var(--primary);border:1px solid var(--line);box-shadow:none}
-.btn.gold{background:var(--gold);color:#431407}
-.result-card{
-  border:1px solid var(--line);border-left:5px solid var(--primary);
-  border-radius:14px;background:#fff;padding:14px;display:grid;gap:7px
-}
-.result-score{font-size:2rem;font-weight:950;color:var(--primary);line-height:1}
-.footer-note{font-size:.82rem;color:var(--muted);line-height:1.5}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
-.blackbox-table{width:100%;border-collapse:collapse;background:#fff;min-width:1180px}
-.blackbox-table th,.blackbox-table td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top;text-align:left;font-size:.83rem}
-.blackbox-table th{position:sticky;top:0;background:#fff4f4;color:#7f1d1d;font-weight:900;text-transform:uppercase;font-size:.74rem;z-index:2}
-.blackbox-table select{min-width:140px;padding:8px;border-radius:9px}
-.blackbox-table textarea{min-width:220px;min-height:54px;padding:8px;border-radius:9px}
-.status-chip{display:inline-flex;border-radius:999px;padding:4px 9px;font-weight:900;font-size:.72rem}
-.status-valid{background:var(--green-bg);color:var(--green);border:1px solid #95d5a6}
-.status-invalid{background:var(--red-bg);color:#991b1b;border:1px solid #fecaca}
-.status-pending{background:var(--yellow-bg);color:var(--yellow);border:1px solid #f1d28a}
+button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:var(--primary)}
+.result-box{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;display:grid;gap:8px}
+.result-box b{font-size:1.2rem}
 .summary{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
 .summary-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;display:grid;gap:5px}
 .summary-card span{color:var(--muted);font-size:.8rem;font-weight:800}
 .summary-card b{font-size:1.55rem}
-@media(max-width:900px){
-  .wrap{padding:14px}
-  .grid,.grid-3,.cards,.summary{grid-template-columns:1fr}
-  .top-tabs{position:static}
-  .section-head{align-items:flex-start}
-  .sus-table{display:block;overflow:auto}
-  .scale-cell{min-width:44px}
+.footer-note{font-size:.82rem;color:var(--muted);line-height:1.5}
+@media(max-width:1050px){
+  .cards-2,.cards-3{grid-template-columns:1fr}
+  .mini-grid{grid-template-columns:1fr}
 }
-</style>
+@media(max-width:760px){
+  .wrap{padding:14px}
+  .grid,.summary{grid-template-columns:1fr}
+  .top-tabs{position:static}
+  .check-row{grid-template-columns:1fr;align-items:start}
+  .cards{grid-template-columns:1fr;padding:12px}
+  .section-head,.test-head{align-items:flex-start}
+}
+@media print{
+  .top-tabs,.actions{display:none!important}
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .section,.test-section,.hero{box-shadow:none;break-inside:avoid}
+}
+  </style>
 </head>
 <body data-flow="admin">
   <main class="wrap">
     <header class="hero">
       <div class="hero-row">
         <div>
-          <h1>User Flow Pengujian Akhir - Admin</h1>
-          <p>Skenario ini digunakan untuk pengujian usability akhir dari sisi Admin operasional. Admin hanya menguji menu yang dapat diakses sesuai permission modulnya.</p>
+          <h1>User Flow Black Box & SUS - Admin</h1>
+          <p>Halaman ini menggabungkan black box testing role Admin dengan SUS post-redesign. Penguji menjalankan fitur publik/no-login terlebih dahulu, lalu login sebagai admin untuk menguji modul operasional sesuai permission: streaming, inventaris, publikasi, konten website, keanggotaan, dan log terbatas.</p>
         </div>
         <div class="badges">
           <span class="badge">Role: Admin</span>
-          <span class="badge">Cakupan: Modul Sesuai Permission</span>
+          <span class="badge">Black Box: Valid / Tidak Valid</span>
           <span class="badge">SUS: Post-Redesign</span>
         </div>
       </div>
-      
       <div class="nav-pills" aria-label="Navigasi user flow">
         <a class="" href="user-flow-super-admin.html">Super Admin</a>
         <a class="active" href="user-flow-admin.html">Admin</a>
         <a class="" href="user-flow-anggota.html">Anggota</a>
-        <a href="blackbox-testing.html">Black Box Testing</a>
       </div>
-    
     </header>
 
     <nav class="top-tabs">
       <a href="#identitas">1. Identitas</a>
-      <a href="#task">2. Task Scenario</a>
-      <a href="#sus">3. SUS Akhir</a>
+      <a href="#blackbox">2. Black Box Role</a>
+      <a href="#sus">3. SUS</a>
       <a href="#tambahan">4. Pertanyaan Tambahan</a>
       <a href="#rekap">5. Rekap</a>
     </nav>
@@ -211,372 +181,1205 @@ input:focus,select:focus,textarea:focus{border-color:var(--primary-2);box-shadow
       <div class="section-body">
         <div class="grid">
           <div class="field"><label>Nama Penguji *</label><input id="testerName" type="text" placeholder="Nama lengkap responden"></div>
-          <div class="field"><label>Peran Pengujian</label><input id="testerRole" type="text" value="Admin" readonly></div>
+          <div class="field"><label>Role yang Diuji</label><input id="testerRole" type="text" value="Admin" readonly></div>
           <div class="field"><label>Instansi / Unit / Kelas</label><input id="testerOrg" type="text" placeholder="Contoh: CREMBO Media / UAJY"></div>
           <div class="field"><label>Tanggal Pengujian</label><input id="testDate" type="text" value="15/05/2026" readonly></div>
           <div class="field"><label>Perangkat *</label><select id="testerDevice"><option value="">Pilih perangkat</option><option>PC/Laptop</option><option>Handphone</option><option>Tablet</option></select></div>
           <div class="field"><label>Browser *</label><select id="testerBrowser"><option value="">Pilih browser</option><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Safari</option><option>Opera</option><option>Brave</option><option>Lainnya</option></select></div>
         </div>
         <div class="info">
-          <b>Petunjuk:</b> Jalankan task scenario secara berurutan. Setelah selesai mencoba fitur, lanjutkan mengisi SUS akhir pada halaman yang sama ini. Skala SUS memakai 1 = sangat tidak setuju sampai 5 = sangat setuju.
+          <b>Petunjuk revisi:</b> Jalankan black box testing per role terlebih dahulu. Setiap butir uji diberi status <b>Valid</b> atau <b>Tidak Valid</b>. Setelah seluruh skenario role selesai, responden mengisi SUS post-redesign dan pertanyaan tambahan.
         </div>
       </div>
     </section>
 
-    <section id="task" class="section">
+    <section id="blackbox" class="section">
       <div class="section-head">
-        <h2>Bagian 2 - Task Scenario Pengujian</h2>
-        <small>Termasuk fitur publik/no-login dan fitur role Admin</small>
+        <h2>Bagian 2 - Black Box Testing Berdasarkan Role</h2>
+        <small>26 card scenario • frontend-only</small>
       </div>
       <div class="section-body">
-        <div class="flow-lane">
-          <div class="lane-title"><h3>A. Task No-Login / Pengguna Publik</h3><span>Wajib dicoba sebelum login</span></div>
-          <div class="cards">
-    <article class="card">
-      <div class="card-head">
-        <h4>Beranda Publik dan Navigasi Utama</h4>
-        <span class="code">PUB-01</span>
-      </div>
-      <p>Buka halaman home, cek carousel/hero, menu Profil, Jadwal Streaming, Agenda, Pengumuman, Form Pendaftaran, dan tombol Login.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a></div>
-        <span><b>Hasil diharapkan:</b> Menu utama terbuka, komponen home tampil rapi, dan pengguna tidak perlu login untuk membaca informasi publik.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-01"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Pencarian Informasi Publik</h4>
-        <span class="code">PUB-02</span>
-      </div>
-      <p>Gunakan kolom pencarian dengan kata kunci seperti “misa”, “agenda”, “pengumuman”, atau nama kegiatan.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="search.html" target="_blank" rel="noopener noreferrer">search.html</a></div>
-        <span><b>Hasil diharapkan:</b> Halaman hasil pencarian menampilkan konten relevan dan dapat dibuka ke detailnya.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-02"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Jadwal Streaming Publik</h4>
-        <span class="code">PUB-03</span>
-      </div>
-      <p>Buka jadwal streaming, coba filter bulan/tahun, jenis misa, dan lihat tampilan card/tabel jadwal.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="jadwal-streaming.html" target="_blank" rel="noopener noreferrer">jadwal-streaming.html</a></div>
-        <span><b>Hasil diharapkan:</b> Jadwal Misa Biasa dan Misa Besar tampil sesuai filter tanpa data petugas internal yang tidak perlu.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-03"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Agenda dan Detail Agenda</h4>
-        <span class="code">PUB-04</span>
-      </div>
-      <p>Buka daftar agenda, pilih salah satu agenda, lalu cek halaman detailnya.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="agenda.html" target="_blank" rel="noopener noreferrer">agenda.html</a><a href="agenda-detail.html" target="_blank" rel="noopener noreferrer">agenda-detail.html</a></div>
-        <span><b>Hasil diharapkan:</b> Agenda tampil lengkap dengan tanggal, deskripsi, dan detail kegiatan.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-04"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Pengumuman dan Informasi Publik</h4>
-        <span class="code">PUB-05</span>
-      </div>
-      <p>Buka pengumuman/berita, baca detail, lalu kembali ke daftar.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="pengumuman.html" target="_blank" rel="noopener noreferrer">pengumuman.html</a><a href="pengumuman-detail.html" target="_blank" rel="noopener noreferrer">pengumuman-detail.html</a></div>
-        <span><b>Hasil diharapkan:</b> Informasi publik dapat dibaca dengan alur navigasi yang jelas.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-05"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Form Pendaftaran Publik</h4>
-        <span class="code">PUB-06</span>
-      </div>
-      <p>Buka Form Pendaftaran, pilih form aktif, isi data dummy, dan cek validasi isian wajib.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="form-pendaftaran.html" target="_blank" rel="noopener noreferrer">form-pendaftaran.html</a><a href="form-pendaftaran-detail.html" target="_blank" rel="noopener noreferrer">form-pendaftaran-detail.html</a><a href="isi-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">isi-form-pendaftaran.html</a></div>
-        <span><b>Hasil diharapkan:</b> Form dapat dibuka oleh pengguna publik dan memberikan pesan validasi yang mudah dipahami.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-06"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Form Evaluasi Streaming No-Login</h4>
-        <span class="code">PUB-07</span>
-      </div>
-      <p>Buka form evaluasi streaming, pilih jadwal yang sudah lewat dan belum diisi, lalu cek struktur form evaluasi.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="form-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">form-evaluasi-streaming.html</a></div>
-        <span><b>Hasil diharapkan:</b> Form evaluasi hanya menampilkan jadwal yang valid untuk dievaluasi dan pilihan petugas sesuai sesi jadwal.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-07"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Profil, Embed YouTube, Maps, dan Sosial Media</h4>
-        <span class="code">PUB-08</span>
-      </div>
-      <p>Buka profil/tentang dan scroll ke bagian embed YouTube/Maps/Instagram pada home.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="profil.html" target="_blank" rel="noopener noreferrer">profil.html</a><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a></div>
-        <span><b>Hasil diharapkan:</b> Konten organisasi, embed video, lokasi, dan sosial media tampil jelas.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-08"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Login dan Lupa Password</h4>
-        <span class="code">PUB-09</span>
-      </div>
-      <p>Klik Login, coba alur lupa password sampai OTP dan reset password menggunakan akun uji.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="login.html" target="_blank" rel="noopener noreferrer">login.html</a><a href="forgot-password.html" target="_blank" rel="noopener noreferrer">forgot-password.html</a><a href="otp-verification.html" target="_blank" rel="noopener noreferrer">otp-verification.html</a><a href="reset-password.html" target="_blank" rel="noopener noreferrer">reset-password.html</a></div>
-        <span><b>Hasil diharapkan:</b> Login dan recovery password memberi feedback yang jelas sesuai input.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="PUB-09"> Task selesai diuji</label>
-    </article>
-    </div>
+        <div class="info">
+          Skenario dibagi per lingkup fitur. Satu section dapat berisi satu card atau beberapa card jika lingkup fiturnya terdiri dari beberapa halaman, misalnya alur lupa password: <b>forgot password → OTP verification → reset password</b>.
         </div>
-        <div class="flow-lane">
-          <div class="lane-title"><h3>B. Task Role Admin</h3><span>Disesuaikan dengan menu yang dapat dibuka role ini</span></div>
-          <div class="cards">
-    <article class="card">
-      <div class="card-head">
-        <h4>Login Admin dan Dashboard Operasional</h4>
-        <span class="code">AD-01</span>
-      </div>
-      <p>Login sebagai admin, cek dashboard, prioritas, notifikasi, globe, dan menu sesuai permission.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="login.html" target="_blank" rel="noopener noreferrer">login.html</a><a href="dashboard.html" target="_blank" rel="noopener noreferrer">dashboard.html</a></div>
-        <span><b>Hasil diharapkan:</b> Admin masuk ke dashboard dengan menu sesuai hak akses modul.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-01"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Jadwal Streaming Admin</h4>
-        <span class="code">AD-02</span>
-      </div>
-      <p>Kelola jadwal streaming, filter periode, tambah/edit jadwal, dan validasi tampil publik.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="jadwal-tugas-streaming-admin.html" target="_blank" rel="noopener noreferrer">jadwal-tugas-streaming-admin.html</a></div>
-        <span><b>Hasil diharapkan:</b> Jadwal tersimpan dan dapat dilihat sesuai periode.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-02"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Registrasi dan Penugasan Misa Besar/Biasa</h4>
-        <span class="code">AD-03</span>
-      </div>
-      <p>Kelola registrasi Misa Besar, isi slot petugas Misa Biasa/Misa Besar, lalu simpan.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="registrasi-tugas-misa-besar.html" target="_blank" rel="noopener noreferrer">registrasi-tugas-misa-besar.html</a><a href="penugasan-petugas-misa.html" target="_blank" rel="noopener noreferrer">penugasan-petugas-misa.html</a></div>
-        <span><b>Hasil diharapkan:</b> Slot petugas berubah sesuai input admin.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-03"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Monitoring Tugas Anggota</h4>
-        <span class="code">AD-04</span>
-      </div>
-      <p>Buka monitoring tugas anggota, filter bulan/tahun/status, dan cek progress kewajiban.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="monitoring-tugas-anggota.html" target="_blank" rel="noopener noreferrer">monitoring-tugas-anggota.html</a></div>
-        <span><b>Hasil diharapkan:</b> Monitoring menampilkan anggota, target, kekurangan, dan status sesuai data.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-04"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Evaluasi Streaming</h4>
-        <span class="code">AD-05</span>
-      </div>
-      <p>Atur pertanyaan tambahan, cek hasil evaluasi, detail modal, daftar misa terlewat, export laporan.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="setting-pertanyaan-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">setting-pertanyaan-evaluasi-streaming.html</a><a href="hasil-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">hasil-evaluasi-streaming.html</a></div>
-        <span><b>Hasil diharapkan:</b> Evaluasi bisa dikonfigurasi dan laporan dapat dilihat/diekspor.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-05"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Inventaris dan Peminjaman</h4>
-        <span class="code">AD-06</span>
-      </div>
-      <p>Kelola data inventaris, set unit/foto, setujui/tolak peminjaman, dan cek riwayat.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="data-inventaris-barang.html" target="_blank" rel="noopener noreferrer">data-inventaris-barang.html</a><a href="persetujuan-peminjaman.html" target="_blank" rel="noopener noreferrer">persetujuan-peminjaman.html</a><a href="riwayat-peminjaman-pengembalian.html" target="_blank" rel="noopener noreferrer">riwayat-peminjaman-pengembalian.html</a></div>
-        <span><b>Hasil diharapkan:</b> Status barang dan transaksi peminjaman sinkron.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-06"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Publikasi dan Agenda</h4>
-        <span class="code">AD-07</span>
-      </div>
-      <p>Kelola profil, berita/pengumuman, agenda, kategori, dan detail publikasi.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="manajemen-profil.html" target="_blank" rel="noopener noreferrer">manajemen-profil.html</a><a href="kelola-berita.html" target="_blank" rel="noopener noreferrer">kelola-berita.html</a><a href="kelola-kategori-berita.html" target="_blank" rel="noopener noreferrer">kelola-kategori-berita.html</a><a href="manajemen-agenda.html" target="_blank" rel="noopener noreferrer">manajemen-agenda.html</a></div>
-        <span><b>Hasil diharapkan:</b> Konten publikasi tersimpan dan dapat dibaca di sisi publik.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-07"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Form Pendaftaran Kegiatan</h4>
-        <span class="code">AD-08</span>
-      </div>
-      <p>Buat/publish form pendaftaran, cek pendaftar, dan validasi form publik.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="builder-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">builder-form-pendaftaran.html</a><a href="manajemen-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">manajemen-form-pendaftaran.html</a><a href="pendaftar-form.html" target="_blank" rel="noopener noreferrer">pendaftar-form.html</a></div>
-        <span><b>Hasil diharapkan:</b> Form pendaftaran dinamis berjalan dari builder sampai data pendaftar.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-08"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Keanggotaan Sesuai Permission</h4>
-        <span class="code">AD-09</span>
-      </div>
-      <p>Bila admin punya modul Keanggotaan, kelola data anggota, request nonaktif, dan sertifikat.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="manajemen-anggota.html" target="_blank" rel="noopener noreferrer">manajemen-anggota.html</a><a href="setting-sertifikat-anggota.html" target="_blank" rel="noopener noreferrer">setting-sertifikat-anggota.html</a></div>
-        <span><b>Hasil diharapkan:</b> Admin hanya bisa mengakses fitur keanggotaan jika permission diberikan.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-09"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Konten Home dan Embed Sesuai Permission</h4>
-        <span class="code">AD-10</span>
-      </div>
-      <p>Bila punya modul Konten Utama Website, kelola carousel dan embed media.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="kelola-carousel-home.html" target="_blank" rel="noopener noreferrer">kelola-carousel-home.html</a><a href="kelola-embed-youtube.html" target="_blank" rel="noopener noreferrer">kelola-embed-youtube.html</a><a href="kelola-embed-google-maps.html" target="_blank" rel="noopener noreferrer">kelola-embed-google-maps.html</a><a href="kelola-embed-instagram.html" target="_blank" rel="noopener noreferrer">kelola-embed-instagram.html</a></div>
-        <span><b>Hasil diharapkan:</b> Konten home berubah dan halaman publik ikut terbarui.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-10"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Log Aktivitas Admin</h4>
-        <span class="code">AD-11</span>
-      </div>
-      <p>Buka log aktivitas, filter diri sendiri dan anggota, pastikan admin lain tidak terlihat.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="log-aktivitas.html" target="_blank" rel="noopener noreferrer">log-aktivitas.html</a></div>
-        <span><b>Hasil diharapkan:</b> Admin hanya melihat log miliknya sendiri dan anggota biasa.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-11"> Task selesai diuji</label>
-    </article>
-    
-
-    <article class="card">
-      <div class="card-head">
-        <h4>Forbidden Permission dan Logout</h4>
-        <span class="code">AD-12</span>
-      </div>
-      <p>Coba buka Kelola Data Admin atau modul yang tidak diberi akses, lalu logout.</p>
-      <div class="meta-list">
-        <span><b>Halaman:</b></span>
-        <div class="links"><a href="kelola-data-admin.html" target="_blank" rel="noopener noreferrer">kelola-data-admin.html</a></div>
-        <span><b>Hasil diharapkan:</b> Akses terlarang ditolak/forbidden, logout mengakhiri sesi.</span>
-      </div>
-      <label class="done"><input type="checkbox" data-task="AD-12"> Task selesai diuji</label>
-    </article>
-    </div>
+        <div class="top-tabs" style="position:static;box-shadow:none">
+          <a href="#section-1">1. Pra-Login: Beranda dan N</a><a href="#section-2">2. Pra-Login: Informasi Pub</a><a href="#section-3">3. Pra-Login: Form Publik</a><a href="#section-4">4. Autentikasi: Login</a><a href="#section-5">5. Autentikasi: Lupa Passwo</a><a href="#section-6">6. Panel Admin: Dashboard, </a><a href="#section-7">7. Panel Admin: Modul Tugas</a><a href="#section-8">8. Panel Admin: Inventaris </a><a href="#section-9">9. Panel Admin: Publikasi, </a><a href="#section-10">10. Panel Admin: Keanggotaan</a>
         </div>
       </div>
     </section>
+
+    
+        <section class="test-section" id="section-1">
+          <div class="test-head">
+            <div>
+              <h3>1. A. Pra-Login: Beranda dan Navigasi Publik</h3>
+              <p>Diuji oleh semua role sebelum login</p>
+            </div>
+            <span class="count-pill">2 card</span>
+          </div>
+          <div class="cards cards-2">
+            
+          <article class="scenario-card" id="ADMIN-001">
+            <div class="card-top">
+              <span class="card-number">1</span>
+              <span class="code">ADMIN-001</span>
+            </div>
+            <h4>Home / Beranda Publik</h4>
+            <p class="desc">Penguji membuka halaman utama, menelusuri carousel, menu header, profil user di kanan atas jika sudah login, footer, dan tombol scroll to top.</p>
+            <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a><a href="index.html" target="_blank" rel="noopener noreferrer">index.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Keyword pencarian: misa / agenda / pendaftaran. Browser: Chrome/Edge.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Scroll halaman, klik menu header, klik tombol detail carousel, cek hover/dropdown profil bila sesi login aktif.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Beranda tampil rapi, menu bisa diklik, dropdown tidak hilang saat di-hover, search mengarah ke halaman hasil, dan tombol scroll top berfungsi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka home.html.</li><li>Scroll dari hero sampai footer.</li><li>Klik menu Home, Profil, Jadwal Streaming, Agenda, Pengumuman, Form Pendaftaran.</li><li>Ketik kata kunci pada kolom pencarian lalu klik Cari.</li><li>Jika sudah login, hover/klik profil di kanan atas.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Beranda dapat dibuka tanpa login dan tidak ada komponen yang rusak.</span>
+              <label><input type="radio" name="admin-ADMIN-001-c1" value="valid" data-result data-case="ADMIN-001"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-001-c1" value="invalid" data-result data-case="ADMIN-001"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Search publik dapat menerima keyword dan mengarah ke halaman hasil pencarian.</span>
+              <label><input type="radio" name="admin-ADMIN-001-c2" value="valid" data-result data-case="ADMIN-001"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-001-c2" value="invalid" data-result data-case="ADMIN-001"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Dropdown profil/header tetap dapat diklik dan tidak hilang saat hover.</span>
+              <label><input type="radio" name="admin-ADMIN-001-c3" value="valid" data-result data-case="ADMIN-001"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-001-c3" value="invalid" data-result data-case="ADMIN-001"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Tombol scroll to top muncul dan mengembalikan halaman ke atas.</span>
+              <label><input type="radio" name="admin-ADMIN-001-c4" value="valid" data-result data-case="ADMIN-001"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-001-c4" value="invalid" data-result data-case="ADMIN-001"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-002">
+            <div class="card-top">
+              <span class="card-number">2</span>
+              <span class="code">ADMIN-002</span>
+            </div>
+            <h4>Profil Organisasi dan Embed Publik</h4>
+            <p class="desc">Penguji membuka profil organisasi dan mengecek bagian konten publik seperti tentang Crembo, YouTube, Google Maps, dan sosial media.</p>
+            <div class="links"><a href="profil.html" target="_blank" rel="noopener noreferrer">profil.html</a><a href="home.html" target="_blank" rel="noopener noreferrer">home.html#embed</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Tidak perlu akun. Uji pada desktop dan mobile bila memungkinkan.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Buka profil, scroll konten, klik embed YouTube/Maps, dan cek link sosial media.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Profil organisasi, video, maps, dan sosial media tampil informatif serta tidak menutupi layout utama.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka profil.html dari menu Profil.</li><li>Baca data organisasi dan konten tentang Crembo.</li><li>Kembali ke home dan cek section YouTube &amp; Google Maps.</li><li>Klik tombol/tampilan embed bila tersedia.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Profil organisasi tampil lengkap dan dapat dibaca.</span>
+              <label><input type="radio" name="admin-ADMIN-002-c1" value="valid" data-result data-case="ADMIN-002"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-002-c1" value="invalid" data-result data-case="ADMIN-002"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Embed YouTube/playlist dan Google Maps tampil tanpa merusak layout.</span>
+              <label><input type="radio" name="admin-ADMIN-002-c2" value="valid" data-result data-case="ADMIN-002"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-002-c2" value="invalid" data-result data-case="ADMIN-002"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Link atau tombol pada bagian sosial media dapat diakses.</span>
+              <label><input type="radio" name="admin-ADMIN-002-c3" value="valid" data-result data-case="ADMIN-002"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-002-c3" value="invalid" data-result data-case="ADMIN-002"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-2">
+          <div class="test-head">
+            <div>
+              <h3>2. B. Pra-Login: Informasi Publik</h3>
+              <p>Agenda, pengumuman, dan jadwal bisa diuji tanpa akun</p>
+            </div>
+            <span class="count-pill">4 card</span>
+          </div>
+          <div class="cards cards-4">
+            
+          <article class="scenario-card" id="ADMIN-003">
+            <div class="card-top">
+              <span class="card-number">3</span>
+              <span class="code">ADMIN-003</span>
+            </div>
+            <h4>Jadwal Streaming Publik</h4>
+            <p class="desc">Penguji membuka daftar jadwal streaming publik dan mencoba filter periode serta jenis misa.</p>
+            <div class="links"><a href="jadwal-streaming.html" target="_blank" rel="noopener noreferrer">jadwal-streaming.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Filter bulan: Mei; tahun: 2026; jenis: Misa Biasa &amp; Misa Besar.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Ubah filter bulan/tahun/jenis, cek card dan tabel, lalu buka detail jika tersedia.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Jadwal publik tampil sesuai filter, informasi utama jelas, dan tidak menampilkan kontrol admin internal.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka jadwal-streaming.html.</li><li>Ubah bulan, tahun, dan jenis misa.</li><li>Bandingkan hasil card/tabel.</li><li>Klik jadwal yang memiliki detail.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Filter jadwal publik menghasilkan data sesuai pilihan.</span>
+              <label><input type="radio" name="admin-ADMIN-003-c1" value="valid" data-result data-case="ADMIN-003"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-003-c1" value="invalid" data-result data-case="ADMIN-003"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Card/tabel jadwal responsif dan mudah dibaca.</span>
+              <label><input type="radio" name="admin-ADMIN-003-c2" value="valid" data-result data-case="ADMIN-003"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-003-c2" value="invalid" data-result data-case="ADMIN-003"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Data petugas yang tampil sesuai kebutuhan publik.</span>
+              <label><input type="radio" name="admin-ADMIN-003-c3" value="valid" data-result data-case="ADMIN-003"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-003-c3" value="invalid" data-result data-case="ADMIN-003"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-004">
+            <div class="card-top">
+              <span class="card-number">4</span>
+              <span class="code">ADMIN-004</span>
+            </div>
+            <h4>Agenda dari Home, Daftar, dan Detail</h4>
+            <p class="desc">Lingkup agenda diuji dari pintasan di home, menu Agenda, sampai detail agenda.</p>
+            <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a><a href="agenda.html" target="_blank" rel="noopener noreferrer">agenda.html</a><a href="agenda-detail.html" target="_blank" rel="noopener noreferrer">agenda-detail.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Agenda contoh: Latihan / Kegiatan komunitas.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Klik agenda pada home, klik Lihat Semua, buka salah satu detail agenda.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Agenda bisa ditemukan dari home maupun menu, lalu detailnya menampilkan tanggal, tempat, deskripsi, dan status.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Pada home, cari section agenda.</li><li>Klik Lihat Semua atau menu Agenda.</li><li>Pada agenda.html, pilih salah satu agenda.</li><li>Buka agenda-detail.html dan cek isi.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Agenda dapat diakses dari home.</span>
+              <label><input type="radio" name="admin-ADMIN-004-c1" value="valid" data-result data-case="ADMIN-004"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-004-c1" value="invalid" data-result data-case="ADMIN-004"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Daftar agenda dapat difilter/dibuka dengan benar.</span>
+              <label><input type="radio" name="admin-ADMIN-004-c2" value="valid" data-result data-case="ADMIN-004"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-004-c2" value="invalid" data-result data-case="ADMIN-004"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Detail agenda tampil lengkap dan tombol kembali berfungsi.</span>
+              <label><input type="radio" name="admin-ADMIN-004-c3" value="valid" data-result data-case="ADMIN-004"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-004-c3" value="invalid" data-result data-case="ADMIN-004"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-005">
+            <div class="card-top">
+              <span class="card-number">5</span>
+              <span class="code">ADMIN-005</span>
+            </div>
+            <h4>Pengumuman dari Home, Daftar, dan Detail</h4>
+            <p class="desc">Lingkup pengumuman diuji dari ringkasan di home, menu Pengumuman, dan halaman detail.</p>
+            <div class="links"><a href="home.html" target="_blank" rel="noopener noreferrer">home.html</a><a href="pengumuman.html" target="_blank" rel="noopener noreferrer">pengumuman.html</a><a href="pengumuman-detail.html" target="_blank" rel="noopener noreferrer">pengumuman-detail.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Keyword: pengumuman / informasi / kegiatan.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Buka daftar pengumuman, cari data, dan buka detail pengumuman.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Pengumuman dapat dibaca oleh publik dan navigasi detailnya jelas.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Pada home, cari section pengumuman.</li><li>Klik Lihat Semua atau menu Pengumuman.</li><li>Buka salah satu pengumuman.</li><li>Kembali ke daftar.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Pengumuman dari home dapat diklik.</span>
+              <label><input type="radio" name="admin-ADMIN-005-c1" value="valid" data-result data-case="ADMIN-005"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-005-c1" value="invalid" data-result data-case="ADMIN-005"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Daftar pengumuman menampilkan konten yang sesuai.</span>
+              <label><input type="radio" name="admin-ADMIN-005-c2" value="valid" data-result data-case="ADMIN-005"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-005-c2" value="invalid" data-result data-case="ADMIN-005"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Detail pengumuman tampil lengkap dan tidak error.</span>
+              <label><input type="radio" name="admin-ADMIN-005-c3" value="valid" data-result data-case="ADMIN-005"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-005-c3" value="invalid" data-result data-case="ADMIN-005"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-006">
+            <div class="card-top">
+              <span class="card-number">6</span>
+              <span class="code">ADMIN-006</span>
+            </div>
+            <h4>Pencarian Informasi Publik</h4>
+            <p class="desc">Penguji mengetik keyword di kolom search untuk mencari agenda, pengumuman, profil, atau form yang tersedia.</p>
+            <div class="links"><a href="search.html" target="_blank" rel="noopener noreferrer">search.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Keyword valid: misa; agenda. Keyword kosong/salah: zzz999.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Submit search dengan keyword valid, keyword kosong, dan keyword tidak ditemukan.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Search menampilkan hasil relevan, memberi pesan jika kosong/tidak ditemukan, dan tidak crash.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka home.html.</li><li>Ketik &#x27;misa&#x27; lalu klik Cari.</li><li>Ulangi dengan keyword &#x27;agenda&#x27;.</li><li>Ulangi dengan keyword kosong dan keyword acak.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Keyword valid menampilkan hasil relevan.</span>
+              <label><input type="radio" name="admin-ADMIN-006-c1" value="valid" data-result data-case="ADMIN-006"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-006-c1" value="invalid" data-result data-case="ADMIN-006"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Keyword kosong tidak menyebabkan halaman rusak.</span>
+              <label><input type="radio" name="admin-ADMIN-006-c2" value="valid" data-result data-case="ADMIN-006"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-006-c2" value="invalid" data-result data-case="ADMIN-006"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Keyword tidak ditemukan menampilkan pesan yang mudah dipahami.</span>
+              <label><input type="radio" name="admin-ADMIN-006-c3" value="valid" data-result data-case="ADMIN-006"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-006-c3" value="invalid" data-result data-case="ADMIN-006"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-3">
+          <div class="test-head">
+            <div>
+              <h3>3. C. Pra-Login: Form Publik</h3>
+              <p>Form publik bisa diakses responden tanpa login</p>
+            </div>
+            <span class="count-pill">3 card</span>
+          </div>
+          <div class="cards cards-3">
+            
+          <article class="scenario-card" id="ADMIN-007">
+            <div class="card-top">
+              <span class="card-number">7</span>
+              <span class="code">ADMIN-007</span>
+            </div>
+            <h4>Form Pendaftaran Publik - Daftar dan Detail</h4>
+            <p class="desc">Penguji membuka daftar form pendaftaran, memilih form aktif, lalu membaca detail formulir.</p>
+            <div class="links"><a href="form-pendaftaran.html" target="_blank" rel="noopener noreferrer">form-pendaftaran.html</a><a href="form-pendaftaran-detail.html" target="_blank" rel="noopener noreferrer">form-pendaftaran-detail.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Form contoh: Pendaftaran kegiatan internal; status: aktif.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Buka daftar, cari form aktif, klik Detail, dan cek informasi form.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Form aktif tampil, detail dapat dibuka, dan form nonaktif/tidak tersedia tidak bisa diisi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka form-pendaftaran.html.</li><li>Cari form yang aktif.</li><li>Klik Detail.</li><li>Cek judul, deskripsi, periode, dan tombol Isi Form.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Daftar form pendaftaran publik dapat dibuka.</span>
+              <label><input type="radio" name="admin-ADMIN-007-c1" value="valid" data-result data-case="ADMIN-007"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-007-c1" value="invalid" data-result data-case="ADMIN-007"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Detail form menampilkan informasi lengkap.</span>
+              <label><input type="radio" name="admin-ADMIN-007-c2" value="valid" data-result data-case="ADMIN-007"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-007-c2" value="invalid" data-result data-case="ADMIN-007"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Form tidak aktif tidak dapat diisi atau diberi status jelas.</span>
+              <label><input type="radio" name="admin-ADMIN-007-c3" value="valid" data-result data-case="ADMIN-007"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-007-c3" value="invalid" data-result data-case="ADMIN-007"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-008">
+            <div class="card-top">
+              <span class="card-number">8</span>
+              <span class="code">ADMIN-008</span>
+            </div>
+            <h4>Form Pendaftaran Publik - Pengisian</h4>
+            <p class="desc">Penguji mengisi formulir pendaftaran publik dan mengecek validasi input wajib.</p>
+            <div class="links"><a href="isi-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">isi-form-pendaftaran.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Nama: Tester Publik; WA: 08123456789; Email: tester@example.com.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Isi field wajib, submit, lalu ulangi dengan field wajib dikosongkan.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Submit valid diterima, sedangkan input kosong/format salah ditolak dengan pesan validasi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka halaman isi form.</li><li>Isi data dummy yang valid.</li><li>Klik Submit.</li><li>Ulangi dengan mengosongkan field wajib.</li><li>Ulangi dengan format email/WA salah jika field tersedia.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Data valid dapat disubmit.</span>
+              <label><input type="radio" name="admin-ADMIN-008-c1" value="valid" data-result data-case="ADMIN-008"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-008-c1" value="invalid" data-result data-case="ADMIN-008"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Field wajib kosong ditolak dan diberi pesan validasi.</span>
+              <label><input type="radio" name="admin-ADMIN-008-c2" value="valid" data-result data-case="ADMIN-008"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-008-c2" value="invalid" data-result data-case="ADMIN-008"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Format email/WA salah tidak diterima bila validasi tersedia.</span>
+              <label><input type="radio" name="admin-ADMIN-008-c3" value="valid" data-result data-case="ADMIN-008"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-008-c3" value="invalid" data-result data-case="ADMIN-008"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-009">
+            <div class="card-top">
+              <span class="card-number">9</span>
+              <span class="code">ADMIN-009</span>
+            </div>
+            <h4>Form Evaluasi Streaming No-Login</h4>
+            <p class="desc">Penguji membuka form evaluasi streaming publik untuk role admin/super admin/anggota yang bertugas tetapi mengisi melalui halaman no-login.</p>
+            <div class="links"><a href="form-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">form-evaluasi-streaming.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Jadwal yang sudah lewat dan belum diisi; pengisi: salah satu petugas di sesi tersebut.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Pilih jadwal, pilih pengisi evaluasi sesuai petugas aktual, isi rating per petugas, dan submit.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Hanya jadwal yang sudah boleh dievaluasi yang muncul; pengisi evaluasi hanya petugas hadir/bertugas; rating wajib, catatan opsional.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka form-evaluasi-streaming.html.</li><li>Pilih jadwal yang sudah lewat dan belum diisi.</li><li>Cek daftar petugas pada pengisi evaluasi.</li><li>Isi rating per petugas dan penilaian umum.</li><li>Submit dan lihat pesan sukses/validasi.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Jadwal mendatang tidak dapat diisi evaluasi.</span>
+              <label><input type="radio" name="admin-ADMIN-009-c1" value="valid" data-result data-case="ADMIN-009"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-009-c1" value="invalid" data-result data-case="ADMIN-009"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Dropdown pengisi hanya berisi petugas yang hadir/aktual pada sesi itu.</span>
+              <label><input type="radio" name="admin-ADMIN-009-c2" value="valid" data-result data-case="ADMIN-009"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-009-c2" value="invalid" data-result data-case="ADMIN-009"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Rating per petugas wajib; catatan performa tidak wajib.</span>
+              <label><input type="radio" name="admin-ADMIN-009-c3" value="valid" data-result data-case="ADMIN-009"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-009-c3" value="invalid" data-result data-case="ADMIN-009"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Submit valid menampilkan pesan berhasil.</span>
+              <label><input type="radio" name="admin-ADMIN-009-c4" value="valid" data-result data-case="ADMIN-009"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-009-c4" value="invalid" data-result data-case="ADMIN-009"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-4">
+          <div class="test-head">
+            <div>
+              <h3>4. D. Autentikasi: Login</h3>
+              <p>Satu card khusus login sesuai role yang diuji</p>
+            </div>
+            <span class="count-pill">1 card</span>
+          </div>
+          <div class="cards cards-1">
+            
+          <article class="scenario-card" id="ADMIN-010">
+            <div class="card-top">
+              <span class="card-number">10</span>
+              <span class="code">ADMIN-010</span>
+            </div>
+            <h4>Login Admin</h4>
+            <p class="desc">Penguji menguji login akun Admin dari halaman login saja, termasuk error case input kosong dan password salah.</p>
+            <div class="links"><a href="login.html" target="_blank" rel="noopener noreferrer">login.html</a><a href="dashboard.html" target="_blank" rel="noopener noreferrer">dashboard.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Username/email/WA: admin_andi / admin_maria / email admin / nomor WA admin; Password valid: sesuai data uji; Password salah: salah123.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Masukkan identitas akun dan password valid, lalu ulangi dengan input kosong dan password salah.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Akun valid berhasil masuk dan redirect ke dashboard Admin; input kosong/password salah ditolak dengan pesan validasi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka login.html.</li><li>Kosongkan username/email/WA atau password, lalu klik Login.</li><li>Masukkan username/email/WA benar tetapi password salah.</li><li>Masukkan username/email/WA dan password valid.</li><li>Pastikan redirect ke dashboard.html sesuai role.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Input username/email/WA atau password kosong tidak bisa login.</span>
+              <label><input type="radio" name="admin-ADMIN-010-c1" value="valid" data-result data-case="ADMIN-010"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-010-c1" value="invalid" data-result data-case="ADMIN-010"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Password salah tidak bisa login dan pesan error muncul.</span>
+              <label><input type="radio" name="admin-ADMIN-010-c2" value="valid" data-result data-case="ADMIN-010"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-010-c2" value="invalid" data-result data-case="ADMIN-010"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Login valid sebagai Admin berhasil redirect ke dashboard sesuai role.</span>
+              <label><input type="radio" name="admin-ADMIN-010-c3" value="valid" data-result data-case="ADMIN-010"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-010-c3" value="invalid" data-result data-case="ADMIN-010"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Nama akun dan role tampil sesuai setelah login.</span>
+              <label><input type="radio" name="admin-ADMIN-010-c4" value="valid" data-result data-case="ADMIN-010"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-010-c4" value="invalid" data-result data-case="ADMIN-010"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-5">
+          <div class="test-head">
+            <div>
+              <h3>5. E. Autentikasi: Lupa Password</h3>
+              <p>Satu lingkup terdiri dari forgot password, OTP, dan reset password</p>
+            </div>
+            <span class="count-pill">3 card</span>
+          </div>
+          <div class="cards cards-3">
+            
+          <article class="scenario-card" id="ADMIN-011">
+            <div class="card-top">
+              <span class="card-number">11</span>
+              <span class="code">ADMIN-011</span>
+            </div>
+            <h4>Forgot Password - Kirim OTP</h4>
+            <p class="desc">Penguji memasukkan username/email/no HP untuk meminta kode OTP reset password.</p>
+            <div class="links"><a href="forgot-password.html" target="_blank" rel="noopener noreferrer">forgot-password.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Akun valid: akun uji yang punya email; akun salah: tidakada@example.com.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Masukkan identitas valid, identitas tidak ditemukan, dan input kosong.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Identitas valid mengirim OTP ke email; akun tidak ditemukan/kosong menampilkan pesan validasi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka forgot-password.html.</li><li>Klik Kirim Kode OTP tanpa mengisi input.</li><li>Masukkan identitas akun yang tidak terdaftar.</li><li>Masukkan username/email/no HP akun valid dan klik Kirim Kode OTP.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Input kosong ditolak.</span>
+              <label><input type="radio" name="admin-ADMIN-011-c1" value="valid" data-result data-case="ADMIN-011"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-011-c1" value="invalid" data-result data-case="ADMIN-011"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Akun tidak ditemukan ditolak dengan pesan yang jelas.</span>
+              <label><input type="radio" name="admin-ADMIN-011-c2" value="valid" data-result data-case="ADMIN-011"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-011-c2" value="invalid" data-result data-case="ADMIN-011"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Akun valid mengirim OTP dan lanjut ke halaman verifikasi.</span>
+              <label><input type="radio" name="admin-ADMIN-011-c3" value="valid" data-result data-case="ADMIN-011"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-011-c3" value="invalid" data-result data-case="ADMIN-011"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-012">
+            <div class="card-top">
+              <span class="card-number">12</span>
+              <span class="code">ADMIN-012</span>
+            </div>
+            <h4>OTP Verification</h4>
+            <p class="desc">Penguji memasukkan kode OTP yang diterima di email dan mengecek mekanisme salah/benar/resend.</p>
+            <div class="links"><a href="otp-verification.html" target="_blank" rel="noopener noreferrer">otp-verification.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>OTP benar: kode dari email; OTP salah: 000000; jeda resend: 120 detik.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Masukkan OTP salah, OTP kosong, OTP benar, dan coba kirim ulang sebelum jeda.</span></div>
+              <div><b>Hasil Diharapkan</b><span>OTP salah/kosong ditolak, OTP benar lanjut ke reset password, resend mengikuti timer.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka otp-verification.html setelah meminta OTP.</li><li>Klik Verifikasi tanpa mengisi OTP.</li><li>Isi OTP salah.</li><li>Coba Kirim Ulang sebelum timer selesai.</li><li>Isi OTP benar dari email.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>OTP kosong ditolak.</span>
+              <label><input type="radio" name="admin-ADMIN-012-c1" value="valid" data-result data-case="ADMIN-012"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-012-c1" value="invalid" data-result data-case="ADMIN-012"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>OTP salah ditolak.</span>
+              <label><input type="radio" name="admin-ADMIN-012-c2" value="valid" data-result data-case="ADMIN-012"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-012-c2" value="invalid" data-result data-case="ADMIN-012"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Tombol kirim ulang mengikuti jeda 120 detik.</span>
+              <label><input type="radio" name="admin-ADMIN-012-c3" value="valid" data-result data-case="ADMIN-012"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-012-c3" value="invalid" data-result data-case="ADMIN-012"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>OTP benar mengarah ke reset-password.html.</span>
+              <label><input type="radio" name="admin-ADMIN-012-c4" value="valid" data-result data-case="ADMIN-012"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-012-c4" value="invalid" data-result data-case="ADMIN-012"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-013">
+            <div class="card-top">
+              <span class="card-number">13</span>
+              <span class="code">ADMIN-013</span>
+            </div>
+            <h4>Reset Password</h4>
+            <p class="desc">Penguji membuat password baru setelah OTP valid.</p>
+            <div class="links"><a href="reset-password.html" target="_blank" rel="noopener noreferrer">reset-password.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Password valid: Crembo@123; tidak valid: 123; konfirmasi beda: Crembo@321.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Masukkan password pendek, konfirmasi tidak sama, lalu password valid.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Password baru valid tersimpan; input tidak valid ditolak; setelah sukses bisa login dengan password baru.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka reset-password.html setelah OTP benar.</li><li>Isi password kurang dari aturan minimal.</li><li>Isi password dan konfirmasi berbeda.</li><li>Isi password valid dan konfirmasi sama.</li><li>Klik Simpan Password Baru.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Password pendek/tidak memenuhi aturan ditolak.</span>
+              <label><input type="radio" name="admin-ADMIN-013-c1" value="valid" data-result data-case="ADMIN-013"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-013-c1" value="invalid" data-result data-case="ADMIN-013"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Konfirmasi password berbeda ditolak.</span>
+              <label><input type="radio" name="admin-ADMIN-013-c2" value="valid" data-result data-case="ADMIN-013"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-013-c2" value="invalid" data-result data-case="ADMIN-013"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Password valid tersimpan dan pengguna diarahkan ke login.</span>
+              <label><input type="radio" name="admin-ADMIN-013-c3" value="valid" data-result data-case="ADMIN-013"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-013-c3" value="invalid" data-result data-case="ADMIN-013"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>User dapat login kembali menggunakan password baru.</span>
+              <label><input type="radio" name="admin-ADMIN-013-c4" value="valid" data-result data-case="ADMIN-013"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-013-c4" value="invalid" data-result data-case="ADMIN-013"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-6">
+          <div class="test-head">
+            <div>
+              <h3>6. F. Panel Admin: Dashboard, Profil, dan Permission</h3>
+              <p>Admin operasional sesuai permission modul</p>
+            </div>
+            <span class="count-pill">1 card</span>
+          </div>
+          <div class="cards cards-1">
+            
+          <article class="scenario-card" id="ADMIN-014">
+            <div class="card-top">
+              <span class="card-number">14</span>
+              <span class="code">ADMIN-014</span>
+            </div>
+            <h4>Dashboard Admin</h4>
+            <p class="desc">Penguji mengecek dashboard admin, prioritas hari ini, grafik, ringkasan, notifikasi, globe, dan menu sesuai permission.</p>
+            <div class="links"><a href="dashboard.html" target="_blank" rel="noopener noreferrer">dashboard.html</a><a href="profil-admin.html" target="_blank" rel="noopener noreferrer">profil-admin.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Akun admin: Admin Andi/Riean; permission modul sesuai data uji.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Login admin, cek dashboard, buka profil, klik prioritas dan notifikasi.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Dashboard admin memuat ringkasan operasional dan menu yang sesuai permission admin.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Login sebagai admin.</li><li>Buka dashboard.html.</li><li>Cek header, sidebar, globe, prioritas, grafik, dan notifikasi.</li><li>Buka profil-admin.html.</li><li>Coba klik menu yang tidak diberi permission jika ada.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Dashboard admin berhasil dimuat.</span>
+              <label><input type="radio" name="admin-ADMIN-014-c1" value="valid" data-result data-case="ADMIN-014"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-014-c1" value="invalid" data-result data-case="ADMIN-014"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Profil admin dapat dibuka dan diperbarui.</span>
+              <label><input type="radio" name="admin-ADMIN-014-c2" value="valid" data-result data-case="ADMIN-014"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-014-c2" value="invalid" data-result data-case="ADMIN-014"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Menu sesuai permission dapat diklik.</span>
+              <label><input type="radio" name="admin-ADMIN-014-c3" value="valid" data-result data-case="ADMIN-014"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-014-c3" value="invalid" data-result data-case="ADMIN-014"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Menu tanpa permission ditolak/forbidden dengan jelas.</span>
+              <label><input type="radio" name="admin-ADMIN-014-c4" value="valid" data-result data-case="ADMIN-014"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-014-c4" value="invalid" data-result data-case="ADMIN-014"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-7">
+          <div class="test-head">
+            <div>
+              <h3>7. G. Panel Admin: Modul Tugas Streaming</h3>
+              <p>Jadwal, registrasi misa besar, penugasan, monitoring, evaluasi</p>
+            </div>
+            <span class="count-pill">4 card</span>
+          </div>
+          <div class="cards cards-4">
+            
+          <article class="scenario-card" id="ADMIN-015">
+            <div class="card-top">
+              <span class="card-number">15</span>
+              <span class="code">ADMIN-015</span>
+            </div>
+            <h4>Jadwal Streaming Admin</h4>
+            <p class="desc">Admin mengelola jadwal misa biasa dan misa besar dari panel admin.</p>
+            <div class="links"><a href="jadwal-tugas-streaming-admin.html" target="_blank" rel="noopener noreferrer">jadwal-tugas-streaming-admin.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Bulan Mei 2026; jenis Misa Biasa/Misa Besar; data jadwal dummy.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Tambah, ubah, hapus, filter, dan publish/unpublish jadwal bila tersedia.</span></div>
+              <div><b>Hasil Diharapkan</b><span>CRUD jadwal berjalan, filter bekerja, dan data jadwal tersimpan sesuai input.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka jadwal-tugas-streaming-admin.html.</li><li>Tambah jadwal baru.</li><li>Edit jadwal.</li><li>Filter bulan/tahun/jenis.</li><li>Hapus data dummy jika perlu.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Tambah jadwal valid berhasil.</span>
+              <label><input type="radio" name="admin-ADMIN-015-c1" value="valid" data-result data-case="ADMIN-015"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-015-c1" value="invalid" data-result data-case="ADMIN-015"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Edit jadwal tersimpan.</span>
+              <label><input type="radio" name="admin-ADMIN-015-c2" value="valid" data-result data-case="ADMIN-015"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-015-c2" value="invalid" data-result data-case="ADMIN-015"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Filter jadwal bekerja.</span>
+              <label><input type="radio" name="admin-ADMIN-015-c3" value="valid" data-result data-case="ADMIN-015"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-015-c3" value="invalid" data-result data-case="ADMIN-015"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Hapus jadwal menampilkan konfirmasi dan berhasil.</span>
+              <label><input type="radio" name="admin-ADMIN-015-c4" value="valid" data-result data-case="ADMIN-015"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-015-c4" value="invalid" data-result data-case="ADMIN-015"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-016">
+            <div class="card-top">
+              <span class="card-number">16</span>
+              <span class="code">ADMIN-016</span>
+            </div>
+            <h4>Registrasi dan Penugasan Petugas Misa</h4>
+            <p class="desc">Admin mengelola registrasi tugas misa besar dan menugaskan petugas ke jadwal.</p>
+            <div class="links"><a href="registrasi-tugas-misa-besar.html" target="_blank" rel="noopener noreferrer">registrasi-tugas-misa-besar.html</a><a href="penugasan-petugas-misa.html" target="_blank" rel="noopener noreferrer">penugasan-petugas-misa.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Nama petugas dummy; role: Operator/Kameramen/SPV; jadwal Mei 2026.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Terima/atur registrasi, isi slot kosong, hapus petugas, tukar shift, dan simpan penugasan.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Penugasan tersimpan, slot kosong terdeteksi, dan status jadwal lengkap/kurang sesuai data.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka registrasi-tugas-misa-besar.html.</li><li>Cek/ubah status registrasi.</li><li>Buka penugasan-petugas-misa.html.</li><li>Isi atau ganti petugas pada slot.</li><li>Klik Simpan Semua Penugasan.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Registrasi misa besar dapat diproses.</span>
+              <label><input type="radio" name="admin-ADMIN-016-c1" value="valid" data-result data-case="ADMIN-016"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-016-c1" value="invalid" data-result data-case="ADMIN-016"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Slot penugasan dapat diisi/diganti/dihapus.</span>
+              <label><input type="radio" name="admin-ADMIN-016-c2" value="valid" data-result data-case="ADMIN-016"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-016-c2" value="invalid" data-result data-case="ADMIN-016"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Simpan penugasan memperbarui data.</span>
+              <label><input type="radio" name="admin-ADMIN-016-c3" value="valid" data-result data-case="ADMIN-016"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-016-c3" value="invalid" data-result data-case="ADMIN-016"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Status lengkap/kurang sesuai jumlah petugas.</span>
+              <label><input type="radio" name="admin-ADMIN-016-c4" value="valid" data-result data-case="ADMIN-016"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-016-c4" value="invalid" data-result data-case="ADMIN-016"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-017">
+            <div class="card-top">
+              <span class="card-number">17</span>
+              <span class="code">ADMIN-017</span>
+            </div>
+            <h4>Monitoring Tugas Anggota</h4>
+            <p class="desc">Admin memantau target tugas dan kekurangan tugas seluruh anggota.</p>
+            <div class="links"><a href="monitoring-tugas-anggota.html" target="_blank" rel="noopener noreferrer">monitoring-tugas-anggota.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Filter bulan Mei 2026; status kurang/terpenuhi; search nama anggota.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Gunakan filter, search, sorting, dan cek data target tugas anggota.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Monitoring menampilkan rekap anggota sesuai periode dan target minimum.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka monitoring-tugas-anggota.html.</li><li>Filter bulan/tahun/status.</li><li>Cari nama anggota.</li><li>Ubah sorting.</li><li>Cek progress dan tabel.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Data monitoring berhasil dimuat.</span>
+              <label><input type="radio" name="admin-ADMIN-017-c1" value="valid" data-result data-case="ADMIN-017"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-017-c1" value="invalid" data-result data-case="ADMIN-017"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Filter/search/sorting bekerja.</span>
+              <label><input type="radio" name="admin-ADMIN-017-c2" value="valid" data-result data-case="ADMIN-017"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-017-c2" value="invalid" data-result data-case="ADMIN-017"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Kekurangan tugas dihitung sesuai target minimum.</span>
+              <label><input type="radio" name="admin-ADMIN-017-c3" value="valid" data-result data-case="ADMIN-017"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-017-c3" value="invalid" data-result data-case="ADMIN-017"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Progress bar/indikator tampil benar.</span>
+              <label><input type="radio" name="admin-ADMIN-017-c4" value="valid" data-result data-case="ADMIN-017"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-017-c4" value="invalid" data-result data-case="ADMIN-017"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-018">
+            <div class="card-top">
+              <span class="card-number">18</span>
+              <span class="code">ADMIN-018</span>
+            </div>
+            <h4>Hasil Evaluasi dan Setting Pertanyaan</h4>
+            <p class="desc">Admin melihat hasil evaluasi streaming, detail modal, export, dan mengatur pertanyaan tambahan evaluasi.</p>
+            <div class="links"><a href="hasil-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">hasil-evaluasi-streaming.html</a><a href="setting-pertanyaan-evaluasi-streaming.html" target="_blank" rel="noopener noreferrer">setting-pertanyaan-evaluasi-streaming.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Filter jenis misa/periode; pertanyaan tambahan: pilihan tunggal/paragraf.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Filter hasil, buka detail, export PDF/Excel, tambah/edit/hapus pertanyaan, simpan konfigurasi kosong/terisi.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Hasil evaluasi lengkap, export sesuai filter, dan pertanyaan tambahan boleh kosong atau terisi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka hasil-evaluasi-streaming.html.</li><li>Filter jenis misa/periode/sorting.</li><li>Klik Detail dan cek modal.</li><li>Klik PDF/Excel.</li><li>Buka setting pertanyaan, tambah/edit/hapus dan simpan.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Detail evaluasi tampil dalam modal lengkap.</span>
+              <label><input type="radio" name="admin-ADMIN-018-c1" value="valid" data-result data-case="ADMIN-018"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-018-c1" value="invalid" data-result data-case="ADMIN-018"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>PDF preview terbuka di tab baru dan Excel/PDF memuat atribut evaluasi.</span>
+              <label><input type="radio" name="admin-ADMIN-018-c2" value="valid" data-result data-case="ADMIN-018"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-018-c2" value="invalid" data-result data-case="ADMIN-018"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Setting pertanyaan bisa disimpan meskipun kosong.</span>
+              <label><input type="radio" name="admin-ADMIN-018-c3" value="valid" data-result data-case="ADMIN-018"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-018-c3" value="invalid" data-result data-case="ADMIN-018"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Pertanyaan dinamis muncul di preview/form evaluasi.</span>
+              <label><input type="radio" name="admin-ADMIN-018-c4" value="valid" data-result data-case="ADMIN-018"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-018-c4" value="invalid" data-result data-case="ADMIN-018"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-8">
+          <div class="test-head">
+            <div>
+              <h3>8. H. Panel Admin: Inventaris dan Peminjaman</h3>
+              <p>Data barang, approval, riwayat, dan kerusakan</p>
+            </div>
+            <span class="count-pill">3 card</span>
+          </div>
+          <div class="cards cards-3">
+            
+          <article class="scenario-card" id="ADMIN-019">
+            <div class="card-top">
+              <span class="card-number">19</span>
+              <span class="code">ADMIN-019</span>
+            </div>
+            <h4>Data Inventaris Barang</h4>
+            <p class="desc">Admin mengelola master barang, unit, foto, kategori, stok, dan status barang.</p>
+            <div class="links"><a href="data-inventaris-barang.html" target="_blank" rel="noopener noreferrer">data-inventaris-barang.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Kode barang: CAM-TEST; kategori: Kamera; unit: 2; foto dummy.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Tambah/edit/hapus barang, upload foto, cek preview gambar, filter, dan export.</span></div>
+              <div><b>Hasil Diharapkan</b><span>CRUD inventaris berjalan, foto dapat dipreview, stok/unit tersimpan, dan export sesuai data.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka data-inventaris-barang.html.</li><li>Tambah barang dummy.</li><li>Upload foto dan buka preview.</li><li>Edit unit/status.</li><li>Filter/export dan hapus data dummy.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Tambah barang valid berhasil.</span>
+              <label><input type="radio" name="admin-ADMIN-019-c1" value="valid" data-result data-case="ADMIN-019"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-019-c1" value="invalid" data-result data-case="ADMIN-019"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Foto barang dapat dipreview.</span>
+              <label><input type="radio" name="admin-ADMIN-019-c2" value="valid" data-result data-case="ADMIN-019"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-019-c2" value="invalid" data-result data-case="ADMIN-019"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Edit stok/unit/status tersimpan.</span>
+              <label><input type="radio" name="admin-ADMIN-019-c3" value="valid" data-result data-case="ADMIN-019"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-019-c3" value="invalid" data-result data-case="ADMIN-019"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Export inventaris sesuai filter.</span>
+              <label><input type="radio" name="admin-ADMIN-019-c4" value="valid" data-result data-case="ADMIN-019"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-019-c4" value="invalid" data-result data-case="ADMIN-019"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-020">
+            <div class="card-top">
+              <span class="card-number">20</span>
+              <span class="code">ADMIN-020</span>
+            </div>
+            <h4>Persetujuan dan Riwayat Peminjaman</h4>
+            <p class="desc">Admin memproses pengajuan peminjaman dan memantau riwayat peminjaman/pengembalian.</p>
+            <div class="links"><a href="persetujuan-peminjaman.html" target="_blank" rel="noopener noreferrer">persetujuan-peminjaman.html</a><a href="riwayat-peminjaman-pengembalian.html" target="_blank" rel="noopener noreferrer">riwayat-peminjaman-pengembalian.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Pengajuan peminjaman pending dari anggota; status disetujui/ditolak.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Approve/reject pengajuan, cek stok, cek riwayat, filter periode dan status.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Approval memperbarui status dan riwayat, serta stok barang mengikuti transaksi.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka persetujuan-peminjaman.html.</li><li>Pilih pengajuan pending.</li><li>Klik Setujui atau Tolak.</li><li>Buka riwayat peminjaman.</li><li>Filter status/periode.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Approve/reject peminjaman berhasil.</span>
+              <label><input type="radio" name="admin-ADMIN-020-c1" value="valid" data-result data-case="ADMIN-020"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-020-c1" value="invalid" data-result data-case="ADMIN-020"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Status pengajuan berubah sesuai aksi.</span>
+              <label><input type="radio" name="admin-ADMIN-020-c2" value="valid" data-result data-case="ADMIN-020"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-020-c2" value="invalid" data-result data-case="ADMIN-020"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Riwayat menampilkan data transaksi.</span>
+              <label><input type="radio" name="admin-ADMIN-020-c3" value="valid" data-result data-case="ADMIN-020"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-020-c3" value="invalid" data-result data-case="ADMIN-020"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Stok barang konsisten setelah transaksi.</span>
+              <label><input type="radio" name="admin-ADMIN-020-c4" value="valid" data-result data-case="ADMIN-020"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-020-c4" value="invalid" data-result data-case="ADMIN-020"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-021">
+            <div class="card-top">
+              <span class="card-number">21</span>
+              <span class="code">ADMIN-021</span>
+            </div>
+            <h4>Hasil Form Kerusakan Barang</h4>
+            <p class="desc">Admin meninjau laporan kerusakan barang dari anggota dan tindak lanjutnya.</p>
+            <div class="links"><a href="hasil-form-kerusakan-barang.html" target="_blank" rel="noopener noreferrer">hasil-form-kerusakan-barang.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Laporan kerusakan dengan foto/bukti.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Filter laporan, buka detail/gambar, ubah status tindak lanjut bila tersedia.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Laporan kerusakan tampil lengkap dan bukti bisa dibuka.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka hasil-form-kerusakan-barang.html.</li><li>Cari/filter laporan.</li><li>Klik detail atau bukti.</li><li>Ubah status penanganan jika tersedia.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Daftar laporan kerusakan tampil.</span>
+              <label><input type="radio" name="admin-ADMIN-021-c1" value="valid" data-result data-case="ADMIN-021"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-021-c1" value="invalid" data-result data-case="ADMIN-021"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Bukti gambar/file dapat dipreview.</span>
+              <label><input type="radio" name="admin-ADMIN-021-c2" value="valid" data-result data-case="ADMIN-021"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-021-c2" value="invalid" data-result data-case="ADMIN-021"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Status/tindak lanjut dapat diperbarui jika tersedia.</span>
+              <label><input type="radio" name="admin-ADMIN-021-c3" value="valid" data-result data-case="ADMIN-021"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-021-c3" value="invalid" data-result data-case="ADMIN-021"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-9">
+          <div class="test-head">
+            <div>
+              <h3>9. I. Panel Admin: Publikasi, Form, dan Konten Utama</h3>
+              <p>Manajemen informasi publik website</p>
+            </div>
+            <span class="count-pill">3 card</span>
+          </div>
+          <div class="cards cards-3">
+            
+          <article class="scenario-card" id="ADMIN-022">
+            <div class="card-top">
+              <span class="card-number">22</span>
+              <span class="code">ADMIN-022</span>
+            </div>
+            <h4>Manajemen Profil, Berita, dan Agenda</h4>
+            <p class="desc">Admin mengelola profil organisasi, berita/pengumuman, kategori berita, dan agenda.</p>
+            <div class="links"><a href="manajemen-profil.html" target="_blank" rel="noopener noreferrer">manajemen-profil.html</a><a href="kelola-berita.html" target="_blank" rel="noopener noreferrer">kelola-berita.html</a><a href="kelola-kategori-berita.html" target="_blank" rel="noopener noreferrer">kelola-kategori-berita.html</a><a href="manajemen-agenda.html" target="_blank" rel="noopener noreferrer">manajemen-agenda.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Judul berita/agenda dummy; kategori: internal; status: tampil.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Tambah/edit/hapus profil, berita, kategori, dan agenda; cek preview publik.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Data publikasi tersimpan dan tampil pada halaman publik sesuai status.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka manajemen-profil.html.</li><li>Edit data profil.</li><li>Buka kelola-berita dan tambah/edit berita.</li><li>Buka manajemen-agenda dan tambah/edit agenda.</li><li>Cek halaman publik.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Profil organisasi dapat diperbarui.</span>
+              <label><input type="radio" name="admin-ADMIN-022-c1" value="valid" data-result data-case="ADMIN-022"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-022-c1" value="invalid" data-result data-case="ADMIN-022"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Berita/kategori dapat dikelola.</span>
+              <label><input type="radio" name="admin-ADMIN-022-c2" value="valid" data-result data-case="ADMIN-022"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-022-c2" value="invalid" data-result data-case="ADMIN-022"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Agenda dapat dikelola.</span>
+              <label><input type="radio" name="admin-ADMIN-022-c3" value="valid" data-result data-case="ADMIN-022"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-022-c3" value="invalid" data-result data-case="ADMIN-022"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Konten tampil di publik sesuai status.</span>
+              <label><input type="radio" name="admin-ADMIN-022-c4" value="valid" data-result data-case="ADMIN-022"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-022-c4" value="invalid" data-result data-case="ADMIN-022"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-023">
+            <div class="card-top">
+              <span class="card-number">23</span>
+              <span class="code">ADMIN-023</span>
+            </div>
+            <h4>Manajemen Form Pendaftaran</h4>
+            <p class="desc">Admin membuat form pendaftaran dinamis dan melihat data pendaftar.</p>
+            <div class="links"><a href="manajemen-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">manajemen-form-pendaftaran.html</a><a href="builder-form-pendaftaran.html" target="_blank" rel="noopener noreferrer">builder-form-pendaftaran.html</a><a href="pendaftar-form.html" target="_blank" rel="noopener noreferrer">pendaftar-form.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Form dummy; field: nama, email, WA, pertanyaan pilihan.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Buat form, atur field, publish/unpublish, buka daftar pendaftar, export jika tersedia.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Form dinamis bisa dibuat, diisi publik/anggota, dan pendaftar dapat dimonitor.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka manajemen-form-pendaftaran.html.</li><li>Klik buat/edit form.</li><li>Atur pertanyaan di builder.</li><li>Publish form dan cek halaman publik.</li><li>Buka pendaftar-form.html.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Form pendaftaran dinamis berhasil dibuat.</span>
+              <label><input type="radio" name="admin-ADMIN-023-c1" value="valid" data-result data-case="ADMIN-023"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-023-c1" value="invalid" data-result data-case="ADMIN-023"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Field wajib tervalidasi.</span>
+              <label><input type="radio" name="admin-ADMIN-023-c2" value="valid" data-result data-case="ADMIN-023"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-023-c2" value="invalid" data-result data-case="ADMIN-023"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Daftar pendaftar tampil.</span>
+              <label><input type="radio" name="admin-ADMIN-023-c3" value="valid" data-result data-case="ADMIN-023"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-023-c3" value="invalid" data-result data-case="ADMIN-023"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Export/preview data pendaftar sesuai filter.</span>
+              <label><input type="radio" name="admin-ADMIN-023-c4" value="valid" data-result data-case="ADMIN-023"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-023-c4" value="invalid" data-result data-case="ADMIN-023"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-024">
+            <div class="card-top">
+              <span class="card-number">24</span>
+              <span class="code">ADMIN-024</span>
+            </div>
+            <h4>Konten Utama Website dan Embed</h4>
+            <p class="desc">Admin mengelola carousel home, tentang Crembo, embed YouTube/playlist, Google Maps, dan Instagram.</p>
+            <div class="links"><a href="kelola-carousel-home.html" target="_blank" rel="noopener noreferrer">kelola-carousel-home.html</a><a href="kelola-tentang-crembo.html" target="_blank" rel="noopener noreferrer">kelola-tentang-crembo.html</a><a href="kelola-embed-youtube.html" target="_blank" rel="noopener noreferrer">kelola-embed-youtube.html</a><a href="kelola-embed-google-maps.html" target="_blank" rel="noopener noreferrer">kelola-embed-google-maps.html</a><a href="kelola-embed-instagram.html" target="_blank" rel="noopener noreferrer">kelola-embed-instagram.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>URL embed YouTube playlist/channel; Google Maps embed; gambar carousel dummy.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Tambah/edit/hapus konten, simpan, lalu cek home.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Konten utama tampil di home sesuai konfigurasi dan tidak merusak layout.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka kelola-carousel-home.html.</li><li>Tambah/edit slide.</li><li>Buka kelola embed YouTube/Maps/Instagram.</li><li>Isi URL embed valid.</li><li>Cek home.html.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Carousel dapat dikelola.</span>
+              <label><input type="radio" name="admin-ADMIN-024-c1" value="valid" data-result data-case="ADMIN-024"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-024-c1" value="invalid" data-result data-case="ADMIN-024"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Embed YouTube/playlist dapat disimpan.</span>
+              <label><input type="radio" name="admin-ADMIN-024-c2" value="valid" data-result data-case="ADMIN-024"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-024-c2" value="invalid" data-result data-case="ADMIN-024"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Embed Maps/Instagram tampil di home.</span>
+              <label><input type="radio" name="admin-ADMIN-024-c3" value="valid" data-result data-case="ADMIN-024"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-024-c3" value="invalid" data-result data-case="ADMIN-024"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Konten home tetap responsif.</span>
+              <label><input type="radio" name="admin-ADMIN-024-c4" value="valid" data-result data-case="ADMIN-024"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-024-c4" value="invalid" data-result data-case="ADMIN-024"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
+        <section class="test-section" id="section-10">
+          <div class="test-head">
+            <div>
+              <h3>10. J. Panel Admin: Keanggotaan dan Log</h3>
+              <p>Admin dapat mengelola anggota dan melihat log sesuai hak akses</p>
+            </div>
+            <span class="count-pill">2 card</span>
+          </div>
+          <div class="cards cards-2">
+            
+          <article class="scenario-card" id="ADMIN-025">
+            <div class="card-top">
+              <span class="card-number">25</span>
+              <span class="code">ADMIN-025</span>
+            </div>
+            <h4>Manajemen Anggota dan Status Nonaktif</h4>
+            <p class="desc">Admin mengelola data anggota, memproses request status nonaktif, dan mengatur status anggota.</p>
+            <div class="links"><a href="manajemen-anggota.html" target="_blank" rel="noopener noreferrer">manajemen-anggota.html</a><a href="setting-sertifikat-anggota.html" target="_blank" rel="noopener noreferrer">setting-sertifikat-anggota.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Anggota dummy; request nonaktif pending; bukti pendukung gambar/pdf.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Tambah/edit anggota, approve/reject request nonaktif, aktifkan kembali, preview bukti, dan setting sertifikat.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Data anggota tersimpan, status keanggotaan berubah sesuai approval, dan bukti dapat dipreview.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka manajemen-anggota.html.</li><li>Tambah/edit anggota dummy.</li><li>Filter request pending/disetujui/ditolak.</li><li>Approve/reject request nonaktif.</li><li>Ubah status aktif/nonaktif manual.</li><li>Buka setting sertifikat.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Tambah/edit anggota berhasil.</span>
+              <label><input type="radio" name="admin-ADMIN-025-c1" value="valid" data-result data-case="ADMIN-025"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-025-c1" value="invalid" data-result data-case="ADMIN-025"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Approve request nonaktif mengubah status anggota menjadi nonaktif.</span>
+              <label><input type="radio" name="admin-ADMIN-025-c2" value="valid" data-result data-case="ADMIN-025"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-025-c2" value="invalid" data-result data-case="ADMIN-025"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Aktifkan kembali anggota request nonaktif tetap tersimpan setelah refresh.</span>
+              <label><input type="radio" name="admin-ADMIN-025-c3" value="valid" data-result data-case="ADMIN-025"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-025-c3" value="invalid" data-result data-case="ADMIN-025"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Bukti pendukung dapat dipreview.</span>
+              <label><input type="radio" name="admin-ADMIN-025-c4" value="valid" data-result data-case="ADMIN-025"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-025-c4" value="invalid" data-result data-case="ADMIN-025"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          <article class="scenario-card" id="ADMIN-026">
+            <div class="card-top">
+              <span class="card-number">26</span>
+              <span class="code">ADMIN-026</span>
+            </div>
+            <h4>Log Aktivitas Admin</h4>
+            <p class="desc">Admin melihat log aktivitas dirinya sendiri dan anggota biasa, tetapi tidak melihat admin lain.</p>
+            <div class="links"><a href="log-aktivitas.html" target="_blank" rel="noopener noreferrer">log-aktivitas.html</a></div>
+            <div class="mini-grid">
+              <div><b>Data Dummy</b><span>Filter role: Admin/Anggota; periode bulan berjalan; per halaman 10/20/50.</span></div>
+              <div><b>Aksi yang Diuji</b><span>Filter pengguna, role, modul, aksi, periode, sorting, pagination, export PDF/Excel.</span></div>
+              <div><b>Hasil Diharapkan</b><span>Admin hanya melihat log dirinya dan anggota; filter/export mengikuti periode.</span></div>
+            </div>
+            <details open>
+              <summary>Langkah Pengujian</summary>
+              <ol><li>Buka log-aktivitas.html.</li><li>Pilih periode bulan/tahun.</li><li>Filter role anggota dan pengguna tertentu.</li><li>Ubah jumlah per halaman.</li><li>Klik Preview PDF/Export Excel.</li></ol>
+            </details>
+            <div class="checks">
+              <strong>Checklist Black Box</strong>
+              <div class="check-row">
+              <span>Log admin menampilkan dirinya sendiri dan anggota.</span>
+              <label><input type="radio" name="admin-ADMIN-026-c1" value="valid" data-result data-case="ADMIN-026"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-026-c1" value="invalid" data-result data-case="ADMIN-026"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Admin tidak dapat melihat log admin lain.</span>
+              <label><input type="radio" name="admin-ADMIN-026-c2" value="valid" data-result data-case="ADMIN-026"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-026-c2" value="invalid" data-result data-case="ADMIN-026"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Filter dan pagination bekerja.</span>
+              <label><input type="radio" name="admin-ADMIN-026-c3" value="valid" data-result data-case="ADMIN-026"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-026-c3" value="invalid" data-result data-case="ADMIN-026"> Tidak Valid</label>
+            </div>
+<div class="check-row">
+              <span>Export mengikuti hasil filter.</span>
+              <label><input type="radio" name="admin-ADMIN-026-c4" value="valid" data-result data-case="ADMIN-026"> Valid</label>
+              <label><input type="radio" name="admin-ADMIN-026-c4" value="invalid" data-result data-case="ADMIN-026"> Tidak Valid</label>
+            </div>
+            </div>
+          </article>
+          </div>
+        </section>
 
     <section id="sus" class="section">
       <div class="section-head">
         <h2>Bagian 3 - System Usability Scale (SUS) Akhir</h2>
-        <small>Diisi setelah menyelesaikan task scenario</small>
+        <small>Diisi setelah black box testing role selesai</small>
       </div>
       <div class="section-body">
         <div class="info">
-          Berikan penilaian berdasarkan pengalaman menggunakan website Crembo Media setelah redesign. Nilai 1 berarti <b>Sangat Tidak Setuju</b> dan nilai 5 berarti <b>Sangat Setuju</b>.
+          Skala: 1 = Sangat Tidak Setuju, 2 = Tidak Setuju, 3 = Netral, 4 = Setuju, 5 = Sangat Setuju.
         </div>
-        <div class="scale-help"><span>1 = Sangat Tidak Setuju</span><span>5 = Sangat Setuju</span></div>
-        <div class="table-wrap">
+        <div class="sus-table-wrap">
           <table class="sus-table">
-            <thead><tr><th>Pernyataan</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
-            <tbody><tr class="sus-item"><td><div class="sus-question">1. Saya rasa saya akan sering menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus1" value="1" aria-label="SUS 1 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus1" value="2" aria-label="SUS 1 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus1" value="3" aria-label="SUS 1 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus1" value="4" aria-label="SUS 1 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus1" value="5" aria-label="SUS 1 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">2. Saya merasa website Crembo Media ini terlalu rumit untuk digunakan.</div></td><td class="scale-cell"><input type="radio" name="sus2" value="1" aria-label="SUS 2 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus2" value="2" aria-label="SUS 2 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus2" value="3" aria-label="SUS 2 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus2" value="4" aria-label="SUS 2 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus2" value="5" aria-label="SUS 2 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">3. Saya merasa website Crembo Media ini mudah digunakan.</div></td><td class="scale-cell"><input type="radio" name="sus3" value="1" aria-label="SUS 3 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus3" value="2" aria-label="SUS 3 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus3" value="3" aria-label="SUS 3 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus3" value="4" aria-label="SUS 3 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus3" value="5" aria-label="SUS 3 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">4. Saya membutuhkan bantuan teknis dari orang lain untuk dapat menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus4" value="1" aria-label="SUS 4 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus4" value="2" aria-label="SUS 4 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus4" value="3" aria-label="SUS 4 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus4" value="4" aria-label="SUS 4 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus4" value="5" aria-label="SUS 4 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">5. Saya merasa berbagai fitur pada website Crembo Media ini berjalan dengan baik dan saling terintegrasi.</div></td><td class="scale-cell"><input type="radio" name="sus5" value="1" aria-label="SUS 5 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus5" value="2" aria-label="SUS 5 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus5" value="3" aria-label="SUS 5 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus5" value="4" aria-label="SUS 5 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus5" value="5" aria-label="SUS 5 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">6. Saya merasa ada terlalu banyak hal yang tidak konsisten pada website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus6" value="1" aria-label="SUS 6 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus6" value="2" aria-label="SUS 6 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus6" value="3" aria-label="SUS 6 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus6" value="4" aria-label="SUS 6 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus6" value="5" aria-label="SUS 6 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">7. Saya membayangkan sebagian besar orang akan cepat belajar menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus7" value="1" aria-label="SUS 7 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus7" value="2" aria-label="SUS 7 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus7" value="3" aria-label="SUS 7 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus7" value="4" aria-label="SUS 7 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus7" value="5" aria-label="SUS 7 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">8. Saya merasa website Crembo Media ini sangat rumit untuk digunakan.</div></td><td class="scale-cell"><input type="radio" name="sus8" value="1" aria-label="SUS 8 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus8" value="2" aria-label="SUS 8 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus8" value="3" aria-label="SUS 8 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus8" value="4" aria-label="SUS 8 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus8" value="5" aria-label="SUS 8 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">9. Saya merasa percaya diri saat menggunakan website Crembo Media ini.</div></td><td class="scale-cell"><input type="radio" name="sus9" value="1" aria-label="SUS 9 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus9" value="2" aria-label="SUS 9 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus9" value="3" aria-label="SUS 9 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus9" value="4" aria-label="SUS 9 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus9" value="5" aria-label="SUS 9 nilai 5"></td></tr>
-<tr class="sus-item"><td><div class="sus-question">10. Saya perlu mempelajari banyak hal terlebih dahulu sebelum dapat menggunakan website Crembo Media ini dengan baik.</div></td><td class="scale-cell"><input type="radio" name="sus10" value="1" aria-label="SUS 10 nilai 1"></td><td class="scale-cell"><input type="radio" name="sus10" value="2" aria-label="SUS 10 nilai 2"></td><td class="scale-cell"><input type="radio" name="sus10" value="3" aria-label="SUS 10 nilai 3"></td><td class="scale-cell"><input type="radio" name="sus10" value="4" aria-label="SUS 10 nilai 4"></td><td class="scale-cell"><input type="radio" name="sus10" value="5" aria-label="SUS 10 nilai 5"></td></tr></tbody>
+            <thead><tr><th>No</th><th>Pertanyaan SUS Post-Redesign</th><th class="scale-cell">1</th><th class="scale-cell">2</th><th class="scale-cell">3</th><th class="scale-cell">4</th><th class="scale-cell">5</th></tr></thead>
+            <tbody><tr><td>1</td><td>Saya merasa akan sering menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus1" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="5"><span>5</span></label></td></tr>
+<tr><td>2</td><td>Saya merasa website ini terlalu rumit untuk digunakan.</td><td class="scale-cell"><label><input type="radio" name="sus2" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="5"><span>5</span></label></td></tr>
+<tr><td>3</td><td>Saya merasa website ini mudah digunakan.</td><td class="scale-cell"><label><input type="radio" name="sus3" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="5"><span>5</span></label></td></tr>
+<tr><td>4</td><td>Saya membutuhkan bantuan teknis dari orang lain untuk dapat menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus4" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="5"><span>5</span></label></td></tr>
+<tr><td>5</td><td>Saya menemukan berbagai fitur website berjalan dengan baik secara konsisten.</td><td class="scale-cell"><label><input type="radio" name="sus5" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="5"><span>5</span></label></td></tr>
+<tr><td>6</td><td>Saya merasa ada banyak hal yang tidak konsisten atau membingungkan di website ini.</td><td class="scale-cell"><label><input type="radio" name="sus6" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="5"><span>5</span></label></td></tr>
+<tr><td>7</td><td>Saya merasa sebagian besar orang akan belajar menggunakan website ini dengan cepat.</td><td class="scale-cell"><label><input type="radio" name="sus7" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="5"><span>5</span></label></td></tr>
+<tr><td>8</td><td>Saya merasa website ini sangat rumit untuk digunakan oleh pengguna baru.</td><td class="scale-cell"><label><input type="radio" name="sus8" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="5"><span>5</span></label></td></tr>
+<tr><td>9</td><td>Saya merasa percaya diri saat menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus9" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="5"><span>5</span></label></td></tr>
+<tr><td>10</td><td>Saya perlu mempelajari banyak hal terlebih dahulu sebelum dapat menggunakan website ini dengan baik.</td><td class="scale-cell"><label><input type="radio" name="sus10" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="5"><span>5</span></label></td></tr></tbody>
           </table>
+        </div>
+        <div class="actions">
+          <button class="primary" id="calcBtn" type="button">Hitung Skor SUS</button>
+        </div>
+        <div class="result-box" id="resultBox">
+          <span class="footer-note">Skor SUS akan muncul setelah 10 pertanyaan terisi.</span>
         </div>
       </div>
     </section>
@@ -584,155 +1387,158 @@ input:focus,select:focus,textarea:focus{border-color:var(--primary-2);box-shadow
     <section id="tambahan" class="section">
       <div class="section-head">
         <h2>Bagian 4 - Pertanyaan Tambahan</h2>
-        <small>Umpan balik kualitatif untuk Bab 4/5</small>
+        <small>Feedback kualitatif singkat</small>
       </div>
       <div class="section-body">
-        <div class="grid">
-          <div class="field"><label>1. Fitur yang paling sering/bermanfaat</label><textarea id="open1" placeholder="Menurut Anda, fitur apa yang paling sering atau paling bermanfaat digunakan?"></textarea></div>
-          <div class="field"><label>2. Fitur yang sulit atau membingungkan</label><textarea id="open2" placeholder="Fitur apa yang masih sulit digunakan atau tidak berfungsi sebagaimana mestinya?"></textarea></div>
-          <div class="field"><label>3. Tampilan yang perlu diperbaiki</label><textarea id="open3" placeholder="Bagian tampilan apa yang perlu diperbaiki atau disederhanakan?"></textarea></div>
-          <div class="field"><label>4. Saran tambahan</label><textarea id="open4" placeholder="Saran tambahan untuk meningkatkan usability website Crembo Media."></textarea></div>
-        </div>
+        <div class="field"><label>1. Fitur apa yang paling sering Anda gunakan?</label><textarea id="open1" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>2. Apakah ada fitur yang sulit digunakan atau tidak berfungsi?</label><textarea id="open2" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>3. Bagian tampilan apa yang perlu diperbaiki?</label><textarea id="open3" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>4. Saran tambahan untuk meningkatkan usability website?</label><textarea id="open4" placeholder="Tulis jawaban singkat..."></textarea></div>
       </div>
     </section>
 
     <section id="rekap" class="section">
       <div class="section-head">
         <h2>Bagian 5 - Rekap Frontend</h2>
-        <small>Frontend only: tersimpan di localStorage/browser</small>
+        <small>Data tersimpan lokal di browser</small>
       </div>
       <div class="section-body">
+        <div class="summary">
+          <div class="summary-card"><span>Total Card</span><b id="sumTotal">26</b></div>
+          <div class="summary-card"><span>Butir Valid</span><b id="sumValid">0</b></div>
+          <div class="summary-card"><span>Butir Tidak Valid</span><b id="sumInvalid">0</b></div>
+          <div class="summary-card"><span>Butir Belum Diisi</span><b id="sumPending">0</b></div>
+        </div>
         <div class="actions">
-          <button class="btn" type="button" id="calcBtn">Hitung Skor SUS</button>
-          <button class="btn gold" type="button" id="saveBtn">Simpan Lokal</button>
-          <button class="btn secondary" type="button" id="exportBtn">Export JSON</button>
-          <button class="btn secondary" type="button" onclick="window.print()">Print / PDF</button>
-          <button class="btn secondary" type="button" id="resetBtn">Reset Jawaban</button>
+          <button class="primary" id="saveBtn" type="button">Simpan Lokal</button>
+          <button id="exportBtn" type="button">Export JSON</button>
+          <button id="printBtn" type="button">Print / Simpan PDF</button>
+          <button id="resetBtn" type="button">Reset Jawaban</button>
         </div>
-        <div id="resultBox" class="result-card">
-          <span class="footer-note">Skor SUS akan tampil setelah semua 10 pertanyaan SUS diisi.</span>
-        </div>
-        <p class="footer-note">Catatan: halaman ini belum memakai backend. Data hanya tersimpan pada browser penguji sampai Anda mengaktifkan integrasi database atau Google Form.</p>
+        <p class="footer-note">File ini belum konek backend. Jawaban disimpan dengan localStorage agar bisa dipakai simulasi bimbingan dan uji responden awal.</p>
       </div>
     </section>
   </main>
-
   <script>
   (function(){
-    const flowSlug = document.body.dataset.flow || "flow";
-    const storageKey = "crembo_sus_final_" + flowSlug;
-
-    function byId(id){ return document.getElementById(id); }
-    function selected(name){ const el = document.querySelector('input[name="'+name+'"]:checked'); return el ? Number(el.value) : null; }
-    function detectDefaults(){
-      const ua = navigator.userAgent || "";
-      const dev = /android|iphone|ipad|mobile/i.test(ua) ? "Handphone" : "PC/Laptop";
-      if (byId("testerDevice") && !byId("testerDevice").value) byId("testerDevice").value = dev;
-      let browser = "Lainnya";
-      if (/Edg\//.test(ua)) browser = "Microsoft Edge";
-      else if (/Firefox\//.test(ua)) browser = "Mozilla Firefox";
-      else if (/OPR\//.test(ua)) browser = "Opera";
-      else if (/Chrome\//.test(ua)) browser = "Google Chrome";
-      else if (/Safari\//.test(ua)) browser = "Safari";
-      if (byId("testerBrowser") && !byId("testerBrowser").value) byId("testerBrowser").value = browser;
-    }
+    const flowSlug = document.body.dataset.flow || "admin";
+    const storageKey = "crembo-role-blackbox-sus-" + flowSlug;
+    const $ = id => document.getElementById(id);
+    const resultInputs = Array.from(document.querySelectorAll('input[data-result]'));
     function getPayload(){
-      const sus = [];
-      for(let i=1;i<=10;i++) sus.push(selected("sus"+i));
-      const tasks = Array.from(document.querySelectorAll("[data-task]")).map(el=>({ code: el.dataset.task, done: el.checked }));
+      const blackbox = resultInputs.map(input => ({name: input.name, value: input.checked ? input.value : ""})).filter(x=>x.value);
+      const sus = Array.from({length:10},(_,i)=>{
+        const checked = document.querySelector('input[name="sus'+(i+1)+'"]:checked');
+        return checked ? Number(checked.value) : null;
+      });
       return {
-        flow: flowSlug,
-        role: byId("testerRole").value,
-        savedAt: new Date().toISOString(),
+        role: "Admin",
         tester: {
-          name: byId("testerName").value.trim(),
-          org: byId("testerOrg").value.trim(),
-          device: byId("testerDevice").value,
-          browser: byId("testerBrowser").value,
-          date: byId("testDate").value
+          name: $("testerName").value.trim(),
+          role: $("testerRole").value,
+          org: $("testerOrg").value.trim(),
+          date: $("testDate").value,
+          device: $("testerDevice").value,
+          browser: $("testerBrowser").value
         },
-        tasks,
+        blackbox,
         sus,
-        openEnded: {
-          fitur_bermanfaat: byId("open1").value.trim(),
-          fitur_sulit: byId("open2").value.trim(),
-          tampilan_diperbaiki: byId("open3").value.trim(),
-          saran: byId("open4").value.trim()
+        susScore: calculateSus(false).score,
+        additional: {
+          fitur_sering: $("open1").value.trim(),
+          fitur_sulit: $("open2").value.trim(),
+          tampilan_diperbaiki: $("open3").value.trim(),
+          saran_usability: $("open4").value.trim()
         },
-        score: calculateScore(false)
+        exportedAt: new Date().toISOString()
       };
     }
-    function calculateScore(render=true){
-      let answers = [];
-      for(let i=1;i<=10;i++) answers.push(selected("sus"+i));
-      const missing = answers.map((v,i)=>v?null:i+1).filter(Boolean);
-      if(missing.length){
-        if(render) byId("resultBox").innerHTML = '<b style="color:#991b1b">Masih ada pertanyaan SUS yang belum diisi:</b> nomor ' + missing.join(", ");
-        return null;
+    function calculateSus(show){
+      const values = Array.from({length:10},(_,i)=>{
+        const checked = document.querySelector('input[name="sus'+(i+1)+'"]:checked');
+        return checked ? Number(checked.value) : null;
+      });
+      if(values.some(v=>!v)){
+        if(show) $("resultBox").innerHTML = '<b style="color:#991b1b">Lengkapi 10 pertanyaan SUS terlebih dahulu.</b>';
+        return {score:null, category:"Belum lengkap"};
       }
-      let sum = 0;
-      answers.forEach((v, idx)=>{ sum += ((idx+1)%2===1) ? (v-1) : (5-v); });
-      const score = +(sum * 2.5).toFixed(2);
-      let label = "Marginal";
-      if(score >= 85) label = "Excellent";
-      else if(score >= 68) label = "Acceptable";
-      else label = "Not Acceptable";
-      if(render){
-        byId("resultBox").innerHTML = '<span>Skor SUS Akhir</span><div class="result-score">' + score + '</div><b>Kategori: ' + label + '</b><span class="footer-note">Target penelitian: skor akhir diharapkan > 68 atau kategori Acceptable.</span>';
-      }
-      return { score, category: label };
+      let raw = 0;
+      values.forEach((v,i)=>{ raw += (i % 2 === 0) ? (v - 1) : (5 - v); });
+      const score = raw * 2.5;
+      let category = "Not Acceptable";
+      if(score >= 85) category = "Excellent";
+      else if(score >= 73) category = "Good";
+      else if(score >= 68) category = "Acceptable";
+      else if(score >= 51) category = "Marginal";
+      if(show) $("resultBox").innerHTML = '<b>Skor SUS: '+score.toFixed(2)+'</b><span>Kategori: '+category+'</span>';
+      return {score, category};
     }
+    function updateSummary(){
+      const checked = resultInputs.filter(i=>i.checked);
+      $("sumValid").textContent = checked.filter(i=>i.value==="valid").length;
+      $("sumInvalid").textContent = checked.filter(i=>i.value==="invalid").length;
+      const groups = new Set(resultInputs.map(i=>i.name));
+      const answeredGroups = new Set(checked.map(i=>i.name));
+      $("sumPending").textContent = Math.max(groups.size - answeredGroups.size, 0);
+    }
+    function save(){ localStorage.setItem(storageKey, JSON.stringify(getPayload())); updateSummary(); }
     function restore(){
       try{
         const raw = localStorage.getItem(storageKey);
         if(!raw) return;
         const data = JSON.parse(raw);
         if(data.tester){
-          byId("testerName").value = data.tester.name || "";
-          byId("testerOrg").value = data.tester.org || "";
-          byId("testerDevice").value = data.tester.device || byId("testerDevice").value;
-          byId("testerBrowser").value = data.tester.browser || byId("testerBrowser").value;
+          $("testerName").value = data.tester.name || "";
+          $("testerOrg").value = data.tester.org || "";
+          $("testerDevice").value = data.tester.device || "";
+          $("testerBrowser").value = data.tester.browser || "";
         }
-        (data.sus || []).forEach((v,idx)=>{ if(v) { const r=document.querySelector('input[name="sus'+(idx+1)+'"][value="'+v+'"]'); if(r) r.checked=true; } });
-        (data.tasks || []).forEach(t=>{ const el=document.querySelector('[data-task="'+t.code+'"]'); if(el) el.checked=!!t.done; });
-        if(data.openEnded){
-          byId("open1").value = data.openEnded.fitur_bermanfaat || "";
-          byId("open2").value = data.openEnded.fitur_sulit || "";
-          byId("open3").value = data.openEnded.tampilan_diperbaiki || "";
-          byId("open4").value = data.openEnded.saran || "";
+        (data.blackbox || []).forEach(item=>{
+          const el = document.querySelector('input[name="'+item.name+'"][value="'+item.value+'"]');
+          if(el) el.checked = true;
+        });
+        (data.sus || []).forEach((v,idx)=>{
+          if(v) {
+            const el = document.querySelector('input[name="sus'+(idx+1)+'"][value="'+v+'"]');
+            if(el) el.checked = true;
+          }
+        });
+        if(data.additional){
+          $("open1").value = data.additional.fitur_sering || "";
+          $("open2").value = data.additional.fitur_sulit || "";
+          $("open3").value = data.additional.tampilan_diperbaiki || "";
+          $("open4").value = data.additional.saran_usability || "";
         }
-        calculateScore(true);
       }catch(e){}
+      updateSummary();
     }
-    byId("calcBtn").addEventListener("click", ()=>calculateScore(true));
-    byId("saveBtn").addEventListener("click", ()=>{
-      const data = getPayload();
-      if(!data.tester.name) { byId("resultBox").innerHTML = '<b style="color:#991b1b">Nama penguji wajib diisi sebelum menyimpan.</b>'; return; }
-      localStorage.setItem(storageKey, JSON.stringify(data));
-      byId("resultBox").innerHTML = '<b style="color:#166534">Data berhasil disimpan lokal.</b><span class="footer-note">Key: '+storageKey+'</span>';
-    });
-    byId("exportBtn").addEventListener("click", ()=>{
-      const data = getPayload();
-      const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    document.addEventListener("change", e=>{ if(e.target.matches("input,select,textarea")) save(); });
+    document.addEventListener("input", e=>{ if(e.target.matches("textarea,input")) save(); });
+    $("calcBtn").addEventListener("click", ()=>{ calculateSus(true); save(); });
+    $("saveBtn").addEventListener("click", ()=>{ save(); alert("Data berhasil disimpan lokal di browser."); });
+    $("exportBtn").addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(getPayload(), null, 2)], {type:"application/json"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "sus-final-" + flowSlug + ".json";
+      a.download = "hasil-blackbox-sus-admin.json";
       a.click();
       URL.revokeObjectURL(a.href);
     });
-    byId("resetBtn").addEventListener("click", ()=>{
+    $("printBtn").addEventListener("click", ()=>window.print());
+    $("resetBtn").addEventListener("click", ()=>{
       if(!confirm("Reset semua jawaban pada halaman ini?")) return;
       localStorage.removeItem(storageKey);
-      document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(el=>el.checked=false);
+      document.querySelectorAll('input[type="radio"]').forEach(el=>el.checked=false);
       document.querySelectorAll('textarea').forEach(el=>el.value="");
-      byId("testerName").value="";
-      byId("testerOrg").value="";
-      byId("resultBox").innerHTML='<span class="footer-note">Jawaban sudah direset.</span>';
+      $("testerName").value = "";
+      $("testerOrg").value = "";
+      $("testerDevice").value = "";
+      $("testerBrowser").value = "";
+      $("resultBox").innerHTML = '<span class="footer-note">Jawaban sudah direset.</span>';
+      updateSummary();
     });
-    document.addEventListener("change", e=>{ if(e.target.matches('input,select,textarea')) localStorage.setItem(storageKey, JSON.stringify(getPayload())); });
-    document.addEventListener("input", e=>{ if(e.target.matches('input,select,textarea')) localStorage.setItem(storageKey, JSON.stringify(getPayload())); });
-    detectDefaults();
     restore();
+    updateSummary();
   })();
   </script>
 </body>

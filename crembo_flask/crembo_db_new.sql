@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 15 Bulan Mei 2026 pada 05.36
+-- Waktu pembuatan: 15 Bulan Mei 2026 pada 06.42
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -115,7 +115,8 @@ INSERT INTO `activity_logs` (`id`, `actor_id`, `actor_name`, `actor_username`, `
 (64, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 10:34:31'),
 (65, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:35:38'),
 (66, 49, 'Tyas', 'Tyas', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 10:35:44'),
-(67, 49, 'Tyas', 'Tyas', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:36:05');
+(67, 49, 'Tyas', 'Tyas', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-15 10:36:05'),
+(68, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-15 11:33:58');
 
 -- --------------------------------------------------------
 
@@ -2609,7 +2610,7 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar`
