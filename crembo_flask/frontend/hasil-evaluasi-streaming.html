@@ -34,6 +34,9 @@
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}table{width:100%;border-collapse:collapse;min-width:1120px}th,td{border:1px solid rgba(128,0,0,.10);padding:10px 11px;text-align:left;vertical-align:top}th{background:#fff1f2;color:#7f1d1d;text-transform:uppercase;font-size:.74rem;letter-spacing:.02em}td{font-size:.86rem}.cell-title{font-weight:900}.small{font-size:.78rem;color:#6b7280}.badge{display:inline-flex;align-items:center;width:max-content;border-radius:999px;border:1px solid var(--line);padding:3px 8px;font-size:.72rem;font-weight:900;background:#fff}.badge.ok{color:#15803d;background:#ecfdf5;border-color:#bbf7d0}.badge.warn{color:#92400e;background:#fffbeb;border-color:#fde68a}.badge.red{color:#991b1b;background:#fef2f2;border-color:#fecaca}.badge.blue{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}.muted{color:#6b7280}.stack{display:grid;gap:5px}.pagination{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}.notice{border:1px solid #fde68a;border-left:5px solid var(--gold);background:#fffbeb;border-radius:12px;padding:12px 14px;color:#6b4f00;margin:0}.notice.red{border-color:#fecaca;border-left-color:#dc2626;background:#fef2f2;color:#991b1b}
     .ai-body{display:none;padding:16px 18px;border-top:1px solid var(--line)}.ai-body.show{display:grid;gap:14px}.ai-kpis{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px}.ai-text-block{border:1px solid var(--line);border-radius:12px;background:#fffdf7;padding:12px}.ai-text-block h4{margin:0 0 6px}.ai-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bar-row{display:grid;grid-template-columns:160px 1fr 48px;gap:8px;align-items:center;margin:8px 0;font-size:.82rem}.bar-track{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar-fill{display:block;height:100%;background:linear-gradient(90deg,#800000,#d4a017);border-radius:999px;transition:width .28s ease}
     .pending-list{display:grid;gap:12px}.pending-item{border:1px solid #fde68a;border-left:5px solid var(--gold);background:#fff9df;border-radius:14px;padding:14px}.pending-item.mine{border-color:#fecaca;border-left-color:#dc2626;background:#fff5f5}.pending-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.pending-item h4{margin:0 0 4px;font-size:1.02rem}.pending-item p{margin:4px 0;color:#374151}.pending-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.empty{border:1px dashed #e2c7c7;background:#fffafa;border-radius:12px;padding:18px;text-align:center;color:#6b7280}
+    .pending-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap}
+    .pending-pager-info{font-size:.84rem;color:#6b7280;font-weight:600}
+    .pending-item-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:var(--gold);color:#3a0000;font-size:.76rem;font-weight:900;flex-shrink:0;margin-right:4px}
     .detail-modal{position:fixed;inset:0;background:rgba(0,0,0,.46);z-index:3000;display:none;align-items:center;justify-content:center;padding:18px}.detail-modal.show{display:flex}.detail-dialog{width:min(1060px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:0 24px 70px rgba(0,0,0,.30)}.detail-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);background:#fff7f7;position:sticky;top:0;z-index:2}.detail-head h3{margin:0;color:#7f1d1d}.detail-body{padding:16px 18px;display:grid;gap:12px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.detail-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.detail-card h4{margin:0 0 8px;color:#7f1d1d}.detail-card p{margin:4px 0}.mini-table{width:100%;min-width:0}.mini-table th,.mini-table td{font-size:.82rem;padding:8px}.check-pill{display:inline-flex;margin:3px 4px 3px 0;border-radius:999px;border:1px solid #d1d5db;padding:4px 8px;font-size:.76rem;font-weight:800;background:#f9fafb}.check-pill.ok{color:#15803d;background:#ecfdf5;border-color:#bbf7d0}.check-pill.no{color:#991b1b;background:#fef2f2;border-color:#fecaca}
 
 
@@ -173,7 +176,7 @@
 
       <section class="panel" aria-label="Misa terlewat belum diisi">
         <div class="panel-head"><h2>Misa Terlewat Yang Belum Diisi</h2><div class="pending-tools"><div class="search-inline"><input id="searchPending" placeholder="Cari misa terlewat..."></div><select id="pendingKind" class="select-inline"><option value="all">Misa Biasa & Besar</option><option value="misa_biasa">Misa Biasa</option><option value="misa_besar">Misa Besar</option></select><select id="pendingSort" class="select-inline"><option value="date_asc">Tanggal Terlama</option><option value="date_desc">Tanggal Terbaru</option></select></div></div>
-        <div class="panel-body"><div id="pendingRows" class="pending-list"></div></div>
+        <div class="panel-body"><div id="pendingRows" class="pending-list"></div><div id="pendingPager" class="pending-pager"></div></div>
       </section>
     </main>
   </div>
@@ -191,6 +194,8 @@
     let state = { evaluations: [], pending: [], metrics: {}, summary: {}, currentUser: null, period: {} };
     let page = 1;
     const perPage = 10;
+    let pendingPage = 1;
+    const pendingPerPage = 5;
 
     function esc(value){return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
     function norm(value){return String(value ?? '').toLowerCase();}
@@ -349,13 +354,34 @@
     }
     function renderPending(){
       const rows = filteredPending();
-      $('pendingRows').innerHTML = rows.map(p=>{
+      const total = rows.length;
+      const maxPage = Math.max(1, Math.ceil(total / pendingPerPage));
+      if(pendingPage > maxPage) pendingPage = maxPage;
+      const start = (pendingPage - 1) * pendingPerPage;
+      const part = rows.slice(start, start + pendingPerPage);
+
+      $('pendingRows').innerHTML = part.map((p, i) => {
+        const globalNum = start + i + 1;
         const currentId = String(state.currentUser?.user_id || '');
         const mine = Boolean(p.canFillByCurrentUser) || (currentId && (p.staff||[]).some(s => String(s.memberId || '') === currentId));
         const staff = (p.staff || []).filter(s => s.memberId || s.memberName).map(s => esc(s.memberName || '-')).join(', ') || '-';
         const fillButton = mine ? `<a class="btn sm" href="form-evaluasi-streaming.html?scheduleId=${encodeURIComponent(p.id)}">Isi Evaluasi</a>` : '';
-        return `<article class="pending-item ${mine?'mine':''}"><div class="pending-top"><span class="badge warn">Belum Diisi</span>${mine?'<span class="badge red">Anda Bertugas</span>':''}</div><h4>${esc(p.misaName || '-')}</h4><p><b>${esc(p.kindLabel || '-')}</b> · ${esc(p.displayDateTime || '-')}</p><p><b>Petugas:</b> ${staff}</p><div class="pending-actions">${fillButton}</div></article>`;
+        return `<article class="pending-item ${mine?'mine':''}"><div class="pending-top"><span class="pending-item-num">${globalNum}</span><span class="badge warn">Belum Diisi</span>${mine?'<span class="badge red">Anda Bertugas</span>':''}</div><h4>${esc(p.misaName || '-')}</h4><p><b>${esc(p.kindLabel || '-')}</b> · ${esc(p.displayDateTime || '-')}</p><p><b>Petugas:</b> ${staff}</p><div class="pending-actions">${fillButton}</div></article>`;
       }).join('') || '<div class="empty">Tidak ada misa terlewat yang belum diisi sesuai filter.</div>';
+
+      // Render paginasi
+      const pager = $('pendingPager');
+      if(total <= pendingPerPage){
+        pager.innerHTML = total > 0 ? `<span class="pending-pager-info">${total} data ditemukan</span>` : '';
+      } else {
+        pager.innerHTML = `
+          <button class="btn ghost sm" type="button" id="prevPending" ${pendingPage <= 1 ? 'disabled' : ''}>← Sebelumnya</button>
+          <span class="pending-pager-info">Halaman ${pendingPage} dari ${maxPage} · ${total} misa terlewat</span>
+          <button class="btn ghost sm" type="button" id="nextPending" ${pendingPage >= maxPage ? 'disabled' : ''}>Berikutnya →</button>
+        `;
+        $('prevPending')?.addEventListener('click', () => { if(pendingPage > 1){ pendingPage--; renderPending(); } });
+        $('nextPending')?.addEventListener('click', () => { if(pendingPage < maxPage){ pendingPage++; renderPending(); } });
+      }
     }
     function checklistPills(checklist){
       const labels = {streaming_lancar:'Streaming berjalan lancar sampai akhir', koordinasi_baik:'Koordinasi tim berjalan baik', rekaman_tersimpan:'Rekaman tersimpan dengan benar'};
@@ -398,9 +424,9 @@
     $('searchEval').addEventListener('input', () => { page=1; renderEvalTable(); updateExportLinks(); });
     $('evalKind').addEventListener('change', () => { page=1; renderEvalTable(); updateExportLinks(); });
     $('evalSort').addEventListener('change', () => { page=1; renderEvalTable(); updateExportLinks(); });
-    $('searchPending').addEventListener('input', renderPending);
-    $('pendingKind').addEventListener('change', renderPending);
-    $('pendingSort').addEventListener('change', renderPending);
+    $('searchPending').addEventListener('input', () => { pendingPage = 1; renderPending(); });
+    $('pendingKind').addEventListener('change', () => { pendingPage = 1; renderPending(); });
+    $('pendingSort').addEventListener('change', () => { pendingPage = 1; renderPending(); });
     $('toggleAi').addEventListener('click', () => { $('aiBody').classList.toggle('show'); $('toggleAi').textContent = $('aiBody').classList.contains('show') ? 'Sembunyikan Ringkasan' : 'Tampilkan Ringkasan'; });
     $('detailClose').addEventListener('click', () => $('detailModal').classList.remove('show'));
     $('detailModal').addEventListener('click', ev => { if(ev.target === $('detailModal')) $('detailModal').classList.remove('show'); });
