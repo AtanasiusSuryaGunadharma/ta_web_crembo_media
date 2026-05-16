@@ -1087,7 +1087,7 @@
       const range = peminjamanChartRange.value;
       const series = await buildBorrowingSeriesReal(range);
       peminjamanChartTitle.textContent = 'Grafik Peminjaman ' + titleByRange(range);
-      renderLineChart('peminjamanChart', series.labels, series.values, '#6a6a6a');
+      renderLineChart('peminjamanChart', series.labels, series.values, '#8b0000');
     }
 
     // Inisialisasi
@@ -1255,7 +1255,7 @@
       const range = jadwalChartRange.value;
       const series = buildScheduleSeries(range);
       jadwalChartTitle.textContent = "Grafik Jadwal " + titleByRange(range);
-      renderLineChart("jadwalChart", series.labels, series.values, "#4a4a4a");
+      renderLineChart("jadwalChart", series.labels, series.values, "#8b0000");
     }
 
     function buildBorrowingSeries(range) {
@@ -1293,7 +1293,7 @@
       const range = peminjamanChartRange.value;
       const series = buildBorrowingSeries(range);
       peminjamanChartTitle.textContent = "Grafik Peminjaman " + titleByRange(range);
-      renderLineChart("peminjamanChart", series.labels, series.values, "#6a6a6a");
+      renderLineChart("peminjamanChart", series.labels, series.values, "#8b0000");
     }
 
     renderScheduleMetricReal();
