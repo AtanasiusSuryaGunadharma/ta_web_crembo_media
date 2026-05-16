@@ -3469,25 +3469,24 @@ def member_dashboard_request_chart(cursor, member_id: object, range_value: str) 
 
     add_rows(
         """
-        SELECT DATE(COALESCE(created_at, schedule_date)) AS item_date, COUNT(*) AS total
+        SELECT DATE(schedule_date) AS item_date, COUNT(*) AS total
         FROM streaming_assignments
         WHERE member_id = %s
-          AND COALESCE(request_source, '') = 'member_request'
-          AND DATE(COALESCE(created_at, schedule_date)) BETWEEN %s AND %s
-        GROUP BY DATE(COALESCE(created_at, schedule_date))
+          AND DATE(schedule_date) BETWEEN %s AND %s
+        GROUP BY DATE(schedule_date)
         """,
         (member_id, start.isoformat(), end.isoformat()),
     )
     add_rows(
         """
-        SELECT DATE(COALESCE(a.created_at, mb.misa_date)) AS item_date, COUNT(*) AS total
+        SELECT DATE(mb.misa_date) AS item_date, COUNT(*) AS total
         FROM misa_besar_assignments a
         JOIN misa_besar_names n ON n.id = a.role_id
         JOIN misa_besar mb ON mb.id = n.misa_id
         WHERE a.member_id = %s
-          AND COALESCE(a.request_source, '') = 'member_request'
-          AND DATE(COALESCE(a.created_at, mb.misa_date)) BETWEEN %s AND %s
-        GROUP BY DATE(COALESCE(a.created_at, mb.misa_date))
+          AND mb.status = 'published'
+          AND DATE(mb.misa_date) BETWEEN %s AND %s
+        GROUP BY DATE(mb.misa_date)
         """,
         (member_id, start.isoformat(), end.isoformat()),
     )
