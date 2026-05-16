@@ -1249,6 +1249,7 @@
             <table>
               <thead>
                 <tr>
+                  <th>No.</th>
                   <th>Jadwal</th>
                   <th>Role</th>
                   <th>Status</th>
@@ -1259,6 +1260,7 @@
               <tbody id="registeredTaskRows"></tbody>
             </table>
           </div>
+          <div id="registeredTaskPagination" class="notification-pagination" hidden></div>
         </section>
 
         <section class="cta-grid" aria-label="Shortcut modul">
@@ -1632,11 +1634,11 @@
       }
       
       if (!filtered.length) {
-        registeredTaskRows.innerHTML = '<tr><td colspan="5">Belum ada tugas terdaftar.</td></tr>';
+        registeredTaskRows.innerHTML = '<tr><td colspan="6">Belum ada tugas terdaftar.</td></tr>';
         return;
       }
 
-      registeredTaskRows.innerHTML = filtered.map(function (item) {
+      registeredTaskRows.innerHTML = filtered.map(function (item, index) {
         const scheduleLabel = item.title + " - " + item.date + " " + item.time;
         let statusHtml = '<span class="status-warn">' + item.status + '</span>';
         if (item.status === "Terdaftar") {
@@ -1663,6 +1665,7 @@
         }
 
         return '<tr>'
+          + '<td>' + (index + 1) + '</td>'
           + '<td>' + scheduleLabel + '</td>'
           + '<td>' + item.role + '</td>'
           + '<td>' + statusHtml + '</td>'
@@ -2033,10 +2036,11 @@
 <script>
 (function(){
   const api = {
+    loading: false,
+    lastData: null,
     currentMonth: String(new Date().getMonth() + 1).padStart(2, "0"),
     currentYear: String(new Date().getFullYear()),
-    lastData: null,
-    loading: false
+    registeredTaskPage: 1
   };
 
   const els = {
@@ -2055,6 +2059,7 @@
     taskFilterMonth: document.getElementById("taskFilterMonth"),
     taskFilterYear: document.getElementById("taskFilterYear"),
     registeredTaskRows: document.getElementById("registeredTaskRows"),
+    registeredTaskPagination: document.getElementById("registeredTaskPagination"),
     recommendedGrid: null,
     metricQuickLabel: document.getElementById("metricQuickLabel")
   };
@@ -2221,16 +2226,47 @@
       : '<span class="status-warn">Belum Diisi</span>';
   }
 
+  const REGISTERED_TASK_PAGE_SIZE = 5;
+
+  function renderRegisteredTaskPagination(totalItems, totalPages) {
+    if (!els.registeredTaskPagination) return;
+    if (!totalItems || totalItems <= REGISTERED_TASK_PAGE_SIZE) {
+      els.registeredTaskPagination.hidden = true;
+      els.registeredTaskPagination.innerHTML = "";
+      return;
+    }
+    els.registeredTaskPagination.hidden = false;
+    const start = (api.registeredTaskPage - 1) * REGISTERED_TASK_PAGE_SIZE + 1;
+    const end = Math.min(totalItems, api.registeredTaskPage * REGISTERED_TASK_PAGE_SIZE);
+    els.registeredTaskPagination.innerHTML = '<span class="notification-pagination-info">Menampilkan ' + start + '-' + end + ' dari ' + totalItems + ' tugas</span>'
+      + '<div class="notification-page-actions">'
+      + '<button class="notification-page-btn" type="button" data-rt-page="prev"' + (api.registeredTaskPage <= 1 ? ' disabled' : '') + '>Sebelumnya</button>'
+      + '<span class="notification-pagination-info">Halaman ' + api.registeredTaskPage + ' / ' + totalPages + '</span>'
+      + '<button class="notification-page-btn" type="button" data-rt-page="next"' + (api.registeredTaskPage >= totalPages ? ' disabled' : '') + '>Berikutnya</button>'
+      + '</div>';
+  }
+
   function renderRegisteredTasks(data){
     if (!els.registeredTaskRows) return;
     const rows = Array.isArray(data.registeredTasks) ? data.registeredTasks : [];
+    
+    const totalPages = Math.max(1, Math.ceil(rows.length / REGISTERED_TASK_PAGE_SIZE));
+    if (api.registeredTaskPage > totalPages) api.registeredTaskPage = totalPages;
+    if (api.registeredTaskPage < 1) api.registeredTaskPage = 1;
+
     if (!rows.length) {
       const month = els.taskFilterMonth ? monthName(els.taskFilterMonth.value) : "bulan ini";
       const year = els.taskFilterYear ? els.taskFilterYear.value : "";
-      els.registeredTaskRows.innerHTML = '<tr><td colspan="5">Belum ada tugas terdaftar untuk ' + escapeHtml(month + ' ' + year) + '.</td></tr>';
+      els.registeredTaskRows.innerHTML = '<tr><td colspan="6">Belum ada tugas terdaftar untuk ' + escapeHtml(month + ' ' + year) + '.</td></tr>';
+      renderRegisteredTaskPagination(0, 1);
       return;
     }
-    els.registeredTaskRows.innerHTML = rows.map(function(item){
+    
+    const pageItems = rows.slice((api.registeredTaskPage - 1) * REGISTERED_TASK_PAGE_SIZE, api.registeredTaskPage * REGISTERED_TASK_PAGE_SIZE);
+    const startIndex = (api.registeredTaskPage - 1) * REGISTERED_TASK_PAGE_SIZE;
+
+    els.registeredTaskRows.innerHTML = pageItems.map(function(item, index){
+      const rowNumber = startIndex + index + 1;
       const scheduleLabel = escapeHtml(item.typeLabel || "Misa") + ' - <strong>' + escapeHtml(item.misaName || "Misa") + '</strong><br><small>' + escapeHtml(item.dayName || "-") + ', ' + escapeHtml(item.dateLabel || item.date || "-") + ' jam ' + escapeHtml(item.time || "-") + ' WIB</small>';
       let actionHtml = '<a class="mini-btn ghost" href="riwayat-tugas-saya.html">Lihat Histori</a>';
       if (item.status !== "Selesai") {
@@ -2248,6 +2284,7 @@
         }
       }
       return '<tr>'
+        + '<td>' + rowNumber + '</td>'
         + '<td>' + scheduleLabel + '</td>'
         + '<td>' + escapeHtml(item.role || "-") + '</td>'
         + '<td>' + statusHtml(item) + '</td>'
@@ -2255,6 +2292,8 @@
         + '<td>' + actionHtml + '</td>'
         + '</tr>';
     }).join("");
+    
+    renderRegisteredTaskPagination(rows.length, totalPages);
   }
 
   function renderError(message){
@@ -2263,7 +2302,7 @@
     if (els.upcomingTaskValue) els.upcomingTaskValue.textContent = "0";
     if (els.metricDoneValue) els.metricDoneValue.textContent = "0";
     if (els.recommendedGrid) els.recommendedGrid.innerHTML = '<div class="dashboard-empty">' + escapeHtml(message) + '</div>';
-    if (els.registeredTaskRows) els.registeredTaskRows.innerHTML = '<tr><td colspan="5">' + escapeHtml(message) + '</td></tr>';
+    if (els.registeredTaskRows) els.registeredTaskRows.innerHTML = '<tr><td colspan="6">' + escapeHtml(message) + '</td></tr>';
   }
 
   async function loadDashboardBackend(){
@@ -2320,8 +2359,24 @@
     [els.metricScheduleRange, els.metricDoneRange, els.requestChartRange, els.taskFilterMonth, els.taskFilterYear, taskFilterType]
       .filter(Boolean)
       .forEach(function(select){
-        select.addEventListener("change", loadDashboardBackend);
+        select.addEventListener("change", function(){
+          if (select === els.taskFilterMonth || select === els.taskFilterYear || select === taskFilterType) {
+            api.registeredTaskPage = 1;
+          }
+          loadDashboardBackend();
+        });
       });
+
+    if (els.registeredTaskPagination) {
+      els.registeredTaskPagination.addEventListener("click", function(event){
+        const button = event.target.closest(".notification-page-btn");
+        if (!button) return;
+        const action = button.getAttribute("data-rt-page");
+        if (action === "prev") api.registeredTaskPage -= 1;
+        else if (action === "next") api.registeredTaskPage += 1;
+        renderRegisteredTasks(api.lastData || { registeredTasks: [] });
+      });
+    }
 
     if (els.registeredTaskRows) {
       els.registeredTaskRows.addEventListener("click", function(event){
