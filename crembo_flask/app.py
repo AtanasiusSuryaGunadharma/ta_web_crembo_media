@@ -14546,6 +14546,7 @@ def api_streaming_evaluation_schedules():
             end = now.date()
         schedules = eval_all_schedules(cursor, start, end, kind)
         evals = eval_evaluation_map(cursor, start.isoformat(), end.isoformat())
+        sort_mode = normalize_text(request.args.get("sort") or "date_asc")
         rows = []
         for schedule in schedules:
             dt = eval_datetime_from_parts(schedule.get("date"), schedule.get("time"))
@@ -14559,6 +14560,10 @@ def api_streaming_evaluation_schedules():
             if mode == "form" and (not is_due or not has_staff or (ev and not include_evaluated)):
                 continue
             rows.append(schedule)
+        if sort_mode in {"date_desc", "newest", "terbaru"}:
+            rows.sort(key=lambda item: (item.get("date") or "", item.get("time") or "", item.get("misaName") or ""), reverse=True)
+        else:
+            rows.sort(key=lambda item: (item.get("date") or "", item.get("time") or "", item.get("misaName") or ""))
         return jsonify({"success": True, "schedules": rows, "questions": eval_fetch_questions(cursor), "settings": settings, "currentUser": current_user_context()})
     finally:
         cursor.close()

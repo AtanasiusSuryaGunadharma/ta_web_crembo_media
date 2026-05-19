@@ -104,7 +104,7 @@
     .badge.red{background:#fef2f2;color:#991b1b;border-color:#fecaca}
     .badge.gray{background:#f3f4f6;color:#4b5563;border-color:#d1d5db}
 
-    .select-grid{display:grid;grid-template-columns:200px 1fr auto;gap:12px;align-items:end}
+    .select-grid{display:grid;grid-template-columns:200px 180px 1fr auto;gap:12px;align-items:end}
     .field{display:grid;gap:6px;min-width:0}
     label,.label{font-size:.79rem;font-weight:900;color:#7f1d1d;text-transform:uppercase;letter-spacing:.025em}
     input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--ink);transition:var(--transition)}
@@ -339,6 +339,13 @@
             </select>
           </div>
           <div class="field">
+            <label for="sortFilter">Urutkan Tanggal</label>
+            <select id="sortFilter">
+              <option value="date_desc">Tanggal Terbaru</option>
+              <option value="date_asc">Tanggal Terlama</option>
+            </select>
+          </div>
+          <div class="field">
             <span class="label">Tanggal - Jam Misa</span>
             <div id="scheduleCombo" class="combo" data-placeholder="Ketik nama misa, tanggal, jam, atau petugas..."></div>
           </div>
@@ -557,6 +564,7 @@
     const statusCard = $('#statusCard');
     const scrollTopBtn = $('#scrollTopBtn');
     const kindFilter = $('#kindFilter');
+    const sortFilter = $('#sortFilter');
     const scheduleList = $('#scheduleList');
     const scheduleCount = $('#scheduleCount');
     const openFormBtn = $('#openFormBtn');
@@ -700,8 +708,25 @@
       };
     }
 
+    function scheduleTimestamp(schedule){
+      const date = String(schedule?.date || '').trim();
+      const time = String(schedule?.time || '00:00').trim() || '00:00';
+      const timestamp = Date.parse(`${date}T${time}:00`);
+      return Number.isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    function sortSchedules(items){
+      const mode = sortFilter?.value || 'date_desc';
+      const multiplier = mode === 'date_asc' ? 1 : -1;
+      return [...items].sort((a, b) => {
+        const dateDiff = scheduleTimestamp(a) - scheduleTimestamp(b);
+        if(dateDiff !== 0) return dateDiff * multiplier;
+        return String(a.misaName || '').localeCompare(String(b.misaName || ''), 'id');
+      });
+    }
+
     function filterSchedules(){
-      return schedules;
+      return sortSchedules(schedules);
     }
 
     function renderScheduleList(){
@@ -742,7 +767,7 @@
       scheduleCount.textContent = 'Memuat jadwal...';
       openFormBtn.disabled = true;
       try{
-        const response = await fetch(`/api/evaluasi-streaming/schedules?mode=form&kind=${encodeURIComponent(kindFilter.value)}`);
+        const response = await fetch(`/api/evaluasi-streaming/schedules?mode=form&kind=${encodeURIComponent(kindFilter.value)}&sort=${encodeURIComponent(sortFilter.value)}`);
         const data = await response.json();
         if(!data.success){
           setStatus(data.error || 'Gagal memuat jadwal evaluasi.', 'danger');
@@ -1217,6 +1242,12 @@
         scheduleCombo.clear();
         evaluationFormCard.classList.remove('show');
         loadSchedules();
+      });
+      sortFilter.addEventListener('change', () => {
+        renderScheduleList();
+        if(scheduleCombo && selectedSchedule){
+          scheduleCombo.setSelected(selectedSchedule);
+        }
       });
       $('#addExtraBtn').addEventListener('click', () => {
         const member = extraMemberCombo.getSelected();
