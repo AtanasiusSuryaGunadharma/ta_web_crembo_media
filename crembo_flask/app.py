@@ -2842,6 +2842,8 @@ def notification_button_label(type_value: str, title: str, url: str | None) -> s
         return "Lihat Evaluasi"
     if "tugas" in haystack or "jadwal" in haystack:
         return "Lihat Jadwal Tugas"
+    if "akun" in haystack or "login" in haystack or "password" in haystack:
+        return "Login ke Crembo Media"
     if "keanggotaan" in haystack or "anggota" in haystack:
         return "Lihat Keanggotaan"
     return "Buka Halaman"
@@ -2921,8 +2923,9 @@ def notification_email_recipients(cursor, type_value: str, data: dict | None = N
     payload = data or {}
     target_user_id = normalize_text(payload.get("target_user_id"))
     target_role_value = normalize_role_value(target_role or "") if target_role else ""
-    user_scoped_types = {"tugas", "evaluasi", "tukar", "keanggotaan", "peminjaman", "kerusakan"}
+    user_scoped_types = {"tugas", "evaluasi", "tukar", "keanggotaan", "peminjaman", "kerusakan", "akun"}
     notif_type = normalize_text(type_value)
+    include_inactive = bool(payload.get("include_inactive") or payload.get("allow_inactive_email"))
 
     params = []
     if target_user_id:
@@ -2947,7 +2950,7 @@ def notification_email_recipients(cursor, type_value: str, data: dict | None = N
         FROM `anggota`
         {where_clause}
           AND COALESCE(`email`, '') <> ''
-          AND LOWER(COALESCE(`status_akun`, 'aktif')) = 'aktif'
+          {"" if include_inactive else "AND LOWER(COALESCE(`status_akun`, 'aktif')) = 'aktif'"}
         """,
         tuple(params),
     )
@@ -3391,7 +3394,7 @@ def get_notifications():
             except Exception:
                 viewer_created_at = None
 
-        user_scoped_types = {"tugas", "evaluasi", "tukar", "keanggotaan", "peminjaman", "kerusakan"}
+        user_scoped_types = {"tugas", "evaluasi", "tukar", "keanggotaan", "peminjaman", "kerusakan", "akun"}
         for r in rows:
             try:
                 payload = json.loads(r.get("data") or "{}")
@@ -4981,6 +4984,51 @@ def repair_effective_membership_statuses_for_admin(cursor) -> None:
 
 
 
+def member_default_password_label(birth_date: str) -> str:
+    """Format password default anggota baru menjadi dd/mm/yyyy."""
+    password = default_password_from_birth_date(birth_date)
+    if isinstance(password, str) and password.strip():
+        return password.strip()
+    return "tanggal lahir Anda dengan format dd/mm/yyyy"
+
+
+def create_new_member_account_notification(cursor, member_id: int, *, full_name: str, username: str, email_value: str, birth_date: str, role_value: str) -> None:
+    """Buat notifikasi dashboard dan email akun untuk anggota/admin baru."""
+    safe_name = normalize_text(full_name) or "Anggota Crembo Media"
+    safe_username = normalize_text(username) or normalize_text(email_value) or f"anggota-{member_id}"
+    default_password = member_default_password_label(birth_date)
+    role_label = {
+        "user": "Anggota",
+        "admin": "Admin",
+        "super_admin": "Super Admin",
+    }.get(normalize_role_value(role_value), "Anggota")
+    body = (
+        f"Halo <b>{html.escape(safe_name)}</b>, akun Anda sudah terdaftar pada website "
+        f"<b>Crembo Media</b>.<br>"
+        f"Anda dapat login melalui website <b>crembomedia.com</b> dengan data berikut:<br>"
+        f"<b>Role:</b> {html.escape(role_label)}<br>"
+        f"<b>Username:</b> {html.escape(safe_username)}<br>"
+        f"<b>Password default:</b> {html.escape(default_password)}<br>"
+        f"Password default memakai tanggal lahir dengan format <b>dd/mm/yyyy</b>. "
+        f"Contoh: 1 Februari 2001 menjadi <b>01/02/2001</b>. "
+        f"Silakan login dan ubah password setelah masuk jika diperlukan."
+    )
+    create_notification(
+        cursor,
+        "keanggotaan",
+        "Akun Crembo Media Anda Telah Terdaftar",
+        body,
+        "/login.html",
+        {
+            "target_user_id": member_id,
+            "member_id": member_id,
+            "include_inactive": True,
+            "event": "new_member_account",
+        },
+        target_role=None,
+    )
+
+
 def current_member_is_inactive() -> bool:
     return session.get("logged_in") and normalize_role_value(session.get("role") or "user") == "user" and normalize_status(session.get("status_akun") or "aktif") == "nonaktif"
 
@@ -5507,6 +5555,17 @@ def sync_members_from_payload(payload: list[dict[str, object]]) -> None:
                 )
             else:
                 cursor.execute("DELETE FROM admin_module_permissions WHERE member_id = %s", (member_id,))
+
+            if not is_existing:
+                create_new_member_account_notification(
+                    cursor,
+                    member_id,
+                    full_name=normalize_text(item.get("name") or item.get("fullName") or "Anggota"),
+                    username=normalize_text(item.get("username") or item.get("email") or item.get("phone") or f"anggota-{index}"),
+                    email_value=normalize_text(item.get("email")),
+                    birth_date=birth_date,
+                    role_value=requested_role,
+                )
 
             if is_existing:
                 previous_status = normalize_status(existing.get("status_akun") or "aktif")
@@ -6959,6 +7018,15 @@ def api_admin_users_create():
             ),
         )
         upsert_admin_permissions(cursor, next_id, values["permissions"])
+        create_new_member_account_notification(
+            cursor,
+            next_id,
+            full_name=values["full_name"],
+            username=values["username"],
+            email_value=values["email"],
+            birth_date=values["birth_date"],
+            role_value="admin",
+        )
         conn.commit()
         admins = fetch_admin_users_for_super(cursor)
         return jsonify({"ok": True, "message": "Admin baru berhasil ditambahkan.", "admins": admins})
