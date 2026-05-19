@@ -10,6 +10,8 @@ import html
 import calendar
 import secrets
 import smtplib
+import threading
+import queue
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -86,6 +88,15 @@ EMAIL_LOGO_PATH = Path(os.getenv("EMAIL_LOGO_PATH", str(FRONTEND_DIR / "LOGO CRE
 # Pada hosting produksi, nilai default diarahkan ke domain Crembo Media.
 PUBLIC_BASE_URL = (os.getenv("PUBLIC_BASE_URL") or os.getenv("SITE_BASE_URL") or "https://crembomedia.com").rstrip("/")
 NOTIFICATION_EMAIL_ENABLED = (os.getenv("NOTIFICATION_EMAIL_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"})
+NOTIFICATION_EMAIL_RETRY_COUNT = max(1, int(os.getenv("NOTIFICATION_EMAIL_RETRY_COUNT", "3")))
+NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS = max(0.2, float(os.getenv("NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS", "2.5")))
+NOTIFICATION_EMAIL_SEND_DELAY_SECONDS = max(0.0, float(os.getenv("NOTIFICATION_EMAIL_SEND_DELAY_SECONDS", "0.8")))
+NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS = max(1, int(os.getenv("NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS", "12")))
+NOTIFICATION_EMAIL_ROW_WAIT_SECONDS = max(0.1, float(os.getenv("NOTIFICATION_EMAIL_ROW_WAIT_SECONDS", "0.35")))
+_notification_email_queue: "queue.Queue[dict[str, object]]" = queue.Queue()
+_notification_email_worker_started = False
+_notification_email_worker_lock = threading.Lock()
+_smtp_send_lock = threading.Lock()
 PASSWORD_RESET_OTP_MINUTES = int(os.getenv("PASSWORD_RESET_OTP_MINUTES", "5"))
 PASSWORD_RESET_RESEND_SECONDS = int(os.getenv("PASSWORD_RESET_RESEND_SECONDS", "120"))
 PASSWORD_RESET_MAX_ATTEMPTS = int(os.getenv("PASSWORD_RESET_MAX_ATTEMPTS", "5"))
@@ -3038,6 +3049,164 @@ def send_notification_email_for_notification(cursor, notification_id: str, type_
             except Exception as log_exc:
                 print(f"[WARN] Gagal mencatat status email notifikasi: {log_exc}")
 
+
+def ensure_notification_email_worker_started() -> None:
+    """Jalankan worker email notifikasi satu kali saja.
+
+    Email dashboard dikirim lewat antrean background agar proses simpan
+    notifikasi ke database tidak tertahan oleh koneksi SMTP.
+    """
+    global _notification_email_worker_started
+    if not NOTIFICATION_EMAIL_ENABLED:
+        return
+    with _notification_email_worker_lock:
+        if _notification_email_worker_started:
+            return
+        worker = threading.Thread(
+            target=notification_email_worker_loop,
+            name="crembo-notification-email-worker",
+            daemon=True,
+        )
+        worker.start()
+        _notification_email_worker_started = True
+
+
+def enqueue_notification_email_job(notification_id: str) -> None:
+    if not NOTIFICATION_EMAIL_ENABLED:
+        return
+    clean_id = normalize_text(notification_id)
+    if not clean_id:
+        return
+    ensure_notification_email_worker_started()
+    _notification_email_queue.put({"notification_id": clean_id})
+
+
+def notification_email_worker_loop() -> None:
+    while True:
+        job = _notification_email_queue.get()
+        try:
+            notification_id = normalize_text(job.get("notification_id") if isinstance(job, dict) else "")
+            if notification_id:
+                deliver_notification_email_job(notification_id)
+        except Exception as exc:
+            print(f"[WARN] Worker email notifikasi gagal: {exc}")
+        finally:
+            try:
+                _notification_email_queue.task_done()
+            except Exception:
+                pass
+
+
+def fetch_committed_notification_for_email(notification_id: str) -> dict[str, object] | None:
+    """Ambil notifikasi dari koneksi baru.
+
+    Worker bisa berjalan sebelum transaksi pembuat notifikasi selesai commit.
+    Karena itu pembacaan dibuat retry agar email tidak hilang dan dashboard tetap
+    bisa menerima notifikasi lebih cepat.
+    """
+    for attempt in range(NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS):
+        conn = None
+        cursor = None
+        try:
+            conn = mysql_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT `id`, `type`, `title`, `body`, `url`, `data`, `target_role`, `created_at` FROM `notifications` WHERE `id` = %s LIMIT 1",
+                (notification_id,),
+            )
+            row = cursor.fetchone()
+            if row:
+                return row
+        except Exception as exc:
+            if attempt >= NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS - 1:
+                print(f"[WARN] Gagal membaca notifikasi {notification_id} untuk email: {exc}")
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+        time.sleep(NOTIFICATION_EMAIL_ROW_WAIT_SECONDS)
+    return None
+
+
+def deliver_notification_email_job(notification_id: str) -> None:
+    if not NOTIFICATION_EMAIL_ENABLED:
+        return
+
+    row = fetch_committed_notification_for_email(notification_id)
+    if not row:
+        print(f"[WARN] Notifikasi {notification_id} belum ditemukan setelah retry; email dilewati.")
+        return
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        try:
+            payload = json.loads(row.get("data") or "{}")
+        except Exception:
+            payload = {}
+
+        type_value = normalize_text(row.get("type"))
+        title = normalize_text(row.get("title"))
+        body = str(row.get("body") or "")
+        public_url = public_url_for_notification(row.get("url")) if row.get("url") else None
+        target_role = normalize_text(row.get("target_role")) or None
+
+        recipients = notification_email_recipients(cursor, type_value, payload, target_role)
+        if not recipients:
+            return
+
+        for recipient in recipients:
+            email_value = normalize_text(recipient.get("email"))
+            if not email_value:
+                continue
+
+            try:
+                if notification_email_already_sent(cursor, notification_id, email_value):
+                    continue
+            except Exception:
+                pass
+
+            last_error = None
+            delivered = False
+            for attempt in range(1, NOTIFICATION_EMAIL_RETRY_COUNT + 1):
+                try:
+                    subject, text_body, html_body = build_notification_email(
+                        recipient.get("name") or email_value,
+                        type_value,
+                        title,
+                        body,
+                        public_url,
+                    )
+                    # Gmail sering menutup koneksi bila terlalu banyak koneksi SMTP
+                    # dibuat paralel. Lock ini memastikan pengiriman berjalan satu per satu.
+                    with _smtp_send_lock:
+                        send_email_message(email_value, recipient.get("name") or email_value, subject, text_body, html_body)
+                    record_notification_email_delivery(cursor, notification_id, recipient, "sent", None)
+                    conn.commit()
+                    delivered = True
+                    break
+                except Exception as exc:
+                    last_error = str(exc)[:500]
+                    if attempt < NOTIFICATION_EMAIL_RETRY_COUNT:
+                        time.sleep(NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS)
+
+            if not delivered:
+                print(f"[WARN] Gagal mengirim email notifikasi {notification_id} ke {email_value}: {last_error}")
+                try:
+                    record_notification_email_delivery(cursor, notification_id, recipient, "failed", last_error)
+                    conn.commit()
+                except Exception as log_exc:
+                    conn.rollback()
+                    print(f"[WARN] Gagal mencatat status email notifikasi: {log_exc}")
+
+            if NOTIFICATION_EMAIL_SEND_DELAY_SECONDS:
+                time.sleep(NOTIFICATION_EMAIL_SEND_DELAY_SECONDS)
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def create_notification(cursor, type_value: str, title: str, body: str, url: str | None = None, data: dict | None = None, target_role: str | None = None):
     nid = f"notif-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
     clean_type = str(type_value or "")
@@ -3060,11 +3229,12 @@ def create_notification(cursor, type_value: str, title: str, body: str, url: str
             target_role 
         ),
     )
+    # Email dikirim lewat antrean background.
+    # Dengan cara ini notifikasi dashboard tidak menunggu koneksi SMTP selesai.
     try:
-        send_notification_email_for_notification(cursor, nid, clean_type, clean_title, clean_body, public_url, payload, target_role)
+        enqueue_notification_email_job(nid)
     except Exception as exc:
-        # Kegagalan email tidak boleh membatalkan notifikasi dashboard.
-        print(f"[WARN] Gagal memproses email notifikasi {nid}: {exc}")
+        print(f"[WARN] Gagal memasukkan email notifikasi {nid} ke antrean: {exc}")
     return nid
 
 def create_notification_once(

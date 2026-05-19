@@ -1484,7 +1484,7 @@
 
     async function fetchNotifications() {
       try {
-        const res = await fetch('/api/notifications?limit=200', { credentials: 'same-origin' });
+        const res = await fetch('/api/notifications?limit=200&_=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
         if (!res.ok) throw new Error('Gagal memuat notifikasi');
         const data = await res.json();
         return Array.isArray(data) ? data : [];
@@ -1963,6 +1963,11 @@
     renderPendingAndUpcomingMetric();
     renderRequestTaskChart();
     renderNotifications();
+    setInterval(function () {
+      if (document.visibilityState !== "hidden") {
+        renderNotifications();
+      }
+    }, 20000);
 
     registeredTaskRows.addEventListener("click", function (event) {
       const target = event.target;
