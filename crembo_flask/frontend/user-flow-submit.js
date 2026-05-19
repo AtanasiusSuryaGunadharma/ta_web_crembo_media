@@ -275,6 +275,42 @@
     nav.appendChild(link);
   }
 
+  function cleanupOversizedUserFlowStorage(flowSlug) {
+    var keys = [
+      LOCAL_SUBMISSION_PREFIX + "-" + flowSlug,
+      "uf-last-submission-" + flowSlug,
+      "uf-last-submission",
+      "uf-last-submission-meta-" + flowSlug
+    ];
+    keys.forEach(function (key) {
+      try { localStorage.removeItem(key); } catch (error) {}
+    });
+  }
+
+  function safeSaveSubmissionSnapshot(payload, savedRecord) {
+    var flowSlug = payload.flow_slug || (document.body && document.body.getAttribute("data-flow")) || "role";
+    var snapshot = {
+      submission_id: payload.submission_id || (savedRecord && savedRecord.id) || "",
+      flow_slug: payload.flow_slug,
+      role_name: payload.role_name,
+      tester_full_name: payload.identity && payload.identity.tester_name,
+      tester_org: payload.identity && payload.identity.tester_org,
+      submitted_at: payload.submitted_at,
+      sus_score: payload.summary && payload.summary.sus_score,
+      sus_category: payload.summary && payload.summary.sus_category,
+      sus_grade: payload.summary && payload.summary.sus_grade
+    };
+
+    try {
+      cleanupOversizedUserFlowStorage(flowSlug);
+      localStorage.setItem("uf-last-submission-meta-" + flowSlug, JSON.stringify(snapshot));
+    } catch (error) {
+      // Penyimpanan utama sudah berhasil di Supabase. LocalStorage hanya cache kecil,
+      // jadi error quota browser tidak boleh dianggap gagal submit.
+      console.warn("Cache localStorage dilewati:", error && error.message ? error.message : error);
+    }
+  }
+
   function installSaveHandler() {
     var oldButton = byId("saveBtn");
     if (!oldButton || oldButton.getAttribute("data-supabase-bound") === "1") return;
@@ -295,8 +331,7 @@
         var response = await submitPayload(payload);
         var saved = Array.isArray(response) && response[0] ? response[0] : null;
         if (saved && saved.id) payload.submission_id = saved.id;
-        localStorage.setItem(LOCAL_SUBMISSION_PREFIX + "-" + flowSlug, JSON.stringify(payload));
-        localStorage.setItem("uf-last-submission-" + flowSlug, JSON.stringify(payload));
+        safeSaveSubmissionSnapshot(payload, saved);
         var scoreText = payload.summary.sus_score == null ? "-" : Number(payload.summary.sus_score).toFixed(2);
         renderResult("Data berhasil disimpan ke Supabase.", "success", "<span>Skor SUS: " + esc(scoreText) + " - " + esc(payload.summary.sus_category || "-") + "</span>");
         alert("Data berhasil disimpan ke Supabase.");
@@ -317,8 +352,7 @@
     resetBtn.addEventListener("click", function () {
       var flowSlug = document.body.getAttribute("data-flow") || "role";
       setTimeout(function () {
-        localStorage.removeItem(LOCAL_SUBMISSION_PREFIX + "-" + flowSlug);
-        localStorage.removeItem("uf-last-submission-" + flowSlug);
+        cleanupOversizedUserFlowStorage(flowSlug);
       }, 250);
     });
   }
@@ -326,6 +360,7 @@
   function init() {
     if (!document.body || !document.body.getAttribute("data-flow")) return;
     if (!byId("saveBtn")) return;
+    cleanupOversizedUserFlowStorage(document.body.getAttribute("data-flow") || "role");
     addHasilLink();
     updateFooterNote();
     installSaveHandler();
