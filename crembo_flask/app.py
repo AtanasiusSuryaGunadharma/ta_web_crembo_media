@@ -82,6 +82,10 @@ SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USERNAME)
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Crembo Media")
 # Logo untuk body email OTP. Default mengikuti file logo di folder frontend.
 EMAIL_LOGO_PATH = Path(os.getenv("EMAIL_LOGO_PATH", str(FRONTEND_DIR / "LOGO CREMBO PUTIH yg bagus.png")))
+# Domain publik untuk tautan pada email notifikasi dan tombol notifikasi.
+# Pada hosting produksi, nilai default diarahkan ke domain Crembo Media.
+PUBLIC_BASE_URL = (os.getenv("PUBLIC_BASE_URL") or os.getenv("SITE_BASE_URL") or "https://crembomedia.com").rstrip("/")
+NOTIFICATION_EMAIL_ENABLED = (os.getenv("NOTIFICATION_EMAIL_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"})
 PASSWORD_RESET_OTP_MINUTES = int(os.getenv("PASSWORD_RESET_OTP_MINUTES", "5"))
 PASSWORD_RESET_RESEND_SECONDS = int(os.getenv("PASSWORD_RESET_RESEND_SECONDS", "120"))
 PASSWORD_RESET_MAX_ATTEMPTS = int(os.getenv("PASSWORD_RESET_MAX_ATTEMPTS", "5"))
@@ -787,7 +791,7 @@ def inventory_export_rows(items: list[dict[str, object]]):
         "Update",
     ]
     rows = []
-    base_url = "http://127.0.0.1:5000" 
+    base_url = PUBLIC_BASE_URL 
 
     for item in items:
         photos = item.get("photos") or []
@@ -2769,13 +2773,275 @@ def ensure_notifications_schema() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         ''')
         ensure_column(cursor, "notifications", "target_role", "`target_role` varchar(50) DEFAULT NULL")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS `notification_email_deliveries` (
+              `notification_id` varchar(100) NOT NULL,
+              `recipient_user_id` varchar(100) NOT NULL DEFAULT '',
+              `recipient_email` varchar(255) NOT NULL,
+              `status` varchar(30) NOT NULL DEFAULT 'sent',
+              `error_message` text DEFAULT NULL,
+              `sent_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`notification_id`, `recipient_email`),
+              KEY `idx_notification_email_recipient` (`recipient_email`),
+              KEY `idx_notification_email_status` (`status`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """)
         conn.commit()
     finally:
         cursor.close()
         conn.close()
 
+
+def public_url_for_notification(url: str | None) -> str | None:
+    """Ubah URL relatif atau URL lokal menjadi URL domain produksi."""
+    raw = normalize_text(url)
+    if not raw:
+        return None
+    local_prefixes = (
+        "http://127.0.0.1:5000",
+        "https://127.0.0.1:5000",
+        "http://localhost:5000",
+        "https://localhost:5000",
+    )
+    for prefix in local_prefixes:
+        if raw.startswith(prefix):
+            raw = raw[len(prefix):] or "/"
+            break
+    if raw.startswith("//"):
+        return "https:" + raw
+    if re.match(r"^https?://", raw, re.IGNORECASE):
+        return raw
+    if raw.startswith("/"):
+        return f"{PUBLIC_BASE_URL}{raw}"
+    return f"{PUBLIC_BASE_URL}/{raw.lstrip('/')}"
+
+
+def html_to_plain_text(value: str) -> str:
+    raw = str(value or "")
+    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", raw)
+    raw = re.sub(r"(?i)</\s*p\s*>", "\n", raw)
+    raw = re.sub(r"<[^>]+>", "", raw)
+    raw = html.unescape(raw)
+    raw = re.sub(r"\n{3,}", "\n\n", raw)
+    return raw.strip()
+
+
+def notification_button_label(type_value: str, title: str, url: str | None) -> str:
+    haystack = normalize_text(" ".join([type_value or "", title or "", url or ""]))
+    if "agenda" in haystack:
+        return "Lihat Agenda"
+    if "pengumuman" in haystack or "news" in haystack:
+        return "Lihat Pengumuman"
+    if "form" in haystack or "pendaftaran" in haystack:
+        return "Lihat Form Pendaftaran"
+    if "peminjaman" in haystack or "barang" in haystack:
+        return "Lihat Peminjaman"
+    if "kerusakan" in haystack:
+        return "Lihat Laporan Kerusakan"
+    if "evaluasi" in haystack:
+        return "Lihat Evaluasi"
+    if "tugas" in haystack or "jadwal" in haystack:
+        return "Lihat Jadwal Tugas"
+    if "keanggotaan" in haystack or "anggota" in haystack:
+        return "Lihat Keanggotaan"
+    return "Buka Halaman"
+
+
+def build_notification_email(recipient_name: str, type_value: str, title: str, body: str, absolute_url: str | None) -> tuple[str, str, str]:
+    site_name = "Crembo Media"
+    safe_title = normalize_text(title) or "Notifikasi Crembo Media"
+    body_text = html_to_plain_text(body) or "Ada notifikasi baru di dashboard Crembo Media Anda."
+    recipient_label = normalize_text(recipient_name) or "Anggota"
+    button_label = notification_button_label(type_value, safe_title, absolute_url)
+    url_text = absolute_url or PUBLIC_BASE_URL
+    subject = f"{safe_title} - {site_name}"
+    text_body = (
+        f"Halo {recipient_label},\n\n"
+        f"{safe_title}\n\n"
+        f"{body_text}\n\n"
+        f"URL halaman:\n{url_text}\n\n"
+        f"Salam,\nTim {site_name}"
+    )
+    body_html = html.escape(body_text).replace("\n", "<br>")
+    button_html = ""
+    if url_text:
+        button_html = (
+            f'<div style="margin:18px 0 6px;">'
+            f'<a href="{html.escape(url_text)}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#800000,#b11f1f);color:#ffffff;text-decoration:none;border-radius:12px;padding:12px 18px;font-weight:800;font-size:14px;">{html.escape(button_label)}</a>'
+            f'</div>'
+        )
+    html_body = f"""<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{html.escape(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0ef;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1a1a1a;">
+  <div style="max-width:620px;margin:0 auto;padding:28px 14px;">
+    <div style="background:linear-gradient(135deg,#3a0000,#800000 55%,#a52a2a);border-radius:18px 18px 0 0;padding:24px;color:#fff;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr>
+          <td width="64" style="vertical-align:middle;padding-right:14px;">
+            <img src="cid:crembo_logo" alt="Logo Crembo Media" width="58" height="58" style="display:block;width:58px;height:58px;object-fit:contain;border-radius:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:4px;">
+          </td>
+          <td style="vertical-align:middle;">
+            <div style="font-size:22px;font-weight:900;letter-spacing:.4px;line-height:1.2;">CREMBO MEDIA</div>
+            <div style="margin-top:4px;color:rgba(255,255,255,.82);font-size:13px;">Sistem Informasi Internal Komunitas</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div style="background:#fff;border:1px solid rgba(128,0,0,.13);border-top:0;border-radius:0 0 18px 18px;padding:28px;box-shadow:0 12px 32px rgba(128,0,0,.13);">
+      <div style="display:inline-block;margin:0 0 12px;padding:6px 10px;border-radius:999px;background:#fff3f3;border:1px solid #f1caca;color:#800000;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;">{html.escape(type_value or "Notifikasi")}</div>
+      <h1 style="margin:0 0 8px;font-size:22px;color:#800000;line-height:1.35;">{html.escape(safe_title)}</h1>
+      <p style="margin:0 0 18px;line-height:1.7;color:#4a4a4a;">Halo <strong>{html.escape(recipient_label)}</strong>, ada notifikasi baru untuk Anda.</p>
+      <div style="margin:18px 0;padding:16px;border-radius:14px;background:#fff8f8;border:1px solid #f1d1d1;color:#333;line-height:1.7;font-size:14px;">{body_html}</div>
+      <div style="margin:18px 0;padding:14px;border-left:4px solid #d4a017;background:#fff8e1;border-radius:10px;color:#5c3b00;font-size:13px;line-height:1.7;">
+        <strong>URL halaman:</strong><br>
+        <a href="{html.escape(url_text)}" target="_blank" style="color:#800000;word-break:break-all;">{html.escape(url_text)}</a>
+      </div>
+      {button_html}
+      <p style="margin:22px 0 0;color:#7a7a7a;font-size:12px;line-height:1.6;">Email ini dikirim otomatis oleh sistem {html.escape(site_name)} karena notifikasi yang sama muncul pada dashboard Anda.</p>
+    </div>
+  </div>
+</body>
+</html>"""
+    return subject, text_body, html_body
+
+
+def _row_value(row, key: str, index: int = 0, default=""):
+    if isinstance(row, dict):
+        return row.get(key, default)
+    if isinstance(row, (list, tuple)) and len(row) > index:
+        return row[index]
+    return default
+
+
+def notification_email_recipients(cursor, type_value: str, data: dict | None = None, target_role: str | None = None) -> list[dict[str, str]]:
+    payload = data or {}
+    target_user_id = normalize_text(payload.get("target_user_id"))
+    target_role_value = normalize_role_value(target_role or "") if target_role else ""
+    user_scoped_types = {"tugas", "evaluasi", "tukar", "keanggotaan", "peminjaman", "kerusakan"}
+    notif_type = normalize_text(type_value)
+
+    params = []
+    if target_user_id:
+        where_clause = "WHERE `id` = %s"
+        params.append(target_user_id)
+    elif target_role_value == "admin":
+        where_clause = "WHERE `role` IN ('admin', 'super_admin')"
+    elif target_role_value == "super_admin":
+        where_clause = "WHERE `role` = 'super_admin'"
+    elif target_role_value == "user":
+        where_clause = "WHERE `role` = 'user'"
+    elif notif_type in user_scoped_types:
+        # Notifikasi personal tanpa target_user_id tidak dikirim massal agar tidak bocor ke user lain.
+        return []
+    else:
+        # Broadcast umum seperti agenda, pengumuman, atau form pendaftaran.
+        where_clause = "WHERE `role` IN ('user', 'admin', 'super_admin')"
+
+    cursor.execute(
+        f"""
+        SELECT `id`, `nama`, `email`, `role`, `status_akun`
+        FROM `anggota`
+        {where_clause}
+          AND COALESCE(`email`, '') <> ''
+          AND LOWER(COALESCE(`status_akun`, 'aktif')) = 'aktif'
+        """,
+        tuple(params),
+    )
+    rows = cursor.fetchall() or []
+    recipients = []
+    seen_emails = set()
+    for row in rows:
+        email_value = normalize_text(_row_value(row, "email", 2))
+        if not email_value or "@" not in email_value:
+            continue
+        email_key = email_value.lower()
+        if email_key in seen_emails:
+            continue
+        seen_emails.add(email_key)
+        recipients.append({
+            "id": str(_row_value(row, "id", 0, "")),
+            "name": normalize_text(_row_value(row, "nama", 1)) or email_value,
+            "email": email_value,
+            "role": normalize_role_value(_row_value(row, "role", 3, "user")),
+        })
+    return recipients
+
+
+def record_notification_email_delivery(cursor, notification_id: str, recipient: dict[str, str], status: str, error_message: str | None = None) -> None:
+    cursor.execute(
+        """
+        INSERT INTO `notification_email_deliveries`
+          (`notification_id`, `recipient_user_id`, `recipient_email`, `status`, `error_message`, `sent_at`)
+        VALUES (%s, %s, %s, %s, %s, NOW())
+        ON DUPLICATE KEY UPDATE
+          `status` = VALUES(`status`),
+          `error_message` = VALUES(`error_message`),
+          `sent_at` = VALUES(`sent_at`)
+        """,
+        (
+            notification_id,
+            normalize_text(recipient.get("id")),
+            normalize_text(recipient.get("email")),
+            normalize_text(status) or "sent",
+            (error_message or None),
+        ),
+    )
+
+
+def notification_email_already_sent(cursor, notification_id: str, email_value: str) -> bool:
+    cursor.execute(
+        """
+        SELECT 1 FROM `notification_email_deliveries`
+        WHERE `notification_id` = %s AND `recipient_email` = %s AND `status` = 'sent'
+        LIMIT 1
+        """,
+        (notification_id, email_value),
+    )
+    return cursor.fetchone() is not None
+
+
+def send_notification_email_for_notification(cursor, notification_id: str, type_value: str, title: str, body: str, url: str | None, data: dict | None, target_role: str | None) -> None:
+    if not NOTIFICATION_EMAIL_ENABLED:
+        return
+    absolute_url = public_url_for_notification(url) if url else None
+    recipients = notification_email_recipients(cursor, type_value, data, target_role)
+    if not recipients:
+        return
+    for recipient in recipients:
+        email_value = normalize_text(recipient.get("email"))
+        if not email_value:
+            continue
+        try:
+            if notification_email_already_sent(cursor, notification_id, email_value):
+                continue
+            subject, text_body, html_body = build_notification_email(
+                recipient.get("name") or email_value,
+                type_value,
+                title,
+                body,
+                absolute_url,
+            )
+            send_email_message(email_value, recipient.get("name") or email_value, subject, text_body, html_body)
+            record_notification_email_delivery(cursor, notification_id, recipient, "sent", None)
+        except Exception as exc:
+            error_text = str(exc)[:500]
+            print(f"[WARN] Gagal mengirim email notifikasi {notification_id} ke {email_value}: {error_text}")
+            try:
+                record_notification_email_delivery(cursor, notification_id, recipient, "failed", error_text)
+            except Exception as log_exc:
+                print(f"[WARN] Gagal mencatat status email notifikasi: {log_exc}")
+
 def create_notification(cursor, type_value: str, title: str, body: str, url: str | None = None, data: dict | None = None, target_role: str | None = None):
     nid = f"notif-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
+    clean_type = str(type_value or "")
+    clean_title = str(title or "")
+    clean_body = str(body or "")
+    payload = data or {}
+    public_url = public_url_for_notification(url) if url else None
     cursor.execute(
         """
         INSERT INTO `notifications` (`id`, `type`, `title`, `body`, `url`, `data`, `target_role`)
@@ -2783,14 +3049,19 @@ def create_notification(cursor, type_value: str, title: str, body: str, url: str
         """,
         (
             nid,
-            str(type_value or ""),
-            str(title or ""),
-            str(body or ""),
-            str(url or "") if url else None,
-            json.dumps(data or {}, ensure_ascii=False),
+            clean_type,
+            clean_title,
+            clean_body,
+            public_url,
+            json.dumps(payload, ensure_ascii=False),
             target_role 
         ),
     )
+    try:
+        send_notification_email_for_notification(cursor, nid, clean_type, clean_title, clean_body, public_url, payload, target_role)
+    except Exception as exc:
+        # Kegagalan email tidak boleh membatalkan notifikasi dashboard.
+        print(f"[WARN] Gagal memproses email notifikasi {nid}: {exc}")
     return nid
 
 def create_notification_once(
@@ -7839,7 +8110,7 @@ def registration_export_rows(form: dict[str, object], submissions: list[dict[str
     rows = []
 
     # Format domain utama (Contoh untuk local) Jika dionline sesuaikan URL-nya jika ingin url full
-    base_url = "http://127.0.0.1:5000" 
+    base_url = PUBLIC_BASE_URL 
 
     for index, submission in enumerate(submissions, start=1):
         answer_map = {}
@@ -8985,7 +9256,7 @@ def export_pengajuan_excel():
         worksheet.title = "Riwayat Peminjaman"
         worksheet.append(headers)
         
-        base_url = "http://127.0.0.1:5000"
+        base_url = PUBLIC_BASE_URL
         
         for item in items:
             p_info = safe_json_loads(item.get("pickup_info"), {})
@@ -9111,7 +9382,7 @@ def export_pengajuan_pdf():
 
         headers = ["Peminjam", "Barang", "Tgl Ambil", "Kondisi/Bukti Ambil", "Tgl Kembali", "Kondisi/Bukti Kembali", "Status"]
         rows = []
-        base_url = "http://127.0.0.1:5000"
+        base_url = PUBLIC_BASE_URL
         
         for item in items:
             p_info = safe_json_loads(item.get("pickup_info"), {})
@@ -9248,7 +9519,7 @@ def export_kerusakan_excel():
         worksheet.title = "Laporan Kerusakan"
         worksheet.append(headers)
         
-        base_url = "http://127.0.0.1:5000"
+        base_url = PUBLIC_BASE_URL
         
         for item in items:
             waktu_kej = item.get("waktu_kejadian").strftime("%Y-%m-%d %H:%M:%S") if item.get("waktu_kejadian") else "-"
@@ -9371,7 +9642,7 @@ def export_kerusakan_pdf():
         # Susunan header baru di PDF
         headers = ["Barang", "Pelapor", "Tingkat", "Deskripsi", "Waktu", "Diinput", "Foto Bukti", "Status"]
         rows = []
-        base_url = "http://127.0.0.1:5000"
+        base_url = PUBLIC_BASE_URL
         
         for item in items:
             waktu_kej = item.get("waktu_kejadian").strftime("%Y-%m-%d %H:%M") if item.get("waktu_kejadian") else "-"
