@@ -4335,17 +4335,21 @@ def ensure_auth_schema() -> None:
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS `sertifikat_config` (
           `id` int(11) NOT NULL AUTO_INCREMENT,
-          `ketua_name` varchar(255) DEFAULT 'Ketua Crembo Media',
+          `romo_name` varchar(255) DEFAULT 'Romo Paroki GKR Baciro',
           `pembina_name` varchar(255) DEFAULT 'Pembina Crembo Media',
-          `ketua_sign_url` text DEFAULT NULL,
+          `ketua_name` varchar(255) DEFAULT 'Ketua Crembo Media',
+          `romo_sign_url` text DEFAULT NULL,
           `pembina_sign_url` text DEFAULT NULL,
+          `ketua_sign_url` text DEFAULT NULL,
           `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     ''')
+    ensure_column(cursor, "sertifikat_config", "romo_name", "`romo_name` varchar(255) DEFAULT 'Romo Paroki GKR Baciro'")
+    ensure_column(cursor, "sertifikat_config", "romo_sign_url", "`romo_sign_url` text DEFAULT NULL")
     cursor.execute("SELECT COUNT(*) FROM `sertifikat_config`")
     if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`) VALUES (1, 'Ketua Crembo Media', 'Pembina Crembo Media', '', '')")
+        cursor.execute("INSERT INTO `sertifikat_config` (`id`, `romo_name`, `pembina_name`, `ketua_name`, `romo_sign_url`, `pembina_sign_url`, `ketua_sign_url`) VALUES (1, 'Romo Paroki GKR Baciro', 'Pembina Crembo Media', 'Ketua Crembo Media', '', '', '')")
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS `organization_profiles` (
@@ -7343,11 +7347,13 @@ def get_sertifikat_config():
     conn.close()
     if row:
         return jsonify({
-            "ketuaName": row["ketua_name"],
-            "pembinaName": row["pembina_name"],
-            "ketuaSignUrl": row["ketua_sign_url"],
-            "pembinaSignUrl": row["pembina_sign_url"],
-            "updatedAt": row["updated_at"]
+            "romoName": row.get("romo_name") or "Romo Paroki GKR Baciro",
+            "pembinaName": row.get("pembina_name") or "Pembina Crembo Media",
+            "ketuaName": row.get("ketua_name") or "Ketua Crembo Media",
+            "romoSignUrl": row.get("romo_sign_url") or "",
+            "pembinaSignUrl": row.get("pembina_sign_url") or "",
+            "ketuaSignUrl": row.get("ketua_sign_url") or "",
+            "updatedAt": row.get("updated_at")
         })
     return jsonify({})
 
@@ -7358,10 +7364,22 @@ def set_sertifikat_config():
     conn = mysql_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        UPDATE `sertifikat_config` 
-        SET `ketua_name` = %s, `pembina_name` = %s, `ketua_sign_url` = %s, `pembina_sign_url` = %s
+        UPDATE `sertifikat_config`
+        SET `romo_name` = %s,
+            `pembina_name` = %s,
+            `ketua_name` = %s,
+            `romo_sign_url` = %s,
+            `pembina_sign_url` = %s,
+            `ketua_sign_url` = %s
         WHERE `id` = 1
-    """, (data.get("ketuaName", ""), data.get("pembinaName", ""), data.get("ketuaSignUrl", ""), data.get("pembinaSignUrl", "")))
+    """, (
+        data.get("romoName", "Romo Paroki GKR Baciro"),
+        data.get("pembinaName", ""),
+        data.get("ketuaName", ""),
+        data.get("romoSignUrl", ""),
+        data.get("pembinaSignUrl", ""),
+        data.get("ketuaSignUrl", "")
+    ))
     conn.commit()
     cursor.close()
     conn.close()

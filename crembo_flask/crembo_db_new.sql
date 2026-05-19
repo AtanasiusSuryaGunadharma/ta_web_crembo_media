@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 19 Bulan Mei 2026 pada 17.51
+-- Waktu pembuatan: 19 Bulan Mei 2026 pada 18.27
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -162,7 +162,13 @@ INSERT INTO `activity_logs` (`id`, `actor_id`, `actor_name`, `actor_username`, `
 (111, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Sistem', 'Menambahkan atau mengirim data pada modul Sistem', 'mark_notification_read', 'POST', NULL, NULL, '{\"path\": \"/api/notifications/notif-1779183600768-3155a3/mark_read\", \"query\": \"\", \"status\": 200}', '2026-05-19 22:29:13'),
 (112, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 22:32:50'),
 (113, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 22:32:57'),
-(114, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 22:49:50');
+(114, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 22:49:50'),
+(115, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 22:53:17'),
+(116, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 22:54:04'),
+(117, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 22:54:08'),
+(118, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 22:54:36'),
+(119, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Sertifikat', 'Menambahkan atau mengirim data pada modul Sertifikat', 'set_sertifikat_config', 'POST', NULL, NULL, '{\"path\": \"/api/sertifikat/config\", \"query\": \"\", \"status\": 200}', '2026-05-19 22:54:59'),
+(120, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Sertifikat', 'Menambahkan atau mengirim data pada modul Sertifikat', 'set_sertifikat_config', 'POST', NULL, NULL, '{\"path\": \"/api/sertifikat/config\", \"query\": \"\", \"status\": 200}', '2026-05-19 23:25:17');
 
 -- --------------------------------------------------------
 
@@ -2298,6 +2304,8 @@ INSERT INTO `registration_form_submissions` (`id`, `form_id`, `submitter_key`, `
 
 CREATE TABLE `sertifikat_config` (
   `id` int(11) NOT NULL,
+  `romo_name` varchar(255) DEFAULT 'Romo Paroki GKR Baciro',
+  `romo_sign_url` text DEFAULT NULL,
   `ketua_name` varchar(255) DEFAULT 'Ketua Crembo Media',
   `pembina_name` varchar(255) DEFAULT 'Pembina Crembo Media',
   `ketua_sign_url` text DEFAULT NULL,
@@ -2309,8 +2317,8 @@ CREATE TABLE `sertifikat_config` (
 -- Dumping data untuk tabel `sertifikat_config`
 --
 
-INSERT INTO `sertifikat_config` (`id`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`, `updated_at`) VALUES
-(1, 'Pria Briliantama', 'Fransiskus Xaverius Harso Susanto', 'uploads/Tanda_Tangan_Mick_Schumacher_1777507332.png', 'uploads/fake-signature-word-vector_1777507334.jpg', '2026-04-30 07:02:15');
+INSERT INTO `sertifikat_config` (`id`, `romo_name`, `romo_sign_url`, `ketua_name`, `pembina_name`, `ketua_sign_url`, `pembina_sign_url`, `updated_at`) VALUES
+(1, 'Rm. Andreas Novian Ardi Prihatmoko, Pr.', '', 'Pria Briliantama', 'Fransiskus Xaverius Harso Susanto', '', '', '2026-05-19 23:25:16');
 
 -- --------------------------------------------------------
 
@@ -3040,7 +3048,7 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar`

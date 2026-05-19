@@ -359,18 +359,25 @@
       font-size: 1.3rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+
+    .cert-logo-row {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
     }
 
     .cert-logo {
-      width: 160px;
       max-width: 100%;
       height: auto;
       object-fit: contain;
     }
+
+    .cert-logo.paroki-logo { width: 120px; }
+    .cert-logo.crembo-logo { width: 170px; }
 
     .cert-header p {
       margin: 4px 0 0;
@@ -432,8 +439,8 @@
     .sign-grid {
       margin-top: 56px;
       display: grid;
-      grid-template-columns: repeat(2, minmax(220px, 1fr));
-      gap: 26px;
+      grid-template-columns: repeat(3, minmax(190px, 1fr));
+      gap: 22px;
       position: relative;
       z-index: 1;
     }
@@ -591,7 +598,10 @@
             <article id="certificatePreview" class="certificate" aria-label="Preview sertifikat">
               <div class="cert-accent"></div>
               <div class="cert-header">
-                <img class="cert-logo" src="logo crembo hitam.png" alt="Logo Crembo Media">
+                <div class="cert-logo-row">
+                  <img class="cert-logo paroki-logo" src="Logo Paroki.png" alt="Logo Paroki GKR Baciro">
+                  <img class="cert-logo crembo-logo" src="logo crembo hitam.png" alt="Logo Crembo Media">
+                </div>
                 <h3>CREMBO MEDIA BACIRO</h3>
                 <p>Komunitas Multimedia Paroki Baciro - Yogyakarta</p>
               </div>
@@ -615,14 +625,19 @@
 
               <div class="sign-grid">
                 <div class="sign-card">
-                  <div class="sign-box"><img id="ketuaSignPreview" alt="Tanda tangan ketua" crossorigin="anonymous"></div>
-                  <strong id="ketuaNameText">Ketua Crembo Media</strong>
-                  <div>Ketua Crembo Media</div>
+                  <div class="sign-box"><img id="romoSignPreview" alt="Tanda tangan romo paroki" crossorigin="anonymous"></div>
+                  <strong id="romoNameText">Romo Paroki GKR Baciro</strong>
+                  <div>Romo Paroki GKR Baciro</div>
                 </div>
                 <div class="sign-card">
                   <div class="sign-box"><img id="pembinaSignPreview" alt="Tanda tangan pembina" crossorigin="anonymous"></div>
                   <strong id="pembinaNameText">Pembina Crembo Media</strong>
                   <div>Pembina Crembo Media</div>
+                </div>
+                <div class="sign-card">
+                  <div class="sign-box"><img id="ketuaSignPreview" alt="Tanda tangan ketua" crossorigin="anonymous"></div>
+                  <strong id="ketuaNameText">Ketua Crembo Media</strong>
+                  <div>Ketua Crembo Media</div>
                 </div>
               </div>
             </article>
@@ -638,6 +653,7 @@
     window.CREMBO_CURRENT_USER = {{ current_user | default({}, true) | tojson }};
     const sessionUser = window.CREMBO_CURRENT_USER || {};
     const CERT_LOGO_SRC = "logo crembo hitam.png";
+    const PAROKI_LOGO_SRC = "Logo Paroki.png";
 
     // Setup Teks Sesuai User Aktif
     const displayName = sessionUser.nama || sessionUser.username || "Anggota Crembo";
@@ -655,8 +671,10 @@
     const certNumber = document.getElementById("certNumber");
     const registeredDateLabel = document.getElementById("registeredDateLabel");
     
+    const romoNameText = document.getElementById("romoNameText");
     const ketuaNameText = document.getElementById("ketuaNameText");
     const pembinaNameText = document.getElementById("pembinaNameText");
+    const romoSignPreview = document.getElementById("romoSignPreview");
     const ketuaSignPreview = document.getElementById("ketuaSignPreview");
     const pembinaSignPreview = document.getElementById("pembinaSignPreview");
     
@@ -720,8 +738,10 @@
         registeredDateText: dateStr, // Tanggal hari ini
         issueDateText: dateStr, // Tanggal hari ini
         certificateNumber: `CRM/SRT/${today.getFullYear()}/${cleanId}`,
+        romoName: "Romo Paroki GKR Baciro",
         ketuaName: "Ketua Crembo Media",
         pembinaName: "Pembina Crembo Media",
+        romoSignDataUrl: "",
         ketuaSignDataUrl: "",
         pembinaSignDataUrl: ""
     };
@@ -733,8 +753,17 @@
       certNumber.textContent = data.certificateNumber;
       registeredDateLabel.textContent = "Terdaftar: " + data.registeredDateText;
 
+      romoNameText.textContent = data.romoName;
       ketuaNameText.textContent = data.ketuaName;
       pembinaNameText.textContent = data.pembinaName;
+
+      if (data.romoSignDataUrl) {
+        romoSignPreview.src = data.romoSignDataUrl;
+        romoSignPreview.classList.add("show");
+      } else {
+        romoSignPreview.removeAttribute("src");
+        romoSignPreview.classList.remove("show");
+      }
 
       if (data.ketuaSignDataUrl) {
         ketuaSignPreview.src = data.ketuaSignDataUrl;
@@ -759,8 +788,10 @@
             const res = await fetch("/api/sertifikat/config");
             const data = await res.json();
             
+            certData.romoName = data.romoName || "Romo Paroki GKR Baciro";
             certData.ketuaName = data.ketuaName || "Ketua Crembo Media";
             certData.pembinaName = data.pembinaName || "Pembina Crembo Media";
+            certData.romoSignDataUrl = data.romoSignUrl || "";
             certData.ketuaSignDataUrl = data.ketuaSignUrl || "";
             certData.pembinaSignDataUrl = data.pembinaSignUrl || "";
             
@@ -808,20 +839,24 @@
       ctx.fillStyle = "#0f172a";
       ctx.textAlign = "center";
 
+      const parokiLogo = await loadImage(PAROKI_LOGO_SRC);
       const logoImg = await loadImage(CERT_LOGO_SRC);
-      if (logoImg) {
-        const targetWidth = 170;
-        const ratio = targetWidth / logoImg.width;
-        const targetHeight = logoImg.height * ratio;
-        ctx.drawImage(logoImg, (canvas.width - targetWidth) / 2, 58, targetWidth, targetHeight);
+      function drawImageContain(ctx, image, x, y, w, h) {
+        if (!image) return;
+        const ratio = Math.min(w / image.width, h / image.height);
+        const dw = image.width * ratio;
+        const dh = image.height * ratio;
+        ctx.drawImage(image, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
       }
+      drawImageContain(ctx, parokiLogo, 620, 58, 130, 78);
+      drawImageContain(ctx, logoImg, 790, 58, 190, 78);
 
       ctx.font = "700 40px Segoe UI";
-      ctx.fillText("CREMBO MEDIA BACIRO", canvas.width / 2, 156);
+      ctx.fillText("CREMBO MEDIA BACIRO", canvas.width / 2, 176);
 
       ctx.font = "500 24px Segoe UI";
       ctx.fillStyle = "#334155";
-      ctx.fillText("Komunitas Multimedia Paroki Baciro - Yogyakarta", canvas.width / 2, 196);
+      ctx.fillText("Komunitas Multimedia Paroki Baciro - Yogyakarta", canvas.width / 2, 216);
 
       ctx.fillStyle = "#0f172a";
       ctx.font = "800 64px Segoe UI";
@@ -847,49 +882,35 @@
 
       ctx.fillStyle = "#1f2937";
       ctx.font = "500 31px Segoe UI";
-      ctx.fillText("sebagai anggota aktif Crembo Media", canvas.width / 2, 592);
-      ctx.fillText("sejak terdaftar pada " + data.registeredDateText, canvas.width / 2, 638);
+      ctx.fillText("sebagai anggota aktif Crembo Media", canvas.width / 2, 612);
 
       ctx.font = "600 23px Segoe UI";
       ctx.fillStyle = "#334155";
-      ctx.fillText("No. Sertifikat: " + data.certificateNumber, canvas.width / 2, 702);
-      ctx.fillText("Tanggal Terbit: " + data.issueDateText, canvas.width / 2, 738);
+      ctx.fillText("No. Sertifikat: " + data.certificateNumber + "    Tanggal Terbit: " + data.issueDateText, canvas.width / 2, 680);
 
-      const ketuaImg = await loadImage(data.ketuaSignDataUrl);
+      const romoImg = await loadImage(data.romoSignDataUrl);
       const pembinaImg = await loadImage(data.pembinaSignDataUrl);
-
-      function drawSignature(image, x, y, w, h) {
-        if (!image) return;
-        const ratio = Math.min(w / image.width, h / image.height);
-        const dw = image.width * ratio;
-        const dh = image.height * ratio;
-        ctx.drawImage(image, x + (w - dw) / 2, y + (h - dh), dw, dh);
-      }
-
-      drawSignature(ketuaImg, 250, 800, 430, 150);
-      drawSignature(pembinaImg, 920, 800, 430, 150);
-
-      ctx.strokeStyle = "#334155";
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(250, 955);
-      ctx.lineTo(680, 955);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(920, 955);
-      ctx.lineTo(1350, 955);
-      ctx.stroke();
-
-      ctx.fillStyle = "#1f2937";
-      ctx.font = "700 28px Segoe UI";
-      ctx.fillText(data.ketuaName, 465, 997);
-      ctx.fillText(data.pembinaName, 1135, 997);
-
-      ctx.font = "500 22px Segoe UI";
-      ctx.fillStyle = "#334155";
-      ctx.fillText("Ketua Crembo Media", 465, 1031);
-      ctx.fillText("Pembina Crembo Media", 1135, 1031);
+      const ketuaImg = await loadImage(data.ketuaSignDataUrl);
+      const signatureItems = [
+        { x: 135, cx: 345, image: romoImg, name: data.romoName, role: "Romo Paroki GKR Baciro" },
+        { x: 585, cx: 795, image: pembinaImg, name: data.pembinaName, role: "Pembina Crembo Media" },
+        { x: 1035, cx: 1245, image: ketuaImg, name: data.ketuaName, role: "Ketua Crembo Media" }
+      ];
+      signatureItems.forEach(function(item) {
+        drawImageContain(ctx, item.image, item.x, 780, 420, 130);
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(item.x, 920);
+        ctx.lineTo(item.x + 420, 920);
+        ctx.stroke();
+        ctx.fillStyle = "#1f2937";
+        ctx.font = "700 24px Segoe UI";
+        ctx.fillText(item.name, item.cx, 962);
+        ctx.font = "500 20px Segoe UI";
+        ctx.fillStyle = "#334155";
+        ctx.fillText(item.role, item.cx, 995);
+      });
 
       return canvas;
     }
@@ -937,16 +958,20 @@
               <title>Sertifikat Anggota - ${data.memberName}</title>
               <style>
                 body { margin: 0; padding: 12px; background: #f3f4f6; font-family: Segoe UI, Tahoma, sans-serif; }
+                .toolbar { max-width:1120px; margin:0 auto 12px; display:flex; justify-content:flex-end; }
+                .toolbar button { border:0; border-radius:9px; padding:9px 14px; background:#800000; color:#fff; font-weight:700; cursor:pointer; }
                 img { width: 100%; max-width: 1120px; display: block; margin: 0 auto; border: 1px solid #d1d5db; background: #fff; }
                 @media print {
+                  .toolbar { display:none; }
                   body { padding: 0; background: #fff; }
                   img { max-width: none; border: 0; width: 100%; }
                 }
               </style>
             </head>
             <body>
+              <div class="toolbar"><button onclick="window.print()">Download / Simpan PDF</button></div>
               <img src="${imageUrl}" alt="Sertifikat anggota">
-              <script>window.onload=function(){window.print();};<\/script>
+              <script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>
             </body>
             </html>
           `);
