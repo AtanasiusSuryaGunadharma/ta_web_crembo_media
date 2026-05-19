@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 19 Bulan Mei 2026 pada 11.44
+-- Waktu pembuatan: 19 Bulan Mei 2026 pada 12.11
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -128,7 +128,10 @@ INSERT INTO `activity_logs` (`id`, `actor_id`, `actor_name`, `actor_username`, `
 (77, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 16:40:08'),
 (78, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 16:40:43'),
 (79, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 16:41:58'),
-(80, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Tugas Streaming', 'Menambahkan atau mengirim data pada modul Tugas Streaming', 'save_assignments', 'POST', NULL, NULL, '{\"path\": \"/api/streaming/assignments/save\", \"query\": \"\", \"status\": 200}', '2026-05-19 16:43:43');
+(80, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'CREATE', 'Tugas Streaming', 'Menambahkan atau mengirim data pada modul Tugas Streaming', 'save_assignments', 'POST', NULL, NULL, '{\"path\": \"/api/streaming/assignments/save\", \"query\": \"\", \"status\": 200}', '2026-05-19 16:43:43'),
+(81, 50, 'Atanasius Surya', 'Ata Surya', 'super_admin', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 16:44:50'),
+(82, 53, 'Daflo', 'Daflo', 'user', 'LOGIN', 'Autentikasi', 'Login ke sistem', 'login', 'POST', NULL, NULL, '{\"path\": \"/login\", \"query\": \"\", \"status\": 302}', '2026-05-19 16:44:57'),
+(83, 53, 'Daflo', 'Daflo', 'user', 'LOGOUT', 'Autentikasi', 'Logout dari sistem', 'logout', 'GET', NULL, NULL, '{}', '2026-05-19 16:46:05');
 
 -- --------------------------------------------------------
 
@@ -2932,7 +2935,7 @@ ALTER TABLE `youtube_embeds`
 -- AUTO_INCREMENT untuk tabel `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT untuk tabel `misa_besar`
