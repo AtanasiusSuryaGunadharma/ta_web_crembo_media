@@ -4,509 +4,58 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hasil Pengujian User Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    :root {
-      --ink: #111827;
-      --muted: #4b5563;
-      --line: #d1d5db;
-      --shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--ink);
-      background: radial-gradient(circle at 10% 8%, #dbeafe 0%, transparent 28%), linear-gradient(150deg, #f8fbff 0%, #eef2ff 100%);
-    }
-
-    .wrap {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .hero {
-      border: 1px solid #bfdbfe;
-      border-radius: 14px;
-      background: #ffffff;
-      box-shadow: var(--shadow);
-      padding: 14px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .hero h1 { margin: 0; font-size: 1.25rem; }
-    .hero p { margin: 0; color: var(--muted); font-size: 0.86rem; }
-
-    .nav {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .nav a {
-      text-decoration: none;
-      border: 1px solid #93c5fd;
-      border-radius: 999px;
-      padding: 5px 10px;
-      background: #fff;
-      color: #1e3a8a;
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #ffffff;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 40;
-    }
-
-    .modal-backdrop.show {
-      display: flex;
-    }
-
-    .modal {
-      width: min(720px, 100%);
-      max-height: min(80vh, 760px);
-      overflow: auto;
-      border-radius: 16px;
-      background: #ffffff;
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
-      border: 1px solid #cbd5e1;
-    }
-
-    .modal-head {
-      position: sticky;
-      top: 0;
-      background: #f8fafc;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .modal-body {
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px 14px;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px 14px;
-    }
-
-    .detail-item {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: #f8fafc;
-    }
-
-    .detail-label {
-      display: block;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #64748b;
-      margin-bottom: 4px;
-      font-weight: 700;
-    }
-
-    .detail-value {
-      font-size: 0.9rem;
-      color: var(--ink);
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-
-    .detail-wide {
-      grid-column: 1 / -1;
-    }
-
-    .steps-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .step-card {
-      border: 1px solid #dbe3f0;
-      border-radius: 12px;
-      background: #ffffff;
-      padding: 12px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .step-card-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .step-title {
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .step-meta {
-      font-size: 0.78rem;
-      color: #64748b;
-      font-weight: 700;
-    }
-
-    .qa-grid {
-      display: grid;
-      gap: 8px;
-    }
-
-    .qa-item {
-      border-radius: 10px;
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-      padding: 10px 12px;
-    }
-
-    .qa-label {
-      display: block;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #64748b;
-      margin-bottom: 4px;
-      font-weight: 700;
-    }
-
-    .qa-value {
-      font-size: 0.88rem;
-      white-space: pre-wrap;
-      word-break: break-word;
-      color: #111827;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
-
-    .modal-actions button {
-      border: 0;
-      border-radius: 10px;
-      padding: 8px 12px;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.84rem;
-      font-weight: 700;
-    }
-
-    .modal-actions .close {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
-    .modal-actions .danger {
-      background: #b91c1c;
-      color: #fff;
-    }
-
-    .summary-title {
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #64748b;
-      font-weight: 800;
-      margin-bottom: -2px;
-    }
-
-    .print-report {
-      display: none;
-    }
-
-    .print-report-header {
-      display: grid;
-      gap: 6px;
-      margin-bottom: 16px;
-    }
-
-    .print-report-header h1 {
-      margin: 0;
-      font-size: 1.35rem;
-      color: #0f172a;
-    }
-
-    .print-report-header p {
-      margin: 0;
-      color: #475569;
-      font-size: 0.9rem;
-    }
-
-    .print-submission {
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 14px;
-      margin: 0 0 14px 0;
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    .print-submission-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-
-    .print-submission-title {
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .print-submission-meta {
-      color: #64748b;
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    .print-step {
-      border-top: 1px solid #e5e7eb;
-      padding-top: 10px;
-      margin-top: 10px;
-      display: grid;
-      gap: 8px;
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    .print-step-title {
-      font-weight: 800;
-      color: #1e3a8a;
-      font-size: 0.92rem;
-    }
-
-    .print-qa {
-      display: grid;
-      gap: 8px;
-    }
-
-    .print-qa-item {
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      padding: 10px 12px;
-      background: #f8fafc;
-    }
-
-    .print-qa-label {
-      display: block;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #64748b;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .print-qa-value {
-      font-size: 0.9rem;
-      color: #111827;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .panel-head {
-      padding: 10px 12px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      background: #f8fafc;
-    }
-
-    .tools {
-      padding: 10px 12px;
-      display: grid;
-      gap: 8px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .tools-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(180px, 1fr));
-      gap: 8px;
-    }
-
-    .tools input,
-    .tools select,
-    .tools button {
-      width: 100%;
-      border: 1px solid #b9c2d1;
-      border-radius: 8px;
-      padding: 8px;
-      font: inherit;
-      font-size: 0.82rem;
-      background: #fff;
-    }
-
-    .tools button {
-      width: auto;
-      cursor: pointer;
-      font-weight: 700;
-      border: 0;
-      color: #fff;
-      background: #1d4ed8;
-      padding: 8px 11px;
-    }
-
-    .tools button.secondary {
-      border: 1px solid #aab4c6;
-      color: #1f2937;
-      background: #fff;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .status {
-      font-size: 0.78rem;
-      padding: 6px 8px;
-      border-radius: 8px;
-      display: inline-block;
-    }
-
-    .status.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-    .status.err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-    .table-wrap {
-      padding: 0 12px 12px;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1080px;
-      font-size: 0.8rem;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
-      vertical-align: top;
-    }
-
-    th {
-      background: #f8fafc;
-      font-size: 0.72rem;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: #475569;
-    }
-
-    .act {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .act button {
-      border: 0;
-      border-radius: 8px;
-      padding: 6px 8px;
-      font-size: 0.73rem;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      background: #0f766e;
-    }
-
-    .act button.delete {
-      background: #b91c1c;
-    }
-
-    .act button.detail {
-      background: #2563eb;
-    }
-
-    .empty {
-      margin: 10px 12px;
-      padding: 10px;
-      border: 1px dashed #cbd5e1;
-      border-radius: 8px;
-      color: #475569;
-      font-size: 0.8rem;
-      background: #f8fafc;
-    }
-
-    @media (max-width: 960px) {
-      .tools-row { grid-template-columns: 1fr; }
-    }
-
-    @media print {
-      .hero .nav,
-      .tools,
-      .act,
-      .panel-head .status,
-      .modal-backdrop,
-      .table-wrap,
-      .panel > .table-wrap + .empty {
-        display: none !important;
-      }
-      body { background: #fff; }
-      .panel, .hero { box-shadow: none; }
-      .print-report {
-        display: block;
-      }
-      .wrap {
-        max-width: none;
-        padding: 0;
-      }
-      .panel,
-      .hero {
-        border: 0;
-        border-radius: 0;
-      }
-      .print-submission,
-      .print-step {
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
+    :root{
+      --bg:#f7eeee;
+      --surface:#ffffff;
+      --line:#ead1d1;
+      --ink:#111827;
+      --muted:#64748b;
+      --primary:#8b0000;
+      --primary-dark:#5c0000;
+      --primary-2:#b11f1f;
+      --gold:#d4a017;
+      --green:#166534;
+      --green-bg:#ecfdf5;
+      --red:#991b1b;
+      --red-bg:#fff1f1;
+      --shadow:0 14px 32px rgba(128,0,0,.12);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,"Segoe UI",Tahoma,Verdana,sans-serif;color:var(--ink);background:radial-gradient(circle at 12% 4%,rgba(177,31,31,.12),transparent 28%),radial-gradient(circle at 88% 12%,rgba(212,160,23,.12),transparent 25%),var(--bg)}
+    .wrap{max-width:1360px;margin:0 auto;padding:22px;display:grid;gap:16px}
+    .hero{color:#fff;background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-2));border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:12px}
+    .hero h1{margin:0;font-size:clamp(1.35rem,2.8vw,2.15rem);font-weight:900;letter-spacing:-.03em}
+    .hero p{margin:0;color:rgba(255,255,255,.9);line-height:1.55;max-width:920px}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .nav a{display:inline-flex;align-items:center;border-radius:999px;border:1px solid rgba(255,255,255,.32);background:#fff;color:var(--primary);padding:7px 11px;font-weight:800;font-size:.78rem;text-decoration:none}
+    .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:linear-gradient(180deg,#fff,#fff8f8)}
+    .panel-head strong{font-size:1.1rem}.panel-head small{display:block;margin-top:3px;color:var(--muted);font-weight:700}
+    .status{border-radius:999px;padding:7px 11px;font-size:.78rem;font-weight:900;border:1px solid #bbf7d0;background:var(--green-bg);color:var(--green)}
+    .status.err{border-color:#fecaca;background:var(--red-bg);color:var(--red)}
+    .tools{padding:14px 18px;display:grid;gap:10px;border-bottom:1px solid var(--line)}
+    .tools-row{display:grid;grid-template-columns:1fr 190px 160px auto;gap:10px;align-items:center}
+    input,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:inherit;background:#fff;color:var(--ink);outline:none}
+    input:focus,select:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(177,31,31,.09)}
+    .btn-row,.act,.dialog-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{border:1px solid #f0b8b8;border-radius:12px;background:#fff;color:var(--primary);padding:10px 14px;font-weight:900;cursor:pointer;box-shadow:0 8px 20px rgba(128,0,0,.08)}
+    button.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:var(--primary)}
+    button.danger{background:#fff1f1;color:#991b1b;border-color:#fecaca}
+    button.detail{background:#fff7ed;color:#92400e;border-color:#fed7aa}
+    .summary{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+    .summary-card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;display:grid;gap:4px}
+    .summary-card span{font-size:.78rem;color:var(--muted);font-weight:800}.summary-card b{font-size:1.45rem}
+    .table-wrap{overflow:auto}.result-table{width:100%;border-collapse:collapse;background:#fff}.result-table th,.result-table td{border-bottom:1px solid var(--line);padding:11px;text-align:left;vertical-align:top;font-size:.87rem}.result-table th{background:#fff4f4;color:#7f1d1d;text-transform:uppercase;font-size:.74rem;white-space:nowrap}.result-table td:first-child{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.74rem;max-width:170px;word-break:break-all}
+    .empty{padding:24px;text-align:center;color:var(--muted);font-weight:800}
+    .badge{display:inline-flex;border:1px solid #f3baba;border-radius:999px;padding:5px 9px;color:#7f1d1d;background:#fffafa;font-weight:900;font-size:.76rem}
+    .detail-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:40}.detail-backdrop.show{display:flex}
+    .detail-dialog{width:min(920px,100%);max-height:min(88vh,850px);overflow:auto;border-radius:18px;background:#fff;box-shadow:0 24px 60px rgba(15,23,42,.30);border:1px solid #e2e8f0}.detail-head{position:sticky;top:0;background:#fff8f8;border-bottom:1px solid var(--line);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.detail-head strong{color:#7f1d1d}.detail-body{padding:16px;display:grid;gap:14px}.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.detail-item{border:1px solid #ead1d1;border-radius:12px;background:#fffafa;padding:10px 12px}.detail-label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#7f1d1d;margin-bottom:4px;font-weight:900}.detail-value{font-size:.9rem;color:#111827;word-break:break-word;white-space:pre-wrap}.wide{grid-column:1/-1}.section-title{font-weight:900;color:#7f1d1d;border-bottom:1px solid var(--line);padding-bottom:6px}.step-list{display:grid;gap:10px}.step-card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;display:grid;gap:10px}.step-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.step-title{font-weight:900;color:#111827}.qa-grid{display:grid;grid-template-columns:1fr 140px;gap:8px}.qa-item{border:1px solid #ead1d1;background:#fffafa;border-radius:12px;padding:9px}.qa-label{display:block;font-size:.7rem;font-weight:900;color:#7f1d1d;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}.qa-value{font-size:.84rem;color:#334155;white-space:pre-wrap;word-break:break-word}.sus-table{width:100%;border-collapse:collapse}.sus-table th,.sus-table td{border:1px solid #ead1d1;padding:8px;text-align:left;font-size:.84rem}.sus-table th{background:#fff4f4;color:#7f1d1d;text-transform:uppercase;font-size:.7rem}.print-report{display:none}
+    @media(max-width:980px){.tools-row{grid-template-columns:1fr}.summary,.detail-grid{grid-template-columns:1fr}.qa-grid{grid-template-columns:1fr}}
+    @media print{
+      body{background:#fff}.wrap{display:none!important}.print-report{display:block!important;color:#111827;font-family:"Segoe UI",Tahoma,Verdana,sans-serif;font-size:11pt}.print-page{page-break-after:always;padding:18px}.print-page:last-child{page-break-after:auto}.print-header{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #8b0000;padding-bottom:10px;margin-bottom:12px}.print-header h1{margin:0;color:#8b0000;font-size:18pt}.print-header p{margin:4px 0 0;color:#475569;font-size:10pt}.print-submission{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:0 0 14px;break-inside:avoid}.print-submission h2{margin:0 0 4px;color:#111827;font-size:14pt}.print-meta{color:#475569;font-weight:700;margin-bottom:10px}.print-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.print-card{border:1px solid #e5e7eb;border-radius:10px;padding:8px}.print-label{display:block;text-transform:uppercase;letter-spacing:.04em;font-size:8pt;color:#7f1d1d;font-weight:800;margin-bottom:3px}.print-value{white-space:pre-wrap;word-break:break-word}.print-section-title{color:#8b0000;font-weight:900;border-top:1px solid #e5e7eb;padding-top:10px;margin-top:10px}.print-step{border:1px solid #e5e7eb;border-radius:10px;padding:9px;margin:8px 0;break-inside:avoid}.print-step-title{font-weight:900;color:#1e3a8a;margin-bottom:6px}.print-table{width:100%;border-collapse:collapse;margin-top:6px}.print-table th,.print-table td{border:1px solid #e5e7eb;padding:6px;text-align:left;vertical-align:top}.print-table th{background:#fef2f2;color:#7f1d1d;text-transform:uppercase;font-size:8pt}.no-print{display:none!important}
     }
   </style>
 </head>
@@ -514,7 +63,7 @@
   <div class="wrap">
     <header class="hero">
       <h1>Hasil Pengujian User Flow</h1>
-      <p>Halaman ini untuk melihat hasil submit responden, menghapus data tertentu, dan unduh laporan PDF/CSV.</p>
+      <p>Halaman ini terhubung dengan hasil simpan dari User Flow Super Admin, Admin, dan Anggota. Data diambil dari Supabase project Crembo Media terbaru.</p>
       <div class="nav">
         <a href="user-flow-super-admin.html">Flow Super Admin</a>
         <a href="user-flow-admin.html">Flow Admin</a>
@@ -524,818 +73,206 @@
 
     <section class="panel">
       <div class="panel-head">
-        <strong>Daftar Submit Pengujian</strong>
-        <span id="statusInfo" class="status ok">Siap</span>
+        <div><strong>Daftar Hasil Submit Pengujian</strong><small>Gunakan filter role sebelum export PDF atau Excel.</small></div>
+        <span id="statusInfo" class="status">Siap</span>
       </div>
-
       <div class="tools">
         <div class="tools-row">
-          <input id="qSearch" type="search" placeholder="Cari nama, email, role, step, catatan...">
+          <input id="qSearch" type="search" placeholder="Cari nama, role, perangkat, browser, step, jawaban, atau catatan...">
           <select id="qRole">
             <option value="all">Semua Role</option>
             <option value="Super Admin">Super Admin</option>
             <option value="Admin">Admin</option>
             <option value="Anggota">Anggota</option>
           </select>
-          <select id="qSort">
-            <option value="newest">Terbaru</option>
-            <option value="oldest">Terlama</option>
-          </select>
+          <select id="qSort"><option value="newest">Terbaru</option><option value="oldest">Terlama</option></select>
           <div class="btn-row">
             <button id="btnRefresh" type="button">Refresh</button>
-            <button id="btnCsv" class="secondary" type="button">Download CSV</button>
-            <button id="btnPdf" class="secondary" type="button">Download PDF</button>
+            <button id="btnExcel" class="secondary" type="button">Export Excel</button>
+            <button id="btnPdf" class="secondary" type="button">Export PDF</button>
           </div>
         </div>
       </div>
-
+      <div class="summary">
+        <div class="summary-card"><span>Total Submit</span><b id="sumSubmit">0</b></div>
+        <div class="summary-card"><span>Rata-rata SUS</span><b id="sumSus">-</b></div>
+        <div class="summary-card"><span>Butir Valid</span><b id="sumValid">0</b></div>
+        <div class="summary-card"><span>Butir Tidak Valid</span><b id="sumInvalid">0</b></div>
+      </div>
       <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Submission ID</th>
-              <th>Role</th>
-              <th>Flow</th>
-              <th>Nama Penguji</th>
-              <th>Email</th>
-              <th>Device</th>
-              <th>Browser</th>
-              <th>Jumlah Item</th>
-              <th>Tanggal</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
+        <table class="result-table">
+          <thead><tr><th>ID</th><th>Role</th><th>Nama Penguji</th><th>Instansi</th><th>Perangkat</th><th>Browser</th><th>Black Box</th><th>SUS</th><th>Tanggal Submit</th><th>Aksi</th></tr></thead>
           <tbody id="resultBody"></tbody>
         </table>
       </div>
-      <div id="emptyInfo" class="empty" style="display:none;">Belum ada data yang cocok.</div>
+      <div id="emptyInfo" class="empty" style="display:none">Belum ada data yang cocok.</div>
     </section>
   </div>
 
   <section id="printReport" class="print-report" aria-hidden="true"></section>
 
-  <div id="detailBackdrop" class="modal-backdrop" aria-hidden="true">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
-      <div class="modal-head">
-        <strong id="detailTitle">Detail Submit</strong>
-        <div class="modal-actions">
-          <button id="btnCloseDetail" class="close" type="button">Tutup</button>
-        </div>
+  <div id="detailBackdrop" class="detail-backdrop" aria-hidden="true">
+    <section class="detail-dialog" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <div class="detail-head">
+        <strong id="detailTitle">Jendela Detail Submit</strong>
+        <div class="dialog-actions"><button id="btnCloseDetail" type="button">Tutup</button></div>
       </div>
-      <div class="modal-body">
-        <div class="detail-grid" id="detailGrid"></div>
-        <div class="modal-actions">
-          <button id="btnDeleteFromDetail" class="danger" type="button">Hapus Submission</button>
-        </div>
-      </div>
+      <div class="detail-body" id="detailBody"></div>
     </section>
   </div>
 
-  <script>
-    var SUPABASE_URL = "https://ahietuoflhphnrhausvp.supabase.co";
-    var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_O6MsXlM4QrsNjZGsK9uLaw_JGl8aTAT";
+<script>
+(function(){
+  var SUPABASE_URL = "https://lzdcuvyxksyoozvhcfyj.supabase.co";
+  var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_xWcnjZtOOVDrEP1-Q2npng_eUqPpceM";
+  var TABLE_NAME = "user_flow_submissions";
+  var qSearch = document.getElementById("qSearch");
+  var qRole = document.getElementById("qRole");
+  var qSort = document.getElementById("qSort");
+  var resultBody = document.getElementById("resultBody");
+  var emptyInfo = document.getElementById("emptyInfo");
+  var statusInfo = document.getElementById("statusInfo");
+  var detailBackdrop = document.getElementById("detailBackdrop");
+  var detailBody = document.getElementById("detailBody");
+  var printReport = document.getElementById("printReport");
+  var allRows = [];
+  var filteredRows = [];
 
-    var qSearch = document.getElementById("qSearch");
-    var qRole = document.getElementById("qRole");
-    var qSort = document.getElementById("qSort");
-    var btnRefresh = document.getElementById("btnRefresh");
-    var btnCsv = document.getElementById("btnCsv");
-    var btnPdf = document.getElementById("btnPdf");
-    var resultBody = document.getElementById("resultBody");
-    var statusInfo = document.getElementById("statusInfo");
-    var emptyInfo = document.getElementById("emptyInfo");
-    var detailBackdrop = document.getElementById("detailBackdrop");
-    var detailGrid = document.getElementById("detailGrid");
-    var btnCloseDetail = document.getElementById("btnCloseDetail");
-    var btnDeleteFromDetail = document.getElementById("btnDeleteFromDetail");
-    var printReport = document.getElementById("printReport");
+  function esc(text){return String(text == null ? "" : text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");}
+  function cleanText(text){return String(text == null ? "" : text).replace(/\s+/g," ").trim();}
+  function setStatus(text,isError){statusInfo.textContent=text;statusInfo.className="status"+(isError?" err":"");}
+  function parsePayload(payload){if(!payload)return {}; if(typeof payload==="string"){try{return JSON.parse(payload);}catch(e){return {};}} return payload;}
+  function roleFromSlug(slug){slug=String(slug||"").toLowerCase(); if(slug==="super-admin"||slug==="super_admin")return"Super Admin"; if(slug==="admin")return"Admin"; if(slug==="anggota")return"Anggota"; return "-";}
+  function normalizeRole(value, slug){var raw=String(value||"").trim(); var lower=raw.toLowerCase(); if(lower==="super admin"||lower==="super-admin"||lower==="super_admin")return"Super Admin"; if(lower==="admin")return"Admin"; if(lower==="anggota"||lower==="member")return"Anggota"; return raw||roleFromSlug(slug);}
+  function formatDate(value){if(!value)return"-"; var date=new Date(value); if(isNaN(date.getTime()))return String(value); return date.toLocaleString("id-ID");}
+  function susScoreText(row){return row.sus_score == null ? "-" : Number(row.sus_score).toFixed(2);}
+  function gradeFromScore(score){if(score==null||score==="")return"-"; score=Number(score); if(score>=85)return"A"; if(score>=73)return"B"; if(score>=68)return"C"; if(score>=51)return"D"; return"F";}
 
-    var allRows = [];
-    var activeDetailId = null;
-    var groupedRows = [];
+  function headers(extra){var h={apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"}; if(extra){Object.keys(extra).forEach(function(k){h[k]=extra[k];});} return h;}
+  async function request(method,path,body,extraHeaders){var opt={method:method,headers:headers(extraHeaders)}; if(body!==undefined)opt.body=JSON.stringify(body); var res=await fetch(SUPABASE_URL+path,opt); var text=await res.text(); var data=text?JSON.parse(text):null; if(!res.ok){throw new Error((data&&(data.message||data.error_description||data.error))||"Request Supabase gagal");} return data;}
 
-    function headers() {
-      return {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY,
-        "Content-Type": "application/json"
-      };
+  function normalizeRows(rows){return (rows||[]).map(function(row){
+    var payload=parsePayload(row.payload);
+    var identity=payload.identity||{};
+    var summary=payload.summary||{};
+    return {
+      id: row.id,
+      flow_slug: row.flow_slug || payload.flow_slug || "",
+      role_name: normalizeRole(row.role_name || payload.role_name || identity.tester_role, row.flow_slug || payload.flow_slug),
+      tester_full_name: row.tester_full_name || identity.tester_name || "",
+      tester_role: row.tester_role || identity.tester_role || "",
+      tester_org: row.tester_org || identity.tester_org || "",
+      test_date: row.test_date || identity.test_date || "",
+      tester_device: row.tester_device || identity.tester_device || "",
+      tester_browser: row.tester_browser || identity.tester_browser || "",
+      blackbox_total: Number(row.blackbox_total != null ? row.blackbox_total : summary.blackbox_total || 0),
+      blackbox_valid: Number(row.blackbox_valid != null ? row.blackbox_valid : summary.blackbox_valid || 0),
+      blackbox_invalid: Number(row.blackbox_invalid != null ? row.blackbox_invalid : summary.blackbox_invalid || 0),
+      blackbox_pending: Number(row.blackbox_pending != null ? row.blackbox_pending : summary.blackbox_pending || 0),
+      sus_score: row.sus_score != null ? Number(row.sus_score) : (summary.sus_score != null ? Number(summary.sus_score) : null),
+      sus_category: row.sus_category || summary.sus_category || "-",
+      sus_grade: row.sus_grade || summary.sus_grade || gradeFromScore(row.sus_score != null ? row.sus_score : summary.sus_score),
+      created_at: row.created_at || payload.submitted_at || "",
+      payload: payload
+    };
+  });}
+
+  async function loadData(){
+    setStatus("Memuat data...", false);
+    try{
+      var select=["id","flow_slug","role_name","tester_full_name","tester_role","tester_org","test_date","tester_device","tester_browser","blackbox_total","blackbox_valid","blackbox_invalid","blackbox_pending","sus_score","sus_category","sus_grade","payload","created_at"].join(",");
+      var rows=await request("GET","/rest/v1/"+TABLE_NAME+"?select="+select+"&order=created_at.desc");
+      allRows=normalizeRows(rows);
+      applyFilters();
+      setStatus("Data berhasil dimuat", false);
+    }catch(error){
+      allRows=[]; filteredRows=[]; renderRows([]); updateSummary([]);
+      setStatus("Gagal memuat: "+error.message+". Pastikan supabase_user_flow_setup.sql sudah dijalankan.", true);
     }
-
-    function esc(text) {
-      return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function setStatus(text, isError) {
-      statusInfo.textContent = text;
-      statusInfo.className = "status " + (isError ? "err" : "ok");
-    }
-
-    function isMissingSchemaError(error) {
-      var message = String((error && error.message) || "");
-      return message.indexOf("PGRST205") !== -1 ||
-        message.indexOf("PGRST202") !== -1 ||
-        message.indexOf("schema cache") !== -1 ||
-        message.indexOf("Could not find the table") !== -1 ||
-        message.indexOf("Could not find the function") !== -1;
-    }
-
-    function normalizeRole(value) {
-      var raw = String(value || "").trim().toLowerCase();
-      if (!raw) {
-        return "";
-      }
-      if (raw === "super admin" || raw === "super_admin" || raw === "super-admin") {
-        return "Super Admin";
-      }
-      if (raw === "admin") {
-        return "Admin";
-      }
-      if (raw === "anggota" || raw === "member") {
-        return "Anggota";
-      }
-      return String(value || "").trim();
-    }
-
-    function inferRoleFromFlow(flowSlug) {
-      var slug = String(flowSlug || "").trim().toLowerCase();
-      if (slug === "super-admin" || slug === "super_admin") {
-        return "Super Admin";
-      }
-      if (slug === "admin") {
-        return "Admin";
-      }
-      if (slug === "anggota") {
-        return "Anggota";
-      }
-      return "";
-    }
-
-    function resolveRoleName(row) {
-      return normalizeRole(row.role_name) || inferRoleFromFlow(row.flow_slug) || "-";
-    }
-
-    async function request(method, path, body) {
-      var options = {
-        method: method,
-        headers: headers()
-      };
-      if (body) {
-        options.body = JSON.stringify(body);
-      }
-      var response = await fetch(SUPABASE_URL + path, options);
-      var text = await response.text();
-      var data = text ? JSON.parse(text) : null;
-      if (!response.ok) {
-        throw new Error((data && (data.message || data.error_description || data.error)) || "Request gagal");
-      }
-      return data;
-    }
-
-    function applyFilters() {
-      var keyword = String(qSearch.value || "").trim().toLowerCase();
-      var role = qRole.value;
-      var sort = qSort.value;
-
-      var filtered = allRows.filter(function (row) {
-        var roleOk = role === "all" || resolveRoleName(row) === role;
-        var text = [
-          row.submission_id,
-          resolveRoleName(row),
-          row.flow_slug,
-          row.tester_full_name,
-          row.tester_org,
-          row.tester_email,
-          row.tester_phone,
-          row.tester_device,
-          row.tester_browser,
-          row.step_title,
-          row.action_instruction,
-          row.question_text,
-          row.answer_value,
-          row.question_note,
-          row.step_opinion
-        ].join(" ").toLowerCase();
-        var keywordOk = !keyword || text.indexOf(keyword) !== -1;
-        return roleOk && keywordOk;
-      });
-
-      filtered.sort(function (a, b) {
-        var ta = new Date(a.submitted_at).getTime();
-        var tb = new Date(b.submitted_at).getTime();
-        return sort === "oldest" ? ta - tb : tb - ta;
-      });
-
-      groupedRows = groupRows(filtered, sort);
-      renderRows(groupedRows);
-      return groupedRows;
-    }
-
-    function groupRows(rows, sort) {
-      var map = {};
-      rows.forEach(function (row) {
-        var key = String(row.submission_id || "");
-        if (!map[key]) {
-          map[key] = {
-            submission_id: row.submission_id,
-            role_name: resolveRoleName(row),
-            flow_slug: row.flow_slug,
-            tester_full_name: row.tester_full_name,
-            tester_org: row.tester_org,
-            tester_email: row.tester_email,
-            tester_phone: row.tester_phone,
-            tester_device: row.tester_device,
-            tester_browser: row.tester_browser,
-            submitted_at: row.submitted_at,
-            items: []
-          };
-        }
-        map[key].items.push(row);
-      });
-
-      var groups = Object.keys(map).map(function (key) {
-        return map[key];
-      });
-
-      groups.sort(function (a, b) {
-        var ta = new Date(a.submitted_at).getTime();
-        var tb = new Date(b.submitted_at).getTime();
-        return sort === "oldest" ? ta - tb : tb - ta;
-      });
-
-      return groups;
-    }
-
-    function renderRows(rows) {
-      if (!rows.length) {
-        resultBody.innerHTML = "";
-        emptyInfo.style.display = "block";
-        return;
-      }
-
-      emptyInfo.style.display = "none";
-      resultBody.innerHTML = rows.map(function (row) {
-        return (
-          "<tr>" +
-            "<td>" + esc(row.submission_id) + "</td>" +
-            "<td>" + esc(row.role_name) + "</td>" +
-              "<td>" + esc(row.flow_slug || "-") + "</td>" +
-            "<td>" + esc(row.tester_full_name) + "</td>" +
-            "<td>" + esc(row.tester_email) + "</td>" +
-              "<td>" + esc(row.tester_device || "-") + "</td>" +
-              "<td>" + esc(row.tester_browser || "-") + "</td>" +
-            "<td>" + esc(row.items.length + " item") + "</td>" +
-            "<td>" + esc(new Date(row.submitted_at).toLocaleString("id-ID")) + "</td>" +
-            "<td><div class='act'><button class='detail' type='button' data-detail='" + esc(row.submission_id) + "'>Detail</button><button class='delete' type='button' data-delete='" + esc(row.submission_id) + "'>Hapus</button></div></td>" +
-          "</tr>"
-        );
-      }).join("");
-    }
-
-    function openDetail(submissionId) {
-      var row = groupedRows.find(function (item) {
-        return String(item.submission_id) === String(submissionId);
-      });
-
-      if (!row) {
-        setStatus("Detail tidak ditemukan", true);
-        return;
-      }
-
-      activeDetailId = String(submissionId);
-      var stepGroups = {};
-      row.items.forEach(function (item) {
-        var stepKey = String(item.step_title || "Step") + "||" + String(item.step_order || "");
-        if (!stepGroups[stepKey]) {
-          stepGroups[stepKey] = {
-            step_title: item.step_title || (item.step_order ? "Step " + item.step_order : "Step"),
-            step_order: item.step_order,
-            items: []
-          };
-        }
-        stepGroups[stepKey].items.push(item);
-      });
-
-      var stepList = Object.keys(stepGroups).map(function (key) {
-        return stepGroups[key];
-      }).sort(function (a, b) {
-        return Number(a.step_order || 0) - Number(b.step_order || 0);
-      });
-
-      var summaryHtml = [
-        ["Submission ID", row.submission_id],
-        ["Role", row.role_name],
-        ["Flow", row.flow_slug || "-"],
-        ["Nama Penguji", row.tester_full_name],
-        ["Instansi / Unit", row.tester_org || "-"],
-        ["Email", row.tester_email],
-        ["No HP", row.tester_phone || "-"],
-        ["Device", row.tester_device || "-"],
-        ["Browser", row.tester_browser || "-"],
-        ["Tanggal Submit", new Date(row.submitted_at).toLocaleString("id-ID")],
-        ["Total Item", row.items.length]
-      ].map(function (item) {
-        return (
-          "<div class='detail-item'>" +
-            "<span class='detail-label'>" + esc(item[0]) + "</span>" +
-            "<div class='detail-value'>" + esc(item[1]) + "</div>" +
-          "</div>"
-        );
-      }).join("");
-
-      var stepsHtml = stepList.map(function (step) {
-        var instructionText = (step.items[0] && step.items[0].action_instruction) || "";
-        var itemsHtml = step.items.map(function (item) {
-          return (
-            "<div class='qa-grid'>" +
-              "<div class='qa-item'>" +
-                "<span class='qa-label'>Pertanyaan</span>" +
-                "<div class='qa-value'>" + esc(item.question_text || "-") + "</div>" +
-              "</div>" +
-              "<div class='qa-item'>" +
-                "<span class='qa-label'>Jawaban</span>" +
-                "<div class='qa-value'>" + esc(item.answer_value || "-") + "</div>" +
-              "</div>" +
-              "<div class='qa-item'>" +
-                "<span class='qa-label'>Catatan</span>" +
-                "<div class='qa-value'>" + esc(item.question_note || item.step_opinion || "-") + "</div>" +
-              "</div>" +
-            "</div>"
-          );
-        }).join("");
-
-        if (instructionText) {
-          itemsHtml =
-            "<div class='qa-grid'>" +
-              "<div class='qa-item'>" +
-                "<span class='qa-label'>Instruksi Uji Step</span>" +
-                "<div class='qa-value'>" + esc(instructionText) + "</div>" +
-              "</div>" +
-            "</div>" + itemsHtml;
-        }
-
-        return (
-          "<section class='step-card'>" +
-            "<div class='step-card-head'>" +
-              "<div class='step-title'>" + esc(step.step_title) + "</div>" +
-              "<div class='step-meta'>" + esc(step.items.length + " item") + "</div>" +
-            "</div>" +
-            itemsHtml +
-          "</section>"
-        );
-      }).join("");
-
-      detailGrid.innerHTML =
-        "<div class='summary-title'>Ringkasan Submit</div>" +
-        "<div class='summary-grid'>" + summaryHtml + "</div>" +
-        "<div class='summary-title'>Detail Step</div>" +
-        "<div class='steps-list'>" + (stepsHtml || "<div class='empty'>Tidak ada detail step.</div>") + "</div>";
-
-      detailBackdrop.classList.add("show");
-      detailBackdrop.setAttribute("aria-hidden", "false");
-    }
-
-    function closeDetail() {
-      activeDetailId = null;
-      detailBackdrop.classList.remove("show");
-      detailBackdrop.setAttribute("aria-hidden", "true");
-    }
-
-    async function loadData() {
-      setStatus("Memuat data...", false);
-      try {
-        allRows = await fetchReportRows();
-        applyFilters();
-        setStatus("Data berhasil dimuat", false);
-      } catch (error) {
-        if (isMissingSchemaError(error)) {
-          allRows = [];
-          groupedRows = [];
-          renderRows([]);
-          setStatus("Schema User Flow belum tersedia di Supabase project ini. Jalankan SQL setup UF terlebih dahulu.", true);
-          return;
-        }
-        setStatus("Gagal memuat: " + error.message, true);
-      }
-    }
-
-    async function fetchReportRows() {
-      var baseSelect = [
-        "submission_id",
-        "role_name",
-        "tester_full_name",
-        "tester_email",
-        "step_title",
-        "question_text",
-        "answer_value",
-        "question_note",
-        "step_opinion",
-        "submitted_at"
-      ].join(",");
-
-      var extendedSelect = [
-        baseSelect,
-        "step_order",
-        "flow_slug",
-        "tester_org",
-        "tester_phone",
-        "tester_device",
-        "tester_browser",
-        "action_instruction"
-      ].join(",");
-
-      try {
-        return await request(
-          "GET",
-          "/rest/v1/v_uf_report?select=" + extendedSelect + "&order=submitted_at.desc"
-        );
-      } catch (error) {
-        return await fetchReportRowsFromBaseTables();
-      }
-    }
-
-    async function fetchReportRowsFromBaseTables() {
-      var submissions = await request(
-        "GET",
-        "/rest/v1/uf_submissions?select=id,flow_id,tester_full_name,tester_org,tester_email,tester_phone,tester_device,tester_browser,submitted_at&order=submitted_at.desc"
-      );
-
-      var flows = await request(
-        "GET",
-        "/rest/v1/uf_flows?select=id,slug,role_name"
-      );
-
-      var steps = await request(
-        "GET",
-        "/rest/v1/uf_steps?select=id,step_no,step_title,action_instruction"
-      );
-
-      var questions = await request(
-        "GET",
-        "/rest/v1/uf_questions?select=id,question_text"
-      );
-
-      var answers = await request(
-        "GET",
-        "/rest/v1/uf_answers?select=submission_id,step_id,question_id,answer_value,note_text"
-      );
-
-      var stepNotes = await request(
-        "GET",
-        "/rest/v1/uf_step_notes?select=submission_id,step_id,opinion_text"
-      );
-
-      var flowById = {};
-      var stepById = {};
-      var questionById = {};
-      var answerBySubmission = {};
-      var noteBySubmissionStep = {};
-
-      (flows || []).forEach(function (flow) {
-        flowById[String(flow.id)] = flow;
-      });
-
-      (steps || []).forEach(function (step) {
-        stepById[String(step.id)] = step;
-      });
-
-      (questions || []).forEach(function (question) {
-        questionById[String(question.id)] = question;
-      });
-
-      (answers || []).forEach(function (answer) {
-        var key = String(answer.submission_id || "");
-        if (!answerBySubmission[key]) {
-          answerBySubmission[key] = [];
-        }
-        answerBySubmission[key].push(answer);
-      });
-
-      (stepNotes || []).forEach(function (note) {
-        var key = String(note.submission_id || "") + "::" + String(note.step_id || "");
-        noteBySubmissionStep[key] = note.opinion_text || "";
-      });
-
-      var rows = [];
-
-      (submissions || []).forEach(function (submission) {
-        var submissionId = String(submission.id || "");
-        var flow = flowById[String(submission.flow_id || "")] || {};
-        var submissionAnswers = answerBySubmission[submissionId] || [];
-
-        if (!submissionAnswers.length) {
-          rows.push({
-            submission_id: submissionId,
-            role_name: flow.role_name || "",
-            flow_slug: flow.slug || "",
-            tester_full_name: submission.tester_full_name || "",
-            tester_org: submission.tester_org || "",
-            tester_email: submission.tester_email || "",
-            tester_phone: submission.tester_phone || "",
-            tester_device: submission.tester_device || "",
-            tester_browser: submission.tester_browser || "",
-            step_order: null,
-            step_title: "-",
-            action_instruction: "",
-            question_text: "-",
-            answer_value: "-",
-            question_note: "",
-            step_opinion: "",
-            submitted_at: submission.submitted_at
-          });
-          return;
-        }
-
-        submissionAnswers.forEach(function (answer) {
-          var step = stepById[String(answer.step_id || "")] || {};
-          var question = questionById[String(answer.question_id || "")] || {};
-          var noteKey = submissionId + "::" + String(answer.step_id || "");
-
-          rows.push({
-            submission_id: submissionId,
-            role_name: flow.role_name || "",
-            flow_slug: flow.slug || "",
-            tester_full_name: submission.tester_full_name || "",
-            tester_org: submission.tester_org || "",
-            tester_email: submission.tester_email || "",
-            tester_phone: submission.tester_phone || "",
-            tester_device: submission.tester_device || "",
-            tester_browser: submission.tester_browser || "",
-            step_order: step.step_no || null,
-            step_title: step.step_title || "-",
-            action_instruction: step.action_instruction || "",
-            question_text: question.question_text || "-",
-            answer_value: answer.answer_value || "",
-            question_note: answer.note_text || "",
-            step_opinion: noteBySubmissionStep[noteKey] || "",
-            submitted_at: submission.submitted_at
-          });
-        });
-      });
-
-      rows.sort(function (a, b) {
-        return new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime();
-      });
-
-      return rows;
-    }
-
-    function toCsvValue(value) {
-      return '"' + String(value == null ? "" : value).replace(/\"/g, '""') + '"';
-    }
-
-    function downloadCsv() {
-      var rows = applyFilters();
-      if (!rows.length) {
-        setStatus("Tidak ada data untuk CSV", true);
-        return;
-      }
-
-      var lines = buildCsvLines(rows);
-
-      var blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = "hasil-user-flow.csv";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function downloadPdf() {
-      if (!groupedRows.length) {
-        setStatus("Tidak ada data untuk PDF", true);
-        return;
-      }
-      renderPrintReport();
-      window.print();
-    }
-
-    function buildCsvLines(rows) {
-      var groups = (rows || []).slice().sort(function (a, b) {
-        return new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime();
-      });
-
-      var maxItems = 0;
-      groups.forEach(function (group) {
-        if (group.items.length > maxItems) {
-          maxItems = group.items.length;
-        }
-      });
-
-      var header = [
-        "Submission ID",
-        "Role",
-        "Flow",
-        "Nama Penguji",
-        "Instansi/Unit",
-        "Email",
-        "No HP",
-        "Device",
-        "Browser",
-        "Tanggal"
-      ];
-
-      for (var i = 1; i <= maxItems; i += 1) {
-        header.push("Step " + i + " - Judul");
-        header.push("Step " + i + " - Instruksi");
-        header.push("Step " + i + " - Pertanyaan");
-        header.push("Step " + i + " - Jawaban");
-        header.push("Step " + i + " - Catatan");
-      }
-
-      var lines = [header.map(toCsvValue).join(",")];
-
-      groups.forEach(function (group) {
-        var orderedItems = group.items.slice().sort(function (a, b) {
-          return Number(a.step_order || 0) - Number(b.step_order || 0);
-        });
-
-        var row = [
-          group.submission_id,
-          group.role_name,
-          group.flow_slug || "",
-          group.tester_full_name,
-          group.tester_org || "",
-          group.tester_email,
-          group.tester_phone || "",
-          group.tester_device || "",
-          group.tester_browser || "",
-          new Date(group.submitted_at).toLocaleString("id-ID")
-        ];
-
-        orderedItems.forEach(function (item) {
-          row.push(item.step_title || "");
-          row.push(item.action_instruction || "");
-          row.push(item.question_text || "");
-          row.push(item.answer_value || "");
-          row.push(item.question_note || item.step_opinion || "");
-        });
-
-        while (row.length < header.length) {
-          row.push("");
-        }
-
-        lines.push(row.map(toCsvValue).join(","));
-      });
-
-      return lines;
-    }
-
-    function renderPrintReport() {
-      var rows = groupedRows.slice();
-      if (!rows.length) {
-        printReport.innerHTML = "";
-        return;
-      }
-
-      var html = [
-        "<div class='print-report-header'>" +
-          "<h1>Hasil Pengujian User Flow</h1>" +
-          "<p>Ringkasan hasil submit per penguji dengan detail step, pertanyaan, jawaban, dan catatan.</p>" +
-        "</div>"
-      ];
-
-      rows.forEach(function (row) {
-        var stepGroups = {};
-        row.items.forEach(function (item) {
-          var stepKey = String(item.step_title || "Step") + "||" + String(item.step_order || "");
-          if (!stepGroups[stepKey]) {
-            stepGroups[stepKey] = {
-              step_title: item.step_title || (item.step_order ? "Step " + item.step_order : "Step"),
-              step_order: item.step_order,
-              items: []
-            };
-          }
-          stepGroups[stepKey].items.push(item);
-        });
-
-        var stepList = Object.keys(stepGroups).map(function (key) {
-          return stepGroups[key];
-        }).sort(function (a, b) {
-          return Number(a.step_order || 0) - Number(b.step_order || 0);
-        });
-
-        var stepsHtml = stepList.map(function (step) {
-          var instructionText = (step.items[0] && step.items[0].action_instruction) || "";
-          var qaHtml = step.items.map(function (item) {
-            return (
-              "<div class='print-qa-item'>" +
-                "<span class='print-qa-label'>Pertanyaan</span>" +
-                "<div class='print-qa-value'>" + esc(item.question_text || "-") + "</div>" +
-                "<span class='print-qa-label' style='margin-top:8px;'>Jawaban</span>" +
-                "<div class='print-qa-value'>" + esc(item.answer_value || "-") + "</div>" +
-                "<span class='print-qa-label' style='margin-top:8px;'>Catatan</span>" +
-                "<div class='print-qa-value'>" + esc(item.question_note || item.step_opinion || "-") + "</div>" +
-              "</div>"
-            );
-          }).join("");
-
-          if (instructionText) {
-            qaHtml =
-              "<div class='print-qa-item'>" +
-                "<span class='print-qa-label'>Instruksi Uji Step</span>" +
-                "<div class='print-qa-value'>" + esc(instructionText) + "</div>" +
-              "</div>" + qaHtml;
-          }
-
-          return (
-            "<div class='print-step'>" +
-              "<div class='print-step-title'>" + esc(step.step_title) + "</div>" +
-              "<div class='print-qa'>" + qaHtml + "</div>" +
-            "</div>"
-          );
-        }).join("");
-
-        html.push(
-          "<article class='print-submission'>" +
-            "<div class='print-submission-head'>" +
-              "<div class='print-submission-title'>" + esc(row.tester_full_name) + "</div>" +
-              "<div class='print-submission-meta'>" + esc(row.role_name) + " • " + esc(new Date(row.submitted_at).toLocaleString("id-ID")) + "</div>" +
-            "</div>" +
-            "<div class='summary-grid'>" +
-              "<div class='detail-item'><span class='detail-label'>Submission ID</span><div class='detail-value'>" + esc(row.submission_id) + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Role</span><div class='detail-value'>" + esc(row.role_name || "-") + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Flow</span><div class='detail-value'>" + esc(row.flow_slug || "-") + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Email</span><div class='detail-value'>" + esc(row.tester_email) + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Instansi / Unit</span><div class='detail-value'>" + esc(row.tester_org || "-") + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>No HP</span><div class='detail-value'>" + esc(row.tester_phone || "-") + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Device</span><div class='detail-value'>" + esc(row.tester_device || "-") + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Browser</span><div class='detail-value'>" + esc(row.tester_browser || "-") + "</div></div>" +
-              "<div class='detail-item'><span class='detail-label'>Total Item</span><div class='detail-value'>" + esc(row.items.length) + "</div></div>" +
-            "</div>" +
-            stepsHtml +
-          "</article>"
-        );
-      });
-
-      printReport.innerHTML = html.join("");
-    }
-
-    async function deleteSubmission(submissionId) {
-      if (!window.confirm("Hapus submission ini? Data jawaban terkait juga akan terhapus.")) {
-        return;
-      }
-
-      try {
-        await request("DELETE", "/rest/v1/uf_submissions?id=eq." + encodeURIComponent(submissionId));
-        setStatus("Submission berhasil dihapus", false);
-        await loadData();
-      } catch (error) {
-        setStatus("Gagal hapus: " + error.message, true);
-      }
-    }
-
-    qSearch.addEventListener("input", applyFilters);
-    qRole.addEventListener("change", applyFilters);
-    qSort.addEventListener("change", applyFilters);
-    btnRefresh.addEventListener("click", loadData);
-    btnCsv.addEventListener("click", downloadCsv);
-    btnPdf.addEventListener("click", downloadPdf);
-    btnCloseDetail.addEventListener("click", closeDetail);
-    btnDeleteFromDetail.addEventListener("click", function () {
-      if (activeDetailId) {
-        deleteSubmission(activeDetailId);
-        closeDetail();
-      }
+  }
+
+  function rowSearchText(row){var p=row.payload||{}; return [row.id,row.role_name,row.flow_slug,row.tester_full_name,row.tester_org,row.test_date,row.tester_device,row.tester_browser,row.sus_category,JSON.stringify(p.blackbox||[]),JSON.stringify(p.additional||[])].join(" ").toLowerCase();}
+  function applyFilters(){
+    var keyword=String(qSearch.value||"").trim().toLowerCase();
+    var role=qRole.value;
+    var sort=qSort.value;
+    filteredRows=allRows.filter(function(row){return (role==="all"||row.role_name===role)&&(!keyword||rowSearchText(row).indexOf(keyword)!==-1);});
+    filteredRows.sort(function(a,b){var ta=new Date(a.created_at).getTime()||0; var tb=new Date(b.created_at).getTime()||0; return sort==="oldest"?ta-tb:tb-ta;});
+    renderRows(filteredRows); updateSummary(filteredRows); return filteredRows;
+  }
+
+  function updateSummary(rows){
+    document.getElementById("sumSubmit").textContent=rows.length;
+    var scores=rows.map(function(r){return r.sus_score;}).filter(function(v){return v!=null&&!isNaN(v);});
+    document.getElementById("sumSus").textContent=scores.length?(scores.reduce(function(a,b){return a+b;},0)/scores.length).toFixed(2):"-";
+    document.getElementById("sumValid").textContent=rows.reduce(function(sum,r){return sum+(r.blackbox_valid||0);},0);
+    document.getElementById("sumInvalid").textContent=rows.reduce(function(sum,r){return sum+(r.blackbox_invalid||0);},0);
+  }
+
+  function renderRows(rows){
+    if(!rows.length){resultBody.innerHTML=""; emptyInfo.style.display="block"; return;}
+    emptyInfo.style.display="none";
+    resultBody.innerHTML=rows.map(function(row){return "<tr>"+
+      "<td>"+esc(row.id)+"</td>"+
+      "<td><span class='badge'>"+esc(row.role_name)+"</span></td>"+
+      "<td>"+esc(row.tester_full_name||"-")+"</td>"+
+      "<td>"+esc(row.tester_org||"-")+"</td>"+
+      "<td>"+esc(row.tester_device||"-")+"</td>"+
+      "<td>"+esc(row.tester_browser||"-")+"</td>"+
+      "<td>Valid "+esc(row.blackbox_valid)+" / Tidak Valid "+esc(row.blackbox_invalid)+"</td>"+
+      "<td>"+esc(susScoreText(row))+"<br><small>"+esc(row.sus_category||"-")+"</small></td>"+
+      "<td>"+esc(formatDate(row.created_at))+"</td>"+
+      "<td><div class='act'><button class='detail' type='button' data-detail='"+esc(row.id)+"'>Lihat Detail</button><button class='danger' type='button' data-delete='"+esc(row.id)+"'>Hapus</button></div></td>"+
+    "</tr>";}).join("");
+  }
+
+  function buildSummaryGrid(row){var items=[
+    ["Submission ID", row.id], ["Role", row.role_name], ["Flow", row.flow_slug||"-"],
+    ["Nama Penguji", row.tester_full_name||"-"], ["Instansi / Unit / Kelas", row.tester_org||"-"], ["Tanggal Pengujian", row.test_date||"-"],
+    ["Perangkat", row.tester_device||"-"], ["Browser", row.tester_browser||"-"], ["Tanggal Submit", formatDate(row.created_at)],
+    ["Skor SUS", susScoreText(row)], ["Kategori SUS", row.sus_category||"-"], ["Grade", row.sus_grade||gradeFromScore(row.sus_score)]
+  ]; return "<div class='detail-grid'>"+items.map(function(it){return "<div class='detail-item'><span class='detail-label'>"+esc(it[0])+"</span><div class='detail-value'>"+esc(it[1])+"</div></div>";}).join("")+"</div>";}
+  function buildBlackboxHtml(row){var blackbox=(row.payload&&row.payload.blackbox)||[]; if(!blackbox.length)return"<div class='empty'>Tidak ada data Black Box.</div>"; return "<div class='step-list'>"+blackbox.map(function(item){return "<section class='step-card'><div class='step-head'><div class='step-title'>"+esc((item.case_id?item.case_id+" - ":"")+(item.step_title||"Step"))+"</div><span class='badge'>"+esc(item.answer||"-")+"</span></div>"+
+    "<div class='qa-grid'><div class='qa-item'><span class='qa-label'>Pertanyaan / Checklist</span><div class='qa-value'>"+esc(item.question||"-")+"</div></div><div class='qa-item'><span class='qa-label'>Jawaban</span><div class='qa-value'>"+esc(item.answer||"-")+"</div></div></div>"+
+    (item.instruction?"<div class='qa-item'><span class='qa-label'>Langkah Pengujian</span><div class='qa-value'>"+esc(item.instruction)+"</div></div>":"")+"</section>";}).join("")+"</div>";}
+  function buildSusHtml(row){var sus=(row.payload&&row.payload.sus)||{}; var answers=sus.answers||[]; if(!answers.length)return"<div class='empty'>Tidak ada jawaban SUS.</div>"; return "<table class='sus-table'><thead><tr><th>No</th><th>Pertanyaan</th><th>Skor</th><th>Kontribusi</th></tr></thead><tbody>"+answers.map(function(a){return"<tr><td>"+esc(a.no)+"</td><td>"+esc(a.question)+"</td><td>"+esc(a.value||"-")+"</td><td>"+esc(a.contribution==null?"-":a.contribution)+"</td></tr>";}).join("")+"</tbody></table>";}
+  function buildAdditionalHtml(row){var additional=(row.payload&&row.payload.additional)||[]; if(!additional.length)return"<div class='empty'>Tidak ada pertanyaan tambahan.</div>"; return "<div class='step-list'>"+additional.map(function(item){return"<div class='qa-item'><span class='qa-label'>"+esc(item.question||("Pertanyaan "+item.no))+"</span><div class='qa-value'>"+esc(item.answer||"-")+"</div></div>";}).join("")+"</div>";}
+
+  function openDetail(id){var row=filteredRows.find(function(r){return String(r.id)===String(id);}); if(!row){setStatus("Detail tidak ditemukan", true); return;} detailBody.innerHTML=buildSummaryGrid(row)+"<div class='section-title'>Bagian 2 - Black Box Role</div>"+buildBlackboxHtml(row)+"<div class='section-title'>Bagian 3 - Skor SUS</div>"+buildSusHtml(row)+"<div class='section-title'>Bagian 4 - Pertanyaan Tambahan</div>"+buildAdditionalHtml(row)+"<div class='dialog-actions'><button class='danger' type='button' data-delete='"+esc(row.id)+"'>Hapus Submission</button></div>"; detailBackdrop.classList.add("show"); detailBackdrop.setAttribute("aria-hidden","false");}
+  function closeDetail(){detailBackdrop.classList.remove("show"); detailBackdrop.setAttribute("aria-hidden","true");}
+  async function deleteSubmission(id){if(!confirm("Hapus hasil submit ini?"))return; try{await request("DELETE","/rest/v1/"+TABLE_NAME+"?id=eq."+encodeURIComponent(id)); setStatus("Data berhasil dihapus", false); closeDetail(); await loadData();}catch(error){setStatus("Gagal hapus: "+error.message, true);}}
+
+  function roleFileSuffix(){var role=qRole.value; if(role==="Super Admin")return"super-admin"; if(role==="Admin")return"admin"; if(role==="Anggota")return"anggota"; return"semua-role";}
+  function downloadExcel(){var rows=applyFilters(); if(!rows.length){setStatus("Tidak ada data untuk Excel", true); return;} if(!window.XLSX){setStatus("Library Excel belum termuat. Cek koneksi internet untuk CDN SheetJS.", true); return;}
+    var flowRows=[]; var susRows=[];
+    rows.forEach(function(row,idx){
+      (row.payload.blackbox||[]).forEach(function(item){flowRows.push({"Submission ID":row.id,"Tanggal Submit":formatDate(row.created_at),"Role":row.role_name,"Nama Penguji":row.tester_full_name,"Instansi/Unit/Kelas":row.tester_org,"Tanggal Pengujian":row.test_date,"Perangkat":row.tester_device,"Browser":row.tester_browser,"Bagian":"Black Box","Kode":item.case_id||"","Step":item.step_title||"","Pertanyaan/Checklist":item.question||"","Jawaban":item.answer||"","Langkah Pengujian":item.instruction||""});});
+      (row.payload.additional||[]).forEach(function(item){flowRows.push({"Submission ID":row.id,"Tanggal Submit":formatDate(row.created_at),"Role":row.role_name,"Nama Penguji":row.tester_full_name,"Instansi/Unit/Kelas":row.tester_org,"Tanggal Pengujian":row.test_date,"Perangkat":row.tester_device,"Browser":row.tester_browser,"Bagian":"Pertanyaan Tambahan","Kode":"","Step":"","Pertanyaan/Checklist":item.question||"","Jawaban":item.answer||"","Langkah Pengujian":""});});
+      var sus=(row.payload.sus&&row.payload.sus.answers)||[]; var susObj={"No":idx+1,"Nama":row.tester_full_name,"Peran":row.role_name}; for(var i=1;i<=10;i+=1){var ans=sus.find(function(a){return Number(a.no)===i;}); susObj["Q"+i]=ans&&ans.value?Number(ans.value):"";} susObj["SUS"]=row.sus_score==null?"":Number(row.sus_score); susObj["Grade"]=row.sus_grade||gradeFromScore(row.sus_score); susObj["Kategori"]=row.sus_category||""; susObj["Tanggal Submit"]=formatDate(row.created_at); susRows.push(susObj);
     });
+    var wb=XLSX.utils.book_new();
+    var ws1=XLSX.utils.json_to_sheet(flowRows); var ws2=XLSX.utils.json_to_sheet(susRows);
+    XLSX.utils.book_append_sheet(wb, ws1, "Rekap User Flow");
+    XLSX.utils.book_append_sheet(wb, ws2, "Skor SUS");
+    XLSX.writeFile(wb, "hasil-user-flow-"+roleFileSuffix()+".xlsx");
+  }
 
-    detailBackdrop.addEventListener("click", function (event) {
-      if (event.target === detailBackdrop) {
-        closeDetail();
-      }
-    });
+  function buildPrintSubmission(row){var blackbox=(row.payload&&row.payload.blackbox)||[]; var additional=(row.payload&&row.payload.additional)||[]; var sus=(row.payload&&row.payload.sus&&row.payload.sus.answers)||[]; return "<article class='print-submission'><h2>"+esc(row.tester_full_name||"-")+"</h2><div class='print-meta'>"+esc(row.role_name)+" - "+esc(formatDate(row.created_at))+"</div>"+
+    "<div class='print-grid'>"+[["Submission ID",row.id],["Instansi / Unit",row.tester_org||"-"],["Tanggal Pengujian",row.test_date||"-"],["Perangkat",row.tester_device||"-"],["Browser",row.tester_browser||"-"],["Skor SUS",susScoreText(row)+" / "+(row.sus_category||"-")]].map(function(it){return"<div class='print-card'><span class='print-label'>"+esc(it[0])+"</span><div class='print-value'>"+esc(it[1])+"</div></div>";}).join("")+"</div>"+
+    "<div class='print-section-title'>Bagian 2 - Black Box Role</div>"+blackbox.map(function(item){return"<div class='print-step'><div class='print-step-title'>"+esc((item.case_id?item.case_id+" - ":"")+(item.step_title||"Step"))+"</div><table class='print-table'><tr><th>Pertanyaan / Checklist</th><th>Jawaban</th></tr><tr><td>"+esc(item.question||"-")+"</td><td>"+esc(item.answer||"-")+"</td></tr>"+(item.instruction?"<tr><th colspan='2'>Langkah Pengujian</th></tr><tr><td colspan='2'>"+esc(item.instruction)+"</td></tr>":"")+"</table></div>";}).join("")+
+    "<div class='print-section-title'>Bagian 3 - Skor SUS</div><table class='print-table'><tr><th>No</th><th>Pertanyaan</th><th>Skor</th><th>Kontribusi</th></tr>"+sus.map(function(a){return"<tr><td>"+esc(a.no)+"</td><td>"+esc(a.question)+"</td><td>"+esc(a.value||"-")+"</td><td>"+esc(a.contribution==null?"-":a.contribution)+"</td></tr>";}).join("")+"</table>"+
+    "<div class='print-section-title'>Bagian 4 - Pertanyaan Tambahan</div><table class='print-table'><tr><th>Pertanyaan</th><th>Jawaban</th></tr>"+additional.map(function(a){return"<tr><td>"+esc(a.question||"-")+"</td><td>"+esc(a.answer||"-")+"</td></tr>";}).join("")+"</table></article>";}
+  function downloadPdf(){var rows=applyFilters(); if(!rows.length){setStatus("Tidak ada data untuk PDF", true); return;} var roleText=qRole.value==="all"?"Semua Role":qRole.value; printReport.innerHTML="<div class='print-page'><div class='print-header'><div><h1>Hasil Pengujian User Flow</h1><p>Role: "+esc(roleText)+" - Total submit: "+esc(rows.length)+"</p></div><div><p>Dicetak: "+esc(formatDate(new Date().toISOString()))+"</p></div></div>"+rows.map(buildPrintSubmission).join("")+"</div>"; window.print();}
 
-    window.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") {
-        closeDetail();
-      }
-    });
-
-    resultBody.addEventListener("click", function (event) {
-      var target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-      var detailId = target.getAttribute("data-detail");
-      var id = target.getAttribute("data-delete");
-      if (detailId) {
-        openDetail(detailId);
-        return;
-      }
-      if (id) {
-        deleteSubmission(id);
-      }
-    });
-
-    loadData();
-  </script>
+  document.getElementById("btnRefresh").addEventListener("click", loadData);
+  document.getElementById("btnExcel").addEventListener("click", downloadExcel);
+  document.getElementById("btnPdf").addEventListener("click", downloadPdf);
+  qSearch.addEventListener("input", applyFilters); qRole.addEventListener("change", applyFilters); qSort.addEventListener("change", applyFilters);
+  resultBody.addEventListener("click", function(event){var t=event.target; if(!(t instanceof HTMLElement))return; var detail=t.getAttribute("data-detail"); var del=t.getAttribute("data-delete"); if(detail)openDetail(detail); if(del)deleteSubmission(del);});
+  detailBody.addEventListener("click", function(event){var t=event.target; if(t instanceof HTMLElement && t.getAttribute("data-delete")) deleteSubmission(t.getAttribute("data-delete"));});
+  document.getElementById("btnCloseDetail").addEventListener("click", closeDetail); detailBackdrop.addEventListener("click", function(e){if(e.target===detailBackdrop)closeDetail();}); window.addEventListener("keydown", function(e){if(e.key==="Escape")closeDetail();});
+  loadData();
+})();
+</script>
 </body>
 </html>

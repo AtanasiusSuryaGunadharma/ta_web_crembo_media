@@ -163,7 +163,8 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
         <a class="" href="user-flow-super-admin.html">Super Admin</a>
         <a class="active" href="user-flow-admin.html">Admin</a>
         <a class="" href="user-flow-anggota.html">Anggota</a>
-      </div>
+              <div class="nav-pills" aria-label="Navigasi hasil pengujian"><a href="user-flow-hasil.html">Hasil Pengujian</a></div>
+    </div>
     </header>
 
     <nav class="top-tabs">
@@ -1413,7 +1414,7 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
           <button class="primary" id="saveBtn" type="button">Simpan</button>
           <button id="resetBtn" type="button">Reset Data</button>
         </div>
-        <p class="footer-note">Saat ini tombol Simpan menyimpan draft lokal sementara. Tombol Reset Data digunakan untuk mengosongkan seluruh isian. Integrasi Supabase dapat ditambahkan nanti tanpa mengubah alur pengisian responden.</p>
+        <p class="footer-note">Tombol Simpan menyimpan hasil pengujian ke Supabase project Crembo Media. Tombol Reset Data digunakan untuk mengosongkan seluruh isian.</p>
       </div>
     </section>
   </main>
@@ -1535,9 +1536,9 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
         const susResult = calculateSus(false);
         const resultBox = $("resultBox");
         if(resultBox && susResult.score !== null){
-          resultBox.innerHTML = '<b>Skor SUS: '+susResult.score.toFixed(2)+'</b><span>Kategori: '+susResult.category+'</span><span class="footer-note">Data sudah siap dikirim ke Supabase saat konfigurasi backend ditambahkan.</span>';
+          resultBox.innerHTML = '<b>Skor SUS: '+susResult.score.toFixed(2)+'</b><span>Kategori: '+susResult.category+'</span><span class="footer-note">Data tersimpan ke Supabase setelah tombol Simpan berhasil diproses.</span>';
         }
-        if(options.notify) alert("Data berhasil disimpan sebagai draft lokal sementara. Integrasi Supabase dapat ditambahkan nanti.");
+        if(options.notify) alert("Data berhasil disimpan sebagai draft lokal sementara.");
       }
       return true;
     }
@@ -1682,5 +1683,6 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
     prepareSystemLinks();
   })();
   </script>
+  <script src="user-flow-submit.js"></script>
 </body>
 </html>
