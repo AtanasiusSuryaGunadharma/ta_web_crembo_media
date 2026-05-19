@@ -75,6 +75,7 @@ input,select,textarea{
 }
 textarea{min-height:92px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(177,31,31,.09)}
+.is-invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.12)!important}
 .info{border:1px solid #f1d28a;background:#fff9e8;border-left:5px solid var(--gold);border-radius:12px;padding:12px;color:#5c3f00;line-height:1.5}
 .test-section{scroll-margin-top:90px}
 .test-head{align-items:flex-start}
@@ -180,12 +181,12 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
       </div>
       <div class="section-body">
         <div class="grid">
-          <div class="field"><label>Nama Penguji *</label><input id="testerName" type="text" placeholder="Nama lengkap responden"></div>
-          <div class="field"><label>Role yang Diuji</label><input id="testerRole" type="text" value="Anggota" readonly></div>
-          <div class="field"><label>Instansi / Unit / Kelas</label><input id="testerOrg" type="text" placeholder="Contoh: CREMBO Media / UAJY"></div>
-          <div class="field"><label>Tanggal Pengujian</label><input id="testDate" type="text" value="15/05/2026" readonly></div>
-          <div class="field"><label>Perangkat *</label><select id="testerDevice"><option value="">Pilih perangkat</option><option>PC/Laptop</option><option>Handphone</option><option>Tablet</option></select></div>
-          <div class="field"><label>Browser *</label><select id="testerBrowser"><option value="">Pilih browser</option><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Safari</option><option>Opera</option><option>Brave</option><option>Lainnya</option></select></div>
+          <div class="field"><label>Nama Penguji *</label><input id="testerName" type="text" placeholder="Nama lengkap responden" required></div>
+          <div class="field"><label>Role yang Diuji *</label><input id="testerRole" type="text" value="Anggota" readonly required></div>
+          <div class="field"><label>Instansi / Unit / Kelas *</label><input id="testerOrg" type="text" placeholder="Contoh: CREMBO Media / UAJY" required></div>
+          <div class="field"><label>Tanggal Pengujian *</label><input id="testDate" type="text" value="15/05/2026" readonly required></div>
+          <div class="field"><label>Perangkat *</label><select id="testerDevice" required><option value="">Pilih perangkat</option><option>PC/Laptop</option><option>Handphone</option><option>Tablet</option></select></div>
+          <div class="field"><label>Browser *</label><select id="testerBrowser" required><option value="">Pilih browser</option><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Safari</option><option>Opera</option><option>Brave</option><option>Lainnya</option></select></div>
         </div>
         <div class="info">
           <b>Petunjuk revisi:</b> Jalankan black box testing per role terlebih dahulu. Setiap butir uji diberi status <b>Valid</b> atau <b>Tidak Valid</b>. Setelah seluruh skenario role selesai, responden mengisi SUS post-redesign dan pertanyaan tambahan.
@@ -240,23 +241,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Beranda dapat dibuka tanpa login dan tidak ada komponen yang rusak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c1" value="valid" data-result data-case="ANGGOTA-001"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c1" value="invalid" data-result data-case="ANGGOTA-001"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c1" value="valid" data-result data-case="ANGGOTA-001" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c1" value="invalid" data-result data-case="ANGGOTA-001" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Search publik dapat menerima keyword dan mengarah ke halaman hasil pencarian.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c2" value="valid" data-result data-case="ANGGOTA-001"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c2" value="invalid" data-result data-case="ANGGOTA-001"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c2" value="valid" data-result data-case="ANGGOTA-001" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c2" value="invalid" data-result data-case="ANGGOTA-001" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Dropdown profil/header tetap dapat diklik dan tidak hilang saat hover.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c3" value="valid" data-result data-case="ANGGOTA-001"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c3" value="invalid" data-result data-case="ANGGOTA-001"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c3" value="valid" data-result data-case="ANGGOTA-001" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c3" value="invalid" data-result data-case="ANGGOTA-001" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Tombol scroll to top muncul dan mengembalikan halaman ke atas.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c4" value="valid" data-result data-case="ANGGOTA-001"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-001-c4" value="invalid" data-result data-case="ANGGOTA-001"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c4" value="valid" data-result data-case="ANGGOTA-001" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-001-c4" value="invalid" data-result data-case="ANGGOTA-001" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -281,18 +282,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Profil organisasi tampil lengkap dan dapat dibaca.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-002-c1" value="valid" data-result data-case="ANGGOTA-002"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-002-c1" value="invalid" data-result data-case="ANGGOTA-002"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-002-c1" value="valid" data-result data-case="ANGGOTA-002" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-002-c1" value="invalid" data-result data-case="ANGGOTA-002" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Embed YouTube/playlist dan Google Maps tampil tanpa merusak layout.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-002-c2" value="valid" data-result data-case="ANGGOTA-002"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-002-c2" value="invalid" data-result data-case="ANGGOTA-002"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-002-c2" value="valid" data-result data-case="ANGGOTA-002" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-002-c2" value="invalid" data-result data-case="ANGGOTA-002" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Link atau tombol pada bagian sosial media dapat diakses.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-002-c3" value="valid" data-result data-case="ANGGOTA-002"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-002-c3" value="invalid" data-result data-case="ANGGOTA-002"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-002-c3" value="valid" data-result data-case="ANGGOTA-002" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-002-c3" value="invalid" data-result data-case="ANGGOTA-002" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -329,18 +330,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Filter jadwal publik menghasilkan data sesuai pilihan.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-003-c1" value="valid" data-result data-case="ANGGOTA-003"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-003-c1" value="invalid" data-result data-case="ANGGOTA-003"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-003-c1" value="valid" data-result data-case="ANGGOTA-003" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-003-c1" value="invalid" data-result data-case="ANGGOTA-003" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Card/tabel jadwal responsif dan mudah dibaca.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-003-c2" value="valid" data-result data-case="ANGGOTA-003"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-003-c2" value="invalid" data-result data-case="ANGGOTA-003"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-003-c2" value="valid" data-result data-case="ANGGOTA-003" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-003-c2" value="invalid" data-result data-case="ANGGOTA-003" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Data petugas yang tampil sesuai kebutuhan publik.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-003-c3" value="valid" data-result data-case="ANGGOTA-003"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-003-c3" value="invalid" data-result data-case="ANGGOTA-003"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-003-c3" value="valid" data-result data-case="ANGGOTA-003" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-003-c3" value="invalid" data-result data-case="ANGGOTA-003" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -365,18 +366,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Agenda dapat diakses dari home.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-004-c1" value="valid" data-result data-case="ANGGOTA-004"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-004-c1" value="invalid" data-result data-case="ANGGOTA-004"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-004-c1" value="valid" data-result data-case="ANGGOTA-004" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-004-c1" value="invalid" data-result data-case="ANGGOTA-004" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Daftar agenda dapat difilter/dibuka dengan benar.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-004-c2" value="valid" data-result data-case="ANGGOTA-004"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-004-c2" value="invalid" data-result data-case="ANGGOTA-004"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-004-c2" value="valid" data-result data-case="ANGGOTA-004" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-004-c2" value="invalid" data-result data-case="ANGGOTA-004" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Detail agenda tampil lengkap dan tombol kembali berfungsi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-004-c3" value="valid" data-result data-case="ANGGOTA-004"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-004-c3" value="invalid" data-result data-case="ANGGOTA-004"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-004-c3" value="valid" data-result data-case="ANGGOTA-004" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-004-c3" value="invalid" data-result data-case="ANGGOTA-004" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -401,18 +402,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Pengumuman dari home dapat diklik.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-005-c1" value="valid" data-result data-case="ANGGOTA-005"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-005-c1" value="invalid" data-result data-case="ANGGOTA-005"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-005-c1" value="valid" data-result data-case="ANGGOTA-005" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-005-c1" value="invalid" data-result data-case="ANGGOTA-005" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Daftar pengumuman menampilkan konten yang sesuai.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-005-c2" value="valid" data-result data-case="ANGGOTA-005"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-005-c2" value="invalid" data-result data-case="ANGGOTA-005"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-005-c2" value="valid" data-result data-case="ANGGOTA-005" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-005-c2" value="invalid" data-result data-case="ANGGOTA-005" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Detail pengumuman tampil lengkap dan tidak error.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-005-c3" value="valid" data-result data-case="ANGGOTA-005"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-005-c3" value="invalid" data-result data-case="ANGGOTA-005"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-005-c3" value="valid" data-result data-case="ANGGOTA-005" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-005-c3" value="invalid" data-result data-case="ANGGOTA-005" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -437,18 +438,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Keyword valid menampilkan hasil relevan.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-006-c1" value="valid" data-result data-case="ANGGOTA-006"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-006-c1" value="invalid" data-result data-case="ANGGOTA-006"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-006-c1" value="valid" data-result data-case="ANGGOTA-006" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-006-c1" value="invalid" data-result data-case="ANGGOTA-006" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Keyword kosong tidak menyebabkan halaman rusak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-006-c2" value="valid" data-result data-case="ANGGOTA-006"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-006-c2" value="invalid" data-result data-case="ANGGOTA-006"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-006-c2" value="valid" data-result data-case="ANGGOTA-006" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-006-c2" value="invalid" data-result data-case="ANGGOTA-006" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Keyword tidak ditemukan menampilkan pesan yang mudah dipahami.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-006-c3" value="valid" data-result data-case="ANGGOTA-006"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-006-c3" value="invalid" data-result data-case="ANGGOTA-006"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-006-c3" value="valid" data-result data-case="ANGGOTA-006" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-006-c3" value="invalid" data-result data-case="ANGGOTA-006" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -485,18 +486,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Daftar form pendaftaran publik dapat dibuka.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-007-c1" value="valid" data-result data-case="ANGGOTA-007"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-007-c1" value="invalid" data-result data-case="ANGGOTA-007"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-007-c1" value="valid" data-result data-case="ANGGOTA-007" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-007-c1" value="invalid" data-result data-case="ANGGOTA-007" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Detail form menampilkan informasi lengkap.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-007-c2" value="valid" data-result data-case="ANGGOTA-007"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-007-c2" value="invalid" data-result data-case="ANGGOTA-007"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-007-c2" value="valid" data-result data-case="ANGGOTA-007" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-007-c2" value="invalid" data-result data-case="ANGGOTA-007" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Form tidak aktif tidak dapat diisi atau diberi status jelas.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-007-c3" value="valid" data-result data-case="ANGGOTA-007"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-007-c3" value="invalid" data-result data-case="ANGGOTA-007"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-007-c3" value="valid" data-result data-case="ANGGOTA-007" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-007-c3" value="invalid" data-result data-case="ANGGOTA-007" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -521,18 +522,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Data valid dapat disubmit.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-008-c1" value="valid" data-result data-case="ANGGOTA-008"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-008-c1" value="invalid" data-result data-case="ANGGOTA-008"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-008-c1" value="valid" data-result data-case="ANGGOTA-008" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-008-c1" value="invalid" data-result data-case="ANGGOTA-008" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Field wajib kosong ditolak dan diberi pesan validasi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-008-c2" value="valid" data-result data-case="ANGGOTA-008"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-008-c2" value="invalid" data-result data-case="ANGGOTA-008"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-008-c2" value="valid" data-result data-case="ANGGOTA-008" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-008-c2" value="invalid" data-result data-case="ANGGOTA-008" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Format email/WA salah tidak diterima bila validasi tersedia.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-008-c3" value="valid" data-result data-case="ANGGOTA-008"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-008-c3" value="invalid" data-result data-case="ANGGOTA-008"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-008-c3" value="valid" data-result data-case="ANGGOTA-008" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-008-c3" value="invalid" data-result data-case="ANGGOTA-008" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -557,23 +558,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Jadwal mendatang tidak dapat diisi evaluasi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c1" value="valid" data-result data-case="ANGGOTA-009"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c1" value="invalid" data-result data-case="ANGGOTA-009"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c1" value="valid" data-result data-case="ANGGOTA-009" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c1" value="invalid" data-result data-case="ANGGOTA-009" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Dropdown pengisi hanya berisi petugas yang hadir/aktual pada sesi itu.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c2" value="valid" data-result data-case="ANGGOTA-009"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c2" value="invalid" data-result data-case="ANGGOTA-009"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c2" value="valid" data-result data-case="ANGGOTA-009" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c2" value="invalid" data-result data-case="ANGGOTA-009" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Rating per petugas wajib; catatan performa tidak wajib.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c3" value="valid" data-result data-case="ANGGOTA-009"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c3" value="invalid" data-result data-case="ANGGOTA-009"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c3" value="valid" data-result data-case="ANGGOTA-009" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c3" value="invalid" data-result data-case="ANGGOTA-009" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Submit valid menampilkan pesan berhasil.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c4" value="valid" data-result data-case="ANGGOTA-009"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-009-c4" value="invalid" data-result data-case="ANGGOTA-009"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c4" value="valid" data-result data-case="ANGGOTA-009" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-009-c4" value="invalid" data-result data-case="ANGGOTA-009" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -610,23 +611,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Input username/email/WA atau password kosong tidak bisa login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c1" value="valid" data-result data-case="ANGGOTA-010"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c1" value="invalid" data-result data-case="ANGGOTA-010"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c1" value="valid" data-result data-case="ANGGOTA-010" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c1" value="invalid" data-result data-case="ANGGOTA-010" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Password salah tidak bisa login dan pesan error muncul.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c2" value="valid" data-result data-case="ANGGOTA-010"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c2" value="invalid" data-result data-case="ANGGOTA-010"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c2" value="valid" data-result data-case="ANGGOTA-010" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c2" value="invalid" data-result data-case="ANGGOTA-010" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Login valid sebagai Anggota berhasil redirect ke dashboard sesuai role.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c3" value="valid" data-result data-case="ANGGOTA-010"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c3" value="invalid" data-result data-case="ANGGOTA-010"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c3" value="valid" data-result data-case="ANGGOTA-010" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c3" value="invalid" data-result data-case="ANGGOTA-010" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Nama akun dan role tampil sesuai setelah login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c4" value="valid" data-result data-case="ANGGOTA-010"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-010-c4" value="invalid" data-result data-case="ANGGOTA-010"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c4" value="valid" data-result data-case="ANGGOTA-010" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-010-c4" value="invalid" data-result data-case="ANGGOTA-010" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -663,18 +664,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Input kosong ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-011-c1" value="valid" data-result data-case="ANGGOTA-011"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-011-c1" value="invalid" data-result data-case="ANGGOTA-011"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-011-c1" value="valid" data-result data-case="ANGGOTA-011" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-011-c1" value="invalid" data-result data-case="ANGGOTA-011" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Akun tidak ditemukan ditolak dengan pesan yang jelas.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-011-c2" value="valid" data-result data-case="ANGGOTA-011"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-011-c2" value="invalid" data-result data-case="ANGGOTA-011"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-011-c2" value="valid" data-result data-case="ANGGOTA-011" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-011-c2" value="invalid" data-result data-case="ANGGOTA-011" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Akun valid mengirim OTP dan lanjut ke halaman verifikasi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-011-c3" value="valid" data-result data-case="ANGGOTA-011"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-011-c3" value="invalid" data-result data-case="ANGGOTA-011"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-011-c3" value="valid" data-result data-case="ANGGOTA-011" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-011-c3" value="invalid" data-result data-case="ANGGOTA-011" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -699,23 +700,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>OTP kosong ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c1" value="valid" data-result data-case="ANGGOTA-012"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c1" value="invalid" data-result data-case="ANGGOTA-012"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c1" value="valid" data-result data-case="ANGGOTA-012" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c1" value="invalid" data-result data-case="ANGGOTA-012" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>OTP salah ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c2" value="valid" data-result data-case="ANGGOTA-012"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c2" value="invalid" data-result data-case="ANGGOTA-012"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c2" value="valid" data-result data-case="ANGGOTA-012" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c2" value="invalid" data-result data-case="ANGGOTA-012" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Tombol kirim ulang mengikuti jeda 120 detik.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c3" value="valid" data-result data-case="ANGGOTA-012"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c3" value="invalid" data-result data-case="ANGGOTA-012"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c3" value="valid" data-result data-case="ANGGOTA-012" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c3" value="invalid" data-result data-case="ANGGOTA-012" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>OTP benar mengarah ke reset-password.html.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c4" value="valid" data-result data-case="ANGGOTA-012"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-012-c4" value="invalid" data-result data-case="ANGGOTA-012"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c4" value="valid" data-result data-case="ANGGOTA-012" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-012-c4" value="invalid" data-result data-case="ANGGOTA-012" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -740,23 +741,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Password pendek/tidak memenuhi aturan ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c1" value="valid" data-result data-case="ANGGOTA-013"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c1" value="invalid" data-result data-case="ANGGOTA-013"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c1" value="valid" data-result data-case="ANGGOTA-013" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c1" value="invalid" data-result data-case="ANGGOTA-013" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Konfirmasi password berbeda ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c2" value="valid" data-result data-case="ANGGOTA-013"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c2" value="invalid" data-result data-case="ANGGOTA-013"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c2" value="valid" data-result data-case="ANGGOTA-013" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c2" value="invalid" data-result data-case="ANGGOTA-013" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Password valid tersimpan dan pengguna diarahkan ke login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c3" value="valid" data-result data-case="ANGGOTA-013"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c3" value="invalid" data-result data-case="ANGGOTA-013"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c3" value="valid" data-result data-case="ANGGOTA-013" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c3" value="invalid" data-result data-case="ANGGOTA-013" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>User dapat login kembali menggunakan password baru.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c4" value="valid" data-result data-case="ANGGOTA-013"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-013-c4" value="invalid" data-result data-case="ANGGOTA-013"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c4" value="valid" data-result data-case="ANGGOTA-013" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-013-c4" value="invalid" data-result data-case="ANGGOTA-013" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -793,23 +794,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Dashboard memuat data sesuai anggota login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c1" value="valid" data-result data-case="ANGGOTA-014"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c1" value="invalid" data-result data-case="ANGGOTA-014"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c1" value="valid" data-result data-case="ANGGOTA-014" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c1" value="invalid" data-result data-case="ANGGOTA-014" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Ringkasan dan progress bar berubah sesuai filter.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c2" value="valid" data-result data-case="ANGGOTA-014"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c2" value="invalid" data-result data-case="ANGGOTA-014"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c2" value="valid" data-result data-case="ANGGOTA-014" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c2" value="invalid" data-result data-case="ANGGOTA-014" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Tugas yang perlu diambil hanya tampil jika target belum terpenuhi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c3" value="valid" data-result data-case="ANGGOTA-014"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c3" value="invalid" data-result data-case="ANGGOTA-014"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c3" value="valid" data-result data-case="ANGGOTA-014" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c3" value="invalid" data-result data-case="ANGGOTA-014" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Notifikasi dapat difilter dan ditandai dibaca.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c4" value="valid" data-result data-case="ANGGOTA-014"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-014-c4" value="invalid" data-result data-case="ANGGOTA-014"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c4" value="valid" data-result data-case="ANGGOTA-014" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-014-c4" value="invalid" data-result data-case="ANGGOTA-014" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -834,23 +835,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Data profil user login tampil benar.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c1" value="valid" data-result data-case="ANGGOTA-015"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c1" value="invalid" data-result data-case="ANGGOTA-015"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c1" value="valid" data-result data-case="ANGGOTA-015" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c1" value="invalid" data-result data-case="ANGGOTA-015" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Ganti password menolak input tidak valid.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c2" value="valid" data-result data-case="ANGGOTA-015"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c2" value="invalid" data-result data-case="ANGGOTA-015"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c2" value="valid" data-result data-case="ANGGOTA-015" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c2" value="invalid" data-result data-case="ANGGOTA-015" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Nonaktif selamanya tidak menampilkan tanggal aktif kembali.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c3" value="valid" data-result data-case="ANGGOTA-015"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c3" value="invalid" data-result data-case="ANGGOTA-015"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c3" value="valid" data-result data-case="ANGGOTA-015" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c3" value="invalid" data-result data-case="ANGGOTA-015" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Pengajuan nonaktif valid masuk status menunggu review.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c4" value="valid" data-result data-case="ANGGOTA-015"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-015-c4" value="invalid" data-result data-case="ANGGOTA-015"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c4" value="valid" data-result data-case="ANGGOTA-015" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-015-c4" value="invalid" data-result data-case="ANGGOTA-015" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -875,18 +876,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Menu yang diizinkan tetap bisa dibuka.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-016-c1" value="valid" data-result data-case="ANGGOTA-016"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-016-c1" value="invalid" data-result data-case="ANGGOTA-016"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-016-c1" value="valid" data-result data-case="ANGGOTA-016" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-016-c1" value="invalid" data-result data-case="ANGGOTA-016" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Menu yang tidak diizinkan ditolak dengan pesan yang jelas.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-016-c2" value="valid" data-result data-case="ANGGOTA-016"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-016-c2" value="invalid" data-result data-case="ANGGOTA-016"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-016-c2" value="valid" data-result data-case="ANGGOTA-016" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-016-c2" value="invalid" data-result data-case="ANGGOTA-016" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Anggota nonaktif tidak menerima notifikasi tugas baru.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-016-c3" value="valid" data-result data-case="ANGGOTA-016"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-016-c3" value="invalid" data-result data-case="ANGGOTA-016"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-016-c3" value="valid" data-result data-case="ANGGOTA-016" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-016-c3" value="invalid" data-result data-case="ANGGOTA-016" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -923,23 +924,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Tag Jadwal Saya hanya muncul pada jadwal milik user login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c1" value="valid" data-result data-case="ANGGOTA-017"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c1" value="invalid" data-result data-case="ANGGOTA-017"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c1" value="valid" data-result data-case="ANGGOTA-017" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c1" value="invalid" data-result data-case="ANGGOTA-017" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Slot kosong mendatang dapat diajukan.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c2" value="valid" data-result data-case="ANGGOTA-017"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c2" value="invalid" data-result data-case="ANGGOTA-017"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c2" value="valid" data-result data-case="ANGGOTA-017" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c2" value="invalid" data-result data-case="ANGGOTA-017" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Jadwal yang sudah lewat tidak dapat diambil.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c3" value="valid" data-result data-case="ANGGOTA-017"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c3" value="invalid" data-result data-case="ANGGOTA-017"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c3" value="valid" data-result data-case="ANGGOTA-017" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c3" value="invalid" data-result data-case="ANGGOTA-017" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Request yang berhasil masuk ke daftar tugas/status.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c4" value="valid" data-result data-case="ANGGOTA-017"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-017-c4" value="invalid" data-result data-case="ANGGOTA-017"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c4" value="valid" data-result data-case="ANGGOTA-017" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-017-c4" value="invalid" data-result data-case="ANGGOTA-017" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -964,23 +965,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Pembatalan valid berhasil diajukan/diproses.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c1" value="valid" data-result data-case="ANGGOTA-018"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c1" value="invalid" data-result data-case="ANGGOTA-018"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c1" value="valid" data-result data-case="ANGGOTA-018" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c1" value="invalid" data-result data-case="ANGGOTA-018" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Tugas yang melewati batas H-3 tidak bisa dibatalkan.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c2" value="valid" data-result data-case="ANGGOTA-018"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c2" value="invalid" data-result data-case="ANGGOTA-018"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c2" value="valid" data-result data-case="ANGGOTA-018" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c2" value="invalid" data-result data-case="ANGGOTA-018" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Penukaran jadwal valid masuk status menunggu persetujuan.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c3" value="valid" data-result data-case="ANGGOTA-018"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c3" value="invalid" data-result data-case="ANGGOTA-018"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c3" value="valid" data-result data-case="ANGGOTA-018" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c3" value="invalid" data-result data-case="ANGGOTA-018" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Input alasan kosong ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c4" value="valid" data-result data-case="ANGGOTA-018"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-018-c4" value="invalid" data-result data-case="ANGGOTA-018"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c4" value="valid" data-result data-case="ANGGOTA-018" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-018-c4" value="invalid" data-result data-case="ANGGOTA-018" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1005,23 +1006,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Riwayat hanya menampilkan tugas milik user login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c1" value="valid" data-result data-case="ANGGOTA-019"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c1" value="invalid" data-result data-case="ANGGOTA-019"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c1" value="valid" data-result data-case="ANGGOTA-019" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c1" value="invalid" data-result data-case="ANGGOTA-019" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Target minimum default 3 tugas terbaca.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c2" value="valid" data-result data-case="ANGGOTA-019"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c2" value="invalid" data-result data-case="ANGGOTA-019"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c2" value="valid" data-result data-case="ANGGOTA-019" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c2" value="invalid" data-result data-case="ANGGOTA-019" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Progress bar sesuai total tugas selesai/target.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c3" value="valid" data-result data-case="ANGGOTA-019"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c3" value="invalid" data-result data-case="ANGGOTA-019"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c3" value="valid" data-result data-case="ANGGOTA-019" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c3" value="invalid" data-result data-case="ANGGOTA-019" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Kekurangan tugas dihitung sesuai bulan yang dipilih.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c4" value="valid" data-result data-case="ANGGOTA-019"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-019-c4" value="invalid" data-result data-case="ANGGOTA-019"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c4" value="valid" data-result data-case="ANGGOTA-019" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-019-c4" value="invalid" data-result data-case="ANGGOTA-019" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1058,23 +1059,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Sesi mendatang tidak bisa diisi evaluasi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c1" value="valid" data-result data-case="ANGGOTA-020"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c1" value="invalid" data-result data-case="ANGGOTA-020"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c1" value="valid" data-result data-case="ANGGOTA-020" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c1" value="invalid" data-result data-case="ANGGOTA-020" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Rating per petugas wajib diisi.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c2" value="valid" data-result data-case="ANGGOTA-020"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c2" value="invalid" data-result data-case="ANGGOTA-020"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c2" value="valid" data-result data-case="ANGGOTA-020" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c2" value="invalid" data-result data-case="ANGGOTA-020" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Catatan performa dan checklist kondisi pelayanan opsional.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c3" value="valid" data-result data-case="ANGGOTA-020"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c3" value="invalid" data-result data-case="ANGGOTA-020"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c3" value="valid" data-result data-case="ANGGOTA-020" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c3" value="invalid" data-result data-case="ANGGOTA-020" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Review menampilkan catatan per petugas dan checklist jika ada.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c4" value="valid" data-result data-case="ANGGOTA-020"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-020-c4" value="invalid" data-result data-case="ANGGOTA-020"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c4" value="valid" data-result data-case="ANGGOTA-020" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-020-c4" value="invalid" data-result data-case="ANGGOTA-020" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1111,23 +1112,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Pengajuan valid tersimpan.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c1" value="valid" data-result data-case="ANGGOTA-021"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c1" value="invalid" data-result data-case="ANGGOTA-021"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c1" value="valid" data-result data-case="ANGGOTA-021" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c1" value="invalid" data-result data-case="ANGGOTA-021" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Tanggal/field kosong ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c2" value="valid" data-result data-case="ANGGOTA-021"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c2" value="invalid" data-result data-case="ANGGOTA-021"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c2" value="valid" data-result data-case="ANGGOTA-021" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c2" value="invalid" data-result data-case="ANGGOTA-021" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Pengambilan/pengembalian mengubah status.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c3" value="valid" data-result data-case="ANGGOTA-021"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c3" value="invalid" data-result data-case="ANGGOTA-021"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c3" value="valid" data-result data-case="ANGGOTA-021" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c3" value="invalid" data-result data-case="ANGGOTA-021" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Riwayat menampilkan transaksi milik user login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c4" value="valid" data-result data-case="ANGGOTA-021"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-021-c4" value="invalid" data-result data-case="ANGGOTA-021"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c4" value="valid" data-result data-case="ANGGOTA-021" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-021-c4" value="invalid" data-result data-case="ANGGOTA-021" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1152,23 +1153,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Field wajib kosong ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c1" value="valid" data-result data-case="ANGGOTA-022"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c1" value="invalid" data-result data-case="ANGGOTA-022"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c1" value="valid" data-result data-case="ANGGOTA-022" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c1" value="invalid" data-result data-case="ANGGOTA-022" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Laporan valid berhasil dikirim.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c2" value="valid" data-result data-case="ANGGOTA-022"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c2" value="invalid" data-result data-case="ANGGOTA-022"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c2" value="valid" data-result data-case="ANGGOTA-022" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c2" value="invalid" data-result data-case="ANGGOTA-022" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Bukti kerusakan dapat diunggah/dilihat.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c3" value="valid" data-result data-case="ANGGOTA-022"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c3" value="invalid" data-result data-case="ANGGOTA-022"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c3" value="valid" data-result data-case="ANGGOTA-022" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c3" value="invalid" data-result data-case="ANGGOTA-022" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Riwayat laporan sesuai user login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c4" value="valid" data-result data-case="ANGGOTA-022"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-022-c4" value="invalid" data-result data-case="ANGGOTA-022"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c4" value="valid" data-result data-case="ANGGOTA-022" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-022-c4" value="invalid" data-result data-case="ANGGOTA-022" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1193,18 +1194,18 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Form aktif bisa diisi anggota login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-023-c1" value="valid" data-result data-case="ANGGOTA-023"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-023-c1" value="invalid" data-result data-case="ANGGOTA-023"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-023-c1" value="valid" data-result data-case="ANGGOTA-023" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-023-c1" value="invalid" data-result data-case="ANGGOTA-023" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Data wajib kosong ditolak.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-023-c2" value="valid" data-result data-case="ANGGOTA-023"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-023-c2" value="invalid" data-result data-case="ANGGOTA-023"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-023-c2" value="valid" data-result data-case="ANGGOTA-023" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-023-c2" value="invalid" data-result data-case="ANGGOTA-023" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Submit valid menampilkan pesan berhasil.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-023-c3" value="valid" data-result data-case="ANGGOTA-023"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-023-c3" value="invalid" data-result data-case="ANGGOTA-023"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-023-c3" value="valid" data-result data-case="ANGGOTA-023" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-023-c3" value="invalid" data-result data-case="ANGGOTA-023" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1229,23 +1230,23 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
               <strong>Checklist Black Box</strong>
               <div class="check-row">
               <span>Sertifikat dapat dipreview/diunduh.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c1" value="valid" data-result data-case="ANGGOTA-024"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c1" value="invalid" data-result data-case="ANGGOTA-024"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c1" value="valid" data-result data-case="ANGGOTA-024" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c1" value="invalid" data-result data-case="ANGGOTA-024" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Log anggota hanya milik user login.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c2" value="valid" data-result data-case="ANGGOTA-024"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c2" value="invalid" data-result data-case="ANGGOTA-024"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c2" value="valid" data-result data-case="ANGGOTA-024" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c2" value="invalid" data-result data-case="ANGGOTA-024" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Filter log periode bekerja.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c3" value="valid" data-result data-case="ANGGOTA-024"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c3" value="invalid" data-result data-case="ANGGOTA-024"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c3" value="valid" data-result data-case="ANGGOTA-024" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c3" value="invalid" data-result data-case="ANGGOTA-024" required> Tidak Valid</label>
             </div>
 <div class="check-row">
               <span>Export/preview log mengikuti data yang difilter.</span>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c4" value="valid" data-result data-case="ANGGOTA-024"> Valid</label>
-              <label><input type="radio" name="anggota-ANGGOTA-024-c4" value="invalid" data-result data-case="ANGGOTA-024"> Tidak Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c4" value="valid" data-result data-case="ANGGOTA-024" required> Valid</label>
+              <label><input type="radio" name="anggota-ANGGOTA-024-c4" value="invalid" data-result data-case="ANGGOTA-024" required> Tidak Valid</label>
             </div>
             </div>
           </article>
@@ -1264,23 +1265,22 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
         <div class="sus-table-wrap">
           <table class="sus-table">
             <thead><tr><th>No</th><th>Pertanyaan SUS Post-Redesign</th><th class="scale-cell">1</th><th class="scale-cell">2</th><th class="scale-cell">3</th><th class="scale-cell">4</th><th class="scale-cell">5</th></tr></thead>
-            <tbody><tr><td>1</td><td>Saya merasa akan sering menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus1" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="5"><span>5</span></label></td></tr>
-<tr><td>2</td><td>Saya merasa website ini terlalu rumit untuk digunakan.</td><td class="scale-cell"><label><input type="radio" name="sus2" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="5"><span>5</span></label></td></tr>
-<tr><td>3</td><td>Saya merasa website ini mudah digunakan.</td><td class="scale-cell"><label><input type="radio" name="sus3" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="5"><span>5</span></label></td></tr>
-<tr><td>4</td><td>Saya membutuhkan bantuan teknis dari orang lain untuk dapat menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus4" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="5"><span>5</span></label></td></tr>
-<tr><td>5</td><td>Saya menemukan berbagai fitur website berjalan dengan baik secara konsisten.</td><td class="scale-cell"><label><input type="radio" name="sus5" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="5"><span>5</span></label></td></tr>
-<tr><td>6</td><td>Saya merasa ada banyak hal yang tidak konsisten atau membingungkan di website ini.</td><td class="scale-cell"><label><input type="radio" name="sus6" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="5"><span>5</span></label></td></tr>
-<tr><td>7</td><td>Saya merasa sebagian besar orang akan belajar menggunakan website ini dengan cepat.</td><td class="scale-cell"><label><input type="radio" name="sus7" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="5"><span>5</span></label></td></tr>
-<tr><td>8</td><td>Saya merasa website ini sangat rumit untuk digunakan oleh pengguna baru.</td><td class="scale-cell"><label><input type="radio" name="sus8" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="5"><span>5</span></label></td></tr>
-<tr><td>9</td><td>Saya merasa percaya diri saat menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus9" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="5"><span>5</span></label></td></tr>
-<tr><td>10</td><td>Saya perlu mempelajari banyak hal terlebih dahulu sebelum dapat menggunakan website ini dengan baik.</td><td class="scale-cell"><label><input type="radio" name="sus10" value="1"><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="2"><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="3"><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="4"><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="5"><span>5</span></label></td></tr></tbody>
+            <tbody><tr><td>1</td><td>Saya merasa akan sering menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus1" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus1" value="5" required><span>5</span></label></td></tr>
+<tr><td>2</td><td>Saya merasa website ini terlalu rumit untuk digunakan.</td><td class="scale-cell"><label><input type="radio" name="sus2" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus2" value="5" required><span>5</span></label></td></tr>
+<tr><td>3</td><td>Saya merasa website ini mudah digunakan.</td><td class="scale-cell"><label><input type="radio" name="sus3" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus3" value="5" required><span>5</span></label></td></tr>
+<tr><td>4</td><td>Saya membutuhkan bantuan teknis dari orang lain untuk dapat menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus4" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus4" value="5" required><span>5</span></label></td></tr>
+<tr><td>5</td><td>Saya menemukan berbagai fitur website berjalan dengan baik secara konsisten.</td><td class="scale-cell"><label><input type="radio" name="sus5" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus5" value="5" required><span>5</span></label></td></tr>
+<tr><td>6</td><td>Saya merasa ada banyak hal yang tidak konsisten atau membingungkan di website ini.</td><td class="scale-cell"><label><input type="radio" name="sus6" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus6" value="5" required><span>5</span></label></td></tr>
+<tr><td>7</td><td>Saya merasa sebagian besar orang akan belajar menggunakan website ini dengan cepat.</td><td class="scale-cell"><label><input type="radio" name="sus7" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus7" value="5" required><span>5</span></label></td></tr>
+<tr><td>8</td><td>Saya merasa website ini sangat rumit untuk digunakan oleh pengguna baru.</td><td class="scale-cell"><label><input type="radio" name="sus8" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus8" value="5" required><span>5</span></label></td></tr>
+<tr><td>9</td><td>Saya merasa percaya diri saat menggunakan website ini.</td><td class="scale-cell"><label><input type="radio" name="sus9" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus9" value="5" required><span>5</span></label></td></tr>
+<tr><td>10</td><td>Saya perlu mempelajari banyak hal terlebih dahulu sebelum dapat menggunakan website ini dengan baik.</td><td class="scale-cell"><label><input type="radio" name="sus10" value="1" required><span>1</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="2" required><span>2</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="3" required><span>3</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="4" required><span>4</span></label></td><td class="scale-cell"><label><input type="radio" name="sus10" value="5" required><span>5</span></label></td></tr></tbody>
           </table>
         </div>
         <div class="actions">
-          <button class="primary" id="calcBtn" type="button">Hitung Skor SUS</button>
         </div>
         <div class="result-box" id="resultBox">
-          <span class="footer-note">Skor SUS akan muncul setelah 10 pertanyaan terisi.</span>
+          <span class="footer-note">Skor SUS dihitung otomatis saat tombol Simpan ditekan.</span>
         </div>
       </div>
     </section>
@@ -1288,13 +1288,13 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
     <section id="tambahan" class="section">
       <div class="section-head">
         <h2>Bagian 4 - Pertanyaan Tambahan</h2>
-        <small>Feedback kualitatif singkat</small>
+        <small>Feedback kualitatif singkat, opsional</small>
       </div>
       <div class="section-body">
-        <div class="field"><label>1. Fitur apa yang paling sering Anda gunakan?</label><textarea id="open1" placeholder="Tulis jawaban singkat..."></textarea></div>
-        <div class="field"><label>2. Apakah ada fitur yang sulit digunakan atau tidak berfungsi?</label><textarea id="open2" placeholder="Tulis jawaban singkat..."></textarea></div>
-        <div class="field"><label>3. Bagian tampilan apa yang perlu diperbaiki?</label><textarea id="open3" placeholder="Tulis jawaban singkat..."></textarea></div>
-        <div class="field"><label>4. Saran tambahan untuk meningkatkan usability website?</label><textarea id="open4" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>1. Fitur apa yang paling sering Anda gunakan? <span style="text-transform:none;color:#64748b;font-weight:800">(Opsional)</span></label><textarea id="open1" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>2. Apakah ada fitur yang sulit digunakan atau tidak berfungsi? <span style="text-transform:none;color:#64748b;font-weight:800">(Opsional)</span></label><textarea id="open2" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>3. Bagian tampilan apa yang perlu diperbaiki? <span style="text-transform:none;color:#64748b;font-weight:800">(Opsional)</span></label><textarea id="open3" placeholder="Tulis jawaban singkat..."></textarea></div>
+        <div class="field"><label>4. Saran tambahan untuk meningkatkan usability website? <span style="text-transform:none;color:#64748b;font-weight:800">(Opsional)</span></label><textarea id="open4" placeholder="Tulis jawaban singkat..."></textarea></div>
       </div>
     </section>
 
@@ -1312,11 +1312,8 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
         </div>
         <div class="actions">
           <button class="primary" id="saveBtn" type="button">Simpan</button>
-          <button id="exportBtn" type="button">Export JSON</button>
-          <button id="printBtn" type="button">Print / Simpan PDF</button>
-          <button id="resetBtn" type="button">Reset Jawaban</button>
         </div>
-        <p class="footer-note">File ini belum konek backend. Jawaban disimpan dengan localStorage agar bisa dipakai simulasi bimbingan dan uji responden awal.</p>
+        <p class="footer-note">Saat ini tombol Simpan menyimpan draft lokal sementara. Integrasi Supabase dapat ditambahkan nanti tanpa mengubah alur pengisian responden.</p>
       </div>
     </section>
   </main>
@@ -1382,7 +1379,68 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
       const answeredGroups = new Set(checked.map(i=>i.name));
       $("sumPending").textContent = Math.max(groups.size - answeredGroups.size, 0);
     }
-    function save(){ localStorage.setItem(storageKey, JSON.stringify(getPayload())); updateSummary(); }
+    function setInvalid(el, state){
+      if(!el) return;
+      el.classList.toggle("is-invalid", Boolean(state));
+      el.setAttribute("aria-invalid", state ? "true" : "false");
+    }
+    function validateRequiredBeforeSave(){
+      const missing = [];
+      const requiredFields = [
+        ["testerName", "Nama Penguji"],
+        ["testerRole", "Role yang Diuji"],
+        ["testerOrg", "Instansi / Unit / Kelas"],
+        ["testDate", "Tanggal Pengujian"],
+        ["testerDevice", "Perangkat"],
+        ["testerBrowser", "Browser"]
+      ];
+      requiredFields.forEach(([id, label]) => {
+        const el = $(id);
+        const empty = !el || !String(el.value || "").trim();
+        setInvalid(el, empty);
+        if(empty) missing.push(label);
+      });
+
+      const blackboxGroups = Array.from(new Set(resultInputs.map(input => input.name)));
+      const missingBlackbox = blackboxGroups.filter(name => !resultInputs.some(input => input.name === name && input.checked));
+      if(missingBlackbox.length){
+        missing.push(missingBlackbox.length + " checklist Black Box belum dipilih");
+      }
+
+      const missingSus = [];
+      for(let i = 1; i <= 10; i += 1){
+        if(!document.querySelector('input[name="sus'+i+'"]:checked')) missingSus.push(i);
+      }
+      if(missingSus.length){
+        missing.push("SUS nomor " + missingSus.join(", "));
+      }
+
+      if(missing.length){
+        const message = "Lengkapi data wajib terlebih dahulu:\n- " + missing.join("\n- ");
+        const resultBox = $("resultBox");
+        if(resultBox){
+          resultBox.innerHTML = '<b style="color:#991b1b">Data wajib belum lengkap.</b><span>' + missing.slice(0, 5).join('<br>') + (missing.length > 5 ? '<br>Dan beberapa data wajib lainnya.' : '') + '</span>';
+        }
+        alert(message);
+        return false;
+      }
+      return true;
+    }
+    function save(options = {}){
+      const shouldValidate = Boolean(options.validate);
+      if(shouldValidate && !validateRequiredBeforeSave()) return false;
+      localStorage.setItem(storageKey, JSON.stringify(getPayload()));
+      updateSummary();
+      if(shouldValidate){
+        const susResult = calculateSus(false);
+        const resultBox = $("resultBox");
+        if(resultBox && susResult.score !== null){
+          resultBox.innerHTML = '<b>Skor SUS: '+susResult.score.toFixed(2)+'</b><span>Kategori: '+susResult.category+'</span><span class="footer-note">Data sudah siap dikirim ke Supabase saat konfigurasi backend ditambahkan.</span>';
+        }
+        if(options.notify) alert("Data berhasil disimpan sebagai draft lokal sementara. Integrasi Supabase dapat ditambahkan nanti.");
+      }
+      return true;
+    }
     function restore(){
       try{
         const raw = localStorage.getItem(storageKey);
@@ -1415,29 +1473,7 @@ button.primary,.btn.primary{background:linear-gradient(135deg,var(--primary),var
     }
     document.addEventListener("change", e=>{ if(e.target.matches("input,select,textarea")) save(); });
     document.addEventListener("input", e=>{ if(e.target.matches("textarea,input")) save(); });
-    $("calcBtn").addEventListener("click", ()=>{ calculateSus(true); save(); });
-    $("saveBtn").addEventListener("click", ()=>{ save(); alert("Data berhasil disimpan lokal di browser."); });
-    $("exportBtn").addEventListener("click", ()=>{
-      const blob = new Blob([JSON.stringify(getPayload(), null, 2)], {type:"application/json"});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "hasil-blackbox-sus-anggota.json";
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-    $("printBtn").addEventListener("click", ()=>window.print());
-    $("resetBtn").addEventListener("click", ()=>{
-      if(!confirm("Reset semua jawaban pada halaman ini?")) return;
-      localStorage.removeItem(storageKey);
-      document.querySelectorAll('input[type="radio"]').forEach(el=>el.checked=false);
-      document.querySelectorAll('textarea').forEach(el=>el.value="");
-      $("testerName").value = "";
-      $("testerOrg").value = "";
-      $("testerDevice").value = "";
-      $("testerBrowser").value = "";
-      $("resultBox").innerHTML = '<span class="footer-note">Jawaban sudah direset.</span>';
-      updateSummary();
-    });
+    $("saveBtn").addEventListener("click", ()=>{ save({ validate:true, notify:true }); });
     restore();
     updateSummary();
   })();
