@@ -2409,7 +2409,7 @@
   const user = window.CREMBO_CURRENT_USER || {};
   const inactive = String(user.status_akun || '').toLowerCase() === 'nonaktif';
   if(!inactive) return;
-  const allowed = ['dashboard-anggota.html','/dashboard-anggota','profil-anggota.html','/profil','unduh-sertifikat-anggota.html','log-aktivitas-saya.html','home.html','home.html?session=active','/logout'];
+  const allowed = ['dashboard-anggota.html','/dashboard-anggota','profil-anggota.html','/profil','sertifikat-anggota.html','/sertifikat-anggota','unduh-sertifikat-anggota.html','log-aktivitas-saya.html','home.html','home.html?session=active','/logout'];
   function isAllowedHref(href){
     if(!href) return true;
     if(href.startsWith('#')) return true;

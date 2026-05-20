@@ -65,7 +65,6 @@ def add_monitoring_api_cors_headers(response):
             response.headers["Vary"] = "Origin"
     return response
 
-
 @app.after_request
 def clean_public_html_urls(response):
     content_type = (response.headers.get("Content-Type") or "").lower()
@@ -7502,16 +7501,16 @@ def api_profile_password():
         conn.close()
 
 
+@app.route("/unduh-sertifikat-anggota")
+@app.route("/unduh-sertifikat-anggota.html")
+def legacy_certificate_page():
+    return redirect(url_for("render_mockup_page", page="sertifikat-anggota"), code=301)
+
+
 @app.route("/<path:page>")
 def render_mockup_page(page: str):
     if page in {"favicon.ico"}:
         abort(404)
-
-    if page.endswith(".html"):
-        clean_page = page[:-5]
-        if clean_page == "home":
-            return redirect(url_for("render_mockup_page", page=""), code=301)
-        return redirect(url_for("render_mockup_page", page=clean_page), code=301)
 
     asset_path = FRONTEND_DIR / page
     if asset_path.is_file() and not page.endswith(".html"):
