@@ -25,6 +25,7 @@ from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
+PUBLIC_FAVICON_PATH = FRONTEND_DIR / "LOGO CREMBO PUTIH yg bagus.png"
 
 app = Flask(
     __name__,
@@ -64,12 +65,41 @@ def add_monitoring_api_cors_headers(response):
             response.headers["Vary"] = "Origin"
     return response
 
+
+@app.after_request
+def clean_public_html_urls(response):
+    content_type = (response.headers.get("Content-Type") or "").lower()
+    if "text/html" not in content_type:
+        return response
+
+    body = response.get_data(as_text=True)
+    if not body:
+        return response
+
+    if "rel=\"icon\"" not in body and "rel='icon'" not in body:
+        favicon_links = (
+            '    <link rel="icon" type="image/png" href="/favicon.ico">\n'
+            '    <link rel="shortcut icon" type="image/png" href="/favicon.ico">\n'
+        )
+        body = body.replace("</head>", f"{favicon_links}</head>", 1)
+
+    body = body.replace(".html", "")
+    response.set_data(body)
+    return response
+
+
+@app.route("/favicon.ico")
+def favicon():
+    if PUBLIC_FAVICON_PATH.is_file():
+        return send_file(PUBLIC_FAVICON_PATH, mimetype="image/png")
+    abort(404)
+
 MYSQL_CONFIG = {
-    "host": "127.0.0.1",
-    "port": 3306,
-    "user": "root",
-    "password": "",
-    "database": "crembo_db_new",
+    "host": os.getenv("MYSQL_HOST", "127.0.0.1"),
+    "port": int(os.getenv("MYSQL_PORT", "3306")),
+    "user": os.getenv("MYSQL_USER", "root"),
+    "password": os.getenv("MYSQL_PASSWORD", ""),
+    "database": os.getenv("MYSQL_DATABASE", "crembo_db_new"),
     "autocommit": False,
 }
 
@@ -7476,6 +7506,12 @@ def api_profile_password():
 def render_mockup_page(page: str):
     if page in {"favicon.ico"}:
         abort(404)
+
+    if page.endswith(".html"):
+        clean_page = page[:-5]
+        if clean_page == "home":
+            return redirect(url_for("render_mockup_page", page=""), code=301)
+        return redirect(url_for("render_mockup_page", page=clean_page), code=301)
 
     asset_path = FRONTEND_DIR / page
     if asset_path.is_file() and not page.endswith(".html"):
