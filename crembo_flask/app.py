@@ -65,40 +65,22 @@ def add_monitoring_api_cors_headers(response):
             response.headers["Vary"] = "Origin"
     return response
 
+
 @app.after_request
-def clean_public_html_urls(response):
+def add_html_no_cache_headers(response):
     content_type = (response.headers.get("Content-Type") or "").lower()
-    if "text/html" not in content_type:
-        return response
-
-    body = response.get_data(as_text=True)
-    if not body:
-        return response
-
-    if "rel=\"icon\"" not in body and "rel='icon'" not in body:
-        favicon_links = (
-            '    <link rel="icon" type="image/png" href="/favicon.ico">\n'
-            '    <link rel="shortcut icon" type="image/png" href="/favicon.ico">\n'
-        )
-        body = body.replace("</head>", f"{favicon_links}</head>", 1)
-
-    body = body.replace(".html", "")
-    response.set_data(body)
+    if "text/html" in content_type:
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
 
-
-@app.route("/favicon.ico")
-def favicon():
-    if PUBLIC_FAVICON_PATH.is_file():
-        return send_file(PUBLIC_FAVICON_PATH, mimetype="image/png")
-    abort(404)
-
 MYSQL_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "127.0.0.1"),
-    "port": int(os.getenv("MYSQL_PORT", "3306")),
-    "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", ""),
-    "database": os.getenv("MYSQL_DATABASE", "crembo_db_new"),
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "root",
+    "password": "",
+    "database": "crembo_db_new",
     "autocommit": False,
 }
 
