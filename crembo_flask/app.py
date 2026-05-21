@@ -15885,7 +15885,7 @@ def create_streaming_evaluation_reminder_notifications() -> int:
 
                     member_role = normalize_role_value(staff.get("accountRole") or "user")
                     role_name = normalize_text(staff.get("role")) or "Petugas"
-                    url = "/form-evaluasi-streaming.html" if member_role in {"admin", "super_admin"} else "/evaluasi-streaming-anggota.html"
+                    url = "/form-evaluasi-streaming"
                     dedupe_key = f"eval-reminder:{reminder_date_key}:{schedule_id}:{member_id}"
 
                     cursor.execute(
