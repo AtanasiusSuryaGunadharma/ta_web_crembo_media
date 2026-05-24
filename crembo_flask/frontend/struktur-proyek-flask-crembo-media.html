@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struktur Proyek Flask Crembo Media</title>
+  <style>
+    :root {
+      --bg: #f7f7f2;
+      --panel: #fffef8;
+      --ink: #1f2a37;
+      --muted: #52606d;
+      --line: #d4d9dd;
+      --accent: #136f63;
+      --accent-2: #0b5345;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top right, #eef9f4 0%, var(--bg) 50%, #f4f4ee 100%);
+      color: var(--ink);
+      line-height: 1.5;
+      padding: 28px 18px 40px;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent-2);
+    }
+
+    .report-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .report-header {
+      padding: 24px 24px 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(120deg, #e8f7ef, #f9f8f3);
+    }
+
+    .report-title {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.2px;
+    }
+
+    .report-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .report-body {
+      padding: 18px 24px 24px;
+    }
+
+    .desc {
+      margin: 0 0 14px;
+      color: #2f3e4f;
+      font-size: 15px;
+    }
+
+    .tree-wrap {
+      border: 1px dashed #b7c2cc;
+      border-radius: 10px;
+      padding: 14px;
+      background: #fcfcfa;
+      overflow: auto;
+    }
+
+    .tree {
+      margin: 0;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      white-space: pre;
+      color: #1f2933;
+    }
+
+    .legend {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--accent);
+      background: #f5fbf8;
+      font-size: 14px;
+      color: #334e68;
+    }
+
+    .footer-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #61758a;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+      }
+
+      .toolbar {
+        display: none;
+      }
+
+      .page {
+        max-width: 100%;
+      }
+
+      .report-card {
+        box-shadow: none;
+        border: 1px solid #c9d0d6;
+        border-radius: 0;
+      }
+
+      .tree-wrap {
+        border-style: solid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="toolbar">
+      <button class="btn" id="downloadPngBtn" type="button">Unduh Gambar (PNG)</button>
+      <button class="btn secondary" id="printPdfBtn" type="button">Cetak / Simpan PDF</button>
+    </div>
+
+    <article class="report-card" id="reportArea">
+      <header class="report-header">
+        <h1 class="report-title">Struktur Proyek Flask Crembo Media</h1>
+        <p class="report-subtitle">Dokumentasi lampiran laporan - versi ringkas dan siap cetak</p>
+      </header>
+
+      <section class="report-body">
+        <p class="desc">
+          Struktur proyek memisahkan file aplikasi utama, file SQL basis data, folder frontend, folder upload,
+          aset gambar, dan file halaman HTML. Pemisahan ini membantu proses pemeliharaan karena setiap modul
+          memiliki file antarmuka yang mudah ditemukan.
+        </p>
+
+        <div class="tree-wrap">
+<pre class="tree">code_ta_crembo_6/
+|-- check_profiles.py
+|-- crembo/
+`-- crembo_flask/
+    |-- app.py                          # File aplikasi utama Flask
+    |-- crembo_db_new.sql               # Dump SQL basis data utama
+    |-- migrate_sqlite_to_mysql.py      # Skrip migrasi basis data
+    |-- _inspect_legacy_sqlite.py
+    |-- requirements.txt
+    |-- README.md
+    |-- NOTIFICATION_EMAIL_TEMPLATE.md
+    |-- frontend/
+    |   |-- uploads/                    # Folder upload file/gambar dinamis
+    |   |-- static/                     # Aset statis (CSS/JS/gambar pendukung)
+    |   |-- LOGO CREMBO PUTIH yg bagus.png
+    |   |-- index.html
+    |   |-- home.html
+    |   |-- login.html
+    |   |-- dashboard.html
+    |   |-- dashboard-anggota.html
+    |   |-- profil.html
+    |   |-- profil-anggota.html
+    |   |-- pengumuman.html
+    |   |-- pengumuman-detail.html
+    |   |-- agenda.html
+    |   |-- agenda-detail.html
+    |   |-- form-pendaftaran.html
+    |   |-- form-pendaftaran-detail.html
+    |   |-- data-inventaris-barang.html
+    |   |-- persetujuan-peminjaman.html
+    |   |-- riwayat-peminjaman-pengembalian.html
+    |   |-- manajemen-anggota.html
+    |   |-- manajemen-agenda.html
+    |   |-- manajemen-form-pendaftaran.html
+    |   |-- kelola-berita.html
+    |   |-- kelola-carousel-home.html
+    |   |-- kelola-tentang-crembo.html
+    |   |-- kelola-embed-youtube.html
+    |   |-- kelola-embed-google-maps.html
+    |   |-- kelola-embed-instagram.html
+    |   |-- jadwal-streaming.html
+    |   |-- jadwal-tugas-streaming-admin.html
+    |   |-- monitoring-tugas-anggota.html
+    |   |-- monitoring-kewajiban-tugas-anggota.html
+    |   |-- riwayat-tugas-saya.html
+    |   `-- ... (halaman HTML lainnya)
+    `-- __pycache__/</pre>
+        </div>
+
+        <p class="legend">
+          Keterangan: Fokus utama struktur di atas adalah pemisahan backend Flask, SQL database, frontend, dan file upload
+          agar proses pengembangan, pemeliharaan, serta pelacakan modul lebih terstruktur.
+        </p>
+
+        <p class="footer-note">
+          Catatan: Untuk PDF, gunakan tombol "Cetak / Simpan PDF" lalu pilih printer "Save as PDF".
+        </p>
+      </section>
+    </article>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    async function downloadPngFromElement(elementId, fileName) {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        alert("Area laporan tidak ditemukan.");
+        return;
+      }
+
+      if (typeof window.html2canvas !== "function") {
+        alert("Library ekspor gambar belum termuat. Coba refresh halaman.");
+        return;
+      }
+
+      try {
+        const canvas = await window.html2canvas(element, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+        });
+        const pngUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        alert("Gagal membuat gambar. Coba gunakan fitur Cetak / Simpan PDF.");
+      }
+    }
+
+    document.getElementById("downloadPngBtn").addEventListener("click", function () {
+      downloadPngFromElement("reportArea", "struktur-proyek-flask-crembo-media.png");
+    });
+
+    document.getElementById("printPdfBtn").addEventListener("click", function () {
+      window.print();
+    });
+  </script>
+</body>
+</html>

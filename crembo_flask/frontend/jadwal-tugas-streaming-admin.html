@@ -255,6 +255,163 @@
   </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="_admin-theme.css">
+
+<style id="jadwal-streaming-mobile-scroll-fix">
+  /* Perbaikan responsif tabel jadwal streaming admin.
+     Style ini diletakkan setelah _admin-theme.css agar tidak dioverride tema global. */
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .main,
+  .panel,
+  .panel-body,
+  .view-panel,
+  .table-scroll-container {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .table-scroll-container {
+    overflow: hidden;
+  }
+
+  #scheduleTableWrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 0, 0, 0.55) rgba(128, 0, 0, 0.08);
+  }
+
+  #scheduleTableWrap::-webkit-scrollbar {
+    display: block !important;
+    height: 8px;
+  }
+
+  #scheduleTableWrap::-webkit-scrollbar-track {
+    background: rgba(128, 0, 0, 0.08);
+    border-radius: 999px;
+  }
+
+  #scheduleTableWrap::-webkit-scrollbar-thumb {
+    background: rgba(128, 0, 0, 0.55);
+    border-radius: 999px;
+  }
+
+  #scheduleTableWrap > table {
+    width: max-content !important;
+    min-width: var(--schedule-table-min-width, 980px) !important;
+    table-layout: auto;
+  }
+
+  #scheduleTableWrap th,
+  #scheduleTableWrap td {
+    white-space: nowrap;
+  }
+
+  #scheduleTableWrap th:nth-child(1),
+  #scheduleTableWrap td:nth-child(1) { min-width: 150px; }
+  #scheduleTableWrap th:nth-child(2),
+  #scheduleTableWrap td:nth-child(2) { min-width: 82px; }
+  #scheduleTableWrap th:nth-child(3),
+  #scheduleTableWrap td:nth-child(3) { min-width: 145px; }
+  #scheduleTableWrap th:nth-child(n+4),
+  #scheduleTableWrap td:nth-child(n+4) { min-width: 150px; }
+  #scheduleTableWrap th:last-child,
+  #scheduleTableWrap td:last-child { min-width: 120px; }
+
+  .mobile-scroll-hint {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 8px 0 0;
+    padding: 6px 10px;
+    border: 1px dashed rgba(128, 0, 0, 0.28);
+    border-radius: 999px;
+    background: rgba(128, 0, 0, 0.05);
+    color: #800000;
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 920px) {
+    .main { width: 100%; overflow-x: hidden; }
+    .dashboard-headline-bar,
+    .schedule-topbar,
+    .panel { width: 100%; max-width: 100%; }
+
+    #scheduleTableWrap {
+      border-radius: 12px;
+      border-color: rgba(128, 0, 0, 0.18);
+      box-shadow: inset -16px 0 18px -20px rgba(128, 0, 0, 0.45);
+    }
+
+    .mobile-scroll-hint { display: inline-flex; }
+
+    .big-mass-summary {
+      display: flex !important;
+      grid-template-columns: none !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scrollbar-width: thin;
+      padding-bottom: 8px;
+    }
+
+    .big-mass-summary-item {
+      flex: 0 0 160px;
+      min-width: 160px;
+    }
+
+    .big-mass-grid {
+      display: flex !important;
+      grid-template-columns: none !important;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(128, 0, 0, 0.55) rgba(128, 0, 0, 0.08);
+      padding-bottom: 10px;
+    }
+
+    .big-mass-grid::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .big-mass-grid::-webkit-scrollbar-track {
+      background: rgba(128, 0, 0, 0.08);
+      border-radius: 999px;
+    }
+
+    .big-mass-grid::-webkit-scrollbar-thumb {
+      background: rgba(128, 0, 0, 0.55);
+      border-radius: 999px;
+    }
+
+    .big-mass-card {
+      flex: 0 0 min(88vw, 380px);
+      min-width: min(88vw, 380px);
+      scroll-snap-align: start;
+    }
+
+    .big-mass-info-grid { grid-template-columns: 1fr; }
+    .big-mass-card-head { flex-direction: column; align-items: flex-start; }
+    .big-mass-badges { justify-content: flex-start; }
+  }
+</style>
 </head>
 <body>
   <div class="layout">
@@ -421,6 +578,7 @@
                     <div class="slider-thumb" id="sliderThumb"></div>
                 </div>
             </div>
+            <p class="mobile-scroll-hint">Geser tabel ke kanan/kiri untuk melihat semua kolom jadwal.</p>
           </div>
           <p id="emptyNote" style="text-align:center; padding:20px; color:#666;" hidden>Memuat jadwal...</p>
         </div>
@@ -433,6 +591,7 @@
         </header>
         <div class="panel-body">
           <div id="bigMassSummary" class="big-mass-summary"></div>
+          <p class="mobile-scroll-hint">Geser kartu ke kanan/kiri untuk melihat jadwal misa besar lainnya.</p>
           <div id="bigMassList" class="big-mass-grid"></div>
           <p id="bigMassEmpty" class="big-mass-empty" hidden>Tidak ada jadwal misa besar pada filter ini.</p>
         </div>
@@ -492,8 +651,16 @@
     monthFilter.value = now.getMonth() + 1;
     yearFilter.value = now.getFullYear();
 
+    function syncScheduleTableMinWidth() {
+      if (!tableWrap) return;
+      const roleCount = Array.isArray(ROLES) ? ROLES.length : 0;
+      const minWidth = Math.max(980, 420 + (roleCount * 170));
+      tableWrap.style.setProperty("--schedule-table-min-width", `${minWidth}px`);
+    }
+
     // --- LOGIKA SLIDER ALA INSTAGRAM ---
     function updateSlider() {
+      syncScheduleTableMinWidth();
       if (!tableWrap || !sliderThumb) return;
       const scrollWidth = tableWrap.scrollWidth;
       const clientWidth = tableWrap.clientWidth;
@@ -760,6 +927,8 @@
       ROLES.forEach(r => { html += `<th>${r.name.toUpperCase()}</th>`; });
       html += `<th>STATUS</th></tr>`;
       document.getElementById("scheduleHeader").innerHTML = html;
+      syncScheduleTableMinWidth();
+      setTimeout(updateSlider, 50);
     }
 
     function renderScheduleRows(schedule) {

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rancangan Basis Data Website Crembo Media</title>
+  <style>
+    :root {
+      --bg: #f6f3ea;
+      --paper: #fffdf7;
+      --ink: #1f2937;
+      --muted: #5b6572;
+      --line: #cfd7df;
+      --line-strong: #94a3b8;
+      --accent: #0f766e;
+      --accent-2: #134e4a;
+      --warm: #8b5e34;
+      --soft: #edf7f4;
+      --shadow: 0 20px 44px rgba(15, 23, 42, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top left, #eef8f6 0%, transparent 28%),
+        radial-gradient(circle at top right, #f9f0e2 0%, transparent 24%),
+        linear-gradient(180deg, #fbfaf6 0%, var(--bg) 100%);
+      color: var(--ink);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      padding: 24px 18px 42px;
+    }
+
+    .page {
+      max-width: 1540px;
+      margin: 0 auto;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: var(--accent-2);
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--accent-2);
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 26px 28px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(120deg, #edf8f7 0%, #fff7eb 100%);
+    }
+
+    .title {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 980px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: #fff;
+      border: 1px solid #d8e2e8;
+      font-size: 12px;
+      color: #32515a;
+    }
+
+    .board-wrap {
+      padding: 18px 18px 22px;
+    }
+
+    .board {
+      position: relative;
+      min-width: 1440px;
+      min-height: 1240px;
+      padding: 18px;
+      border-radius: 18px;
+      background:
+        linear-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.14) 1px, transparent 1px),
+        #fcfcf8;
+      background-size: 26px 26px;
+      border: 1px solid #dfe5ea;
+      overflow: hidden;
+    }
+
+    .section-label {
+      position: absolute;
+      z-index: 2;
+      top: 18px;
+      left: 18px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #0f766e;
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.2);
+    }
+
+    .entity {
+      position: absolute;
+      z-index: 3;
+      width: 250px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    .entity .head {
+      padding: 11px 14px;
+      font-weight: 700;
+      color: #fff;
+      font-size: 15px;
+      letter-spacing: 0.2px;
+    }
+
+    .entity .body {
+      padding: 12px 14px 14px;
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.45;
+    }
+
+    .entity .body ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    .entity .body li {
+      margin: 3px 0;
+    }
+
+    .entity .foot {
+      padding: 8px 14px 12px;
+      border-top: 1px solid #e5eaf0;
+      background: #fbfdff;
+      font-size: 11px;
+      color: #617083;
+    }
+
+    .core {
+      width: 310px;
+      border-color: rgba(15, 118, 110, 0.25);
+    }
+
+    .core .head { background: linear-gradient(135deg, #0f766e, #115e59); }
+    .master .head { background: linear-gradient(135deg, #1f6feb, #0f4c81); }
+    .content .head { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .inventory .head { background: linear-gradient(135deg, #d97706, #b45309); }
+    .task .head { background: linear-gradient(135deg, #ef4444, #c2410c); }
+    .support .head { background: linear-gradient(135deg, #475569, #334155); }
+
+    .note-box {
+      position: absolute;
+      z-index: 3;
+      width: 300px;
+      border: 1px dashed #b7c2cc;
+      background: #fffdf8;
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: #374151;
+      font-size: 13px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.03);
+    }
+
+    .note-box strong {
+      color: #111827;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .legend .item {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 15px;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .legend .item h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .footer-note code {
+      background: #f1f5f9;
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+
+    svg.connectors {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .line {
+      fill: none;
+      stroke: var(--line-strong);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      marker-end: url(#arrow);
+    }
+
+    .line.dashed {
+      stroke-dasharray: 8 7;
+      stroke: #8a9cb3;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+      }
+
+      .toolbar {
+        display: none;
+      }
+
+      .card {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .board-wrap {
+        padding: 0;
+      }
+
+      .board {
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="toolbar">
+      <button class="btn" id="downloadPngBtn" type="button">Unduh Gambar (PNG)</button>
+      <button class="btn secondary" id="printPdfBtn" type="button">Cetak / Simpan PDF</button>
+    </div>
+
+    <section class="card" id="reportArea">
+      <header class="header">
+        <h1 class="title">Rancangan Basis Data Website Crembo Media</h1>
+        <p class="subtitle">
+          Diagram ini disusun ulang secara logis dari file SQL dan pemakaian tabel pada <strong>app.py</strong> agar relasi utama menjadi jelas.
+          Fokus rancangan ada pada pusat data <strong>anggota</strong> sebagai master, lalu tabel transaksi dan konten yang terhubung ke sana.
+        </p>
+        <div class="meta">
+          <span class="pill">Master data: anggota</span>
+          <span class="pill">Relasi banyak-ke-satu dan many-to-many</span>
+          <span class="pill">Siap diekspor ke PNG/PDF</span>
+        </div>
+      </header>
+
+      <div class="board-wrap">
+        <div class="board" id="diagramBoard">
+          <div class="section-label">Logical ERD</div>
+          <svg class="connectors" viewBox="0 0 1440 1240" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"></path>
+              </marker>
+            </defs>
+            <path class="line" d="M 720 250 L 720 350" />
+            <path class="line" d="M 720 560 L 720 420" />
+            <path class="line" d="M 720 420 L 510 420" />
+            <path class="line" d="M 720 420 L 930 420" />
+            <path class="line" d="M 720 420 L 720 690" />
+            <path class="line" d="M 720 420 L 720 950" />
+            <path class="line dashed" d="M 560 470 L 420 520" />
+            <path class="line dashed" d="M 880 470 L 1020 520" />
+            <path class="line dashed" d="M 510 780 L 420 810" />
+            <path class="line dashed" d="M 930 780 L 1020 810" />
+            <path class="line" d="M 720 1000 L 720 1110" />
+            <path class="line dashed" d="M 530 1000 L 380 1060" />
+            <path class="line dashed" d="M 910 1000 L 1060 1060" />
+          </svg>
+
+          <article class="entity core" style="left: 545px; top: 60px; width: 350px;">
+            <div class="head">anggota</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>nama, username, telp, email, password</li>
+                <li>role, tgl_lahir, alamat, status_akun</li>
+                <li>inactive_from, inactive_until, inactive_type</li>
+              </ul>
+            </div>
+            <div class="foot">Pusat identitas pengguna, admin, dan anggota aktif/nonaktif.</div>
+          </article>
+
+          <article class="entity master" style="left: 70px; top: 320px;">
+            <div class="head">admin_module_permissions</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK/FK:</strong> member_id → anggota.id</li>
+                <li>streaming, inventaris, publikasi</li>
+                <li>konten, keanggotaan</li>
+              </ul>
+            </div>
+            <div class="foot">Relasi 1-1 khusus akun admin.</div>
+          </article>
+
+          <article class="entity support" style="left: 70px; top: 565px;">
+            <div class="head">password_reset_otps</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> member_id → anggota.id</li>
+                <li>member_email, otp_hash</li>
+                <li>reset_token_hash, attempts</li>
+              </ul>
+            </div>
+            <div class="foot">Riwayat OTP reset password per anggota.</div>
+          </article>
+
+          <article class="entity support" style="left: 70px; top: 810px;">
+            <div class="head">notifications</div>
+            <div class="body">
+              <ul>
+                <li><strong>Relasi logis:</strong> target_user_id di data JSON</li>
+                <li>type, title, body, url</li>
+                <li>target_role</li>
+              </ul>
+            </div>
+            <div class="foot">Notifikasi umum dan personal.</div>
+          </article>
+
+          <article class="entity support" style="left: 320px; top: 820px; width: 250px;">
+            <div class="head">notification_reads</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK gabungan:</strong> notification_id + user_key</li>
+                <li>read_at</li>
+              </ul>
+            </div>
+            <div class="foot">Menandai notifikasi sudah dibaca.</div>
+          </article>
+
+          <article class="entity support" style="left: 80px; top: 1040px; width: 260px;">
+            <div class="head">notification_email_deliveries</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> notification_id → notifications.id</li>
+                <li>recipient_user_id, recipient_email</li>
+                <li>status, sent_at</li>
+              </ul>
+            </div>
+            <div class="foot">Audit pengiriman email notifikasi.</div>
+          </article>
+
+          <article class="entity content" style="left: 560px; top: 320px;">
+            <div class="head">news_categories</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>name, slug, description</li>
+                <li>order_index</li>
+              </ul>
+            </div>
+            <div class="foot">Kategori pengumuman / berita.</div>
+          </article>
+
+          <article class="entity content" style="left: 925px; top: 320px;">
+            <div class="head">news</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>title, slug, content, summary</li>
+                <li>thumbnails, attachments, status</li>
+              </ul>
+            </div>
+            <div class="foot">Konten publik utama yang bisa multi-kategori.</div>
+          </article>
+
+          <article class="entity content" style="left: 1125px; top: 320px; width: 250px;">
+            <div class="head">news_category_mapping</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK:</strong> news_id → news.id</li>
+                <li><strong>FK:</strong> category_id → news_categories.id</li>
+                <li>many-to-many news - kategori</li>
+              </ul>
+            </div>
+            <div class="foot">Tabel penghubung berita dan kategori.</div>
+          </article>
+
+          <article class="entity content" style="left: 560px; top: 565px;">
+            <div class="head">agendas</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>title, description, start/end date</li>
+                <li>location, registration_link, attachments</li>
+              </ul>
+            </div>
+            <div class="foot">Agenda kegiatan gereja.</div>
+          </article>
+
+          <article class="entity content" style="left: 925px; top: 565px;">
+            <div class="head">registration_forms</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li><strong>FK logis:</strong> created_by → anggota.id</li>
+                <li>target, visibility, quota, fields_json</li>
+              </ul>
+            </div>
+            <div class="foot">Form pendaftaran publik / internal.</div>
+          </article>
+
+          <article class="entity content" style="left: 1125px; top: 565px; width: 250px;">
+            <div class="head">registration_form_submissions</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK:</strong> form_id → registration_forms.id</li>
+                <li><strong>FK logis:</strong> submitter_user_id → anggota.id</li>
+                <li>submitter_key, answers_json</li>
+              </ul>
+            </div>
+            <div class="foot">Hasil pengisian form.</div>
+          </article>
+
+          <article class="entity content" style="left: 560px; top: 810px;">
+            <div class="head">organization_profiles</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>title, description, attachment_url</li>
+                <li>is_visible, order_index</li>
+              </ul>
+            </div>
+            <div class="foot">Konten profil organisasi.</div>
+          </article>
+
+          <article class="entity inventory" style="left: 925px; top: 810px;">
+            <div class="head">inventory_categories</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>category_name, slug</li>
+              </ul>
+            </div>
+            <div class="foot">Master kategori barang.</div>
+          </article>
+
+          <article class="entity inventory" style="left: 1125px; top: 810px; width: 250px;">
+            <div class="head">inventory_items</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK:</strong> category_id → inventory_categories.id</li>
+                <li>item_name, code, stock, unit_status</li>
+                <li>photos, unit_details</li>
+              </ul>
+            </div>
+            <div class="foot">Data barang inventaris.</div>
+          </article>
+
+          <article class="entity inventory" style="left: 925px; top: 1040px;">
+            <div class="head">loan_requests</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> member_id → anggota.id</li>
+                <li>barang_id, barang_name, jumlah</li>
+                <li>status, approved_by, pickup_info, return_info</li>
+              </ul>
+            </div>
+            <div class="foot">Transaksi peminjaman / pengembalian.</div>
+          </article>
+
+          <article class="entity inventory" style="left: 1125px; top: 1040px; width: 250px;">
+            <div class="head">form_kerusakan_barang</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> member_id → anggota.id</li>
+                <li>barang_id, barang_name</li>
+                <li>tingkat_kerusakan, status, foto_kerusakan</li>
+              </ul>
+            </div>
+            <div class="foot">Laporan kerusakan barang.</div>
+          </article>
+
+          <article class="entity task" style="left: 560px; top: 1040px;">
+            <div class="head">streaming_roles</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>role_name, order_index</li>
+              </ul>
+            </div>
+            <div class="foot">Master peran untuk jadwal streaming.</div>
+          </article>
+
+          <article class="entity task" style="left: 320px; top: 1040px; width: 250px;">
+            <div class="head">streaming_weekly_config</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>day_name, start_time, mass_name</li>
+              </ul>
+            </div>
+            <div class="foot">Template jadwal misa mingguan.</div>
+          </article>
+
+          <article class="entity task" style="left: 80px; top: 1040px; width: 250px;">
+            <div class="head">streaming_assignments</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> member_id → anggota.id</li>
+                <li>schedule_date, schedule_time, role_name</li>
+                <li>request_source</li>
+              </ul>
+            </div>
+            <div class="foot">Penugasan misa biasa.</div>
+          </article>
+
+          <article class="entity task" style="left: 80px; top: 730px; width: 250px;">
+            <div class="head">task_exchange_requests</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> requester_id → anggota.id</li>
+                <li><strong>FK logis:</strong> target_user_id → anggota.id</li>
+                <li>my_assignment_id, my_misa_id, my_role_id</li>
+              </ul>
+            </div>
+            <div class="foot">Permintaan tukar tugas.</div>
+          </article>
+
+          <article class="entity task" style="left: 320px; top: 730px; width: 250px;">
+            <div class="head">task_cancellations</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> member_id → anggota.id</li>
+                <li>assignment_id, role_id, misa_id</li>
+                <li>status, note, request_source</li>
+              </ul>
+            </div>
+            <div class="foot">Riwayat pembatalan tugas.</div>
+          </article>
+
+          <article class="entity task" style="left: 560px; top: 730px; width: 250px;">
+            <div class="head">streaming_evaluations</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK logis:</strong> evaluator_id → anggota.id</li>
+                <li>schedule_kind, schedule_key</li>
+                <li>staff_json, checklist_json, final_note</li>
+              </ul>
+            </div>
+            <div class="foot">Penilaian hasil pelayanan streaming.</div>
+          </article>
+
+          <article class="entity task" style="left: 925px; top: 1040px; width: 250px;">
+            <div class="head">misa_besar</div>
+            <div class="body">
+              <ul>
+                <li><strong>PK:</strong> id</li>
+                <li>misa_name, misa_date, misa_time</li>
+                <li>allow_member_request, status</li>
+              </ul>
+            </div>
+            <div class="foot">Master jadwal misa besar.</div>
+          </article>
+
+          <article class="entity task" style="left: 1125px; top: 1040px; width: 250px;">
+            <div class="head">misa_besar_names</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK:</strong> misa_id → misa_besar.id</li>
+                <li>role_name, required_count, order_index</li>
+              </ul>
+            </div>
+            <div class="foot">Daftar role pada satu misa besar.</div>
+          </article>
+
+          <article class="entity task" style="left: 925px; top: 730px; width: 250px;">
+            <div class="head">misa_besar_assignments</div>
+            <div class="body">
+              <ul>
+                <li><strong>FK:</strong> role_id → misa_besar_names.id</li>
+                <li><strong>FK:</strong> member_id → anggota.id</li>
+                <li>request_source, created_at</li>
+              </ul>
+            </div>
+            <div class="foot">Relasi penugasan misa besar.</div>
+          </article>
+
+          <article class="entity support" style="left: 1125px; top: 570px; width: 250px;">
+            <div class="head">sertifikat_config</div>
+            <div class="body">
+              <ul>
+                <li><strong>Relasi logis:</strong> dipakai saat generate sertifikat anggota</li>
+                <li>romo_name, ketua_name, pembina_name</li>
+                <li>romo_sign_url, ketua_sign_url, pembina_sign_url</li>
+              </ul>
+            </div>
+            <div class="foot">Konfigurasi tanda tangan sertifikat.</div>
+          </article>
+
+          <article class="note-box" style="left: 515px; top: 1210px; width: 410px;">
+            <strong>Inti perbaikan rancangan:</strong> tabel pusat dibuat jelas di <strong>anggota</strong>, lalu tabel-tabel yang sebelumnya hanya menyimpan id teks atau JSON disarankan memakai relasi FK yang eksplisit. Dengan begitu, laporan lebih logis dan hubungan data lebih mudah dibaca.
+          </article>
+
+          <article class="note-box" style="left: 34px; top: 250px; width: 280px;">
+            <strong>Prinsip desain:</strong> master data, transaksi, dan konten dipisah. Tabel jembatan dipakai untuk relasi many-to-many, misalnya berita dan kategori.
+          </article>
+
+          <article class="note-box" style="left: 1110px; top: 250px; width: 280px;">
+            <strong>Catatan akademik:</strong> kolom seperti <em>created_by</em>, <em>member_id</em>, <em>admin_id</em>, dan <em>submitter_user_id</em> idealnya mengarah ke <strong>anggota.id</strong> agar integritas referensial terjaga.
+          </article>
+        </div>
+
+        <div class="legend">
+          <div class="item">
+            <h3>Relasi utama</h3>
+            anggota menjadi pusat data dan dihubungkan ke tabel transaksi seperti loan_requests, form_kerusakan_barang, password_reset_otps, serta admin_module_permissions.
+          </div>
+          <div class="item">
+            <h3>Konten publik</h3>
+            news, news_categories, agendas, registration_forms, dan registration_form_submissions membentuk modul informasi dan pendaftaran.
+          </div>
+          <div class="item">
+            <h3>Operasional gereja</h3>
+            streaming_assignments, misa_besar, misa_besar_names, misa_besar_assignments, task_cancellations, dan task_exchange_requests menangani jadwal serta tugas pelayanan.
+          </div>
+        </div>
+
+        <p class="footer-note">
+          Untuk PDF, gunakan tombol <code>Cetak / Simpan PDF</code> lalu pilih <code>Save as PDF</code>. Jika PNG dibutuhkan, gunakan tombol <code>Unduh Gambar (PNG)</code>.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    async function downloadPngFromElement(elementId, fileName) {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        alert("Area laporan tidak ditemukan.");
+        return;
+      }
+
+      if (typeof window.html2canvas !== "function") {
+        alert("Library ekspor gambar belum termuat. Coba refresh halaman.");
+        return;
+      }
+
+      try {
+        const canvas = await window.html2canvas(element, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+          scrollX: 0,
+          scrollY: 0,
+        });
+        const pngUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        alert("Gagal membuat gambar. Coba gunakan fitur Cetak / Simpan PDF.");
+      }
+    }
+
+    document.getElementById("downloadPngBtn").addEventListener("click", function () {
+      downloadPngFromElement("reportArea", "rancangan-basis-data-crembo-media.png");
+    });
+
+    document.getElementById("printPdfBtn").addEventListener("click", function () {
+      window.print();
+    });
+  </script>
+</body>
+</html>
