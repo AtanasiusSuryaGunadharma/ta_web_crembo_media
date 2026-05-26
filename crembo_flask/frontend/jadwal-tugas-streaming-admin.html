@@ -412,6 +412,71 @@
     .big-mass-badges { justify-content: flex-start; }
   }
 </style>
+
+<style id="jadwal-streaming-sidebar-fixed-fix">
+  /* Perbaikan sidebar desktop.
+     Sidebar dibuat fixed seperti halaman Registrasi Tugas Misa Besar,
+     sehingga tetap mengikuti saat halaman di-scroll ke bawah. */
+  @media (min-width: 921px) {
+    .layout {
+      display: block !important;
+      min-height: 100vh;
+      padding-left: 300px;
+    }
+
+    .sidebar {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 300px !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      max-height: 100vh !important;
+      overflow-y: auto !important;
+      transform: none !important;
+      z-index: 60 !important;
+    }
+
+    .main {
+      width: 100% !important;
+      min-width: 0 !important;
+      margin-left: 0 !important;
+      padding: 16px !important;
+    }
+
+    .sidebar-backdrop {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 920px) {
+    .layout {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      padding-left: 0 !important;
+    }
+
+    .sidebar {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: min(290px, 86vw) !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      transform: translateX(-102%) !important;
+      z-index: 60 !important;
+    }
+
+    .sidebar.show {
+      transform: translateX(0) !important;
+    }
+
+    .main {
+      width: 100% !important;
+      margin-left: 0 !important;
+    }
+  }
+</style>
 </head>
 <body>
   <div class="layout">

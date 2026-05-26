@@ -34,6 +34,7 @@ app = Flask(
     static_url_path="/static",
 )
 app.secret_key = "dev-secret-change-me"
+app.permanent_session_lifetime = timedelta(days=30)
 
 
 @app.errorhandler(404)
@@ -89,7 +90,7 @@ MYSQL_CONFIG = {
 # SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL, SMTP_FROM_NAME.
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USERNAME = os.getenv("SMTP_USERNAME") or os.getenv("SMTP_USER") or "crembomedia@gmail.com"
+SMTP_USERNAME = os.getenv("SMTP_USERNAME") or os.getenv("SMTP_USER") or "crembomedia123@gmail.com"
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD") or os.getenv("SMTP_PASS") or "leezqsrjqdphonev"
 SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USERNAME)
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Crembo Media")
@@ -6103,7 +6104,10 @@ def login():
             flash("Kata sandi salah.", "error")
             return render_template("login.html")
 
+        remember_me = request.form.get("remember_me") == "1"
+
         session.clear()
+        session.permanent = remember_me
         session["logged_in"] = True
         session["user_id"] = member["id"]
         session["username"] = member.get("username")

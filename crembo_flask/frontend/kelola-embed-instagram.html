@@ -856,8 +856,21 @@
       }
     }
 
-    async function syncPosts(successMessage, failureMessage) {
-      const payload = renumberPosts(instagramPosts);
+    function normalizePostSequence(posts) {
+      return posts.map(function (item, index) {
+        return {
+          id: item.id,
+          title: item.title,
+          url: item.url,
+          order: index + 1,
+          active: item.active !== false
+        };
+      });
+    }
+
+    async function syncPosts(successMessage, failureMessage, postsToSave) {
+      const source = Array.isArray(postsToSave) ? postsToSave : sortPosts(instagramPosts);
+      const payload = normalizePostSequence(source);
       try {
         const res = await fetch("/api/instagram/posts/sync", {
           method: "POST",
@@ -897,7 +910,7 @@
 
       posts.forEach(function (post) {
         const tr = document.createElement("tr");
-        tr.setAttribute("draggable", "true");
+        tr.setAttribute("draggable", "false");
         tr.setAttribute("data-post-id", post.id);
 
         const postIdVal = extractInstagramPostId(post.url);
@@ -918,9 +931,31 @@
             '<button class="btn warn" type="button" data-delete-id="' + escapeHtml(post.id) + '">Hapus</button>' +
           '</div></td>';
 
-        tr.addEventListener("dragstart", function () {
+        const dragHandle = tr.querySelector(".drag-handle");
+        if (dragHandle) {
+          dragHandle.addEventListener("mousedown", function () {
+            tr.setAttribute("draggable", "true");
+          });
+          dragHandle.addEventListener("touchstart", function () {
+            tr.setAttribute("draggable", "true");
+          }, { passive: true });
+          dragHandle.addEventListener("mouseenter", function () {
+            tr.setAttribute("draggable", "true");
+          });
+          dragHandle.addEventListener("mouseleave", function () {
+            if (!draggingPostId) {
+              tr.setAttribute("draggable", "false");
+            }
+          });
+        }
+
+        tr.addEventListener("dragstart", function (event) {
           draggingPostId = post.id;
           tr.classList.add("dragging");
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", post.id);
+          }
         });
 
         tr.addEventListener("dragend", function () {
@@ -929,6 +964,7 @@
           postRows.querySelectorAll("tr").forEach(function (row) {
             row.classList.remove("drop-target");
           });
+          tr.setAttribute("draggable", "false");
         });
 
         tr.addEventListener("dragover", function (event) {
@@ -958,8 +994,8 @@
 
     async function reorderPosts(sourceId, targetId) {
       const posts = sortPosts(instagramPosts);
-      const sourceIndex = posts.findIndex(function (item) { return item.id === sourceId; });
-      const targetIndex = posts.findIndex(function (item) { return item.id === targetId; });
+      const sourceIndex = posts.findIndex(function (item) { return String(item.id) === String(sourceId); });
+      const targetIndex = posts.findIndex(function (item) { return String(item.id) === String(targetId); });
 
       if (sourceIndex < 0 || targetIndex < 0) {
         return;
@@ -967,8 +1003,9 @@
 
       const moved = posts.splice(sourceIndex, 1)[0];
       posts.splice(targetIndex, 0, moved);
-      instagramPosts = renumberPosts(posts);
-      await syncPosts("Urutan post berhasil diperbarui.");
+      instagramPosts = normalizePostSequence(posts);
+      renderRows();
+      await syncPosts("Urutan post berhasil diperbarui.", "Gagal menyimpan urutan post Instagram.", instagramPosts);
     }
 
     async function savePost(event) {

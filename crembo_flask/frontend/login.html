@@ -207,7 +207,7 @@
 					</div>
 
 					<div class="remember-row">
-						<input type="checkbox" id="rememberMe">
+						<input type="checkbox" id="rememberMe" name="remember_me" value="1">
 						<label for="rememberMe">Ingat saya</label>
 					</div>
 
@@ -324,6 +324,60 @@
 		inp.type = isText ? "password" : "text";
 		togglePw.textContent = isText ? "Tampil" : "Sembunyikan";
 	});
+
+	// === Ingat Saya ===
+	(function() {
+		const REMEMBER_KEY = "crembo_login_remember_v1";
+		const form = document.getElementById("loginForm");
+		const identifierInput = document.getElementById("loginIdentifier");
+		const passwordInput = document.getElementById("loginPassword");
+		const rememberInput = document.getElementById("rememberMe");
+
+		function encodeValue(value) {
+			try { return btoa(unescape(encodeURIComponent(value || ""))); }
+			catch (err) { return value || ""; }
+		}
+
+		function decodeValue(value) {
+			try { return decodeURIComponent(escape(atob(value || ""))); }
+			catch (err) { return value || ""; }
+		}
+
+		function loadRememberedLogin() {
+			try {
+				const raw = localStorage.getItem(REMEMBER_KEY);
+				if (!raw) return;
+				const data = JSON.parse(raw);
+				if (!data || data.remember !== true) return;
+				identifierInput.value = decodeValue(data.identifier || "");
+				passwordInput.value = decodeValue(data.password || "");
+				rememberInput.checked = true;
+			} catch (err) {
+				localStorage.removeItem(REMEMBER_KEY);
+			}
+		}
+
+		function saveRememberedLogin() {
+			try {
+				if (!rememberInput.checked) {
+					localStorage.removeItem(REMEMBER_KEY);
+					return;
+				}
+				const payload = {
+					remember: true,
+					identifier: encodeValue(identifierInput.value.trim()),
+					password: encodeValue(passwordInput.value),
+					updatedAt: new Date().toISOString()
+				};
+				localStorage.setItem(REMEMBER_KEY, JSON.stringify(payload));
+			} catch (err) {
+				// Login tetap berjalan walaupun penyimpanan lokal gagal.
+			}
+		}
+
+		loadRememberedLogin();
+		if (form) form.addEventListener("submit", saveRememberedLogin);
+	})();
 			// === Scroll To Top ===
 		(function() {
 			var btn = document.getElementById("scrollTopBtn");
