@@ -1,16 +1,19 @@
+"""Certificate Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Certificate Controller
 
-# Source legacy app.py lines 7869-7888 | routes: /api/sertifikat/config
+# Route dari app.py server: /api/sertifikat/config
 @app.route("/api/sertifikat/config", methods=["GET"])
 def get_sertifikat_config():
     ensure_auth_schema()
@@ -33,7 +36,7 @@ def get_sertifikat_config():
     return jsonify({})
 
 
-# Source legacy app.py lines 7890-7916 | routes: /api/sertifikat/config
+# Route dari app.py server: /api/sertifikat/config
 @app.route("/api/sertifikat/config", methods=["POST"])
 def set_sertifikat_config():
     ensure_auth_schema()
@@ -61,5 +64,4 @@ def set_sertifikat_config():
     cursor.close()
     conn.close()
     return jsonify({"success": True})
-
 

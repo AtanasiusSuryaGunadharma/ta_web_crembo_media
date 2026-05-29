@@ -1,16 +1,19 @@
+"""Evaluation Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Evaluation Controller
 
-# Source legacy app.py lines 14986-15003 | routes: /api/evaluasi-streaming/settings
+# Route dari app.py server: /api/evaluasi-streaming/settings
 @app.route("/api/evaluasi-streaming/settings", methods=["GET", "POST"])
 def api_streaming_evaluation_settings():
     conn = mysql_connection()
@@ -31,7 +34,7 @@ def api_streaming_evaluation_settings():
         conn.close()
 
 
-# Source legacy app.py lines 15006-15032 | routes: /api/evaluasi-streaming/questions
+# Route dari app.py server: /api/evaluasi-streaming/questions
 @app.route("/api/evaluasi-streaming/questions", methods=["GET", "POST"])
 def api_streaming_evaluation_questions():
     conn = mysql_connection()
@@ -61,7 +64,7 @@ def api_streaming_evaluation_questions():
         conn.close()
 
 
-# Source legacy app.py lines 15035-15057 | routes: /api/evaluasi-streaming/questions/reset
+# Route dari app.py server: /api/evaluasi-streaming/questions/reset
 @app.route("/api/evaluasi-streaming/questions/reset", methods=["POST"])
 def api_streaming_evaluation_questions_reset():
     if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
@@ -87,7 +90,7 @@ def api_streaming_evaluation_questions_reset():
         conn.close()
 
 
-# Source legacy app.py lines 15060-15069 | routes: /api/evaluasi-streaming/members
+# Route dari app.py server: /api/evaluasi-streaming/members
 @app.route("/api/evaluasi-streaming/members", methods=["GET"])
 def api_streaming_evaluation_members():
     conn = mysql_connection()
@@ -100,7 +103,7 @@ def api_streaming_evaluation_members():
         conn.close()
 
 
-# Source legacy app.py lines 15072-15118 | routes: /api/evaluasi-streaming/schedules
+# Route dari app.py server: /api/evaluasi-streaming/schedules
 @app.route("/api/evaluasi-streaming/schedules", methods=["GET"])
 def api_streaming_evaluation_schedules():
     conn = mysql_connection()
@@ -150,7 +153,7 @@ def api_streaming_evaluation_schedules():
         conn.close()
 
 
-# Source legacy app.py lines 15121-15136 | routes: /api/evaluasi-streaming/schedule-detail
+# Route dari app.py server: /api/evaluasi-streaming/schedule-detail
 @app.route("/api/evaluasi-streaming/schedule-detail", methods=["GET"])
 def api_streaming_evaluation_schedule_detail():
     schedule_id = normalize_text(request.args.get("scheduleId"))
@@ -169,7 +172,7 @@ def api_streaming_evaluation_schedule_detail():
         conn.close()
 
 
-# Source legacy app.py lines 15139-15234 | routes: /api/evaluasi-streaming/submit
+# Route dari app.py server: /api/evaluasi-streaming/submit
 @app.route("/api/evaluasi-streaming/submit", methods=["POST"])
 def api_streaming_evaluation_submit():
     conn = mysql_connection()
@@ -268,7 +271,7 @@ def api_streaming_evaluation_submit():
         conn.close()
 
 
-# Source legacy app.py lines 15237-15311 | routes: /api/evaluasi-streaming/member
+# Route dari app.py server: /api/evaluasi-streaming/member
 @app.route("/api/evaluasi-streaming/member", methods=["GET"])
 def api_streaming_evaluation_member():
     if not session.get("logged_in"):
@@ -346,7 +349,7 @@ def api_streaming_evaluation_member():
         conn.close()
 
 
-# Source legacy app.py lines 15314-15370 | routes: /api/evaluasi-streaming/admin/results
+# Route dari app.py server: /api/evaluasi-streaming/admin/results
 @app.route("/api/evaluasi-streaming/admin/results", methods=["GET"])
 def api_streaming_evaluation_admin_results():
     if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
@@ -406,7 +409,7 @@ def api_streaming_evaluation_admin_results():
         conn.close()
 
 
-# Source legacy app.py lines 15439-15452 | routes: /api/evaluasi-streaming/admin/results/<int:evaluation_id>
+# Route dari app.py server: /api/evaluasi-streaming/admin/results/<int:evaluation_id>
 @app.route("/api/evaluasi-streaming/admin/results/<int:evaluation_id>", methods=["DELETE"])
 def api_streaming_evaluation_delete(evaluation_id):
     if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
@@ -423,7 +426,7 @@ def api_streaming_evaluation_delete(evaluation_id):
         conn.close()
 
 
-# Source legacy app.py lines 15567-15617 | routes: /api/evaluasi-streaming/admin/export.xlsx
+# Route dari app.py server: /api/evaluasi-streaming/admin/export.xlsx
 @app.route("/api/evaluasi-streaming/admin/export.xlsx", methods=["GET"])
 def api_streaming_evaluation_export_xlsx():
     if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
@@ -477,7 +480,7 @@ def api_streaming_evaluation_export_xlsx():
         conn.close()
 
 
-# Source legacy app.py lines 15620-15818 | routes: /api/evaluasi-streaming/admin/export.pdf
+# Route dari app.py server: /api/evaluasi-streaming/admin/export.pdf
 @app.route("/api/evaluasi-streaming/admin/export.pdf", methods=["GET"])
 def api_streaming_evaluation_export_pdf():
     if normalize_role_value(session.get("role") or "") not in {"admin", "super_admin"}:
@@ -569,7 +572,7 @@ def api_streaming_evaluation_export_pdf():
             elements.append(Paragraph("Tidak ada data evaluasi sesuai filter yang dipilih.", normal))
         else:
             for idx, e in enumerate(evaluations, start=1):
-                heading = f"{idx}. {eval_export_value(e.get('misaName'))} — {eval_export_value(e.get('kindLabel'))}"
+                heading = f"{idx}. {eval_export_value(e.get('misaName'))} â€” {eval_export_value(e.get('kindLabel'))}"
                 header_tbl = Table(
                     [[Paragraph(html.escape(heading), section_style), Paragraph(html.escape(eval_export_value(e.get('generalAssessment'))), section_style)]],
                     colWidths=[380, 130],
@@ -679,7 +682,7 @@ def api_streaming_evaluation_export_pdf():
         conn.close()
 
 
-# Source legacy app.py lines 15959-15968 | routes: /api/evaluasi-streaming/reminders/run
+# Route dari app.py server: /api/evaluasi-streaming/reminders/run
 @app.route("/api/evaluasi-streaming/reminders/run", methods=["POST"])
 def api_streaming_evaluation_reminders_run():
     """Endpoint manual untuk admin/super_admin menjalankan generator reminder evaluasi."""
@@ -690,5 +693,4 @@ def api_streaming_evaluation_reminders_run():
         return jsonify({"success": True, "created": created})
     except Exception as exc:
         return jsonify({"success": False, "error": str(exc)}), 400
-
 

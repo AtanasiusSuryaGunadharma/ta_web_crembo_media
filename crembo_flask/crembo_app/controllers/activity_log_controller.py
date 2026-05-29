@@ -1,16 +1,19 @@
+"""Activity Log Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Activity Log Controller
 
-# Source legacy app.py lines 16505-16537 | routes: /api/activity-logs/context
+# Route dari app.py server: /api/activity-logs/context
 @app.route("/api/activity-logs/context", methods=["GET"])
 def api_activity_logs_context():
     denied = require_activity_log_auth()
@@ -46,7 +49,7 @@ def api_activity_logs_context():
         conn.close()
 
 
-# Source legacy app.py lines 16539-16578 | routes: /api/activity-logs
+# Route dari app.py server: /api/activity-logs
 @app.route("/api/activity-logs", methods=["GET"])
 def api_activity_logs():
     denied = require_activity_log_auth()
@@ -89,7 +92,7 @@ def api_activity_logs():
         conn.close()
 
 
-# Source legacy app.py lines 16610-16658 | routes: /api/activity-logs/export.xlsx
+# Route dari app.py server: /api/activity-logs/export.xlsx
 @app.route("/api/activity-logs/export.xlsx", methods=["GET"])
 def api_activity_logs_export_xlsx():
     denied = require_activity_log_auth()
@@ -141,7 +144,7 @@ def api_activity_logs_export_xlsx():
         conn.close()
 
 
-# Source legacy app.py lines 16660-16720 | routes: /api/activity-logs/export.pdf
+# Route dari app.py server: /api/activity-logs/export.pdf
 @app.route("/api/activity-logs/export.pdf", methods=["GET"])
 def api_activity_logs_export_pdf():
     denied = require_activity_log_auth()
@@ -203,5 +206,4 @@ def api_activity_logs_export_pdf():
     finally:
         cursor.close()
         conn.close()
-
 

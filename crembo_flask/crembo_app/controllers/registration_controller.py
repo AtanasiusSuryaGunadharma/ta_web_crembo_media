@@ -1,16 +1,19 @@
+"""Registration Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Registration Controller
 
-# Source legacy app.py lines 8081-8109 | routes: /api/registration/forms
+# Route dari app.py server: /api/registration/forms
 @app.route("/api/registration/forms", methods=["GET"])
 def get_registration_forms():
     ensure_registration_form_schema()
@@ -42,7 +45,7 @@ def get_registration_forms():
         conn.close()
 
 
-# Source legacy app.py lines 8112-8131 | routes: /api/registration/forms/<form_id>
+# Route dari app.py server: /api/registration/forms/<form_id>
 @app.route("/api/registration/forms/<form_id>", methods=["GET"])
 def get_registration_form_detail(form_id):
     ensure_registration_form_schema()
@@ -65,7 +68,7 @@ def get_registration_form_detail(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8135-8205 | routes: /api/registration/forms
+# Route dari app.py server: /api/registration/forms
 @app.route("/api/registration/forms", methods=["POST"])
 def create_registration_form():
     ensure_registration_form_schema()
@@ -139,7 +142,7 @@ def create_registration_form():
         conn.close()
 
 
-# Source legacy app.py lines 8208-8297 | routes: /api/registration/forms/<form_id>
+# Route dari app.py server: /api/registration/forms/<form_id>
 @app.route("/api/registration/forms/<form_id>", methods=["PUT"])
 def update_registration_form(form_id):
     ensure_registration_form_schema()
@@ -232,7 +235,7 @@ def update_registration_form(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8300-8342 | routes: /api/registration/forms/<form_id>
+# Route dari app.py server: /api/registration/forms/<form_id>
 @app.route("/api/registration/forms/<form_id>", methods=["DELETE"])
 def delete_registration_form(form_id):
     ensure_registration_form_schema()
@@ -278,7 +281,7 @@ def delete_registration_form(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8345-8363 | routes: /api/registration/forms/<form_id>/submissions
+# Route dari app.py server: /api/registration/forms/<form_id>/submissions
 @app.route("/api/registration/forms/<form_id>/submissions", methods=["GET"])
 def get_registration_form_submissions(form_id):
     ensure_registration_form_schema()
@@ -300,7 +303,7 @@ def get_registration_form_submissions(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8419-8475 | routes: /api/registration/forms/<form_id>/export.xlsx
+# Route dari app.py server: /api/registration/forms/<form_id>/export.xlsx
 @app.route("/api/registration/forms/<form_id>/export.xlsx", methods=["GET"])
 def export_registration_form_excel(form_id):
     ensure_registration_form_schema()
@@ -360,7 +363,7 @@ def export_registration_form_excel(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8478-8540 | routes: /api/registration/forms/<form_id>/export.pdf
+# Route dari app.py server: /api/registration/forms/<form_id>/export.pdf
 @app.route("/api/registration/forms/<form_id>/export.pdf", methods=["GET"])
 def export_registration_form_pdf(form_id):
     ensure_registration_form_schema()
@@ -426,7 +429,7 @@ def export_registration_form_pdf(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8543-8600 | routes: /api/registration/forms/<form_id>/submit
+# Route dari app.py server: /api/registration/forms/<form_id>/submit
 @app.route("/api/registration/forms/<form_id>/submit", methods=["POST"])
 def submit_registration_form(form_id):
     ensure_registration_form_schema()
@@ -487,7 +490,7 @@ def submit_registration_form(form_id):
         conn.close()
 
 
-# Source legacy app.py lines 8603-8627 | routes: /api/registration/submissions/me
+# Route dari app.py server: /api/registration/submissions/me
 @app.route("/api/registration/submissions/me", methods=["GET"])
 def get_my_registration_submissions():
     ensure_registration_form_schema()
@@ -513,5 +516,4 @@ def get_my_registration_submissions():
     finally:
         cursor.close()
         conn.close()
-
 

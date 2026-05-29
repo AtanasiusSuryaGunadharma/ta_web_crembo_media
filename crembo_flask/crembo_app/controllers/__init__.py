@@ -1,4 +1,4 @@
-"""Kumpulan controller Flask untuk Crembo Media."""
+"""Registrasi controller Crembo Media."""
 
 from . import activity_log_controller  # noqa: F401
 from . import auth_controller  # noqa: F401

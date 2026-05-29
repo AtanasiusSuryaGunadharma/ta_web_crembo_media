@@ -1,16 +1,19 @@
+"""Task Exchange Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Task Exchange Controller
 
-# Source legacy app.py lines 12726-12738 | routes: /api/task-exchanges/me
+# Route dari app.py server: /api/task-exchanges/me
 @app.route("/api/task-exchanges/me", methods=["GET"])
 def api_task_exchanges_me():
     ensure_task_exchange_schema()
@@ -26,7 +29,7 @@ def api_task_exchanges_me():
         conn.close()
 
 
-# Source legacy app.py lines 12741-12773 | routes: /api/task-exchanges/options
+# Route dari app.py server: /api/task-exchanges/options
 @app.route("/api/task-exchanges/options", methods=["GET"])
 def api_task_exchanges_options():
     ensure_task_exchange_schema()
@@ -62,7 +65,7 @@ def api_task_exchanges_options():
         conn.close()
 
 
-# Source legacy app.py lines 12776-12876 | routes: /api/task-exchanges
+# Route dari app.py server: /api/task-exchanges
 @app.route("/api/task-exchanges", methods=["POST"])
 def api_task_exchanges_create():
     ensure_task_exchange_schema()
@@ -166,19 +169,19 @@ def api_task_exchanges_create():
         conn.close()
 
 
-# Source legacy app.py lines 12933-12935 | routes: /api/task-exchanges/incoming
+# Route dari app.py server: /api/task-exchanges/incoming
 @app.route("/api/task-exchanges/incoming", methods=["GET"])
 def api_task_exchanges_incoming():
     return exchange_list_requests(direction="incoming")
 
 
-# Source legacy app.py lines 12938-12940 | routes: /api/task-exchanges/outgoing
+# Route dari app.py server: /api/task-exchanges/outgoing
 @app.route("/api/task-exchanges/outgoing", methods=["GET"])
 def api_task_exchanges_outgoing():
     return exchange_list_requests(direction="outgoing")
 
 
-# Source legacy app.py lines 12943-12972 | routes: /api/task-exchanges/pending-actions
+# Route dari app.py server: /api/task-exchanges/pending-actions
 @app.route("/api/task-exchanges/pending-actions", methods=["GET"])
 def api_task_exchanges_pending_actions():
     ensure_task_exchange_schema()
@@ -211,7 +214,7 @@ def api_task_exchanges_pending_actions():
         conn.close()
 
 
-# Source legacy app.py lines 12975-13049 | routes: /api/task-exchanges/<int:request_id>/respond
+# Route dari app.py server: /api/task-exchanges/<int:request_id>/respond
 @app.route("/api/task-exchanges/<int:request_id>/respond", methods=["POST"])
 def api_task_exchanges_respond(request_id):
     ensure_task_exchange_schema()
@@ -289,7 +292,7 @@ def api_task_exchanges_respond(request_id):
         conn.close()
 
 
-# Source legacy app.py lines 13052-13089 | routes: /api/task-exchanges/<int:request_id>/cancel
+# Route dari app.py server: /api/task-exchanges/<int:request_id>/cancel
 @app.route("/api/task-exchanges/<int:request_id>/cancel", methods=["POST"])
 def api_task_exchanges_cancel(request_id):
     ensure_task_exchange_schema()
@@ -328,5 +331,4 @@ def api_task_exchanges_cancel(request_id):
     finally:
         cursor.close()
         conn.close()
-
 

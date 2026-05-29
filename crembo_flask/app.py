@@ -1,16 +1,13 @@
-from crembo_app.app_factory import create_app
+"""Entry point aplikasi Crembo Media.
 
-app = create_app()
+File ini sengaja dibuat ringkas. Semua inisialisasi aplikasi berada pada
+package crembo_app, sedangkan route/controller dipisahkan per modul.
+"""
 
-# Import controller setelah app dibuat agar seluruh route terdaftar.
-from crembo_app.controllers import main_controller as _main_controller  # noqa: E402,F401
+from crembo_app import app
+from crembo_app.services.core import bootstrap_database
 
 
 if __name__ == "__main__":
-    try:
-        from crembo_app.services.bootstrap import bootstrap_database
-
-        bootstrap_database()
-    except Exception as exc:
-        print(f"[WARN] MySQL bootstrap skipped: {exc}")
+    bootstrap_database()
     app.run(debug=True)

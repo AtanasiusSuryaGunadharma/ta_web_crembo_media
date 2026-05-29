@@ -1,16 +1,19 @@
+"""Loan Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Loan Controller
 
-# Source legacy app.py lines 973-1057 | routes: /api/pengajuan/<pengajuan_id>/ambil
+# Route dari app.py server: /api/pengajuan/<pengajuan_id>/ambil
 @app.route("/api/pengajuan/<pengajuan_id>/ambil", methods=["POST"])
 def input_pengambilan(pengajuan_id):
     ensure_auth_schema()
@@ -98,7 +101,7 @@ def input_pengambilan(pengajuan_id):
         conn.close()
 
 
-# Source legacy app.py lines 1059-1184 | routes: /api/pengajuan/<pengajuan_id>/kembali
+# Route dari app.py server: /api/pengajuan/<pengajuan_id>/kembali
 @app.route("/api/pengajuan/<pengajuan_id>/kembali", methods=["POST"])
 def input_pengembalian(pengajuan_id):
     ensure_auth_schema()
@@ -227,7 +230,7 @@ def input_pengembalian(pengajuan_id):
         conn.close()
 
 
-# Source legacy app.py lines 1910-1981 | routes: /api/pengajuan
+# Route dari app.py server: /api/pengajuan
 @app.route("/api/pengajuan", methods=["GET"])
 def list_pengajuan():
     ensure_auth_schema()
@@ -302,7 +305,7 @@ def list_pengajuan():
         conn.close()
 
 
-# Source legacy app.py lines 1983-2075 | routes: /api/pengajuan
+# Route dari app.py server: /api/pengajuan
 @app.route("/api/pengajuan", methods=["POST"])
 def create_pengajuan():
     ensure_auth_schema()
@@ -398,7 +401,7 @@ def create_pengajuan():
         conn.close()
 
 
-# Source legacy app.py lines 2078-2136 | routes: /api/pengajuan/<pengajuan_id>/cancel
+# Route dari app.py server: /api/pengajuan/<pengajuan_id>/cancel
 @app.route("/api/pengajuan/<pengajuan_id>/cancel", methods=["POST"])
 def cancel_pengajuan(pengajuan_id):
     ensure_auth_schema()
@@ -460,7 +463,7 @@ def cancel_pengajuan(pengajuan_id):
         conn.close()
 
 
-# Source legacy app.py lines 2138-2279 | routes: /api/admin/pengajuan/<pengajuan_id>/status
+# Route dari app.py server: /api/admin/pengajuan/<pengajuan_id>/status
 @app.route("/api/admin/pengajuan/<pengajuan_id>/status", methods=["PUT"])
 def update_pengajuan_status(pengajuan_id):
     role = session.get("role") or ""
@@ -605,7 +608,7 @@ def update_pengajuan_status(pengajuan_id):
         conn.close()
 
 
-# Source legacy app.py lines 9467-9598 | routes: /api/pengajuan/export.xlsx
+# Route dari app.py server: /api/pengajuan/export.xlsx
 @app.route("/api/pengajuan/export.xlsx", methods=["GET"])
 def export_pengajuan_excel():
     ensure_auth_schema()
@@ -740,7 +743,7 @@ def export_pengajuan_excel():
         conn.close()
 
 
-# Source legacy app.py lines 9600-9726 | routes: /api/pengajuan/export.pdf
+# Route dari app.py server: /api/pengajuan/export.pdf
 @app.route("/api/pengajuan/export.pdf", methods=["GET"])
 def export_pengajuan_pdf():
     ensure_auth_schema()
@@ -868,5 +871,4 @@ def export_pengajuan_pdf():
     finally:
         cursor.close()
         conn.close()
-
 

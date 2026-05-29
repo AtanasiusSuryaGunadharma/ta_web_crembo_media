@@ -18,22 +18,16 @@ from email.mime.image import MIMEImage
 from email.utils import formataddr
 import mimetypes
 
+from crembo_app.config import settings as app_settings
+
 import mysql.connector
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
-# Konfigurasi aplikasi dipindahkan ke folder config supaya tidak bercampur dengan controller.
-from crembo_app.config.settings import (
-    BASE_DIR, FRONTEND_DIR, PUBLIC_FAVICON_PATH, SECRET_KEY, SESSION_LIFETIME_DAYS,
-    SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL, SMTP_FROM_NAME,
-    EMAIL_LOGO_PATH, PUBLIC_BASE_URL, NOTIFICATION_EMAIL_ENABLED,
-    NOTIFICATION_EMAIL_RETRY_COUNT, NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS,
-    NOTIFICATION_EMAIL_SEND_DELAY_SECONDS, NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS,
-    NOTIFICATION_EMAIL_ROW_WAIT_SECONDS, PASSWORD_RESET_OTP_MINUTES,
-    PASSWORD_RESET_RESEND_SECONDS, PASSWORD_RESET_MAX_ATTEMPTS,
-)
-from crembo_app.models.database import MYSQL_CONFIG, mysql_connection
+BASE_DIR = app_settings.BASE_DIR
+FRONTEND_DIR = app_settings.FRONTEND_DIR
+PUBLIC_FAVICON_PATH = app_settings.PUBLIC_FAVICON_PATH
 
 app = Flask(
     __name__,
@@ -41,13 +35,96 @@ app = Flask(
     static_folder=str(FRONTEND_DIR / "static"),
     static_url_path="/static",
 )
-app.secret_key = SECRET_KEY
-app.permanent_session_lifetime = timedelta(days=SESSION_LIFETIME_DAYS)
+app.secret_key = app_settings.SECRET_KEY
+app.permanent_session_lifetime = timedelta(days=app_settings.SESSION_LIFETIME_DAYS)
 
+
+@app.errorhandler(404)
+def handle_api_not_found(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Endpoint API tidak ditemukan."}), 404
+    return error
+
+@app.errorhandler(403)
+def handle_api_forbidden(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Akses ditolak."}), 403
+    return error
+
+@app.errorhandler(500)
+def handle_api_internal_error(error):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "message": "Terjadi kesalahan server pada API. Cek terminal Flask untuk detailnya."}), 500
+    return error
+
+
+@app.after_request
+def add_monitoring_api_cors_headers(response):
+    if request.path.startswith("/api/monitoring-kewajiban-tugas/"):
+        origin = request.headers.get("Origin")
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Vary"] = "Origin"
+    return response
+
+@app.after_request
+def add_html_no_cache_headers(response):
+    content_type = (response.headers.get("Content-Type") or "").lower()
+    if "text/html" in content_type:
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
+@app.after_request
+def clean_public_html_urls(response):
+    content_type = (response.headers.get("Content-Type") or "").lower()
+    if "text/html" not in content_type:
+        return response
+
+    body = response.get_data(as_text=True)
+    if not body:
+        return response
+
+    if "rel=\"icon\"" not in body and "rel='icon'" not in body:
+        favicon_links = (
+            '    <link rel="icon" type="image/png" href="/favicon.ico">\n'
+            '    <link rel="shortcut icon" type="image/png" href="/favicon.ico">\n'
+        )
+        body = body.replace("</head>", f"{favicon_links}</head>", 1)
+
+    body = body.replace(".html", "")
+    response.set_data(body)
+    return response
+
+
+
+MYSQL_CONFIG = app_settings.MYSQL_CONFIG
+
+# Konfigurasi aplikasi diambil dari crembo_app/config/settings.py dan file .env.
+SMTP_HOST = app_settings.SMTP_HOST
+SMTP_PORT = app_settings.SMTP_PORT
+SMTP_USERNAME = app_settings.SMTP_USERNAME
+SMTP_PASSWORD = app_settings.SMTP_PASSWORD
+SMTP_FROM_EMAIL = app_settings.SMTP_FROM_EMAIL
+SMTP_FROM_NAME = app_settings.SMTP_FROM_NAME
+EMAIL_LOGO_PATH = app_settings.EMAIL_LOGO_PATH
+PUBLIC_BASE_URL = app_settings.PUBLIC_BASE_URL
+NOTIFICATION_EMAIL_ENABLED = app_settings.NOTIFICATION_EMAIL_ENABLED
+NOTIFICATION_EMAIL_RETRY_COUNT = app_settings.NOTIFICATION_EMAIL_RETRY_COUNT
+NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS = app_settings.NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS
+NOTIFICATION_EMAIL_SEND_DELAY_SECONDS = app_settings.NOTIFICATION_EMAIL_SEND_DELAY_SECONDS
+NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS = app_settings.NOTIFICATION_EMAIL_ROW_WAIT_ATTEMPTS
+NOTIFICATION_EMAIL_ROW_WAIT_SECONDS = app_settings.NOTIFICATION_EMAIL_ROW_WAIT_SECONDS
 _notification_email_queue: "queue.Queue[dict[str, object]]" = queue.Queue()
 _notification_email_worker_started = False
 _notification_email_worker_lock = threading.Lock()
 _smtp_send_lock = threading.Lock()
+PASSWORD_RESET_OTP_MINUTES = app_settings.PASSWORD_RESET_OTP_MINUTES
+PASSWORD_RESET_RESEND_SECONDS = app_settings.PASSWORD_RESET_RESEND_SECONDS
+PASSWORD_RESET_MAX_ATTEMPTS = app_settings.PASSWORD_RESET_MAX_ATTEMPTS
 
 UPLOAD_FOLDER = FRONTEND_DIR / "uploads"
 ALLOWED_ATTACHMENT_EXTENSIONS = {
@@ -203,6 +280,8 @@ def require_super_admin_api():
 def template_exists(template_name: str) -> bool:
     return (FRONTEND_DIR / template_name).is_file()
 
+def mysql_connection():
+    return mysql.connector.connect(**MYSQL_CONFIG)
 
 def ensure_upload_folder() -> Path:
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
@@ -3415,6 +3494,8 @@ def is_inactive_member_page_allowed(candidate: str) -> bool:
         "dashboard-anggota.html",
         "profil-anggota.html",
         "profil.html",
+        "sertifikat-anggota.html",
+        "/sertifikat-anggota",
         "unduh-sertifikat-anggota.html",
         "log-aktivitas-saya.html",
         "log-aktivitas.html",
@@ -4628,6 +4709,7 @@ def upsert_admin_permissions(cursor, member_id: int, permissions: dict[str, bool
             1 if normalized.get("keanggotaan") else 0,
         ),
     )
+
 
 
 
@@ -7904,7 +7986,7 @@ def create_streaming_evaluation_reminder_notifications() -> int:
 
                     member_role = normalize_role_value(staff.get("accountRole") or "user")
                     role_name = normalize_text(staff.get("role")) or "Petugas"
-                    url = "/form-evaluasi-streaming"
+                    url = "/form-evaluasi-streaming.html"
                     dedupe_key = f"eval-reminder:{reminder_date_key}:{schedule_id}:{member_id}"
 
                     cursor.execute(
@@ -8570,3 +8652,15 @@ def auto_run_streaming_evaluation_reminders_once_per_day():
         print(f"[WARN] Gagal auto-run pengingat evaluasi streaming: {exc}")
 
 
+
+def bootstrap_database() -> None:
+    """Menjalankan bootstrap tabel utama seperti pada app.py server lama."""
+    try:
+        ensure_auth_schema()
+        ensure_news_schema()
+        ensure_agenda_schema()
+        ensure_notifications_schema()
+        ensure_activity_log_schema()
+        ensure_misa_besar_schema()
+    except Exception as exc:
+        print(f"[WARN] MySQL bootstrap skipped: {exc}")

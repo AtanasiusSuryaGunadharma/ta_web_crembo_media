@@ -3,7 +3,7 @@ import os
 
 
 def _load_env_file(path: Path) -> None:
-    """Loader .env sederhana agar tidak perlu dependensi tambahan."""
+    """Membaca file .env tanpa wajib memakai dependensi python-dotenv."""
     if not path.exists():
         return
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -47,6 +47,7 @@ if not EMAIL_LOGO_PATH.is_absolute():
     EMAIL_LOGO_PATH = BASE_DIR / EMAIL_LOGO_PATH
 
 PUBLIC_BASE_URL = (os.getenv("PUBLIC_BASE_URL") or os.getenv("SITE_BASE_URL") or "https://crembomedia.com").rstrip("/")
+SITE_BASE_URL = PUBLIC_BASE_URL
 NOTIFICATION_EMAIL_ENABLED = os.getenv("NOTIFICATION_EMAIL_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"}
 NOTIFICATION_EMAIL_RETRY_COUNT = max(1, int(os.getenv("NOTIFICATION_EMAIL_RETRY_COUNT", "3")))
 NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS = max(0.2, float(os.getenv("NOTIFICATION_EMAIL_RETRY_DELAY_SECONDS", "2.5")))

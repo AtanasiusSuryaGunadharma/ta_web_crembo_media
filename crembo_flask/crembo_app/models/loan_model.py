@@ -1,8 +1,8 @@
-"""Model akses data Inventory Model."""
+"""Model akses data Loan Model."""
 
 from crembo_app.models.database import fetch_all, fetch_one, execute_query, mysql_connection
 
-TABLE_NAME = "inventory_items"
+TABLE_NAME = "loan_requests"
 PRIMARY_KEY = "id"
 
 

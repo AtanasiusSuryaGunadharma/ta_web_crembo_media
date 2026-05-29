@@ -1,16 +1,19 @@
+"""Monitoring Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Monitoring Controller
 
-# Source legacy app.py lines 13433-13524 | routes: /api/monitoring-tugas
+# Route dari app.py server: /api/monitoring-tugas
 @app.route("/api/monitoring-tugas", methods=["GET"])
 def api_monitoring_tugas():
     auth_error = monitoring_require_admin()
@@ -105,7 +108,7 @@ def api_monitoring_tugas():
         conn.close()
 
 
-# Source legacy app.py lines 13527-13550 | routes: /api/monitoring-tugas/target
+# Route dari app.py server: /api/monitoring-tugas/target
 @app.route("/api/monitoring-tugas/target", methods=["POST"])
 def api_monitoring_tugas_target():
     auth_error = monitoring_require_admin()
@@ -132,7 +135,7 @@ def api_monitoring_tugas_target():
         conn.close()
 
 
-# Source legacy app.py lines 13553-13580 | routes: /api/monitoring-tugas/slots
+# Route dari app.py server: /api/monitoring-tugas/slots
 @app.route("/api/monitoring-tugas/slots", methods=["GET"])
 def api_monitoring_tugas_slots():
     auth_error = monitoring_require_admin()
@@ -163,7 +166,7 @@ def api_monitoring_tugas_slots():
         conn.close()
 
 
-# Source legacy app.py lines 13583-13681 | routes: /api/monitoring-tugas/schedule
+# Route dari app.py server: /api/monitoring-tugas/schedule
 @app.route("/api/monitoring-tugas/schedule", methods=["POST"])
 def api_monitoring_tugas_schedule():
     auth_error = monitoring_require_admin()
@@ -265,7 +268,7 @@ def api_monitoring_tugas_schedule():
         conn.close()
 
 
-# Source legacy app.py lines 14045-14072 | routes: /api/monitoring-kewajiban-tugas/profile
+# Route dari app.py server: /api/monitoring-kewajiban-tugas/profile
 @app.route("/api/monitoring-kewajiban-tugas/profile", methods=["GET"])
 def api_member_monitoring_profile():
     ensure_auth_schema()
@@ -296,7 +299,7 @@ def api_member_monitoring_profile():
         conn.close()
 
 
-# Source legacy app.py lines 14074-14135 | routes: /api/monitoring-kewajiban-tugas/summary
+# Route dari app.py server: /api/monitoring-kewajiban-tugas/summary
 @app.route("/api/monitoring-kewajiban-tugas/summary", methods=["GET"])
 def api_member_monitoring_summary():
     ensure_auth_schema()
@@ -361,7 +364,7 @@ def api_member_monitoring_summary():
         conn.close()
 
 
-# Source legacy app.py lines 14137-14178 | routes: /api/monitoring-kewajiban-tugas/progress
+# Route dari app.py server: /api/monitoring-kewajiban-tugas/progress
 @app.route("/api/monitoring-kewajiban-tugas/progress", methods=["GET"])
 def api_member_monitoring_progress():
     ensure_auth_schema()
@@ -406,7 +409,7 @@ def api_member_monitoring_progress():
         conn.close()
 
 
-# Source legacy app.py lines 14180-14232 | routes: /api/monitoring-kewajiban-tugas/shortage
+# Route dari app.py server: /api/monitoring-kewajiban-tugas/shortage
 @app.route("/api/monitoring-kewajiban-tugas/shortage", methods=["GET"])
 def api_member_monitoring_shortage():
     ensure_auth_schema()
@@ -462,7 +465,7 @@ def api_member_monitoring_shortage():
         conn.close()
 
 
-# Source legacy app.py lines 14234-14274 | routes: /api/monitoring-kewajiban-tugas/stats
+# Route dari app.py server: /api/monitoring-kewajiban-tugas/stats
 @app.route("/api/monitoring-kewajiban-tugas/stats", methods=["GET"])
 def api_member_monitoring_stats():
     ensure_auth_schema()
@@ -504,5 +507,4 @@ def api_member_monitoring_stats():
     finally:
         cursor.close()
         conn.close()
-
 

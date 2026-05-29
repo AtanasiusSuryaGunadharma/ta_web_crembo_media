@@ -1,23 +1,19 @@
+"""Auth Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Auth Controller
 
-# Source legacy app.py lines 6080-6083 | routes: /
-@app.route("/")
-def index():
-    home_page_data = build_home_page_data()
-    return render_template("home.html", home_page_data=home_page_data, current_user=current_user_context())
-
-
-# Source legacy app.py lines 6086-6124 | routes: /login
+# Route dari app.py server: /login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     ensure_auth_schema()
@@ -39,10 +35,7 @@ def login():
             flash("Kata sandi salah.", "error")
             return render_template("login.html")
 
-        remember_me = request.form.get("remember_me") == "1"
-
         session.clear()
-        session.permanent = remember_me
         session["logged_in"] = True
         session["user_id"] = member["id"]
         session["username"] = member.get("username")
@@ -59,7 +52,7 @@ def login():
     return render_template("login.html", current_user=current_user_context())
 
 
-# Source legacy app.py lines 6347-6414 | routes: /api/password/forgot
+# Route dari app.py server: /api/password/forgot
 @app.route("/api/password/forgot", methods=["POST"])
 def api_password_forgot():
     ensure_auth_schema()
@@ -130,7 +123,7 @@ def api_password_forgot():
         conn.close()
 
 
-# Source legacy app.py lines 6417-6479 | routes: /api/password/resend
+# Route dari app.py server: /api/password/resend
 @app.route("/api/password/resend", methods=["POST"])
 def api_password_resend():
     conn = mysql_connection()
@@ -196,7 +189,7 @@ def api_password_resend():
         conn.close()
 
 
-# Source legacy app.py lines 6482-6533 | routes: /api/password/verify
+# Route dari app.py server: /api/password/verify
 @app.route("/api/password/verify", methods=["POST"])
 def api_password_verify():
     conn = mysql_connection()
@@ -251,7 +244,7 @@ def api_password_verify():
         conn.close()
 
 
-# Source legacy app.py lines 6536-6608 | routes: /api/password/reset
+# Route dari app.py server: /api/password/reset
 @app.route("/api/password/reset", methods=["POST"])
 def api_password_reset():
     ensure_auth_schema()
@@ -327,7 +320,7 @@ def api_password_reset():
         conn.close()
 
 
-# Source legacy app.py lines 6611-6618 | routes: /logout
+# Route dari app.py server: /logout
 @app.route("/logout")
 def logout():
     try:
@@ -338,7 +331,7 @@ def logout():
     return redirect(url_for("login"))
 
 
-# Source legacy app.py lines 8630-8636 | routes: /api/session
+# Route dari app.py server: /api/session
 @app.route("/api/session", methods=["GET"])
 def get_session_context():
     response = jsonify(current_user_context())
@@ -346,5 +339,4 @@ def get_session_context():
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     return response
-
 

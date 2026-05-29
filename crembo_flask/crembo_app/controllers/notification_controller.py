@@ -1,16 +1,19 @@
+"""Notification Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Notification Controller
 
-# Source legacy app.py lines 3494-3619 | routes: /api/notifications
+# Route dari app.py server: /api/notifications
 @app.route("/api/notifications", methods=["GET"])
 def get_notifications():
     ensure_notifications_schema()
@@ -139,7 +142,7 @@ def get_notifications():
         conn.close()
 
 
-# Source legacy app.py lines 4154-4177 | routes: /api/notifications/<notif_id>/mark_read
+# Route dari app.py server: /api/notifications/<notif_id>/mark_read
 @app.route("/api/notifications/<notif_id>/mark_read", methods=["POST"])
 def mark_notification_read(notif_id):
     ensure_notifications_schema()
@@ -166,7 +169,7 @@ def mark_notification_read(notif_id):
         conn.close()
 
 
-# Source legacy app.py lines 4179-4208 | routes: /api/notifications/<notif_id>/toggle_read
+# Route dari app.py server: /api/notifications/<notif_id>/toggle_read
 @app.route("/api/notifications/<notif_id>/toggle_read", methods=["POST"])
 def toggle_notification_read(notif_id):
     ensure_notifications_schema()
@@ -199,7 +202,7 @@ def toggle_notification_read(notif_id):
         conn.close()
 
 
-# Source legacy app.py lines 4210-4236 | routes: /api/notifications/mark_all_read
+# Route dari app.py server: /api/notifications/mark_all_read
 @app.route("/api/notifications/mark_all_read", methods=["POST"])
 def mark_all_notifications_read():
     ensure_notifications_schema()
@@ -227,5 +230,4 @@ def mark_all_notifications_read():
     finally:
         cursor.close()
         conn.close()
-
 

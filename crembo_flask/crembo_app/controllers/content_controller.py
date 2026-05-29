@@ -1,16 +1,177 @@
+"""Content Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Content Controller
 
-# Source legacy app.py lines 7593-7609 | routes: /api/tentang/config
+# Route dari app.py server: /api/profile/me
+@app.route("/api/profile/me", methods=["GET"])
+def api_profile_me():
+    """Ambil profil anggota/admin yang sedang login langsung dari DB.
+
+    Endpoint dibuat read-only supaya aman dipanggil paralel dengan
+    /api/membership/my dari halaman profil anggota.
+    """
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn = mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        user_id = session.get("user_id")
+        cursor.execute(
+            """
+            SELECT id, nama, username, telp, role, tgl_lahir, email, alamat,
+                   status_akun, inactive_until, inactive_from, inactive_type,
+                   inactive_reason, inactive_note, created_at, updated_at
+            FROM anggota
+            WHERE id = %s
+            LIMIT 1
+            """,
+            (user_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            session.clear()
+            return jsonify({"ok": False, "message": "Akun login tidak ditemukan. Silakan login ulang."}), 404
+
+        sync_session_from_member_row(row)
+        user = current_user_context_from_row(
+            row,
+            include_admin_permissions=normalize_role_value(row.get("role") or "") in {"admin", "super_admin"},
+        )
+        return jsonify({"ok": True, "user": user, "member": member_row_to_dict(row)})
+    except mysql.connector.Error as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        if getattr(exc, "errno", None) in {1205, 1213}:
+            return jsonify({
+                "ok": False,
+                "message": "Database sedang sibuk memproses data profil. Silakan muat ulang halaman beberapa detik lagi."
+            }), 503
+        return jsonify({"ok": False, "message": f"Gagal memuat profil login: {exc}"}), 500
+    except Exception as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return jsonify({"ok": False, "message": f"Gagal memuat profil login: {exc}"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+# Route dari app.py server: /api/profile/update
+@app.route("/api/profile/update", methods=["POST"])
+
+def api_profile_update():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    # Extract fields (do not allow updating role, nama, etc. if not authorized)
+    # The requirement is that full name is readonly, so we skip it.
+    username = payload.get("username", "").strip()
+    email = payload.get("email", "").strip()
+    telp = payload.get("phone", "").strip()
+    alamat = payload.get("address", "").strip()
+    tgl_lahir = payload.get("birthDate", "").strip()
+
+    if not username or not email:
+        return jsonify({"ok": False, "message": "Username dan email wajib diisi."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        user_id = session.get("user_id")
+        
+        # Check uniqueness of username and email (excluding current user)
+        cursor.execute("SELECT id FROM anggota WHERE (username = %s OR email = %s OR telp = %s) AND id != %s", (username, email, telp, user_id))
+        if cursor.fetchone():
+            return jsonify({"ok": False, "message": "Username, email, atau telepon sudah digunakan oleh akun lain."}), 400
+            
+        cursor.execute(
+            """
+            UPDATE anggota 
+            SET username = %s, email = %s, telp = %s, alamat = %s, tgl_lahir = %s
+            WHERE id = %s
+            """,
+            (username, email, telp, alamat, tgl_lahir, user_id)
+        )
+        conn.commit()
+        
+        # Update session dan kirim ulang user terbaru supaya frontend tidak perlu memakai localStorage lama.
+        session["username"] = username
+        session["email"] = email
+        session["telp"] = telp
+        session["alamat"] = alamat
+        session["tgl_lahir"] = tgl_lahir
+        refreshed_user = current_user_context()
+        
+        return jsonify({"ok": True, "message": "Profil berhasil diperbarui.", "user": refreshed_user})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# Route dari app.py server: /api/profile/password
+@app.route("/api/profile/password", methods=["POST"])
+def api_profile_password():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    current_password = payload.get("currentPassword", "")
+    new_password = payload.get("newPassword", "")
+
+    if len(new_password) < 6:
+        return jsonify({"ok": False, "message": "Password baru minimal 6 karakter."}), 400
+
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        user_id = session.get("user_id")
+        cursor.execute("SELECT password, tgl_lahir FROM anggota WHERE id = %s", (user_id,))
+        row = cursor.fetchone()
+        
+        if not row or not check_password_hash(row["password"], current_password):
+            return jsonify({"ok": False, "message": "Password saat ini salah."}), 400
+            
+        hashed_new_password = hash_member_password(new_password, row.get("tgl_lahir", ""))
+        
+        cursor.execute("UPDATE anggota SET password = %s WHERE id = %s", (hashed_new_password, user_id))
+        conn.commit()
+        
+        return jsonify({"ok": True, "message": "Password berhasil diperbarui."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# Route dari app.py server: /api/tentang/config
 @app.route("/api/tentang/config", methods=["GET"])
 def get_tentang_config():
     ensure_auth_schema()
@@ -30,7 +191,7 @@ def get_tentang_config():
     return jsonify({})
 
 
-# Source legacy app.py lines 7611-7640 | routes: /api/tentang/config
+# Route dari app.py server: /api/tentang/config
 @app.route("/api/tentang/config", methods=["POST"])
 def set_tentang_config():
     ensure_auth_schema()
@@ -63,7 +224,7 @@ def set_tentang_config():
     return jsonify({"success": True})
 
 
-# Source legacy app.py lines 7642-7661 | routes: /api/tentang/media
+# Route dari app.py server: /api/tentang/media
 @app.route("/api/tentang/media", methods=["GET"])
 def get_tentang_media():
     ensure_auth_schema()
@@ -86,7 +247,7 @@ def get_tentang_media():
     return jsonify(out)
 
 
-# Source legacy app.py lines 7663-7692 | routes: /api/tentang/media/sync
+# Route dari app.py server: /api/tentang/media/sync
 @app.route("/api/tentang/media/sync", methods=["POST"])
 def sync_tentang_media():
     ensure_auth_schema()
@@ -119,14 +280,14 @@ def sync_tentang_media():
     return jsonify({"success": True, "count": len(payload)})
 
 
-# Source legacy app.py lines 7695-7698 | routes: /api/instagram/posts
+# Route dari app.py server: /api/instagram/posts
 @app.route("/api/instagram/posts", methods=["GET"])
 def get_instagram_posts():
     ensure_auth_schema()
     return jsonify({"ok": True, "posts": load_instagram_posts_from_db(limit=None, active_only=False)})
 
 
-# Source legacy app.py lines 7701-7709 | routes: /api/instagram/posts/sync
+# Route dari app.py server: /api/instagram/posts/sync
 @app.route("/api/instagram/posts/sync", methods=["POST"])
 def sync_instagram_posts():
     ensure_auth_schema()
@@ -138,38 +299,7 @@ def sync_instagram_posts():
     return jsonify({"ok": True, "count": saved_count})
 
 
-# Source legacy app.py lines 7719-7746 | routes: /api/upload_image
-@app.route("/api/upload_image", methods=["POST"])
-def upload_image():
-    ensure_auth_schema()
-    incoming_files = request.files.getlist("files")
-    if not incoming_files:
-        single_file = request.files.get("file")
-        incoming_files = [single_file] if single_file and single_file.filename else []
-
-    if not incoming_files:
-        return jsonify({"success": False, "error": "No selected file"}), 400
-
-    saved_files: list[dict[str, object]] = []
-    try:
-        for file in incoming_files:
-            if not file or not file.filename:
-                continue
-            saved_files.append(save_uploaded_attachment(file))
-    except ValueError as exc:
-        return jsonify({"success": False, "error": str(exc)}), 400
-
-    if not saved_files:
-        return jsonify({"success": False, "error": "No selected file"}), 400
-
-    return jsonify({
-        "success": True,
-        "files": saved_files,
-        "url": saved_files[0]["url"],
-    })
-
-
-# Source legacy app.py lines 7748-7766 | routes: /api/youtube
+# Route dari app.py server: /api/youtube
 @app.route("/api/youtube", methods=["GET"])
 def get_youtube():
     ensure_auth_schema()
@@ -191,7 +321,7 @@ def get_youtube():
     ])
 
 
-# Source legacy app.py lines 7768-7812 | routes: /api/youtube/sync
+# Route dari app.py server: /api/youtube/sync
 @app.route("/api/youtube/sync", methods=["POST"])
 def sync_youtube():
     ensure_auth_schema()
@@ -239,26 +369,7 @@ def sync_youtube():
         conn.close()
 
 
-# Source legacy app.py lines 7814-7816 | routes: /api/gmaps
-@app.route("/api/gmaps", methods=["GET"])
-def api_get_gmaps():
-    return jsonify({"url": load_gmaps_url()})
-
-
-# Source legacy app.py lines 7818-7827 | routes: /api/gmaps
-@app.route("/api/gmaps", methods=["POST"])
-def api_set_gmaps():
-    ensure_auth_schema()
-    url = request.json.get("url", "")
-    conn = mysql_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE `google_maps_embed` SET `url` = %s WHERE `id` = 1", (url,))
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
-
-
-# Source legacy app.py lines 7829-7847 | routes: /api/carousel
+# Route dari app.py server: /api/carousel
 @app.route("/api/carousel", methods=["GET"])
 def get_carousel():
     ensure_auth_schema()
@@ -280,7 +391,7 @@ def get_carousel():
     } for r in rows])
 
 
-# Source legacy app.py lines 7849-7868 | routes: /api/carousel/sync
+# Route dari app.py server: /api/carousel/sync
 @app.route("/api/carousel/sync", methods=["POST"])
 def sync_carousel():
     ensure_auth_schema()
@@ -303,208 +414,159 @@ def sync_carousel():
     return jsonify({"success": True})
 
 
-# Source legacy app.py lines 8641-8838 | routes: /api/search
-@app.route("/api/search", methods=["GET"])
-def api_search():
-    """
-    Global search endpoint. Mencari di: pengumuman (news), agenda, jadwal streaming, profil.
-    Query params:
-        q      : kata kunci pencarian
-        type   : filter tipe (Pengumuman | Agenda | Jadwal | Profil) — kosong = semua
-        sort   : newest | oldest | az | za
-        page   : halaman (mulai 1)
-        per_page: jumlah per halaman (default 10)
-    """
-    query   = (request.args.get("q") or "").strip().lower()
-    ftype   = (request.args.get("type") or "").strip()
-    sort    = (request.args.get("sort") or "newest").strip()
-    page    = max(1, int(request.args.get("page") or 1))
-    per_page = min(50, max(1, int(request.args.get("per_page") or 10)))
-
-    results = []
-
+# Route dari app.py server: /api/profiles
+@app.route("/api/profiles", methods=["GET"])
+def get_profiles():
+    ensure_auth_schema()
     conn = mysql_connection()
     cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM `organization_profiles` ORDER BY `order_index` ASC")
+    rows = cursor.fetchall() or []
+    cursor.close()
+    conn.close()
+    profile_rows = []
+    for row in rows:
+        attachments = normalize_attachment_payload(row["attachment_url"])
+        profile_rows.append({
+            "id": row["id"],
+            "title": row["title"],
+            "description": row["description"],
+            "attachmentUrl": attachments[0]["url"] if attachments else "",
+            "attachments": attachments,
+            "order": row["order_index"],
+            "active": bool(row["is_visible"]),
+            "createdAt": row["created_at"],
+            "updatedAt": row["updated_at"],
+        })
+    return jsonify(profile_rows)
+
+
+# Route dari app.py server: /api/profiles
+@app.route("/api/profiles", methods=["POST"])
+def create_profile():
+    ensure_auth_schema()
+    data = request.json or {}
+    profile_id = f"profile-{int(time.time() * 1000)}"
+    attachments = normalize_attachment_payload(data.get("attachments"))
+    if not attachments:
+        attachments = normalize_attachment_payload(data.get("attachmentUrl"))
+
+    conn = mysql_connection()
+    cursor = conn.cursor()
     try:
-        # ── 1. Pengumuman (news) ─────────────────────────────────────────────────
-        if not ftype or ftype == "Pengumuman":
-            try:
-                cursor.execute("""
-                    SELECT id, title, summary, content, thumbnails, published_at, created_at, status
-                    FROM `news`
-                    WHERE status = 'published'
-                    ORDER BY published_at DESC, created_at DESC
-                """)
-                for row in (cursor.fetchall() or []):
-                    title_val   = (row.get("title") or "")
-                    summary_val = (row.get("summary") or "")
-                    content_raw = re.sub(r'<[^>]+>', ' ', row.get("content") or "")
-                    haystack    = (title_val + " " + summary_val + " " + content_raw).lower()
-                    if query and query not in haystack:
-                        continue
-                    snippet = (summary_val or content_raw[:200]).strip()
-                    date_val = row.get("published_at") or row.get("created_at")
-                    date_str = date_val.strftime("%d %b %Y") if date_val else ""
-                    # Ambil URL thumbnail pertama dari JSON
-                    thumb_url = ""
-                    try:
-                        thumbs = json.loads(row.get("thumbnails") or "[]")
-                        if thumbs and isinstance(thumbs, list) and isinstance(thumbs[0], dict):
-                            thumb_url = thumbs[0].get("url") or ""
-                    except Exception:
-                        pass
-                    results.append({
-                        "type":    "Pengumuman",
-                        "title":   title_val,
-                        "snippet": snippet[:220] if snippet else "",
-                        "date":    date_str,
-                        "date_ts": date_val.timestamp() if date_val else 0,
-                        "url":     f"/pengumuman/{row['id']}",
-                        "thumb":   thumb_url,
-                    })
-            except Exception as e:
-                pass  # Tabel belum ada atau error, skip
-
-        # ── 2. Agenda ────────────────────────────────────────────────────────────
-        if not ftype or ftype == "Agenda":
-            try:
-                cursor.execute("""
-                    SELECT id, title, description, start_date, location, status, image_url
-                    FROM `agendas`
-                    WHERE status = 'active'
-                    ORDER BY start_date DESC
-                """)
-                for row in (cursor.fetchall() or []):
-                    title_val   = (row.get("title") or "")
-                    desc_val    = re.sub(r'<[^>]+>', ' ', row.get("description") or "")
-                    loc_val     = (row.get("location") or "")
-                    haystack    = (title_val + " " + desc_val + " " + loc_val).lower()
-                    if query and query not in haystack:
-                        continue
-                    date_val = row.get("start_date")
-                    date_str = date_val.strftime("%d %b %Y") if hasattr(date_val, "strftime") else str(date_val or "")
-                    import datetime as _dt
-                    date_ts = _dt.datetime.combine(date_val, _dt.time.min).timestamp() if isinstance(date_val, _dt.date) else 0
-                    snippet = desc_val[:220].strip() if desc_val.strip() else loc_val
-                    results.append({
-                        "type":    "Agenda",
-                        "title":   title_val,
-                        "snippet": snippet,
-                        "date":    date_str,
-                        "date_ts": date_ts,
-                        "url":     f"/agenda/{row['id']}",
-                        "thumb":   row.get("image_url") or "",
-                    })
-            except Exception:
-                pass
-
-        # ── 3. Form Pendaftaran ───────────────────────────────────────────────────
-        if not ftype or ftype == "FormPendaftaran":
-            try:
-                cursor.execute("""
-                    SELECT id, title, description, visibility, image_url, updated_at, created_at
-                    FROM `registration_forms`
-                    WHERE visibility != 'draft'
-                    ORDER BY updated_at DESC, created_at DESC
-                """)
-                for row in (cursor.fetchall() or []):
-                    title_val = (row.get("title") or "")
-                    desc_raw  = re.sub(r'<[^>]+>', ' ', row.get("description") or "")
-                    haystack  = (title_val + " " + desc_raw).lower()
-                    if query and query not in haystack:
-                        continue
-                    upd = row.get("updated_at") or row.get("created_at")
-                    date_ts = upd.timestamp() if hasattr(upd, "timestamp") else 0
-                    date_str = upd.strftime("%d %b %Y") if upd else ""
-                    results.append({
-                        "type":    "FormPendaftaran",
-                        "title":   title_val,
-                        "snippet": desc_raw[:220].strip(),
-                        "date":    date_str,
-                        "date_ts": date_ts,
-                        "url":     f"/form-pendaftaran-detail.html?id={row['id']}",
-                        "thumb":   row.get("image_url") or "",
-                    })
-            except Exception:
-                pass
-
-        # ── 4. Profil Organisasi ─────────────────────────────────────────────────
-        if not ftype or ftype == "Profil":
-            try:
-                cursor.execute("""
-                    SELECT id, title, description, updated_at
-                    FROM `organization_profiles`
-                    WHERE is_visible = 1
-                    ORDER BY order_index ASC
-                """)
-                for row in (cursor.fetchall() or []):
-                    title_val = (row.get("title") or "")
-                    desc_raw  = re.sub(r'<[^>]+>', ' ', row.get("description") or "")
-                    haystack  = (title_val + " " + desc_raw).lower()
-                    if query and query not in haystack:
-                        continue
-                    upd = row.get("updated_at")
-                    date_ts = upd.timestamp() if hasattr(upd, "timestamp") else 0
-                    slug_id = str(row.get("id") or "").replace("profile-", "").lower()
-                    safe_id = re.sub(r'[^a-z0-9\-]', '-', title_val.lower())
-                    results.append({
-                        "type":    "Profil",
-                        "title":   title_val,
-                        "snippet": desc_raw[:220].strip(),
-                        "date":    "–",
-                        "date_ts": date_ts,
-                        "url":     f"/profil.html?profil={row['id']}",
-                        "thumb":   "",
-                    })
-            except Exception:
-                pass
-
+        cursor.execute("""
+            INSERT INTO `organization_profiles` 
+            (`id`, `title`, `description`, `attachment_url`, `order_index`, `is_visible`)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (
+            profile_id,
+            data.get("title", ""),
+            data.get("description", ""),
+            json.dumps(attachments, ensure_ascii=False),
+            int(data.get("order", 0)),
+            1 if data.get("active") else 0,
+        ))
+        conn.commit()
+        return jsonify({"success": True, "id": profile_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
     finally:
         cursor.close()
         conn.close()
 
-    # ── Sorting ──────────────────────────────────────────────────────────────────
-    if sort == "az":
-        results.sort(key=lambda r: (r["title"] or "").lower())
-    elif sort == "za":
-        results.sort(key=lambda r: (r["title"] or "").lower(), reverse=True)
-    elif sort == "oldest":
-        results.sort(key=lambda r: r["date_ts"])
-    else:  # newest (default)
-        results.sort(key=lambda r: r["date_ts"], reverse=True)
 
-    # Hitung count per tipe (SEBELUM pagination)
-    counts = {"Pengumuman": 0, "Agenda": 0, "FormPendaftaran": 0, "Profil": 0}
-    for r in results:
-        t = r.get("type", "")
-        if t in counts:
-            counts[t] += 1
-    total = len(results)
+# Route dari app.py server: /api/profiles/<profile_id>
+@app.route("/api/profiles/<profile_id>", methods=["PUT"])
+def update_profile(profile_id):
+    ensure_auth_schema()
+    data = request.json or {}
+    attachments = normalize_attachment_payload(data.get("attachments"))
+    if not attachments:
+        attachments = normalize_attachment_payload(data.get("attachmentUrl"))
 
-    # ── Pagination ───────────────────────────────────────────────────────────────
-    total_pages = max(1, (total + per_page - 1) // per_page)
-    page = min(page, total_pages)
-    start = (page - 1) * per_page
-    paged = results[start: start + per_page]
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT `attachment_url` FROM `organization_profiles` WHERE `id` = %s LIMIT 1", (profile_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            return jsonify({"success": False, "error": "Profile not found"}), 404
 
-    # Bersihkan date_ts dari output
-    for r in paged:
-        r.pop("date_ts", None)
+        cursor.execute("""
+            UPDATE `organization_profiles`
+            SET `title` = %s, `description` = %s, `attachment_url` = %s, `order_index` = %s, `is_visible` = %s
+            WHERE `id` = %s
+        """, (
+            data.get("title", ""),
+            data.get("description", ""),
+            json.dumps(attachments, ensure_ascii=False),
+            int(data.get("order", 0)),
+            1 if data.get("active") else 0,
+            profile_id
+        ))
+        conn.commit()
 
-    return jsonify({
-        "query":       (request.args.get("q") or "").strip(),
-        "type":        ftype,
-        "sort":        sort,
-        "page":        page,
-        "per_page":    per_page,
-        "total":       total,
-        "total_pages": total_pages,
-        "counts":      counts,
-        "results":     paged,
-    })
+        # Cleanup file lama yang sudah dihapus/diganti saat Edit
+        if existing:
+            try:
+                old_atts_raw = existing.get("attachment_url") or "[]"
+                old_atts = json.loads(old_atts_raw) if isinstance(old_atts_raw, str) else (old_atts_raw or [])
+                new_att_urls = [a.get("url") for a in attachments if isinstance(a, dict) and a.get("url")]
+                
+                for oa in old_atts:
+                    if isinstance(oa, dict) and oa.get("url") and oa.get("url") not in new_att_urls:
+                        remove_physical_file(oa["url"])
+            except Exception as e:
+                print(f"[WARN] Failed to cleanup replaced files for profile {profile_id}: {e}")
+
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 
-# Source legacy app.py lines 8909-8920 | routes: /api/agendas
+# Route dari app.py server: /api/profiles/<profile_id>
+@app.route("/api/profiles/<profile_id>", methods=["DELETE"])
+def delete_profile(profile_id):
+    ensure_auth_schema()
+    conn = mysql_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # 1. Fetch data profil untuk mendapatkan list file yang harus dihapus
+        cursor.execute("SELECT `attachment_url` FROM `organization_profiles` WHERE `id` = %s LIMIT 1", (profile_id,))
+        profile = cursor.fetchone()
+        
+        if not profile:
+            return jsonify({"success": False, "error": "Profile not found"}), 404
+
+        # 2. Hapus record dari database
+        cursor.execute("DELETE FROM `organization_profiles` WHERE `id` = %s", (profile_id,))
+        conn.commit()
+
+        # 3. Clean up physical files di folder
+        try:
+            atts_raw = profile.get("attachment_url") or "[]"
+            atts = json.loads(atts_raw) if isinstance(atts_raw, str) else (atts_raw or [])
+            for att in atts:
+                if isinstance(att, dict) and att.get("url"):
+                    remove_physical_file(att["url"])
+        except Exception as e:
+            print(f"[WARN] Error during physical file cleanup for profile {profile_id}: {e}")
+
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# Route dari app.py server: /api/agendas
 @app.route("/api/agendas", methods=["GET"])
 def get_agendas():
     ensure_agenda_schema()
@@ -519,7 +581,7 @@ def get_agendas():
         conn.close()
 
 
-# Source legacy app.py lines 8923-8936 | routes: /api/agendas/<agenda_id>
+# Route dari app.py server: /api/agendas/<agenda_id>
 @app.route("/api/agendas/<agenda_id>", methods=["GET"])
 def get_agenda_detail(agenda_id):
     ensure_agenda_schema()
@@ -536,7 +598,7 @@ def get_agenda_detail(agenda_id):
         conn.close()
 
 
-# Source legacy app.py lines 8939-8991 | routes: /api/agendas
+# Route dari app.py server: /api/agendas
 @app.route("/api/agendas", methods=["POST"])
 def create_agenda():
     ensure_agenda_schema()
@@ -592,7 +654,7 @@ def create_agenda():
         conn.close()
 
 
-# Source legacy app.py lines 8994-9073 | routes: /api/agendas/<agenda_id>
+# Route dari app.py server: /api/agendas/<agenda_id>
 @app.route("/api/agendas/<agenda_id>", methods=["PUT"])
 def update_agenda(agenda_id):
     ensure_agenda_schema()
@@ -675,7 +737,7 @@ def update_agenda(agenda_id):
         conn.close()
 
 
-# Source legacy app.py lines 9076-9114 | routes: /api/agendas/<agenda_id>
+# Route dari app.py server: /api/agendas/<agenda_id>
 @app.route("/api/agendas/<agenda_id>", methods=["DELETE"])
 def delete_agenda(agenda_id):
     ensure_agenda_schema()
@@ -717,7 +779,7 @@ def delete_agenda(agenda_id):
         conn.close()
 
 
-# Source legacy app.py lines 9118-9135 | routes: /api/news-categories
+# Route dari app.py server: /api/news-categories
 @app.route("/api/news-categories", methods=["GET"])
 def get_news_categories():
     ensure_news_schema()
@@ -738,7 +800,7 @@ def get_news_categories():
         conn.close()
 
 
-# Source legacy app.py lines 9137-9165 | routes: /api/news-categories
+# Route dari app.py server: /api/news-categories
 @app.route("/api/news-categories", methods=["POST"])
 def create_news_category():
     ensure_news_schema()
@@ -770,7 +832,7 @@ def create_news_category():
         conn.close()
 
 
-# Source legacy app.py lines 9167-9195 | routes: /api/news-categories/<category_id>
+# Route dari app.py server: /api/news-categories/<category_id>
 @app.route("/api/news-categories/<category_id>", methods=["PUT"])
 def update_news_category(category_id):
     ensure_news_schema()
@@ -802,7 +864,7 @@ def update_news_category(category_id):
         conn.close()
 
 
-# Source legacy app.py lines 9197-9212 | routes: /api/news-categories/<category_id>
+# Route dari app.py server: /api/news-categories/<category_id>
 @app.route("/api/news-categories/<category_id>", methods=["DELETE"])
 def delete_news_category(category_id):
     ensure_news_schema()
@@ -821,7 +883,7 @@ def delete_news_category(category_id):
         conn.close()
 
 
-# Source legacy app.py lines 9214-9251 | routes: /api/news
+# Route dari app.py server: /api/news
 @app.route("/api/news", methods=["GET"])
 def get_news():
     ensure_news_schema()
@@ -862,7 +924,7 @@ def get_news():
         conn.close()
 
 
-# Source legacy app.py lines 9253-9287 | routes: /api/news/<news_id>
+# Route dari app.py server: /api/news/<news_id>
 @app.route("/api/news/<news_id>", methods=["GET"])
 def get_news_detail(news_id):
     ensure_news_schema()
@@ -900,7 +962,7 @@ def get_news_detail(news_id):
         conn.close()
 
 
-# Source legacy app.py lines 9289-9345 | routes: /api/news
+# Route dari app.py server: /api/news
 @app.route("/api/news", methods=["POST"])
 def create_news():
     ensure_news_schema()
@@ -960,7 +1022,7 @@ def create_news():
         conn.close()
 
 
-# Source legacy app.py lines 9347-9419 | routes: /api/news/<news_id>
+# Route dari app.py server: /api/news/<news_id>
 @app.route("/api/news/<news_id>", methods=["PUT"])
 def update_news(news_id):
     ensure_news_schema()
@@ -1036,7 +1098,7 @@ def update_news(news_id):
         conn.close()
 
 
-# Source legacy app.py lines 9421-9463 | routes: /api/news/<news_id>
+# Route dari app.py server: /api/news/<news_id>
 @app.route("/api/news/<news_id>", methods=["DELETE"])
 def delete_news(news_id):
     ensure_news_schema()
@@ -1080,5 +1142,4 @@ def delete_news(news_id):
     finally:
         cursor.close()
         conn.close()
-
 

@@ -1,16 +1,19 @@
+"""Streaming Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Streaming Controller
 
-# Source legacy app.py lines 10007-10025 | routes: /api/streaming/roles
+# Route dari app.py server: /api/streaming/roles
 @app.route("/api/streaming/roles", methods=["GET", "POST"])
 def manage_streaming_roles():
     ensure_streaming_schema()
@@ -32,7 +35,7 @@ def manage_streaming_roles():
         conn.close()
 
 
-# Source legacy app.py lines 10027-10056 | routes: /api/streaming/config/weekly
+# Route dari app.py server: /api/streaming/config/weekly
 @app.route("/api/streaming/config/weekly", methods=["GET", "POST"])
 def manage_weekly_config():
     ensure_streaming_schema()
@@ -65,7 +68,7 @@ def manage_weekly_config():
         conn.close()
 
 
-# Source legacy app.py lines 10058-10087 | routes: /api/streaming/cancelled
+# Route dari app.py server: /api/streaming/cancelled
 @app.route("/api/streaming/cancelled", methods=["GET", "POST", "DELETE"])
 def manage_cancelled_mass():
     ensure_streaming_schema()
@@ -98,7 +101,7 @@ def manage_cancelled_mass():
         conn.close()
 
 
-# Source legacy app.py lines 10089-10184 | routes: /api/streaming/schedule
+# Route dari app.py server: /api/streaming/schedule
 @app.route("/api/streaming/schedule", methods=["GET"])
 def get_streaming_schedule():
     ensure_streaming_schema()
@@ -197,7 +200,7 @@ def get_streaming_schedule():
         conn.close()
 
 
-# Source legacy app.py lines 10186-10196 | routes: /api/streaming/active-members
+# Route dari app.py server: /api/streaming/active-members
 @app.route("/api/streaming/active-members", methods=["GET"])
 def get_active_members():
     ensure_auth_schema()
@@ -211,7 +214,7 @@ def get_active_members():
         conn.close()
 
 
-# Source legacy app.py lines 10198-10208 | routes: /api/streaming/assignments
+# Route dari app.py server: /api/streaming/assignments
 @app.route("/api/streaming/assignments", methods=["GET"])
 def get_current_assignments():
     ensure_streaming_schema()
@@ -225,7 +228,7 @@ def get_current_assignments():
         conn.close()
 
 
-# Source legacy app.py lines 10210-10269 | routes: /api/streaming/assignments/save
+# Route dari app.py server: /api/streaming/assignments/save
 @app.route("/api/streaming/assignments/save", methods=["POST"])
 def save_assignments():
     ensure_streaming_schema()
@@ -288,7 +291,7 @@ def save_assignments():
         conn.close()
 
 
-# Source legacy app.py lines 10272-10352 | routes: /api/misa-besar/public
+# Route dari app.py server: /api/misa-besar/public
 @app.route("/api/misa-besar/public", methods=["GET"])
 def api_misa_besar_public():
     """Daftar Misa Besar untuk halaman Jadwal Streaming anggota.
@@ -372,7 +375,7 @@ def api_misa_besar_public():
         conn.close()
 
 
-# Source legacy app.py lines 10355-10421 | routes: /api/misa-besar
+# Route dari app.py server: /api/misa-besar
 @app.route("/api/misa-besar", methods=["GET", "POST"])
 def api_misa_besar():
     ensure_misa_besar_schema()
@@ -442,7 +445,7 @@ def api_misa_besar():
         conn.close()
 
 
-# Source legacy app.py lines 10423-10476 | routes: /api/misa-besar/<int:misa_id>
+# Route dari app.py server: /api/misa-besar/<int:misa_id>
 @app.route("/api/misa-besar/<int:misa_id>", methods=["PUT", "DELETE"])
 def api_misa_besar_detail(misa_id):
     ensure_misa_besar_schema()
@@ -499,7 +502,7 @@ def api_misa_besar_detail(misa_id):
         conn.close()
 
 
-# Source legacy app.py lines 10478-10523 | routes: /api/misa-besar/<int:misa_id>/status
+# Route dari app.py server: /api/misa-besar/<int:misa_id>/status
 @app.route("/api/misa-besar/<int:misa_id>/status", methods=["PUT"])
 def api_misa_besar_status(misa_id):
     """Endpoint khusus untuk mengubah status ke Draft atau Published dengan cepat"""
@@ -548,7 +551,7 @@ def api_misa_besar_status(misa_id):
         conn.close()
 
 
-# Source legacy app.py lines 10525-10559 | routes: /api/misa-besar/assign
+# Route dari app.py server: /api/misa-besar/assign
 @app.route("/api/misa-besar/assign", methods=["POST"])
 def api_misa_besar_assign():
     ensure_misa_besar_schema()
@@ -586,7 +589,7 @@ def api_misa_besar_assign():
         conn.close()
 
 
-# Source legacy app.py lines 10561-10572 | routes: /api/misa-besar/unassign
+# Route dari app.py server: /api/misa-besar/unassign
 @app.route("/api/misa-besar/unassign", methods=["POST"])
 def api_misa_besar_unassign():
     data = request.json
@@ -599,5 +602,4 @@ def api_misa_besar_unassign():
     finally:
         cursor.close()
         conn.close()
-
 

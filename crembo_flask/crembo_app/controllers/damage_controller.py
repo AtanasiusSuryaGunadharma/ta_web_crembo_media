@@ -1,16 +1,19 @@
+"""Damage Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Damage Controller
 
-# Source legacy app.py lines 2316-2347 | routes: /api/damage/upload
+# Route dari app.py server: /api/damage/upload
 @app.route("/api/damage/upload", methods=["POST"])
 def upload_damage_photo():
     """Upload damage report photos"""
@@ -45,7 +48,7 @@ def upload_damage_photo():
     })
 
 
-# Source legacy app.py lines 2349-2443 | routes: /api/kerusakan
+# Route dari app.py server: /api/kerusakan
 @app.route("/api/kerusakan", methods=["POST"])
 def submit_damage_report():
     """Submit damage report form"""
@@ -143,7 +146,7 @@ def submit_damage_report():
         conn.close()
 
 
-# Source legacy app.py lines 2445-2513 | routes: /api/form-kerusakan/history
+# Route dari app.py server: /api/form-kerusakan/history
 @app.route("/api/form-kerusakan/history", methods=["GET"])
 def get_damage_history():
     """Get damage report history"""
@@ -215,7 +218,7 @@ def get_damage_history():
         conn.close()
 
 
-# Source legacy app.py lines 2515-2563 | routes: /api/form-kerusakan/<damage_id>
+# Route dari app.py server: /api/form-kerusakan/<damage_id>
 @app.route("/api/form-kerusakan/<damage_id>", methods=["GET"])
 def get_damage_detail(damage_id):
     """Get single damage report detail"""
@@ -267,7 +270,7 @@ def get_damage_detail(damage_id):
         conn.close()
 
 
-# Source legacy app.py lines 2565-2628 | routes: /api/form-kerusakan/<damage_id>/status
+# Route dari app.py server: /api/form-kerusakan/<damage_id>/status
 @app.route("/api/form-kerusakan/<damage_id>/status", methods=["PUT"])
 def update_damage_status(damage_id):
     """Update damage report status (admin only)"""
@@ -334,7 +337,7 @@ def update_damage_status(damage_id):
         conn.close()
 
 
-# Source legacy app.py lines 9728-9854 | routes: /api/form-kerusakan/export.xlsx
+# Route dari app.py server: /api/form-kerusakan/export.xlsx
 @app.route("/api/form-kerusakan/export.xlsx", methods=["GET"])
 def export_kerusakan_excel():
     ensure_auth_schema()
@@ -464,7 +467,7 @@ def export_kerusakan_excel():
         conn.close()
 
 
-# Source legacy app.py lines 9856-10005 | routes: /api/form-kerusakan/export.pdf
+# Route dari app.py server: /api/form-kerusakan/export.pdf
 @app.route("/api/form-kerusakan/export.pdf", methods=["GET"])
 def export_kerusakan_pdf():
     ensure_auth_schema()
@@ -615,5 +618,4 @@ def export_kerusakan_pdf():
     finally:
         cursor.close()
         conn.close()
-
 

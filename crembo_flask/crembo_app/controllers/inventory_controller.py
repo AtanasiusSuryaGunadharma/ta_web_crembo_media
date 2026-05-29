@@ -1,16 +1,19 @@
+"""Inventory Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Inventory Controller
 
-# Source legacy app.py lines 882-895 | routes: /api/inventory/categories
+# Route dari app.py server: /api/inventory/categories
 @app.route("/api/inventory/categories", methods=["GET"])
 def get_inventory_categories():
     ensure_auth_schema()
@@ -27,7 +30,7 @@ def get_inventory_categories():
         conn.close()
 
 
-# Source legacy app.py lines 897-916 | routes: /api/inventory/categories
+# Route dari app.py server: /api/inventory/categories
 @app.route("/api/inventory/categories", methods=["POST"])
 def create_inventory_category():
     ensure_auth_schema()
@@ -50,7 +53,7 @@ def create_inventory_category():
         conn.close()
 
 
-# Source legacy app.py lines 918-948 | routes: /api/inventory/categories/<category_name>
+# Route dari app.py server: /api/inventory/categories/<category_name>
 @app.route("/api/inventory/categories/<category_name>", methods=["PUT"])
 def update_inventory_category(category_name):
     ensure_auth_schema()
@@ -84,7 +87,7 @@ def update_inventory_category(category_name):
         conn.close()
 
 
-# Source legacy app.py lines 950-971 | routes: /api/inventory/categories/<category_name>
+# Route dari app.py server: /api/inventory/categories/<category_name>
 @app.route("/api/inventory/categories/<category_name>", methods=["DELETE"])
 def delete_inventory_category(category_name):
     ensure_auth_schema()
@@ -109,7 +112,7 @@ def delete_inventory_category(category_name):
         conn.close()
 
 
-# Source legacy app.py lines 1186-1225 | routes: /api/inventory/items
+# Route dari app.py server: /api/inventory/items
 @app.route("/api/inventory/items", methods=["GET"])
 def get_inventory_items():
     ensure_auth_schema()
@@ -152,7 +155,7 @@ def get_inventory_items():
         conn.close()
 
 
-# Source legacy app.py lines 1227-1250 | routes: /api/inventory/items/<item_id>
+# Route dari app.py server: /api/inventory/items/<item_id>
 @app.route("/api/inventory/items/<item_id>", methods=["GET"])
 def get_inventory_item(item_id):
     ensure_auth_schema()
@@ -179,7 +182,7 @@ def get_inventory_item(item_id):
         conn.close()
 
 
-# Source legacy app.py lines 1252-1298 | routes: /api/inventory/items
+# Route dari app.py server: /api/inventory/items
 @app.route("/api/inventory/items", methods=["POST"])
 def create_inventory_item():
     ensure_auth_schema()
@@ -229,7 +232,7 @@ def create_inventory_item():
         conn.close()
 
 
-# Source legacy app.py lines 1315-1390 | routes: /api/inventory/items/<item_id>
+# Route dari app.py server: /api/inventory/items/<item_id>
 @app.route("/api/inventory/items/<item_id>", methods=["PUT"])
 def update_inventory_item(item_id):
     ensure_auth_schema()
@@ -308,7 +311,7 @@ def update_inventory_item(item_id):
         conn.close()
 
 
-# Source legacy app.py lines 1392-1415 | routes: /api/inventory/items/<item_id>
+# Route dari app.py server: /api/inventory/items/<item_id>
 @app.route("/api/inventory/items/<item_id>", methods=["DELETE"])
 def delete_inventory_item(item_id):
     ensure_auth_schema()
@@ -335,7 +338,7 @@ def delete_inventory_item(item_id):
         conn.close()
 
 
-# Source legacy app.py lines 1417-1477 | routes: /api/inventory/export.xlsx
+# Route dari app.py server: /api/inventory/export.xlsx
 @app.route("/api/inventory/export.xlsx", methods=["GET"])
 def export_inventory_excel():
     ensure_auth_schema()
@@ -399,7 +402,7 @@ def export_inventory_excel():
         conn.close()
 
 
-# Source legacy app.py lines 1479-1571 | routes: /api/inventory/export.pdf
+# Route dari app.py server: /api/inventory/export.pdf
 @app.route("/api/inventory/export.pdf", methods=["GET"])
 def export_inventory_pdf():
     ensure_auth_schema()
@@ -495,7 +498,7 @@ def export_inventory_pdf():
         conn.close()
 
 
-# Source legacy app.py lines 2283-2314 | routes: /api/inventory/search
+# Route dari app.py server: /api/inventory/search
 @app.route("/api/inventory/search", methods=["GET"])
 def search_inventory_items():
     """Search inventory items for auto-lookup"""
@@ -528,5 +531,4 @@ def search_inventory_items():
     finally:
         cursor.close()
         conn.close()
-
 

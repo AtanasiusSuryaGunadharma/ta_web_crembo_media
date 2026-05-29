@@ -1,16 +1,19 @@
+"""Dashboard Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Dashboard Controller
 
-# Source legacy app.py lines 3989-4074 | routes: /api/dashboard/anggota-overview
+# Route dari app.py server: /api/dashboard/anggota-overview
 @app.route("/api/dashboard/anggota-overview", methods=["GET"])
 def api_dashboard_anggota_overview():
     ensure_auth_schema()
@@ -99,7 +102,7 @@ def api_dashboard_anggota_overview():
         conn.close()
 
 
-# Source legacy app.py lines 4077-4151 | routes: /api/dashboard/admin-overview
+# Route dari app.py server: /api/dashboard/admin-overview
 @app.route("/api/dashboard/admin-overview", methods=["GET"])
 def api_dashboard_admin_overview():
     role = normalize_role_value(session.get("role") or "")
@@ -175,5 +178,4 @@ def api_dashboard_admin_overview():
     finally:
         cursor.close()
         conn.close()
-
 

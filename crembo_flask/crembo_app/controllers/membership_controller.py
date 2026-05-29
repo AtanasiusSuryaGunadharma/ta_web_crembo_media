@@ -1,16 +1,19 @@
+"""Membership Controller.
+
+File ini berisi route/controller yang dipisahkan dari app.py server lama.
+Logika helper tetap dipanggil dari crembo_app.services.core agar perilaku produksi tetap sama.
+"""
+
 from crembo_app.services import core as _core
 
-# Memuat seluruh helper, service, dan objek Flask dari core agar potongan kode route
-# tetap kompatibel setelah dipisah dari app.py monolitik.
 globals().update({
     name: getattr(_core, name)
     for name in dir(_core)
     if not (name.startswith("__") and name.endswith("__"))
 })
 
-# Controller: Membership Controller
 
-# Source legacy app.py lines 6649-6715 | routes: /api/membership/my
+# Route dari app.py server: /api/membership/my
 @app.route("/api/membership/my", methods=["GET"])
 def api_membership_my():
     """Ambil status keanggotaan user login sebagai JSON murni dan read-only.
@@ -80,7 +83,7 @@ def api_membership_my():
             conn.close()
 
 
-# Source legacy app.py lines 6717-6822 | routes: /api/membership/inactive-request
+# Route dari app.py server: /api/membership/inactive-request
 @app.route("/api/membership/inactive-request", methods=["POST"])
 
 def api_membership_submit_request():
@@ -189,7 +192,7 @@ def api_membership_submit_request():
         conn.close()
 
 
-# Source legacy app.py lines 6824-6848 | routes: /api/membership/inactive-request/<request_id>
+# Route dari app.py server: /api/membership/inactive-request/<request_id>
 @app.route("/api/membership/inactive-request/<request_id>", methods=["DELETE"])
 def api_membership_cancel_request(request_id):
     if not session.get("logged_in"):
@@ -217,7 +220,7 @@ def api_membership_cancel_request(request_id):
         conn.close()
 
 
-# Source legacy app.py lines 6850-6880 | routes: /api/membership/admin/requests
+# Route dari app.py server: /api/membership/admin/requests
 @app.route("/api/membership/admin/requests", methods=["GET"])
 def api_membership_admin_requests():
     if not can_manage_members():
@@ -251,7 +254,7 @@ def api_membership_admin_requests():
         conn.close()
 
 
-# Source legacy app.py lines 6882-7018 | routes: /api/membership/admin/requests/<request_id>/respond
+# Route dari app.py server: /api/membership/admin/requests/<request_id>/respond
 @app.route("/api/membership/admin/requests/<request_id>/respond", methods=["POST"])
 def api_membership_admin_respond(request_id):
     if not can_manage_members():
@@ -391,7 +394,7 @@ def api_membership_admin_respond(request_id):
         conn.close()
 
 
-# Source legacy app.py lines 7020-7040 | routes: /api/membership/admin/pending-actions
+# Route dari app.py server: /api/membership/admin/pending-actions
 @app.route("/api/membership/admin/pending-actions", methods=["GET"])
 def api_membership_admin_pending_actions():
     if not can_manage_members():
@@ -415,7 +418,7 @@ def api_membership_admin_pending_actions():
         conn.close()
 
 
-# Source legacy app.py lines 7151-7164 | routes: /api/admin-users
+# Route dari app.py server: /api/admin-users
 @app.route("/api/admin-users", methods=["GET"])
 def api_admin_users_list():
     forbidden = require_super_admin_api()
@@ -432,7 +435,7 @@ def api_admin_users_list():
         conn.close()
 
 
-# Source legacy app.py lines 7166-7223 | routes: /api/admin-users
+# Route dari app.py server: /api/admin-users
 @app.route("/api/admin-users", methods=["POST"])
 def api_admin_users_create():
     forbidden = require_super_admin_api()
@@ -493,7 +496,7 @@ def api_admin_users_create():
         conn.close()
 
 
-# Source legacy app.py lines 7225-7275 | routes: /api/admin-users/<int:admin_id>
+# Route dari app.py server: /api/admin-users/<int:admin_id>
 @app.route("/api/admin-users/<int:admin_id>", methods=["PUT"])
 def api_admin_users_update(admin_id: int):
     forbidden = require_super_admin_api()
@@ -547,7 +550,7 @@ def api_admin_users_update(admin_id: int):
         conn.close()
 
 
-# Source legacy app.py lines 7277-7304 | routes: /api/admin-users/<int:admin_id>
+# Route dari app.py server: /api/admin-users/<int:admin_id>
 @app.route("/api/admin-users/<int:admin_id>", methods=["DELETE"])
 def api_admin_users_delete(admin_id: int):
     forbidden = require_super_admin_api()
@@ -578,7 +581,7 @@ def api_admin_users_delete(admin_id: int):
         conn.close()
 
 
-# Source legacy app.py lines 7306-7313 | routes: /api/anggota
+# Route dari app.py server: /api/anggota
 @app.route("/api/anggota", methods=["GET"])
 def api_anggota_list():
     if not can_manage_members():
@@ -589,7 +592,7 @@ def api_anggota_list():
     return response
 
 
-# Source legacy app.py lines 7316-7332 | routes: /api/anggota/sync
+# Route dari app.py server: /api/anggota/sync
 @app.route("/api/anggota/sync", methods=["POST"])
 def api_anggota_sync():
     if not can_manage_members():
@@ -607,315 +610,4 @@ def api_anggota_sync():
     except Exception as exc:
         return jsonify({"ok": False, "message": str(exc)}), 400
     return jsonify({"ok": True, "members": read_members_for_admin()})
-
-
-# Source legacy app.py lines 7335-7396 | routes: /api/profile/me
-@app.route("/api/profile/me", methods=["GET"])
-def api_profile_me():
-    """Ambil profil anggota/admin yang sedang login langsung dari DB.
-
-    Endpoint dibuat read-only supaya aman dipanggil paralel dengan
-    /api/membership/my dari halaman profil anggota.
-    """
-    if not session.get("logged_in"):
-        return jsonify({"ok": False, "message": "Unauthorized"}), 401
-
-    conn = None
-    cursor = None
-    try:
-        conn = mysql_connection()
-        cursor = conn.cursor(dictionary=True)
-        user_id = session.get("user_id")
-        cursor.execute(
-            """
-            SELECT id, nama, username, telp, role, tgl_lahir, email, alamat,
-                   status_akun, inactive_until, inactive_from, inactive_type,
-                   inactive_reason, inactive_note, created_at, updated_at
-            FROM anggota
-            WHERE id = %s
-            LIMIT 1
-            """,
-            (user_id,),
-        )
-        row = cursor.fetchone()
-        if not row:
-            session.clear()
-            return jsonify({"ok": False, "message": "Akun login tidak ditemukan. Silakan login ulang."}), 404
-
-        sync_session_from_member_row(row)
-        user = current_user_context_from_row(
-            row,
-            include_admin_permissions=normalize_role_value(row.get("role") or "") in {"admin", "super_admin"},
-        )
-        return jsonify({"ok": True, "user": user, "member": member_row_to_dict(row)})
-    except mysql.connector.Error as exc:
-        if conn:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-        if getattr(exc, "errno", None) in {1205, 1213}:
-            return jsonify({
-                "ok": False,
-                "message": "Database sedang sibuk memproses data profil. Silakan muat ulang halaman beberapa detik lagi."
-            }), 503
-        return jsonify({"ok": False, "message": f"Gagal memuat profil login: {exc}"}), 500
-    except Exception as exc:
-        if conn:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-        return jsonify({"ok": False, "message": f"Gagal memuat profil login: {exc}"}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
-
-# Source legacy app.py lines 7399-7451 | routes: /api/profile/update
-@app.route("/api/profile/update", methods=["POST"])
-
-def api_profile_update():
-    if not session.get("logged_in"):
-        return jsonify({"ok": False, "message": "Unauthorized"}), 401
-
-    payload = request.get_json(silent=True) or {}
-    # Extract fields (do not allow updating role, nama, etc. if not authorized)
-    # The requirement is that full name is readonly, so we skip it.
-    username = payload.get("username", "").strip()
-    email = payload.get("email", "").strip()
-    telp = payload.get("phone", "").strip()
-    alamat = payload.get("address", "").strip()
-    tgl_lahir = payload.get("birthDate", "").strip()
-
-    if not username or not email:
-        return jsonify({"ok": False, "message": "Username dan email wajib diisi."}), 400
-
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        user_id = session.get("user_id")
-        
-        # Check uniqueness of username and email (excluding current user)
-        cursor.execute("SELECT id FROM anggota WHERE (username = %s OR email = %s OR telp = %s) AND id != %s", (username, email, telp, user_id))
-        if cursor.fetchone():
-            return jsonify({"ok": False, "message": "Username, email, atau telepon sudah digunakan oleh akun lain."}), 400
-            
-        cursor.execute(
-            """
-            UPDATE anggota 
-            SET username = %s, email = %s, telp = %s, alamat = %s, tgl_lahir = %s
-            WHERE id = %s
-            """,
-            (username, email, telp, alamat, tgl_lahir, user_id)
-        )
-        conn.commit()
-        
-        # Update session dan kirim ulang user terbaru supaya frontend tidak perlu memakai localStorage lama.
-        session["username"] = username
-        session["email"] = email
-        session["telp"] = telp
-        session["alamat"] = alamat
-        session["tgl_lahir"] = tgl_lahir
-        refreshed_user = current_user_context()
-        
-        return jsonify({"ok": True, "message": "Profil berhasil diperbarui.", "user": refreshed_user})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"ok": False, "message": str(e)}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# Source legacy app.py lines 7454-7487 | routes: /api/profile/password
-@app.route("/api/profile/password", methods=["POST"])
-def api_profile_password():
-    if not session.get("logged_in"):
-        return jsonify({"ok": False, "message": "Unauthorized"}), 401
-
-    payload = request.get_json(silent=True) or {}
-    current_password = payload.get("currentPassword", "")
-    new_password = payload.get("newPassword", "")
-
-    if len(new_password) < 6:
-        return jsonify({"ok": False, "message": "Password baru minimal 6 karakter."}), 400
-
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        user_id = session.get("user_id")
-        cursor.execute("SELECT password, tgl_lahir FROM anggota WHERE id = %s", (user_id,))
-        row = cursor.fetchone()
-        
-        if not row or not check_password_hash(row["password"], current_password):
-            return jsonify({"ok": False, "message": "Password saat ini salah."}), 400
-            
-        hashed_new_password = hash_member_password(new_password, row.get("tgl_lahir", ""))
-        
-        cursor.execute("UPDATE anggota SET password = %s WHERE id = %s", (hashed_new_password, user_id))
-        conn.commit()
-        
-        return jsonify({"ok": True, "message": "Password berhasil diperbarui."})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"ok": False, "message": str(e)}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# Source legacy app.py lines 7920-7943 | routes: /api/profiles
-@app.route("/api/profiles", methods=["GET"])
-def get_profiles():
-    ensure_auth_schema()
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM `organization_profiles` ORDER BY `order_index` ASC")
-    rows = cursor.fetchall() or []
-    cursor.close()
-    conn.close()
-    profile_rows = []
-    for row in rows:
-        attachments = normalize_attachment_payload(row["attachment_url"])
-        profile_rows.append({
-            "id": row["id"],
-            "title": row["title"],
-            "description": row["description"],
-            "attachmentUrl": attachments[0]["url"] if attachments else "",
-            "attachments": attachments,
-            "order": row["order_index"],
-            "active": bool(row["is_visible"]),
-            "createdAt": row["created_at"],
-            "updatedAt": row["updated_at"],
-        })
-    return jsonify(profile_rows)
-
-
-# Source legacy app.py lines 7945-7976 | routes: /api/profiles
-@app.route("/api/profiles", methods=["POST"])
-def create_profile():
-    ensure_auth_schema()
-    data = request.json or {}
-    profile_id = f"profile-{int(time.time() * 1000)}"
-    attachments = normalize_attachment_payload(data.get("attachments"))
-    if not attachments:
-        attachments = normalize_attachment_payload(data.get("attachmentUrl"))
-
-    conn = mysql_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-            INSERT INTO `organization_profiles` 
-            (`id`, `title`, `description`, `attachment_url`, `order_index`, `is_visible`)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (
-            profile_id,
-            data.get("title", ""),
-            data.get("description", ""),
-            json.dumps(attachments, ensure_ascii=False),
-            int(data.get("order", 0)),
-            1 if data.get("active") else 0,
-        ))
-        conn.commit()
-        return jsonify({"success": True, "id": profile_id})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "error": str(e)}), 400
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# Source legacy app.py lines 7978-8027 | routes: /api/profiles/<profile_id>
-@app.route("/api/profiles/<profile_id>", methods=["PUT"])
-def update_profile(profile_id):
-    ensure_auth_schema()
-    data = request.json or {}
-    attachments = normalize_attachment_payload(data.get("attachments"))
-    if not attachments:
-        attachments = normalize_attachment_payload(data.get("attachmentUrl"))
-
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT `attachment_url` FROM `organization_profiles` WHERE `id` = %s LIMIT 1", (profile_id,))
-        existing = cursor.fetchone()
-        if not existing:
-            return jsonify({"success": False, "error": "Profile not found"}), 404
-
-        cursor.execute("""
-            UPDATE `organization_profiles`
-            SET `title` = %s, `description` = %s, `attachment_url` = %s, `order_index` = %s, `is_visible` = %s
-            WHERE `id` = %s
-        """, (
-            data.get("title", ""),
-            data.get("description", ""),
-            json.dumps(attachments, ensure_ascii=False),
-            int(data.get("order", 0)),
-            1 if data.get("active") else 0,
-            profile_id
-        ))
-        conn.commit()
-
-        # Cleanup file lama yang sudah dihapus/diganti saat Edit
-        if existing:
-            try:
-                old_atts_raw = existing.get("attachment_url") or "[]"
-                old_atts = json.loads(old_atts_raw) if isinstance(old_atts_raw, str) else (old_atts_raw or [])
-                new_att_urls = [a.get("url") for a in attachments if isinstance(a, dict) and a.get("url")]
-                
-                for oa in old_atts:
-                    if isinstance(oa, dict) and oa.get("url") and oa.get("url") not in new_att_urls:
-                        remove_physical_file(oa["url"])
-            except Exception as e:
-                print(f"[WARN] Failed to cleanup replaced files for profile {profile_id}: {e}")
-
-        return jsonify({"success": True})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "error": str(e)}), 400
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# Source legacy app.py lines 8029-8062 | routes: /api/profiles/<profile_id>
-@app.route("/api/profiles/<profile_id>", methods=["DELETE"])
-def delete_profile(profile_id):
-    ensure_auth_schema()
-    conn = mysql_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        # 1. Fetch data profil untuk mendapatkan list file yang harus dihapus
-        cursor.execute("SELECT `attachment_url` FROM `organization_profiles` WHERE `id` = %s LIMIT 1", (profile_id,))
-        profile = cursor.fetchone()
-        
-        if not profile:
-            return jsonify({"success": False, "error": "Profile not found"}), 404
-
-        # 2. Hapus record dari database
-        cursor.execute("DELETE FROM `organization_profiles` WHERE `id` = %s", (profile_id,))
-        conn.commit()
-
-        # 3. Clean up physical files di folder
-        try:
-            atts_raw = profile.get("attachment_url") or "[]"
-            atts = json.loads(atts_raw) if isinstance(atts_raw, str) else (atts_raw or [])
-            for att in atts:
-                if isinstance(att, dict) and att.get("url"):
-                    remove_physical_file(att["url"])
-        except Exception as e:
-            print(f"[WARN] Error during physical file cleanup for profile {profile_id}: {e}")
-
-        return jsonify({"success": True})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "error": str(e)}), 400
-    finally:
-        cursor.close()
-        conn.close()
-
 
