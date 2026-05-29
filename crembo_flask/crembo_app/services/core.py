@@ -35,8 +35,7 @@ app = Flask(
     static_folder=str(FRONTEND_DIR / "static"),
     static_url_path="/static",
 )
-app.secret_key = app_settings.SECRET_KEY
-app.permanent_session_lifetime = timedelta(days=app_settings.SESSION_LIFETIME_DAYS)
+app.secret_key = "dev-secret-change-me"
 
 
 @app.errorhandler(404)
@@ -101,7 +100,14 @@ def clean_public_html_urls(response):
 
 
 
-MYSQL_CONFIG = app_settings.MYSQL_CONFIG
+MYSQL_CONFIG = {
+    "host": os.getenv("MYSQL_HOST", "127.0.0.1"),
+    "port": int(os.getenv("MYSQL_PORT", "3306")),
+    "user": os.getenv("MYSQL_USER", "root"),
+    "password": os.getenv("MYSQL_PASSWORD", ""),
+    "database": os.getenv("MYSQL_DATABASE", "crembo_db_new"),
+    "autocommit": False,
+}
 
 # Konfigurasi aplikasi diambil dari crembo_app/config/settings.py dan file .env.
 SMTP_HOST = app_settings.SMTP_HOST
