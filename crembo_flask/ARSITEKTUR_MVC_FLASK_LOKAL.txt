@@ -1,0 +1,33 @@
+STRUKTUR MVC FLASK CREMBO MEDIA
+
+Struktur hasil refactor lokal:
+- app.py                        : entry point aplikasi Flask.
+- crembo_app/config/settings.py : konfigurasi database, email, domain, upload, dan OTP dari file .env.
+- crembo_app/models/            : lapisan model untuk koneksi dan akses database.
+- crembo_app/controllers/       : lapisan controller yang berisi route berdasarkan modul.
+- crembo_app/services/core.py   : fungsi service/helper bersama agar logic lama tetap kompatibel.
+- frontend/                     : lapisan view berupa file HTML, CSS, JavaScript, dan aset.
+
+Controller yang dibuat:
+- activity_log_controller.py
+- auth_controller.py
+- certificate_controller.py
+- content_controller.py
+- damage_controller.py
+- dashboard_controller.py
+- evaluation_controller.py
+- inventory_controller.py
+- loan_controller.py
+- membership_controller.py
+- monitoring_controller.py
+- notification_controller.py
+- page_controller.py
+- registration_controller.py
+- request_task_controller.py
+- streaming_controller.py
+- task_exchange_controller.py
+
+Cara menjalankan lokal:
+1. Pastikan database crembo_db_new sudah di-import.
+2. Jalankan: python app.py
+3. Untuk gunicorn tetap bisa: gunicorn -w 3 -b 127.0.0.1:8000 app:app
